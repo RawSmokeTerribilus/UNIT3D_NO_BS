@@ -1,0 +1,406 @@
+:root {
+    /* --- PALETA RETRO REFINADA V2 --- */
+    --body-bg: #050507; 
+    --body-fg: #d8d7dc;
+    --font-size-base: 1rem; /* Aumento a estándar de 16px */
+
+    --accent-purple: #9d00ff;
+    --accent-purple-dark: #4b0082;
+    --accent-fuchsia: #ff00ff;
+    --accent-cyan: #00ffff;
+    --accent-gradient: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-fuchsia) 100%);
+    
+    --text-main: #d8d7dc;
+    --text-muted: #999999;
+    --text-bright: #ffffff;
+
+    --radius-main: 12px;
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* NEON GLOWS - BOOSTED */
+    --glow-purple: 0 0 10px rgba(157, 0, 255, 0.8), 0 0 20px rgba(157, 0, 255, 0.5), 0 0 40px rgba(157, 0, 255, 0.2);
+    --glow-fuchsia: 0 0 10px rgba(255, 0, 255, 0.8), 0 0 20px rgba(255, 0, 255, 0.5);
+    --glow-text: 0 0 10px rgba(157, 0, 255, 0.9), 0 0 20px rgba(157, 0, 255, 0.4);
+    --glow-cyan: 0 0 10px rgba(0, 255, 255, 0.7), 0 0 20px rgba(0, 255, 255, 0.3);
+
+    /* --- VARIABLES DE UNIT3D --- */
+    --key-value-padding: 12px;
+    --key-value-border-radius: var(--radius-main);
+    /* Cebreado consistente */
+    --key-value-odd-bg: #1a1a1f; 
+    --key-value-even-bg: #0b0b0f;
+
+    --panel-bg: rgba(11, 11, 15, 0.85); /* Semi-transparente para el efecto Blur */
+    --panel-fg: var(--text-main);
+    --panel-border: 2px solid var(--accent-purple); /* Borde un poco más grueso */
+    --panel-head-bg: #000000;
+    --panel-head-fg: var(--accent-fuchsia);
+    --panel-border-radius: var(--radius-main);
+    --panel-box-shadow: 0 0 20px rgba(157, 0, 255, 0.6), 0 0 40px rgba(157, 0, 255, 0.3), 0 0 60px rgba(157, 0, 255, 0.1);
+
+    --top-nav-dropdown-menu-bg: #0e0e12;
+    --top-nav-dropdown-menu-border: 1px solid var(--accent-purple);
+    --top-nav-dropdown-menu-radius: var(--radius-main);
+
+    /* --- NAVEGACIÓN SECUNDARIA (PERFIL) --- */
+    --secondary-nav-bg: #000000;
+    --secondary-nav-tab-fg: var(--text-muted);
+    --secondary-nav-tab-hover-fg: var(--accent-cyan);
+    --secondary-nav-tab-hover-bg: rgba(157, 0, 255, 0.1);
+}
+
+/* --- ESTRUCTURA GENERAL --- */
+body {
+    font-size: var(--font-size-base) !important;
+}
+
+body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+    background-size: 100% 4px, 3px 100%;
+    opacity: 0.2;
+    z-index: 1; 
+    pointer-events: none;
+}
+
+/* --- FORMULARIOS Y CUADROS DE OPCIÓN --- */
+input, select, textarea, .form__text, .form__select, .form__textarea {
+    background-color: #1a1a1f !important;
+    color: var(--text-bright) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--radius-main) !important;
+    padding: 10px 12px !important;
+}
+
+/* Bloques de visibilidad y fieldsets */
+fieldset, .form__fieldset {
+    background-color: rgba(26, 26, 31, 0.5) !important; /* Capa neutra sutil */
+    border: 1px solid rgba(157, 0, 255, 0.2) !important;
+    padding: 1.5rem !important;
+    border-radius: var(--radius-main) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+legend, .form__legend {
+    color: var(--accent-cyan) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    padding: 0 10px !important;
+    font-size: 0.85rem !important;
+}
+
+/* --- CEBREADO DE LISTAS Y TABLAS (EVIDENTE) --- */
+/* Tablas de Torrents e Historial */
+.table tbody tr:nth-child(odd) {
+    background-color: #0b0b0f !important;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #1a1a1f !important; /* Gris neutro evidente */
+}
+
+.table tbody tr:hover {
+    background-color: rgba(157, 0, 255, 0.1) !important;
+    border-left: 3px solid var(--accent-fuchsia) !important;
+}
+
+/* Cuadros de datos (Key-Value) */
+.key-value__group:nth-child(odd) {
+    background-color: #1a1a1f !important;
+}
+
+.key-value__group:nth-child(even) {
+    background-color: #0b0b0f !important;
+}
+
+.key-value dt {
+    color: var(--accent-cyan) !important;
+    padding-left: 10px !important;
+}
+
+.key-value dd {
+    padding-right: 10px !important;
+}
+
+/* --- BOTONES Y ICONOS --- */
+.btn-primary {
+    background: var(--accent-gradient) !important;
+    box-shadow: var(--glow-purple) !important;
+}
+
+.btn i, .btn .fa {
+    color: #ffffff !important;
+}
+
+/* --- CABECERAS Y PANELES --- */
+.panel, .card, .panelV2 {
+    background: var(--panel-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 2px solid var(--accent-purple) !important; 
+    border-radius: var(--radius-main) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), var(--panel-box-shadow) !important; 
+    overflow: hidden !important; 
+    margin-bottom: 2rem !important;
+    position: relative !important;
+}
+
+/* Encabezados consistentes para .panel, .card y .panelV2 */
+.panel-head, .card-header, .panel__header, .panel__heading:not(header > .panel__heading) {
+    background: #000000 !important;
+    color: var(--accent-fuchsia) !important;
+    text-shadow: var(--glow-text) !important;
+    border-bottom: 2px solid var(--accent-purple) !important;
+    padding: 12px 20px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-top-left-radius: calc(var(--radius-main) - 2px) !important;
+    border-top-right-radius: calc(var(--radius-main) - 2px) !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+/* Caso especial: heading dentro de un header */
+header.panel__header .panel__heading {
+    border-bottom: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+}
+
+/* Links y botones de Acción en Cabecera */
+.panel-head a, .card-header a, .panel__header a, .panel__actions a, .form__button--text {
+    color: var(--accent-cyan) !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase !important;
+    font-weight: bold !important;
+    text-decoration: none !important;
+    padding: 4px 10px !important;
+    border: 1px solid transparent !important;
+    border-radius: 4px !important;
+    transition: var(--transition-fast) !important;
+    display: inline-block !important;
+    background: transparent !important;
+}
+
+.panel-head a:hover, .card-header a:hover, .panel__header a:hover, .panel__actions a:hover, .form__button--text:hover {
+    background: rgba(0, 255, 255, 0.1) !important;
+    border-color: var(--accent-cyan) !important;
+    box-shadow: var(--glow-cyan) !important;
+    text-shadow: 0 0 5px var(--accent-cyan) !important;
+    color: var(--accent-cyan) !important;
+}
+
+.panel-body, .card-body, .panel__body {
+    background: transparent !important; 
+    padding: 20px !important;
+    color: var(--text-main) !important;
+}
+
+/* --- PERFIL --- */
+.profile__avatar {
+    border: 2px solid var(--accent-purple);
+    border-radius: var(--radius-main);
+    box-shadow: var(--glow-purple);
+    margin-bottom: 1rem;
+}
+
+.profile__username {
+    font-size: 1.5rem !important;
+    text-shadow: var(--glow-text);
+    margin-bottom: 0.5rem;
+}
+
+.profile__registration, .profile__title {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.bbcode-rendered {
+    color: var(--text-main);
+}
+
+.panel-footer, .card-footer, .panel__footer {
+    background: #000000 !important;
+    border-top: 1px solid rgba(157, 0, 255, 0.3) !important;
+    border-bottom-left-radius: calc(var(--radius-main) - 2px) !important;
+    border-bottom-right-radius: calc(var(--radius-main) - 2px) !important;
+    padding: 12px 20px !important;
+    margin: 0 !important;
+}
+
+/* --- MENÚS --- */
+.dropdown-menu, .top-nav__dropdown > ul {
+    background: #0e0e12 !important;
+    border: 2px solid var(--accent-purple) !important;
+    border-radius: var(--radius-main) !important;
+    box-shadow: 0 0 20px rgba(157, 0, 255, 0.8), 0 0 40px rgba(157, 0, 255, 0.3) !important; /* Neón morado súper intenso */
+    background-clip: padding-box !important;
+}
+
+.dropdown-item:hover {
+    background: rgba(157, 0, 255, 0.2) !important;
+    color: var(--accent-cyan) !important;
+    text-shadow: var(--glow-cyan);
+}
+
+/* --- TOP NAV --- */
+.top-nav {
+    border-bottom: 5px solid transparent !important;
+    border-image: linear-gradient(90deg, 
+        #0a001a 0%, 
+        #2a0052 15%, 
+        #4b0082 40%, 
+        #7a00cc 65%, 
+        #9d00ff 85%, 
+        #ff00ff 100%
+    ) 1 !important;
+    box-shadow: 0 4px 20px rgba(157, 0, 255, 0.5) !important;
+}
+
+.top-nav__icon-bar-icon-fg {
+    color: var(--accent-cyan) !important;
+}
+
+/* --- NAVEGACIÓN SECUNDARIA (PERFIL) --- */
+.secondary-nav {
+    background: var(--secondary-nav-bg) !important;
+    border-bottom: 1px solid rgba(157, 0, 255, 0.3) !important;
+    overflow: visible !important; /* Importante para que los menús no se corten */
+}
+
+.nav-tabsV2 {
+    overflow: visible !important; /* Evita que el scroll lateral oculte los desplegables */
+}
+
+.nav-tab-menu {
+    position: relative;
+    
+    /* Aseguramos que el menú se despliegue */
+    &:hover > .nav-tab-menu__items,
+    &:focus-within > .nav-tab-menu__items {
+        display: flex !important;
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+}
+
+.nav-tab-menu__items {
+    background: #0e0e12 !important;
+    border: 2px solid var(--accent-purple) !important;
+    box-shadow: 0 0 20px rgba(157, 0, 255, 0.8), 0 0 40px rgba(157, 0, 255, 0.3) !important; /* Neón morado súper intenso */
+    top: calc(100% - 1px) !important; /* Unir un poco más para evitar gaps */
+    left: 0 !important;
+    padding: 8px 0 !important;
+    min-width: 220px !important;
+    border-radius: var(--radius-main) !important;
+    z-index: 9999 !important; /* Z-index muy alto */
+    background-clip: padding-box !important;
+    
+    /* Estado inicial oculto */
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s !important;
+}
+
+/* Pseudo-elemento para cubrir el hueco entre el tab y el menú */
+.nav-tab-menu__items::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: transparent;
+}
+
+.nav-tab-menu__items .nav-tab__link, 
+.nav-tab-menu__items .nav-tab--active__link {
+    color: var(--text-main) !important;
+    padding: 8px 18px !important;
+    display: block !important;
+    width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    transition: var(--transition-fast) !important;
+}
+
+.nav-tab-menu__items .nav-tab__link:hover,
+.nav-tab-menu__items .nav-tab--active__link:hover {
+    background: rgba(157, 0, 255, 0.15) !important;
+    color: var(--accent-cyan) !important;
+    padding-left: 24px !important; /* Efecto de indentación retro */
+    text-shadow: var(--glow-text);
+}
+
+/* --- DASHBOARD / STAFF PANEL FIXES --- */
+.dashboard__menus {
+    .panel__body {
+        padding: 15px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 5px !important;
+    }
+
+    .form__group, .form__group--horizontal {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+
+        form {
+            display: contents !important; /* El botón se comporta como hijo directo */
+        }
+    }
+
+    .form__button, .form__button--text {
+        text-align: left !important;
+        width: 100% !important;
+        padding: 6px 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        font-size: 0.95rem !important; /* Aumento para coincidir con el resto */
+        
+        i, .fa {
+            width: 25px !important;
+            text-align: center !important;
+            margin-right: 12px !important;
+            color: var(--accent-cyan) !important;
+            font-size: 1rem !important;
+        }
+
+        &:hover {
+            padding-left: 18px !important; /* Efecto de desplazamiento al hover */
+        }
+    }
+}
+
+/* --- BANNER DE EVENTO ESPECIAL (FREELEECH) --- */
+.special-event-alert {
+    font-size: 1.1rem !important;
+    text-shadow: var(--glow-text);
+    border: 2px solid var(--accent-fuchsia) !important;
+    box-shadow: var(--glow-fuchsia) !important;
+    margin: 10px 0 !important;
+    border-radius: var(--radius-main) !important;
+    
+    strong {
+        color: var(--accent-cyan) !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+}

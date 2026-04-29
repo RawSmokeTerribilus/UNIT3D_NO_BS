@@ -1,0 +1,116 @@
+{
+    "name": "laravel/laravel",
+    "description": "The Laravel Framework.",
+    "keywords": [
+        "framework",
+        "laravel"
+    ],
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": ">=8.4",
+        "ext-dom": "*",
+        "ext-json": "*",
+        "ext-libxml": "*",
+        "ext-zend-opcache": "*",
+        "ext-zip": "*",
+        "assada/laravel-achievements": "^2.8",
+        "bjeavons/zxcvbn-php": "^1.4.2",
+        "doctrine/dbal": "^3.10.1",
+        "gabrielelana/byte-units": "^0.5.0",
+        "graham-campbell/markdown": "^v16.0.0",
+        "guzzlehttp/guzzle": "^7.10.0",
+        "hdvinnie/laravel-joypixel-emojis": "^3.0.1",
+        "hdvinnie/laravel-security-headers": "^3.0.3",
+        "intervention/image": "^2.7.2",
+        "joypixels/assets": "^v7.0.1",
+        "laravel/fortify": "^1.30.0",
+        "laravel/framework": "^12.40.2",
+        "laravel/octane": "^2.12.1",
+        "laravel/scout": "^10.19.0",
+        "laravel/tinker": "^2.10.1",
+        "livewire/livewire": "^3.6.4",
+        "maennchen/zipstream-php": "^3.2",
+        "marcreichel/igdb-laravel": "^5.3.1",
+        "meilisearch/meilisearch-php": "^1.15.0",
+        "paragonie/constant_time_encoding": "^2.7.0",
+        "spatie/laravel-backup": "^9.3.4",
+        "spatie/laravel-cookie-consent": "^3.3.3",
+        "spatie/laravel-image-optimizer": "^1.8.2",
+        "spatie/ssl-certificate": "^2.6.10",
+        "symfony/dom-crawler": "^6.4.25",
+        "theodorejb/polycast": "dev-master",
+        "vstelmakh/url-highlight": "^3.1.2"
+    },
+    "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.16.0",
+        "brianium/paratest": "^7.12.0",
+        "calebdw/larastan": "3.7.1",
+        "calebdw/larastan-livewire": "^2.3.0",
+        "fakerphp/faker": "^1.24.1",
+        "jasonmccreary/laravel-test-assertions": "^2.8.0",
+        "laravel/pint": "^1.26.0",
+        "laravel/sail": "^1.45.0",
+        "mockery/mockery": "^1.6.12",
+        "nunomaduro/collision": "^8.8.2",
+        "pestphp/pest": "^4.0.4",
+        "pestphp/pest-plugin-laravel": "^4.0.0",
+        "pestphp/pest-plugin-livewire": "^4.0.1",
+        "phpstan/phpstan": "^2.1.32",
+        "phpunit/phpunit": "^12.3.7",
+        "ryoluo/sail-ssl": "^1.4.0",
+        "spatie/laravel-ignition": "^2.9.1",
+        "tomasvotruba/bladestan": "^0.11.3"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "platform": {
+            "ext-mcrypt": "1.0"
+        },
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        },
+        "files": [
+            "app/Helpers/Helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan vendor:publish --force --tag=livewire:assets --ansi",
+            "@php artisan vendor:publish --tag=public --provider=\"hdvinnie\\LaravelJoyPixels\\LaravelJoyPixelsServiceProvider\""
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ]
+    }
+}

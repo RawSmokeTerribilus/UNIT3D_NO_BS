@@ -1,0 +1,132 @@
+.quick-search {
+    position: relative;
+    max-width: 400px;
+    flex-grow: 1;
+    z-index: 5;
+
+    @media screen and (max-width: 940px) {
+        display: none;
+    }
+}
+
+.quick-search:active,
+.quick-search:focus-within {
+    box-shadow: var(--quick-search-box-shadow);
+    border-radius: var(--quick-search-border-radius);
+}
+
+.quick-search__inputs {
+    position: absolute;
+    display: flex;
+    height: 100%;
+}
+
+.quick-search:active .quick-search__inputs,
+.quick-search:focus-within .quick-search__inputs {
+    border-radius: var(--quick-search-border-radius)
+        var(--quick-search-border-radius) 0 0;
+    width: 400px;
+}
+
+.quick-search__input {
+    width: 100%;
+    background-color: #000000 !important;
+    border: 1px solid #fe019a !important;
+    box-shadow: 0 0 5px rgba(254, 1, 154, 0.5) !important;
+    border-radius: var(--quick-search-border-radius);
+    background-clip: padding-box;
+    font-size: 13px;
+    padding: 1px 0 1px 8px;
+    color: #00ffff !important;
+}
+
+.quick-search:active .quick-search__input,
+.quick-search:focus-within .quick-search__input {
+    border-radius: var(--quick-search-border-radius)
+        var(--quick-search-border-radius) 0 0;
+    border-bottom: none;
+}
+
+.quick-search__input::placeholder {
+    text-transform: capitalize;
+}
+
+.quick-search__input:focus {
+    outline: none;
+}
+
+.quick-search:not(:focus-within):not(:active) .quick-search__results {
+    display: none;
+}
+
+.quick-search__results {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    border-radius: 0 0 var(--quick-search-border-radius)
+        var(--quick-search-border-radius);
+    border-bottom: var(--quick-search-border);
+    border-left: var(--quick-search-border);
+    border-right: var(--quick-search-border);
+    box-shadow: var(--quick-search-box-shadow);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.quick-search__result {
+    border-top: var(--quick-search-result-border);
+}
+
+.quick-search__result-link,
+.quick-search__result--empty,
+.quick-search__result--default {
+    display: flex;
+    background-color: var(--quick-search-bg);
+    text-decoration: none;
+    color: var(--quick-search-fg);
+    font-size: 12px;
+}
+
+.quick-search__result-link {
+    padding: 4px 8px;
+    outline: 0;
+}
+
+.quick-search__result--empty,
+.quick-search__result--default {
+    padding: 0;
+}
+
+.quick-search__result-link:hover,
+.quick-search__result-link:focus {
+    background-color: var(--quick-search-result-hover-bg);
+    color: var(--quick-search-result-hover-fg);
+}
+
+.quick-search__image {
+    /* TMDb posters should always be a ratio of 1.5 */
+    width: 40px;
+    height: 60px;
+    border-radius: var(--quick-search-result-image-border-radius);
+}
+
+.quick-search__result-text {
+    margin: 0;
+    padding: 2px 10px;
+    display: grid;
+    align-items: center;
+    align-content: center;
+    row-gap: 2px;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.quick-search__result-name {
+    line-height: 1.3;
+}
+
+.quick-search__result-year {
+    color: var(--quick-search-result-year-fg);
+    font-size: 13px;
+}

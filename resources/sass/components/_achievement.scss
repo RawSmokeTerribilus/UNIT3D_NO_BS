@@ -1,0 +1,21 @@
+.achievement {
+    display: grid;
+    grid-template-columns: auto 3fr 1fr;
+    gap: 10px;
+    align-items: center;
+    margin: 5px;
+    padding: 18px;
+    border-radius: 5px;
+    box-shadow: var(--achievement-box-shadow);
+    color: var(--achievement-fg);
+    background-color: var(--achievement-bg);
+}
+
+.achievement__badge {
+    display: contents;
+}
+
+.achievement__progress::-moz-progress-bar,
+.achievement__progress::-webkit-progress-value {
+    background-color: var(--achievement-progress-bg);
+}

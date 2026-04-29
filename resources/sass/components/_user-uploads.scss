@@ -1,0 +1,80 @@
+.user-uploads {
+    margin: 0 calc(-1 * max(0px, 10vw - 60px, 25vw - 300px, 45vw - 800px)); /* Inverses the magic numbers used in the main layout styles */
+    width: max-content;
+    max-width: 100vw;
+    align-self: center;
+}
+
+.user-uploads__filters {
+    margin: 0 calc(-1 * max(0px, 45vw - 800px) + max(12px, 45vw - 600px));
+}
+
+@media only screen and (max-width: 767px) {
+    .user-uploads__filters {
+        margin: 0 max(0, 45vw - 600px);
+    }
+}
+
+.user-uploads__name-header,
+.user-uploads__size-header,
+.user-uploads__seeders-header,
+.user-uploads__leechers-header,
+.user-uploads__times-header,
+.user-uploads__tips-header,
+.user-uploads__thanks-header,
+.user-uploads__comments-header,
+.user-uploads__created-at-header,
+.user-uploads__personal-release-header,
+.user-uploads__status-header {
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.user-uploads__name,
+.user-uploads__size,
+.user-uploads__seeders,
+.user-uploads__leechers,
+.user-uploads__times,
+.user-uploads__tips,
+.user-uploads__thanks,
+.user-uploads__comments,
+.user-uploads__created-at {
+    font-size: 14px;
+}
+
+.user-uploads__personal-release,
+.user-uploads__status {
+    font-size: 11px;
+}
+
+.user-uploads__size-header,
+.user-uploads__seeders-header,
+.user-uploads__leechers-header,
+.user-uploads__times-header,
+.user-uploads__size,
+.user-uploads__seeders,
+.user-uploads__leechers,
+.user-uploads__times {
+    text-align: right;
+}
+
+.user-uploads__personal-release-header,
+.user-uploads__status-header,
+.user-uploads__persona-release,
+.user-uploads__status {
+    text-align: center;
+}
+
+.user-uploads__name {
+    font-weight: bolder;
+    color: var(--text-color);
+}
+
+.user-uploads__checkbox {
+    all: revert !important;
+}
+
+.user-uploads__checkbox:indeterminate {
+    all: revert !important;
+}
