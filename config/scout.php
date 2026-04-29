@@ -1,0 +1,406 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @param  string       $word
+ * @return list<string>
+ */
+$generateCasePermutations = function (string $word): array {
+    $count = 2 ** mb_strlen($word);
+    $chars = mb_str_split($word);
+    $permutations = [];
+
+    for ($i = 0; $i < $count; $i++) {
+        $permutation = '';
+
+        foreach ($chars as $j => $char) {
+            if ($i & (1 << $j)) {
+                $permutation .= strtoupper($char);
+            } else {
+                $permutation .= strtolower($char);
+            }
+        }
+
+        $permutations[] = $permutation;
+    }
+
+    return $permutations;
+};
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Default Search Engine
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default search connection that gets used while
+    | using Laravel Scout. This connection is used when syncing all models
+    | to the search service. You should adjust this based on your needs.
+    |
+    | Supported: "algolia", "meilisearch", "typesense",
+    |            "database", "collection", "null"
+    |
+    */
+
+    'driver' => env('SCOUT_DRIVER', 'meilisearch'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Index Prefix
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify a prefix that will be applied to all search index
+    | names used by Scout. This prefix may be useful if you have multiple
+    | "tenants" or applications sharing the same search infrastructure.
+    |
+    */
+
+    'prefix' => env('SCOUT_PREFIX', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Data Syncing
+    |--------------------------------------------------------------------------
+    |
+    | This option allows you to control if the operations that sync your data
+    | with your search engines are queued. When this is set to "true" then
+    | all automatic data syncing will get queued for better performance.
+    |
+    */
+
+    'queue' => env('SCOUT_QUEUE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Transactions
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option determines if your data will only be synced
+    | with your search indexes after every open database transaction has
+    | been committed, thus preventing any discarded data from syncing.
+    |
+    */
+
+    'after_commit' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chunk Sizes
+    |--------------------------------------------------------------------------
+    |
+    | These options allow you to control the maximum chunk size when you are
+    | mass importing data into the search engine. This allows you to fine
+    | tune each of these chunk sizes based on the power of the servers.
+    |
+    */
+
+    'chunk' => [
+        'searchable'   => 500,
+        'unsearchable' => 500,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Soft Deletes
+    |--------------------------------------------------------------------------
+    |
+    | This option allows to control whether to keep soft deleted records in
+    | the search indexes. Maintaining soft deleted records can be useful
+    | if your application still needs to search for the records later.
+    |
+    */
+
+    'soft_delete' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Identify User
+    |--------------------------------------------------------------------------
+    |
+    | This option allows you to control whether to notify the search engine
+    | of the user performing the search. This is sometimes useful if the
+    | engine supports any analytics based on this application's users.
+    |
+    | Supported engines: "algolia"
+    |
+    */
+
+    'identify' => env('SCOUT_IDENTIFY', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Algolia Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure your Algolia settings. Algolia is a cloud hosted
+    | search engine which works great with Scout out of the box. Just plug
+    | in your application ID and admin API key to get started searching.
+    |
+    */
+
+    'algolia' => [
+        'id'     => env('ALGOLIA_APP_ID', ''),
+        'secret' => env('ALGOLIA_SECRET', ''),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Meilisearch Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure your Meilisearch settings. Meilisearch is an open
+    | source search engine with minimal configuration. Below, you can state
+    | the host and key information for your own Meilisearch installation.
+    |
+    | See: https://www.meilisearch.com/docs/learn/configuration/instance_options#all-instance-options
+    |
+    */
+
+    'meilisearch' => [
+        'host'           => env('MEILISEARCH_HOST', 'http://meilisearch:7700'),
+        'key'            => env('MEILISEARCH_KEY'),
+        'index-settings' => [
+            App\Models\Torrent::class => [
+                'searchableAttributes' => [
+                    'name',
+                    'tmdb_movie.name',
+                    'tmdb_tv.name',
+                    'tmdb_movie.year',
+                    'tmdb_tv.year',
+                    'type.name',
+                    'resolution.name',
+                ],
+                'filterableAttributes' => [
+                    [
+                        'attributePatterns' => [
+                            'id',
+                            'name',
+                            'folder',
+                            'leechers',
+                            'seeders',
+                            'bumped_at',
+                            'fl_until',
+                            'du_until',
+                            'user_id',
+                            'imdb',
+                            'tvdb',
+                            'tmdb_movie_id',
+                            'tmdb_tv_id',
+                            'mal',
+                            'igdb',
+                            'season_number',
+                            'episode_number',
+                            'free',
+                            'doubleup',
+                            'refundable',
+                            'highspeed',
+                            'featured',
+                            'status',
+                            'anon',
+                            'sticky',
+                            'internal',
+                            'deleted_at',
+                            'personal_release',
+                            'trumpable',
+                            'info_hash',
+                            'history_seeders.user_id',
+                            'history_leechers.user_id',
+                            'history_active.user_id',
+                            'history_inactive.user_id',
+                            'history_complete.user_id',
+                            'history_incomplete.user_id',
+                            'user.username',
+                            'category.id',
+                            'category.movie_meta',
+                            'category.tv_meta',
+                            'type.id',
+                            'resolution.id',
+                            'tmdb_movie.id',
+                            'tmdb_movie.name',
+                            'tmdb_movie.original_language',
+                            'tmdb_movie.adult',
+                            'tmdb_movie.genres.id',
+                            'tmdb_movie.collection.id',
+                            'tmdb_movie.companies.id',
+                            'tmdb_movie.wishes.user_id',
+                            'tmdb_tv.id',
+                            'tmdb_tv.name',
+                            'tmdb_tv.original_language',
+                            'tmdb_tv.adult',
+                            'tmdb_tv.genres.id',
+                            'tmdb_tv.networks.id',
+                            'tmdb_tv.companies.id',
+                            'tmdb_tv.wishes.user_id',
+                            'playlists.id',
+                            'bookmarks.user_id',
+                            'freeleech_tokens.user_id',
+                            'files.name',
+                            'keywords',
+                            'distributor_id',
+                            'region_id',
+                        ],
+                        "features" => [
+                            "facetSearch" => false,
+                            "filter"      => [
+                                "equality"   => true,
+                                "comparison" => false,
+                            ],
+                        ]
+                    ],
+                    [
+                        'attributePatterns' => [
+                            'size',
+                            'times_completed',
+                            'created_at',
+                            'tmdb_movie.year',
+                            'tmdb_tv.year',
+                        ],
+                        "features" => [
+                            "facetSearch" => false,
+                            "filter"      => [
+                                "equality"   => true,
+                                "comparison" => true,
+                            ],
+                        ]
+                    ],
+                ],
+                'sortableAttributes' => [
+                    'name',
+                    'rating',
+                    'size',
+                    'seeders',
+                    'leechers',
+                    'times_completed',
+                    'created_at',
+                    'bumped_at',
+                    'sticky',
+                ],
+                'rankingRules' => [
+                    'sort',
+                    'attribute',
+                    'exactness',
+                    'words',
+                    'typo',
+                    'proximity',
+                ],
+                'facetSearch'        => false,
+                'proximityPrecision' => 'byAttribute',
+                'typoTolerance'      => [
+                    'disableOnWords' => [
+                        // cspell:ignore bluray
+                        'bluray',
+                        'blu-ray',
+                    ],
+                ],
+                "dictionary" => [
+                    ...$generateCasePermutations('blu-ray'),
+                ],
+            ],
+            'people' => [
+                'searchableAttributes' => [
+                    'name',
+                ],
+                'filterableAttributes' => [
+                    [
+                        'attributePatterns' => [
+                            'id',
+                        ],
+                        "features" => [
+                            "facetSearch" => false,
+                            "filter"      => [
+                                "equality"   => true,
+                                "comparison" => false,
+                            ],
+                        ]
+                    ],
+                    [
+                        'attributePatterns' => [
+                            'birthday',
+                        ],
+                        "features" => [
+                            "facetSearch" => false,
+                            "filter"      => [
+                                "equality"   => true,
+                                "comparison" => true,
+                            ],
+                        ]
+                    ],
+                ],
+                'sortableAttributes' => [
+                    'name',
+                    'birthday',
+                ],
+                'rankingRules' => [
+                    'sort',
+                    'attribute',
+                    'exactness',
+                    'words',
+                    'typo',
+                    'proximity',
+                ],
+                'facetSearch'        => false,
+                'proximityPrecision' => 'byAttribute',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Typesense Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure your Typesense settings. Typesense is an open
+    | source search engine using minimal configuration. Below, you will
+    | state the host, key, and schema configuration for the instance.
+    |
+    */
+
+    'typesense' => [
+        'client-settings' => [
+            'api_key' => env('TYPESENSE_API_KEY', 'xyz'),
+            'nodes'   => [
+                [
+                    'host'     => env('TYPESENSE_HOST', 'localhost'),
+                    'port'     => env('TYPESENSE_PORT', '8108'),
+                    'path'     => env('TYPESENSE_PATH', ''),
+                    'protocol' => env('TYPESENSE_PROTOCOL', 'http'),
+                ],
+            ],
+            'nearest_node' => [
+                'host'     => env('TYPESENSE_HOST', 'localhost'),
+                'port'     => env('TYPESENSE_PORT', '8108'),
+                'path'     => env('TYPESENSE_PATH', ''),
+                'protocol' => env('TYPESENSE_PROTOCOL', 'http'),
+            ],
+            'connection_timeout_seconds'   => env('TYPESENSE_CONNECTION_TIMEOUT_SECONDS', 2),
+            'healthcheck_interval_seconds' => env('TYPESENSE_HEALTHCHECK_INTERVAL_SECONDS', 30),
+            'num_retries'                  => env('TYPESENSE_NUM_RETRIES', 3),
+            'retry_interval_seconds'       => env('TYPESENSE_RETRY_INTERVAL_SECONDS', 1),
+        ],
+        'model-settings' => [
+            // User::class => [
+            //     'collection-schema' => [
+            //         'fields' => [
+            //             [
+            //                 'name' => 'id',
+            //                 'type' => 'string',
+            //             ],
+            //             [
+            //                 'name' => 'name',
+            //                 'type' => 'string',
+            //             ],
+            //             [
+            //                 'name' => 'created_at',
+            //                 'type' => 'int64',
+            //             ],
+            //         ],
+            //         'default_sorting_field' => 'created_at',
+            //     ],
+            //     'search-parameters' => [
+            //         'query_by' => 'name'
+            //     ],
+            // ],
+        ],
+    ],
+];

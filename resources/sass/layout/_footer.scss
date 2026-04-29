@@ -1,0 +1,103 @@
+html,
+body {
+    min-height: 100vh; /* Used for sticky footer */
+}
+
+.footer {
+    padding: 20px max(20px, 10vw - 60px, 25vw - 300px, 45vw - 800px); /* Magic numbers - slightly increases the margins as you go from 0 to 600px to 1600px to 2500px to beyond */
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: sticky;
+    top: 100vh;
+    margin-top: 26px;
+    background: var(--footer-bg);
+}
+
+.footer__wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4rem;
+}
+
+.footer__section {
+    flex: 1 1 0;
+}
+
+.footer__section:first-child {
+    flex: 2 1 0;
+}
+
+.footer__section-title {
+    font-size: 17px;
+    margin: 0;
+    font-weight: normal;
+}
+
+.footer__section-list {
+    list-style-type: none;
+    padding-left: 0;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+.footer__sub-footer {
+    border-top: 1px solid var(--footer-hr-fg);
+    display: grid;
+    grid-template: 'libraries stats' auto 'libraries copyright' auto / auto auto;
+    width: 100vw;
+    max-width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.footer__stats {
+    grid-area: stats;
+    font-size: 12px;
+    margin: 0;
+    text-align: right;
+}
+
+.footer__copyright {
+    grid-area: copyright;
+    margin: 0;
+    font-size: 12px;
+    text-align: right;
+}
+
+.footer__icons {
+    font-size: 13px;
+    grid-area: libraries;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer button,
+.footer a {
+    color: inherit;
+}
+
+@media only screen and (max-width: 767px) {
+    .footer__sub-footer {
+        grid-template: 'libraries' auto 'stats' auto 'copyright' auto / auto;
+        gap: 12px;
+        justify-items: center;
+    }
+
+    .footer__stats {
+        text-align: center;
+    }
+
+    .footer__copyright {
+        text-align: center;
+    }
+}

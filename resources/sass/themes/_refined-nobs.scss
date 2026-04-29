@@ -1,0 +1,487 @@
+:root {
+    --message-bubble-bg: #0a0a0a;
+    --message-bubble-fg: #ff00ff;
+
+    --achievement-fg: #bc13fe;
+    --achievement-bg: #050505;
+    --achievement-box-shadow: 0 0 10px #ff00ff, 0 0 20px #bc13fe;
+    --achievement-progress-bg: #1a1a1a;
+
+    --alert-bg: #000000;
+    --alert-fg: #ff00ff;
+    --alert-gap-color: #bc13fe;
+    --alert-gap-width: 2px;
+
+    --article-card-bg: #050505;
+    --article-card-fg: #d8d7dc;
+    --article-card-head-fg: #ff00ff;
+    --article-card-time-fg: #bc13fe;
+    --article-box-shadow: 0 0 5px #ff00ff;
+
+    --bbcode-input-header-bg: #0a0a0a;
+    --bbcode-input-body-bg: #000000;
+    --bbcode-input-border: 2px solid #ff00ff;
+    --bbcode-input-border-radius: 6px;
+    --bbcode-input-bg: #000000;
+
+    --bbcode-rendered-fg-default: #d8d7dc;
+    --bbcode-rendered-fg-muted: #bc13fe;
+    --bbcode-rendered-fg-subtle: #ff00ff;
+    --bbcode-rendered-canvas-default: transparent;
+    --bbcode-rendered-canvas-subtle: #0a0a0a;
+    --bbcode-rendered-border-default: #bc13fe;
+    --bbcode-rendered-border-muted: #ff00ff;
+    --bbcode-rendered-neutral-muted: rgba(188, 19, 254, 0.2);
+    --bbcode-rendered-accent-fg: #ff00ff;
+    --bbcode-rendered-accent-emphasis: #bc13fe;
+    --bbcode-rendered-attention-subtle: #bc13fe;
+    --bbcode-rendered-danger-fg: #ff0000;
+    --bbcode-rendered-quote-bg: rgba(255, 0, 255, 0.05);
+    --bbcode-rendered-quote-border: #ff00ff;
+
+    /* --- PALETA REFINADA (Menos saturación, más profundidad) --- */
+    --body-bg: #050507; /* Un azul/negro muy profundo en vez de negro puro */
+    --body-fg: #d8d7dc;
+
+    --breadcrumb-fg: #ff00ff;
+    --breadcrumb-active-fg: #bc13fe;
+    --breadcrumb-hover-fg: #ffffff;
+    --breadcrumb-inactive-text-decoration: none;
+
+    /* Colores de Acción */
+    --accent-fuchsia: #ff00ff;
+    --accent-purple: #bc13fe;
+    --text-main: #d8d7dc;
+    --text-muted: #8e8d91;
+
+    /* --- VOLUMEN Y ERGONOMÍA --- */
+    --radius-main: 6px; /* Suavizamos los marcos */
+    --glow-soft: 0 0 15px rgba(188, 19, 254, 0.2);
+
+    --button-filled-bg: var(--accent-purple);
+    --button-filled-border: 1px solid rgba(255, 0, 255, 0.5);
+    --button-filled-border-radius: var(--radius-main);
+    --button-filled-fg: #ffffff;
+
+    --button-outlined-bg: transparent;
+    --button-outlined-border: 2px solid #bc13fe;
+    --button-outlined-border-radius: var(--radius-main);
+    --button-outlined-fg: #bc13fe;
+
+    --button-text-bg: transparent;
+    --button-text-border: none;
+    --button-text-border-radius: var(--radius-main);
+    --button-text-fg: #ff00ff;
+
+    --chatbox-message-bg: #050505;
+    --chatbox-button-fg: #ff00ff;
+    --chatbox-button-hover-fg: #bc13fe;
+    --chatbox-users-bg: #0a0a0a;
+    --chatbox-tab-delete-fg: #ff0000;
+    --chatbox-tab-delete-bg: #1a1a1a;
+
+    --compact-search-bg: #050505;
+    --compact-search-box-shadow: 0 0 10px #ff00ff;
+    --compact-search-border-radius: var(--radius-main);
+    --compact-search-fg: #ff00ff;
+    --compact-search-padding: 8px;
+
+    --comparison-divider-fg: #ff00ff;
+    --comparison-button-fg: #ffffff;
+
+    --data-table-border-radius: var(--radius-main);
+    --data-table-fg: #d8d7dc;
+    --data-table-th-bg: #0a0a0a;
+    --data-table-thead-border: 2px solid #ff00ff;
+    --data-table-tr-border: 1px solid #bc13fe;
+    --data-table-tr-even-bg: #050505;
+    --data-table-tr-hover-bg: rgba(188, 19, 254, 0.05);
+    --data-table-tr-odd-bg: #000000;
+    --data-table-tfoot-border: 3px solid #ff00ff;
+
+    --panel-bg: rgba(15, 15, 20, 0.85); /* Fondo con transparencia para Blur */
+    --panel-border: 1px solid rgba(188, 19, 254, 0.3); /* Borde sutil, no sólido */
+    --panel-border-radius: var(--radius-main);
+    --panel-box-shadow: 0 10px 30px rgba(0,0,0,0.5), var(--glow-soft);
+    --panel-fg: #d8d7dc;
+    --panel-head-bg: #0a0a0a;
+    --panel-head-fg: var(--accent-fuchsia);
+
+    --dialog-bg: var(--panel-bg);
+    --dialog-border: var(--panel-border);
+    --dialog-border-radius: var(--radius-main);
+    --dialog-box-shadow: var(--panel-box-shadow);
+    --dialog-fg: #d8d7dc;
+    --dialog-head-bg: #0a0a0a;
+    --dialog-head-fg: #ff00ff;
+
+    --donation-chart-daily-bg: rgba(255, 0, 255, 0.2);
+    --donation-chart-daily-border: #ff00ff;
+    --donation-chart-monthly-bg: rgba(188, 19, 254, 0.2);
+    --donation-chart-monthly-border: #bc13fe;
+
+    --fieldset-bg: transparent;
+    --fieldset-fg: #d8d7dc;
+    --fieldset-border-radius: var(--radius-main);
+    --fieldset-border: 2px solid #bc13fe;
+
+    --footer-bg: #000000;
+    --footer-hr-fg: #ff00ff;
+
+    --icon-button-bg: transparent;
+    --icon-button-border: none;
+    --icon-button-border-radius: var(--radius-main);
+    --icon-button-fg: #ff00ff;
+
+    --icon-button-filled-bg: #bc13fe;
+    --icon-button-filled-fg: #ffffff;
+    --icon-button-filled-border: 1px solid #ff00ff;
+
+    --input-text-border: 2px solid #bc13fe;
+    --input-text-border-active: 2px solid #ff00ff;
+    --input-text-border-error: 2px solid #ff0000;
+    --input-text-border-hover: 2px solid #ffffff;
+    --input-text-border-radius: var(--radius-main);
+    --input-text-fg: #ffffff;
+    --input-text-padding: 12px;
+    --input-text-padding-active: 11px;
+    --input-text-padding-hover: 11px;
+
+    --key-value-border-radius: var(--radius-main);
+    --key-value-even-bg: #050505;
+    --key-value-fg: #d8d7dc;
+    --key-value-odd-bg: #000000;
+    --key-value-padding: 13px;
+
+    --label-bg: transparent;
+    --label-fg: #bc13fe;
+    --label-fg-active: #ff00ff;
+    --label-fg-error: #ff0000;
+    --label-fg-hover: #ffffff;
+
+    --legend-fg: #ff00ff;
+    --legend-bg: #000000;
+    --legend-border: 1px solid #bc13fe;
+    --legend-border-radius: var(--radius-main);
+
+    --mediahub-card-bg: #050505;
+    --mediahub-card-fg: #d8d7dc;
+    --mediahub-card-hover-fg: #ffffff;
+    --mediahub-card-border: 1px solid #bc13fe;
+    --mediahub-card-border-radius: var(--radius-main);
+    --mediahub-card-box-shadow: 0 0 10px #bc13fe;
+
+    --meta-backdrop-filter: brightness(20%) blur(5px);
+    --meta-dropdown-backdrop-filter: blur(10px);
+    --meta-dropdown-bg: rgba(5, 5, 5, 0.8);
+    --meta-dropdown-backdrop-filter-hover: blur(10px);
+    --meta-dropdown-hover-bg: rgba(255, 0, 255, 0.2);
+    --meta-dropdown-fg: #bc13fe;
+    --meta-dropdown-hover-fg: #ffffff;
+    --meta-description-fg: #d8d7dc;
+    --meta-id-tag-fg: #ff00ff;
+    --meta-id-tag-bg: transparent;
+    --meta-id-tag-hover-fg: #ffffff;
+    --meta-id-tag-hover-bg: rgba(188, 19, 254, 0.3);
+    --meta-chips-heading-fg: #bc13fe;
+    --meta-chip-icon-fg: #000000;
+    --meta-chip-icon-hover-bg: #ffffff;
+    --meta-chip-icon-bg: #bc13fe;
+    --meta-chip-name-fg: #ff00ff;
+    --meta-chip-value-fg: #d8d7dc;
+    --meta-chip-value-hover-fg: #ffffff;
+    --meta-chip-backdrop-filter-hover: blur(10px);
+    --meta-chip-hover-bg: rgba(255, 0, 255, 0.1);
+    --meta-popup-bg: #050505;
+    --meta-popup-fg: #bc13fe;
+
+    --meter-fg: #ff00ff;
+    --meter-bg: #1a1a1a;
+
+    --notification-read: transparent;
+    --notification-unread: #ff00ff;
+
+    --option-bg: #050505;
+    --option-fg: #d8d7dc;
+
+    --paginate-bg: #000000;
+    --paginate-bg-hover: #bc13fe;
+    --paginate-bg-current: #ff00ff;
+    --paginate-border-radius: var(--radius-main);
+    --paginate-fg: #ffffff;
+    --paginate-fg-disabled: #444444;
+    --paginate-divider: #bc13fe;
+
+    --playlist-card-bg: #050505;
+    --playlist-card-border: 1px solid #bc13fe;
+    --playlist-card-border-radius: var(--radius-main);
+    --playlist-card-box-shadow: 0 0 10px #bc13fe;
+    --playlist-card-fg: #d8d7dc;
+    --playlist-card-missing-image-bg: #0a0a0a;
+    --playlist-card-missing-image-fg: #ff00ff;
+
+    --post-bg: #050505;
+    --post-fg: #d8d7dc;
+    --post-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+    --post-head-fg: #ff00ff;
+    --post-head-bg: #0a0a0a;
+    --post-toolbar-bg: #000000;
+    --post-toolbar-fg: #bc13fe;
+    --post-toolbar-hover-bg: #ff00ff;
+    --post-toolbar-hover-fg: #ffffff;
+    --post-like-fg: #00ff00;
+    --post-dislike-fg: #ff0000;
+    --post-aside-bg: #0a0a0a;
+    --post-aside-fg: #bc13fe;
+    --post-footer-fg: #ff00ff;
+
+    --prize-bg: #050505;
+    --prize-border-radius: var(--radius-main);
+    --prize-border: 2px solid #ff00ff;
+    --prize-box-shadow: 0 0 20px #ff00ff;
+    --prize-fg: #ffffff;
+    --prize-heading-fg: #ff00ff;
+    --prize-icon-primary-color: #ff00ff;
+    --prize-icon-secondary-color: #bc13fe;
+
+    --quick-search-bg: rgba(5, 5, 5, 0.95);
+    --quick-search-fg: #d8d7dc;
+    --quick-search-border: 2px solid #ff00ff;
+    --quick-search-border-radius: var(--radius-main);
+    --quick-search-box-shadow: 0 0 30px #ff00ff;
+    --quick-search-selector-fg: #bc13fe;
+    --quick-search-selector-hover-bg: rgba(255, 0, 255, 0.2);
+    --quick-search-selector-hover-fg: #ffffff;
+    --quick-search-selector-selected-bg: #ff00ff;
+    --quick-search-selector-selected-fg: #ffffff;
+    --quick-search-result-bg: transparent;
+    --quick-search-result-fg: #d8d7dc;
+    --quick-search-result-hover-bg: rgba(188, 19, 254, 0.2);
+    --quick-search-result-hover-fg: #ffffff;
+    --quick-search-result-image-border-radius: var(--radius-main);
+    --quick-search-result-year-fg: #bc13fe;
+    --quick-search-result-border: 1px solid #bc13fe;
+
+    --scrollbar-color: #bc13fe;
+
+    --secondary-nav-bg: #000000;
+    --secondary-nav-box-shadow: 0 4px 10px #ff00ff;
+    --secondary-nav-tab-fg: #bc13fe;
+    --secondary-nav-tab-bg: transparent;
+    --secondary-nav-tab-active-text-decoration: underline #ff00ff 3px;
+    --secondary-nav-tab-hover-fg: #ffffff;
+    --secondary-nav-tab-hover-bg: rgba(255, 0, 255, 0.1);
+    --secondary-nav-tab-hover-text-decoration: underline #bc13fe 3px;
+    --secondary-nav-tab-menu-bg: #050505;
+    --secondary-nav-tab-menu-fg: #d8d7dc;
+    --secondary-nav-tab-menu-border: 1px solid #ff00ff;
+    --secondary-nav-tab-menu-border-radius: var(--radius-main);
+    --secondary-nav-tab-menu-box-shadow: 0 10px 20px #ff00ff;
+
+    --select-border: 2px solid #bc13fe;
+    --select-border-active: 2px solid #ff00ff;
+    --select-border-error: 2px solid #ff0000;
+    --select-border-hover: 2px solid #ffffff;
+    --select-border-radius: var(--radius-main);
+    --select-fg: #ffffff;
+    --select-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23ff00ff' d='M6 8l-1 1l5 5l5-5l-1-1l-4 4l-4-4z'/></svg>");
+    --select-padding: 11px 23px 11px 11px;
+    --select-padding-active: 10px 22px 10px 10px;
+    --select-padding-hover: 10px 22px 10px 10px;
+
+    --subforum-listing-odd-bg: #000000;
+    --subforum-listing-even-bg: #050505;
+    --subforum-listing-border: 1px solid #bc13fe;
+
+    --textarea-border: 2px solid #bc13fe;
+    --textarea-border-active: 2px solid #ff00ff;
+    --textarea-border-error: 2px solid #ff0000;
+    --textarea-border-hover: 2px solid #ffffff;
+    --textarea-border-radius: var(--radius-main);
+    --textarea-fg: #ffffff;
+    --textarea-padding: 12px;
+    --textarea-padding-active: 11px;
+    --textarea-padding-hover: 11px;
+
+    --top-nav-bg: #000000;
+    --top-nav-box-shadow: 0 4px 15px #bc13fe;
+    --top-nav-dropdown-fg: #ff00ff;
+    --top-nav-dropdown-hover-fg: #ffffff;
+    --top-nav-dropdown-hover-bg: #bc13fe;
+    --top-nav-dropdown-hover-text-decoration: none;
+    --top-nav-dropdown-menu-bg: #050505;
+    --top-nav-dropdown-menu-border: 2px solid #ff00ff;
+    --top-nav-dropdown-menu-border-radius: var(--radius-main);
+    --top-nav-dropdown-menu-box-shadow: 0 10px 30px #ff00ff;
+    --top-nav-dropdown-menu-item-fg: #d8d7dc;
+    --top-nav-dropdown-menu-item-bg: transparent;
+    --top-nav-dropdown-menu-item-hover-fg: #ffffff;
+    --top-nav-dropdown-menu-item-hover-bg: #bc13fe;
+    --top-nav-dropdown-menu-item-hover-text-decoration: none;
+    --top-nav-dropdown-menu-item-icon-fg: #ff00ff;
+    --top-nav-dropdown-menu-item-icon-bg: #1a1a1a;
+    --top-nav-ratio-bar-fg: #ffffff;
+    --top-nav-icon-bar-icon-bg: #1a1a1a;
+    --top-nav-icon-bar-icon-fg: #ff00ff;
+    --top-nav-icon-bar-icon-border-radius: 0%;
+    --top-nav-icon-bar-icon-hover-bg: #bc13fe;
+    --top-nav-icon-bar-icon-hover-fg: #ffffff;
+    --top-nav-stats-fg: #bc13fe;
+    --top-nav-toggle-fg: #ff00ff;
+
+    --torrent-card-bg: #050505;
+    --torrent-card-fg: #d8d7dc;
+    --torrent-card-border: 1px solid #bc13fe;
+    --torrent-card-head-bg: #0a0a0a;
+    --torrent-card-head-fg: #ff00ff;
+    --torrent-card-link-fg: #ffffff;
+    --torrent-card-genre-fg: #bc13fe;
+
+    --torrent-group-bg: #050505;
+    --torrent-group-header-bg: #0a0a0a;
+    --torrent-group-text: #d8d7dc;
+    --torrent-group-text-muted: #bc13fe;
+    --torrent-group-table-stripe-even: rgba(255, 0, 255, 0.05);
+    --torrent-group-table-stripe-odd: rgba(0, 0, 0, 0.5);
+    --torrent-group-hover-brightness-emphasis: 1.2;
+    --torrent-group-chip-border: #bc13fe;
+
+    --torrent-row-fg: #d8d7dc;
+    --torrent-row-visited-fg: #888888;
+    --torrent-row-sticky-bg: rgba(188, 19, 254, 0.1);
+    --torrent-row-format-fg: #ffffff;
+    --torrent-row-format-bg: #bc13fe;
+    --torrent-row-buttons-fg: #ff00ff;
+    --torrent-row-seeders-fg: #00ff00;
+    --torrent-row-leechers-fg: #ff0000;
+    --torrent-row-completed-fg: #00ffff;
+    --torrent-row-comments-fg: #ff00ff;
+    --torrent-row-internal-fg: #ffffff;
+    --torrent-row-personal-fg: #bc13fe;
+    --torrent-row-featured-fg: #ff00ff;
+    --torrent-row-freeleech-fg: #ffff00;
+    --torrent-row-double-upload-fg: #00ff00;
+    --torrent-row-sticky-fg: #ffffff;
+    --torrent-row-highspeed-fg: #ff00ff;
+    --torrent-row-bumped-fg: #bc13fe;
+
+    --torrent-tag-fg: #ff00ff;
+    --torrent-tag-bg: transparent;
+    --torrent-tag-hover-fg: #ffffff;
+    --torrent-tag-hover-bg: rgba(188, 19, 254, 0.3);
+
+    --user-stat-card-bg: #050505;
+    --user-stat-card-fg: #d8d7dc;
+    --user-stat-card-border: 2px solid #bc13fe;
+    --user-stat-card-border-radius: var(--radius-main);
+    --user-stat-card-box-shadow: 0 0 15px #bc13fe;
+}
+
+/* 1. ELIMINAR EL PIXELADO AGRESIVO */
+body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    /* El efecto scanline ahora es casi invisible, solo da textura */
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px; /* Líneas más separadas para no emborronar el texto */
+    opacity: 0.3;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* 2. EFECTO "GLASS-UNION" (Volumen moderno) */
+.panel, .card, .dialog {
+    background: var(--panel-bg) !important;
+    backdrop-filter: blur(12px) !important; /* Esto devuelve el toque moderno de UNIT3D */
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: var(--panel-border) !important;
+    border-radius: var(--radius-main) !important;
+    box-shadow: var(--panel-box-shadow) !important;
+}
+
+/* 3. ENCABEZADOS DE "SINDICATO" (Brutalismo Elegante) */
+.panel__heading {
+    background: linear-gradient(90deg, #0a0a0a, #1a1a1a) !important;
+    border-bottom: 1px solid var(--accent-purple) !important;
+    font-family: 'Inter', 'Segoe UI', sans-serif !important; /* Tipografía moderna, no Courier */
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 15px !important;
+    color: var(--accent-fuchsia) !important;
+}
+
+/* 4. TABLAS DE DATOS (Lectura Clara) */
+.data-table thead {
+    border-bottom: 2px solid var(--accent-purple) !important;
+}
+.data-table tr {
+    border-bottom: 1px solid rgba(188, 19, 254, 0.1) !important;
+    transition: background 0.2s ease;
+}
+
+/* 5. BOTONES (Menos 1980, más 2026) */
+.button, .btn {
+    border-radius: var(--radius-main) !important;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 0, 255, 0.5) !important;
+    background: linear-gradient(45deg, var(--accent-purple), #7e0bb1) !important;
+}
+.button:hover, .btn:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.4) !important;
+    transform: translateY(-1px);
+    animation: none !important; /* Quitamos el glitch constante, solo molesta */
+}
+
+/* ==========================================================================
+   6. FIX ALINEACIÓN: Barra de filtros (Total / Layout)
+   ========================================================================== */
+
+.d-flex:has(> .form-floating),
+.form-inline,
+.d-flex.align-items-end {
+    align-items: center !important;
+}
+
+.form-floating > .form-select {
+    height: calc(3.5rem + 2px) !important; 
+    min-height: 50px !important;
+    margin-top: 0 !important;
+    padding-top: 1.25rem !important; 
+    padding-bottom: 0.25rem !important;
+}
+
+.text-muted:has(> span) {
+    margin-bottom: 0 !important;
+    display: flex;
+    align-items: center;
+}
+
+/* 6. SCROLLBAR MINIMALISTA */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--accent-purple);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #000;
+}
+
+/* CATEGORY NEON PLACEHOLDERS */
+.torrent-category-icon {
+    border: 1px solid #bc13fe;
+    box-shadow: 0 0 5px #bc13fe, inset 0 0 5px #bc13fe;
+    border-radius: 50%;
+    padding: 5px;
+}

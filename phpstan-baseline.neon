@@ -1,0 +1,811 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Instanceof between App\\Models\\User and Illuminate\\Contracts\\Auth\\MustVerifyEmail will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: app/Actions/Fortify/UpdateUserProfileInformation.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\History\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoDeactivateWarning.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$avg_seedtime\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/AutoGroup.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$seedsize\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/AutoGroup.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$uploads\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/AutoGroup.php
+
+		-
+			message: '#^Binary operation "\-" between float\|int\|string and float\|int\|string results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: app/Console/Commands/AutoGroup.php
+
+		-
+			message: '#^Property App\\Models\\User\:\:\$can_download \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 2
+			path: app/Console/Commands/AutoGroup.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Torrent\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoPreWarning.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TorrentRequest\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoRecycleClaimedTorrentRequests.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\History\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoRemoveReseeds.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Torrent\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoRemoveReseeds.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\History\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoRewardResurrection.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Torrent\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Console/Commands/AutoWarning.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(string\)\: bool\)\|null, ''strlen'' given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/GitUpdater.php
+
+		-
+			message: '#^Property Illuminate\\Console\\Command\:\:\$output \(Illuminate\\Console\\OutputStyle\) does not accept Symfony\\Component\\Console\\Output\\ConsoleOutput\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Console/Commands/GitUpdater.php
+
+		-
+			message: '#^Method App\\Exceptions\\TrackerException\:\:__construct\(\) has parameter \$replace with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Exceptions/TrackerException.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bdecode\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bdecode\(\) has parameter \$pos with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bdecode\(\) has parameter \$s with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bdecode_file\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bdecode_file\(\) has parameter \$filename with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bencode\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:bencode\(\) has parameter \$d with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:get_infohash\(\) has parameter \$t with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:get_meta\(\) has parameter \$t with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:get_meta\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:get_name\(\) has parameter \$t with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:is_v2_or_hybrid\(\) has parameter \$t with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:parse_integer\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:parse_integer\(\) has parameter \$pos with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:parse_integer\(\) has parameter \$s with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:parse_string\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:parse_string\(\) has parameter \$pos with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\Bencode\:\:parse_string\(\) has parameter \$s with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Helpers/Bencode.php
+
+		-
+			message: '#^Method App\\Helpers\\CacheUser\:\:user\(\) should return App\\Models\\User\|null but returns App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Helpers/CacheUser.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\API\\BaseController\:\:sendError\(\) has parameter \$code with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/API/BaseController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\API\\BaseController\:\:sendError\(\) has parameter \$error with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/API/BaseController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\API\\BaseController\:\:sendError\(\) has parameter \$errorMessages with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/API/BaseController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\API\\BaseController\:\:sendResponse\(\) has parameter \$message with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/API/BaseController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\API\\BaseController\:\:sendResponse\(\) has parameter \$result with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/API/BaseController.php
+
+		-
+			message: '#^Parameter \#3 \$callback of method Illuminate\\Cache\\Repository\:\:flexible\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/API/TorrentController.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$banned_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AnnounceController.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$disabled_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AnnounceController.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$validating_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AnnounceController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AnnounceController\:\:index\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Http/Controllers/AnnounceController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DonationController\:\:store\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DonationController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TorrentRequestBounty\>\.$#'
+			identifier: return.type
+			count: 3
+			path: app/Http/Controllers/RequestController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Staff/ArticleController.php
+
+		-
+			message: '#^Call to function is_int\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Staff/ChatRoomController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\History\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Staff/CheatedTorrentController.php
+
+		-
+			message: '#^Binary operation "\+\=" between string and int results in an error\.$#'
+			identifier: assignOp.invalid
+			count: 1
+			path: app/Http/Controllers/Staff/DonationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Group\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Group\>\:\:\$level\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Staff/UserController.php
+
+		-
+			message: '#^Offset 0 does not exist on Illuminate\\Http\\Client\\Response\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Http/Controllers/Staff/VersionController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
+			identifier: return.type
+			count: 4
+			path: app/Http/Controllers/StatsController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Post\:\:\$post_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TopicController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\History\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TorrentController.php
+
+		-
+			message: '#^Binary operation "\+" between string\|null and int results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: app/Http/Controllers/User/ResurrectionController.php
+
+		-
+			message: '#^Binary operation "/" between string\|null and 1000000 results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: app/Http/Controllers/User/UserController.php
+
+		-
+			message: '#^Property App\\Http\\Livewire\\AttachmentUpload\:\:\$attachment has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Http/Livewire/AttachmentUpload.php
+
+		-
+			message: '#^Property App\\Http\\Livewire\\AttachmentUpload\:\:\$storedImage has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Http/Livewire/AttachmentUpload.php
+
+		-
+			message: '#^Property App\\Http\\Livewire\\BbcodeInput\:\:\$contentBbcode \(string\) does not accept array\|string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Http/Livewire/BbcodeInput.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Participant\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/ConversationSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\PrivateMessage\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/ConversationSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TopicRead\>\.$#'
+			identifier: return.type
+			count: 3
+			path: app/Http/Livewire/ForumCategoryTopicSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\User\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/ForumCategoryTopicSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TopicRead\>\.$#'
+			identifier: return.type
+			count: 3
+			path: app/Http/Livewire/ForumTopicSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\User\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/ForumTopicSearch.php
+
+		-
+			message: '#^Cannot access offset 0 on list\<string\>\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: app/Http/Livewire/LaravelLogViewer.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_shift expects array, list\<string\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Livewire/LaravelLogViewer.php
+
+		-
+			message: '#^Property App\\Http\\Livewire\\MissingMediaSearch\:\:\$categories type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Livewire/MissingMediaSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/Stats/UserStats.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Torrent\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/SubtitleSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TmdbCredit\>\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Livewire/TmdbPersonSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
+			identifier: return.type
+			count: 4
+			path: app/Http/Livewire/TopUsers.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TopicRead\>\.$#'
+			identifier: return.type
+			count: 3
+			path: app/Http/Livewire/TopicSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\User\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/TopicSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TmdbMovie\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/TorrentRequestSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TmdbTv\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/TorrentRequestSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Support\\Collection\<int, string\|null\> but returns Illuminate\\Support\\Collection\<int, string\|null\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Livewire/TorrentRequestSearch.php
+
+		-
+			message: '#^Parameter \#3 \$callback of method Illuminate\\Cache\\Repository\:\:flexible\(\) expects callable\(\)\: Illuminate\\Support\\Collection\<int, string\|null\>, Closure\(\)\: Illuminate\\Support\\Collection\<int, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Livewire/TorrentRequestSearch.php
+
+		-
+			message: '#^Method App\\Http\\Middleware\\SetLanguage\:\:setSystemLocale\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Middleware/SetLanguage.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\Staff\\UpdateAutomaticTorrentFreeleechRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/Staff/UpdateAutomaticTorrentFreeleechRequest.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(array\<string, array\<int, \(Closure\)\|string\>\>\.\)\: Unexpected token "\.", expected TOKEN_HORIZONTAL_WS at offset 128 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: app/Http/Requests/Staff/UpdateAutomaticTorrentFreeleechRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreRequestFillRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreRequestFillRequest.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(array\<string, \\Illuminate\\Contracts\\Validation\\Rule\|array\<\\Illuminate\\Contracts\\Validation\\Rule\|string\>\|string\>s\)\: Unexpected token "s", expected TOKEN_HORIZONTAL_WS at offset 196 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: app/Http/Requests/StoreRequestFillRequest.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\|null and true will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Resources/TorrentResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Listeners/AchievementUnlocked.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Helpers/Language.php
+
+		-
+			message: '#^Class App\\Models\\Rss has PHPDoc tag @property for property \$json_torrent with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Rss.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between float\|null and 0 will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Cannot access offset ''validator'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Parameter \#2 \$minLimit of static method App\\Helpers\\HiddenCaptcha\:\:check\(\) expects int, float\|int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Parameter \#3 \$maxLimit of static method App\\Helpers\\HiddenCaptcha\:\:check\(\) expects int, float\|int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Method Laravel\\Fortify\\Contracts\\LoginResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:51\:\:toResponse\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\RedirectResponse\|true\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Providers/FortifyServiceProvider.php
+
+		-
+			message: '#^Method Laravel\\Fortify\\Contracts\\RegisterViewResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:96\:\:toResponse\(\) never returns Illuminate\\Http\\RedirectResponse so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Providers/FortifyServiceProvider.php
+
+		-
+			message: '#^Method Laravel\\Fortify\\Contracts\\VerifyEmailResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:107\:\:toResponse\(\) never returns Illuminate\\View\\View so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Providers/FortifyServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$string of function rtrim expects string, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Providers/FortifyServiceProvider.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between true and true will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 1
+			path: app/Providers/FortifyServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Chatroom\>\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Repositories/ChatRepository.php
+
+		-
+			message: '#^Call to function is_int\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Repositories/ChatRepository.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: app/Repositories/ChatRepository.php
+
+		-
+			message: '#^Call to function array_key_exists\(\) with ''job'' and array\{adult\: bool\|null, gender\: int\|null, id\: int\|null, known_for_department\: string\|null, name\: string\|null, original_name\: string\|null, popularity\: float\|null, profile_path\: string\|null, \.\.\.\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/Tmdb/Client/Movie.php
+
+		-
+			message: '#^Call to function array_key_exists\(\) with ''job'' and array\{credit_id\: string\|null, job\: string\|null, episode_count\: int\|null\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/Tmdb/Client/TV.php
+
+		-
+			message: '#^Parameter \#1 \$title of static method Illuminate\\Support\\Str\:\:slug\(\) expects string, bool\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/cache.php
+
+		-
+			message: '#^Parameter \#1 \$url of function parse_url expects string, bool\|string\|null given\.$#'
+			identifier: argument.type
+			count: 6
+			path: config/secure-headers.php
+
+		-
+			message: '#^Parameter \#1 \$title of static method Illuminate\\Support\\Str\:\:slug\(\) expects string, bool\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/session.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$default_groups\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2022_12_30_090331_update_user_notifications_table.php
+
+		-
+			message: '#^Argument of an invalid type object supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: database/migrations/2022_12_30_090331_update_user_notifications_table.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$default_groups\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2022_12_30_090351_update_user_privacy_table.php
+
+		-
+			message: '#^Argument of an invalid type object supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: database/migrations/2022_12_30_090351_update_user_privacy_table.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$file_name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: database/migrations/2023_02_09_113903_clean_torrent_files.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_07_22_043634_post_playlist_html_special_chars_decode.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_07_22_043634_post_playlist_html_special_chars_decode.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: database/migrations/2023_07_22_043634_post_playlist_html_special_chars_decode.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$file_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: database/migrations/2023_07_29_205035_add_torrent_folder_name.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_07_29_205035_add_torrent_folder_name.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_11_12_223126_create_passkeys.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$passkey\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_11_12_223126_create_passkeys.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$api_token\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_11_15_170525_create_apikeys.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_11_15_170525_create_apikeys.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_11_16_084506_create_rsskeys.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$rsskey\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2023_11_16_084506_create_rsskeys.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2024_01_15_151522_update_groups_table.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2024_01_21_062125_create_email_updates.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$file_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2024_02_14_022118_fix_subtitle_filepaths.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/migrations/2024_11_26_170256_add_is_torrent_modo_to_groups_table.php
+
+		-
+			message: '#^Variable \$level might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: resources/views/vendor/notifications/email.blade.php
+
+		-
+			message: '#^Parameter \#1 \$root of static method Illuminate\\Routing\\UrlGenerator\:\:forceRootUrl\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/announce.php
+
+		-
+			message: '#^Parameter \#1 \$scheme of static method Illuminate\\Support\\Facades\\URL\:\:forceScheme\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/announce.php
+
+		-
+			message: '#^Parameter \#1 \$root of static method Illuminate\\Routing\\UrlGenerator\:\:forceRootUrl\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/api.php
+
+		-
+			message: '#^Parameter \#1 \$scheme of static method Illuminate\\Support\\Facades\\URL\:\:forceScheme\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/api.php
+
+		-
+			message: '#^Parameter \#1 \$root of static method Illuminate\\Routing\\UrlGenerator\:\:forceRootUrl\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/rss.php
+
+		-
+			message: '#^Parameter \#1 \$scheme of static method Illuminate\\Support\\Facades\\URL\:\:forceScheme\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/rss.php
+
+		-
+			message: '#^Parameter \#1 \$root of static method Illuminate\\Routing\\UrlGenerator\:\:forceRootUrl\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/web.php
+
+		-
+			message: '#^Parameter \#1 \$scheme of static method Illuminate\\Support\\Facades\\URL\:\:forceScheme\(\) expects string\|null, true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: routes/web.php

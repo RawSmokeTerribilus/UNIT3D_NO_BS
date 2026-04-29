@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Directorios gigantes y generados (El contenedor los instalará/creará)
+vendor/
+node_modules/
+public/build/
+storage/app/public/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/backups/
+
+# Datos persistentes de bases de datos
+.docker/data/
+
+# Variables de entorno y backups locales
+.env
+.env.backup
+**/*.bkp
+**/*.bak
+*.log
+*.sql
+backup.sh
+unit3d-ban.sh
+
+# Rclone y secretos
+rclone_gdrive/
+
+# Archivos de sistema
+.DS_Store
+.idea
+.vscode
+
+# Telegram implementation docs
+TELEGRAM_IMPLEMENTATION_SUMMARY.md

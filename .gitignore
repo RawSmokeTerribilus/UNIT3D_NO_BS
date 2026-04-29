@@ -1,0 +1,82 @@
+# Laravel default
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*.log
+/bootstrap/cache/*
+.phpunit.result.cache
+
+# Docker data (Critical!)
+.docker/data/mysql/*
+.docker/data/redis/*
+.docker/data/meilisearch/*
+.docker/data/mailpit/*
+
+# Environment & Backups (Super Critical!)
+.env
+.env.backup
+/backups/*
+!/backups/cron_health.log
+ASSETS_REQUIRED.txt
+.zencoder/
+.zenflow/
+.cspell/
+*.sql
+
+# Backup files
+*.bkp
+
+# Published vendor assets
+/public/vendor/
+
+# System & Temp
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+storage/backups/*
+*.log
+
+# Bloqueo recursivo absoluto para backups
+**/*.bkp
+**/*.bak
+**/*.bak.*
+**/*-deprecated*
+
+# Ban script runtime state
+unit3d-ban.state
+unit3d-ban.whitelist
+
+# Bloqueo total de carpetas sensibles de rclone
+rclone_gdrive/config/
+rclone_gdrive/logs/
+rclone_gdrive/info-bkp.txt
+public/vendor/
+.docker/
+vendor/
+
+# Telegram implementation docs (contains sensitive data)
+TELEGRAM_IMPLEMENTATION_SUMMARY.md
+
+# ScummVM arcade — binarios y archivos de juego (no rastrear, instalar manualmente)
+# La estructura de directorios SÍ está en git (README.md por directorio).
+# Ver docs/GAMING_SETUP.md para instrucciones completas de instalación.
+public/engine/scummvm.js
+public/engine/scummvm.wasm
+public/engine/data/
+public/games/*/*
+!public/games/*/README.md
+public/img/games/*
+!public/img/games/README.md
+
+# Directorio de trabajo del arcade (ROMs locales, logs, binarios, fotos de prueba)
+/gaming/
+
+# Scripts de backup (credenciales en variables de entorno, no embebidas)
+# backup.sh — tracked in git

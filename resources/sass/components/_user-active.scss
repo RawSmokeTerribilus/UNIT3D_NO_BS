@@ -1,0 +1,101 @@
+.user-peers {
+    margin: 0 calc(-1 * max(0px, 10vw - 60px, 25vw - 300px, 45vw - 800px)); /* Inverses the magic numbers used in the main layout styles */
+    width: max-content;
+    max-width: 100vw;
+    align-self: center;
+}
+
+.user-peers__filters {
+    margin: 0 calc(-1 * max(0px, 45vw - 800px) + max(12px, 45vw - 600px));
+}
+
+@media only screen and (max-width: 767px) {
+    .user-peers__filters {
+        margin: 0 max(0, 45vw - 600px);
+    }
+}
+
+.user-active__name-header,
+.user-active__seeders-header,
+.user-active__leechers-header,
+.user-active__times-header,
+.user-active__agent-header,
+.user-active__ip-header,
+.user-active__port-header,
+.user-active__connectable-header,
+.user-active__visible-header,
+.user-active__size-header,
+.user-active__uploaded-header,
+.user-active__downloaded-header,
+.user-active__left-header,
+.user-active__progress-header,
+.user-active__created-at-header,
+.user-active__updated-at-header {
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.user-active__name,
+.user-active__seeders,
+.user-active__leechers,
+.user-active__times,
+.user-active__agent,
+.user-active__ip,
+.user-active__port,
+.user-active__size,
+.user-active__uploaded,
+.user-active__downloaded,
+.user-active__left,
+.user-active__progress,
+.user-active__created-at,
+.user-active__updated-at {
+    font-size: 14px;
+}
+
+.user-active__connectable,
+.user-active__visible {
+    font-size: 11px;
+}
+
+.user-active__seeders-header,
+.user-active__leechers-header,
+.user-active__times-header,
+.user-active__ip-header,
+.user-active__port-header,
+.user-active__size-header,
+.user-active__uploaded-header,
+.user-active__downloaded-header,
+.user-active__left-header,
+.user-active__progress-header,
+.user-active__seeders,
+.user-active__leechers,
+.user-active__times,
+.user-active__ip,
+.user-active__port,
+.user-active__size,
+.user-active__uploaded,
+.user-active__downloaded,
+.user-active__left,
+.user-active__progress {
+    text-align: right;
+}
+
+.user-active__connectable-header,
+.user-active__visible-header,
+.user-active__connectable {
+    text-align: center;
+}
+
+.user-active__name {
+    font-weight: bolder;
+    color: var(--text-color);
+}
+
+.user-active__checkbox {
+    all: revert !important;
+}
+
+.user-active__checkbox:indeterminate {
+    all: revert !important;
+}

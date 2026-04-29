@@ -1,0 +1,16 @@
+services:
+  rclone_sync:
+    image: rclone/rclone:latest
+    container_name: unit3d_rclone_ephemeral
+    volumes:
+      - /home/rawserver/UNIT3D_Docker/backups:/data:ro
+      - ./config:/config/rclone
+      - ./logs:/logs
+    command: >
+      sync /data gdrive_crypt:
+      --drive-chunk-size 1024M
+      --transfers 4
+      --checkers 8
+      --delete-after
+      -v
+      --log-file=/logs/sync_execution.log
