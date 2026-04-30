@@ -20,11 +20,11 @@
     <section class="panelV2">
         <h2 class="panel__heading">
             <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>
-            Arcade — Monkey Island
+            Retro Arcade
         </h2>
         <div class="panel__body">
             <p class="gaming-intro">
-                Juega a las aventuras clásicas de Monkey Island directamente en el navegador,
+                Juega a las aventuras gráficas más míticas directamente en el navegador,
                 sin instalar nada. El motor ScummVM corre completamente en tu máquina mediante
                 WebAssembly. Las partidas se guardan automáticamente en tu perfil.
             </p>
