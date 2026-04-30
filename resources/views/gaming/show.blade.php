@@ -23,7 +23,7 @@
     {{-- Metadatos del juego y partidas inyectados directamente en Blade --}}
     {{-- El launcher los lee en arranque: cero round-trips HTTP adicionales --}}
     {{-- NOTA: usa json_encode puro, no Js::from() que produce JSON.parse("...") --}}
-    @php $gamingConfig = json_encode(['gameId' => $juego['id'], 'scummId' => $juego['scummvm_id'], 'files' => $juego['files'], 'syncUrl' => route('gaming.saves.sync'), 'saves' => $saveManifest, 'csrfToken' => csrf_token()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); @endphp
+    @php $gamingConfig = json_encode(['gameId' => $juego['id'], 'scummId' => $juego['scummvm_id'], 'engineId' => $juego['engine_id'], 'files' => $juego['files'], 'syncUrl' => route('gaming.saves.sync'), 'saves' => $saveManifest, 'csrfToken' => csrf_token(), 'scummIni' => $scummIni], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); @endphp
     <script id="gaming-config" type="application/json">{!! $gamingConfig !!}</script>
 
     <section class="panelV2 gaming-player-panel">

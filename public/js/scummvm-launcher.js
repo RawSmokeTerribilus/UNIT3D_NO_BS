@@ -60,11 +60,27 @@
 
     var gameId    = config.gameId;
     var scummId   = config.scummId;
+    var engineId  = config.engineId;
     var files     = config.files;
     var syncUrl   = config.syncUrl;
     var saves     = config.saves;
     var csrfToken = config.csrfToken;
-    dbg('Config loaded: gameId=' + gameId + ' scummId=' + scummId + ' files=' + (files ? files.length : 0));
+    var scummIni  = config.scummIni;
+    dbg('Config loaded: gameId=' + gameId + ' scummId=' + scummId + ' engineId=' + engineId + ' files=' + (files ? files.length : 0));
+
+    // Whitelist defensiva — engineId acaba como path en una URL
+    // (/engine/data/plugins/lib<engineId>.so) y como nombre de archivo en el VFS.
+    // El controlador ya filtra por el mismo regex; esto es defensa en profundidad
+    // que sólo debería disparar ante un bug de configuración, no en ejecución normal.
+    var ID_REGEX = /^[a-z][a-z0-9]*$/;
+    if (!ID_REGEX.test(engineId || '')) {
+        dbg('FATAL: invalid engineId from config: ' + JSON.stringify(engineId), 'error');
+        return;
+    }
+    if (typeof scummIni !== 'string' || scummIni.length === 0) {
+        dbg('FATAL: missing scummIni in config', 'error');
+        return;
+    }
 
     // ── DOM refs ─────────────────────────────────────────────────────────────
     var loadingEl     = document.getElementById('gaming-loading');
@@ -181,8 +197,12 @@
     // ── Mount ScummVM engine plugins into VFS ────────────────────────────────
     // ScummVM WASM tries to browse plugins via HTTPFilesystem (data/index.json → 404).
     // Pre-loading libscumm.so into the VFS bypasses that entirely.
+    // El plugin se elige a partir de engineId (validado contra ID_REGEX arriba).
+    // Cuando se compilen plugins adicionales (sci, ags, sword1, sky, queen…) el
+    // launcher no necesita cambios: basta con dejar caer el .so en
+    // public/engine/data/plugins/ y registrar entradas con el engine_id correcto.
     var PLUGINS = [
-        { url: '/engine/data/plugins/libscumm.so',  vfsPath: '/plugins/libscumm.so'  },
+        { url: '/engine/data/plugins/lib' + engineId + '.so',  vfsPath: '/plugins/lib' + engineId + '.so'  },
     ];
 
     async function mountPlugins() {
@@ -347,17 +367,18 @@
     });
 
     // ── fetch intercept for scummvm.ini ──────────────────────────────────────
-    // Must be installed BEFORE scummvm.js loads (it saves its own fetch override)
+    // Must be installed BEFORE scummvm.js loads (it saves its own fetch override).
+    // El INI lo genera el backend (GamingController::buildScummIni) a partir del
+    // catálogo en config/gaming.php — fuente única de verdad. output_rate omitido
+    // a propósito: dejar que ScummVM use el sample rate nativo del SDL audio device.
+    // Forzarlo a 44100 causaba buffer size mismatch en el pipeline a 48 kHz de Chrome.
     (function () {
         var _realFetch = window.fetch;
-        // output_rate removed — let ScummVM use the SDL audio device's native rate.
-        // output_rate=44100 was causing buffer size mismatch in Chrome's 48 kHz pipeline.
-        var INI = '[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\n\n[monkey]\ngameid=monkey\nengineid=scumm\npath=/games/mi1-vga\nsavepath=/saves\n\n[monkey2]\ngameid=monkey2\nengineid=scumm\npath=/games/mi2-talkie\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[maniac]\ngameid=maniac\nengineid=scumm\npath=/games/maniac-mansion\nlanguage=es\nsavepath=/saves\n\n[loom]\ngameid=loom\nengineid=scumm\npath=/games/loom\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[zak]\ngameid=zak\nengineid=scumm\npath=/games/zak-mckracken\nlanguage=es\nsavepath=/saves\naspect_ratio=false\n\n[atlantis]\ngameid=atlantis\nengineid=scumm\npath=/games/indy-atlantis\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[samnmax]\ngameid=samnmax\nengineid=scumm\npath=/games/samnmax\nsavepath=/saves\n\n[indy3]\ngameid=indy3\nengineid=scumm\npath=/games/indy3\nlanguage=es\nsavepath=/saves\n\n[tentacle]\ngameid=tentacle\nengineid=scumm\npath=/games/tentacle\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[ft]\ngameid=ft\nengineid=scumm\npath=/games/ft\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n';
         window.fetch = function (input, init) {
             var url = (typeof input === 'string') ? input : (input && input.url) || '';
             if (url === 'scummvm.ini' || url.endsWith('/scummvm.ini')) {
-                dbg('Intercepted fetch(scummvm.ini) -- serving custom ini', 'ok');
-                return Promise.resolve(new Response(INI, { status: 200, headers: { 'Content-Type': 'text/plain' } }));
+                dbg('Intercepted fetch(scummvm.ini) -- serving generated ini (' + scummIni.length + ' bytes)', 'ok');
+                return Promise.resolve(new Response(scummIni, { status: 200, headers: { 'Content-Type': 'text/plain' } }));
             }
             return _realFetch.apply(window, arguments);
         };
