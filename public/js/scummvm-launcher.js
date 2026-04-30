@@ -247,6 +247,11 @@
                 } else {
                     buf = await res.arrayBuffer();
                 }
+                // Crear directorios intermedios para juegos con layout anidado (Full Throttle: DATA/, VIDEO/)
+                if (filename.indexOf('/') !== -1) {
+                    var subDir = GAME_DIR + '/' + filename.substring(0, filename.lastIndexOf('/'));
+                    try { FS.mkdirTree(subDir); } catch (me) { dbg('mkdirTree ' + subDir + ': ' + me, 'warn'); }
+                }
                 FS.writeFile(GAME_DIR + '/' + filename, new Uint8Array(buf));
                 // Alias MONSTER.SOG para MI2
                 if (filename.toLowerCase().endsWith('.sog')) {
@@ -347,7 +352,7 @@
         var _realFetch = window.fetch;
         // output_rate removed — let ScummVM use the SDL audio device's native rate.
         // output_rate=44100 was causing buffer size mismatch in Chrome's 48 kHz pipeline.
-        var INI = '[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\n\n[monkey]\ngameid=monkey\nengineid=scumm\npath=/games/mi1-vga\nsavepath=/saves\n\n[monkey2]\ngameid=monkey2\nengineid=scumm\npath=/games/mi2-talkie\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[maniac]\ngameid=maniac\nengineid=scumm\npath=/games/maniac-mansion\nsavepath=/saves\n\n[loom]\ngameid=loom\nengineid=scumm\npath=/games/loom\nsavepath=/saves\n\n[zak]\ngameid=zak\nengineid=scumm\npath=/games/zak-mckracken\nsavepath=/saves\naspect_ratio=false\n\n[atlantis]\ngameid=atlantis\nengineid=scumm\npath=/games/indy-atlantis\nsavepath=/saves\n\n[samnmax]\ngameid=samnmax\nengineid=scumm\npath=/games/samnmax\nsavepath=/saves\n\n';
+        var INI = '[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\n\n[monkey]\ngameid=monkey\nengineid=scumm\npath=/games/mi1-vga\nsavepath=/saves\n\n[monkey2]\ngameid=monkey2\nengineid=scumm\npath=/games/mi2-talkie\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[maniac]\ngameid=maniac\nengineid=scumm\npath=/games/maniac-mansion\nlanguage=es\nsavepath=/saves\n\n[loom]\ngameid=loom\nengineid=scumm\npath=/games/loom\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[zak]\ngameid=zak\nengineid=scumm\npath=/games/zak-mckracken\nlanguage=es\nsavepath=/saves\naspect_ratio=false\n\n[atlantis]\ngameid=atlantis\nengineid=scumm\npath=/games/indy-atlantis\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[samnmax]\ngameid=samnmax\nengineid=scumm\npath=/games/samnmax\nsavepath=/saves\n\n[indy3]\ngameid=indy3\nengineid=scumm\npath=/games/indy3\nlanguage=es\nsavepath=/saves\n\n[tentacle]\ngameid=tentacle\nengineid=scumm\npath=/games/tentacle\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n[ft]\ngameid=ft\nengineid=scumm\npath=/games/ft\nlanguage=es\nsubtitles=true\nsavepath=/saves\n\n';
         window.fetch = function (input, init) {
             var url = (typeof input === 'string') ? input : (input && input.url) || '';
             if (url === 'scummvm.ini' || url.endsWith('/scummvm.ini')) {
