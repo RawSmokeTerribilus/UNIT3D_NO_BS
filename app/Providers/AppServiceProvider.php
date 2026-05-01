@@ -104,6 +104,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('partials.footer', FooterComposer::class);
         View::composer('partials.top-nav', TopNavComposer::class);
+        View::composer('partials.alerts', 'App\\View\\Composers\\AlertsComposer');
 
         TrimStrings::except([
             'current_password',
