@@ -23,7 +23,17 @@
     {{-- Metadatos del juego y partidas inyectados directamente en Blade --}}
     {{-- El launcher los lee en arranque: cero round-trips HTTP adicionales --}}
     {{-- NOTA: usa json_encode puro, no Js::from() que produce JSON.parse("...") --}}
-    @php $gamingConfig = json_encode(['gameId' => $juego['id'], 'scummId' => $juego['scummvm_id'], 'engineId' => $juego['engine_id'], 'files' => $juego['files'], 'syncUrl' => route('gaming.saves.sync'), 'saves' => $saveManifest, 'csrfToken' => csrf_token(), 'scummIni' => $scummIni], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); @endphp
+    @php
+        // Cache-buster para /engine/* — los assets van con Cache-Control: immutable,
+        // así que sin ?v= el navegador puede pegar un scummvm.js viejo a un wasm nuevo.
+        $engineWasm    = public_path('engine/scummvm.wasm');
+        $enginePlugin  = public_path('engine/data/plugins/lib' . $juego['engine_id'] . '.so');
+        $engineVersion = (string) max(
+            file_exists($engineWasm)   ? filemtime($engineWasm)   : 0,
+            file_exists($enginePlugin) ? filemtime($enginePlugin) : 0
+        );
+        $gamingConfig = json_encode(['gameId' => $juego['id'], 'scummId' => $juego['scummvm_id'], 'engineId' => $juego['engine_id'], 'engineVersion' => $engineVersion, 'files' => $juego['files'], 'syncUrl' => route('gaming.saves.sync'), 'saves' => $saveManifest, 'csrfToken' => csrf_token(), 'scummIni' => $scummIni], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    @endphp
     <script id="gaming-config" type="application/json">{!! $gamingConfig !!}</script>
 
     <section class="panelV2 gaming-player-panel">

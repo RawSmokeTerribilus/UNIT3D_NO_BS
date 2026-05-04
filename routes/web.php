@@ -112,6 +112,13 @@ Route::middleware('language')->group(function (): void {
             Route::get('/torrent-covers/{id}', [App\Http\Controllers\AuthenticatedImageController::class, 'torrentCover'])->name('torrent_cover');
             Route::get('/user-avatars/{user:username}', [App\Http\Controllers\AuthenticatedImageController::class, 'userAvatar'])->name('user_avatar');
             Route::get('/user-icons/{user:username}', [App\Http\Controllers\AuthenticatedImageController::class, 'userIcon'])->name('user_icon');
+
+            // Proxy TMDB — re-emite imágenes desde nuestro propio origen para
+            // satisfacer COEP require-corp en /gaming/* y CSP img-src 'self'.
+            Route::get('/tmdb-proxy/{size}/{file}', [App\Http\Controllers\TmdbImageProxyController::class, 'show'])
+                ->name('tmdb_proxy')
+                ->where('size', '^(original|[wh][0-9]{2,4})$')
+                ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
         });
 
         // Donation System
