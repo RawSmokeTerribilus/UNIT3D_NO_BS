@@ -58,15 +58,17 @@
     try { config = JSON.parse(configEl.textContent); }
     catch (e) { dbg('JSON parse error: ' + e, 'error'); return; }
 
-    var gameId    = config.gameId;
-    var scummId   = config.scummId;
-    var engineId  = config.engineId;
-    var files     = config.files;
-    var syncUrl   = config.syncUrl;
-    var saves     = config.saves;
-    var csrfToken = config.csrfToken;
-    var scummIni  = config.scummIni;
-    dbg('Config loaded: gameId=' + gameId + ' scummId=' + scummId + ' engineId=' + engineId + ' files=' + (files ? files.length : 0));
+    var gameId        = config.gameId;
+    var scummId       = config.scummId;
+    var engineId      = config.engineId;
+    var engineVersion = config.engineVersion || '';
+    var files         = config.files;
+    var syncUrl       = config.syncUrl;
+    var saves         = config.saves;
+    var csrfToken     = config.csrfToken;
+    var scummIni      = config.scummIni;
+    var engineQuery   = engineVersion ? ('?v=' + encodeURIComponent(engineVersion)) : '';
+    dbg('Config loaded: gameId=' + gameId + ' scummId=' + scummId + ' engineId=' + engineId + ' files=' + (files ? files.length : 0) + ' engineVersion=' + engineVersion);
 
     // Whitelist defensiva — engineId acaba como path en una URL
     // (/engine/data/plugins/lib<engineId>.so) y como nombre de archivo en el VFS.
@@ -202,7 +204,7 @@
     // launcher no necesita cambios: basta con dejar caer el .so en
     // public/engine/data/plugins/ y registrar entradas con el engine_id correcto.
     var PLUGINS = [
-        { url: '/engine/data/plugins/lib' + engineId + '.so',  vfsPath: '/plugins/lib' + engineId + '.so'  },
+        { url: '/engine/data/plugins/lib' + engineId + '.so' + engineQuery,  vfsPath: '/plugins/lib' + engineId + '.so'  },
     ];
 
     async function mountPlugins() {
@@ -390,7 +392,7 @@
         canvas: canvas,
 
         locateFile: function (path) {
-            var r = '/engine/' + path;
+            var r = '/engine/' + path + engineQuery;
             dbg('locateFile: ' + path + ' -> ' + r);
             return r;
         },
@@ -552,9 +554,10 @@
         setLoading('Iniciando ScummVM…');
 
         // 3. Inyectar scummvm.js — dispara preRun → VFS → engine start
-        dbg('Injecting <script src="/engine/scummvm.js">...');
+        var _scummvmJsUrl = '/engine/scummvm.js' + engineQuery;
+        dbg('Injecting <script src="' + _scummvmJsUrl + '">...');
         var script   = document.createElement('script');
-        script.src   = '/engine/scummvm.js';
+        script.src   = _scummvmJsUrl;
         script.async = false;
         script.onerror = function () {
             dbg('FATAL: failed to load /engine/scummvm.js', 'error');

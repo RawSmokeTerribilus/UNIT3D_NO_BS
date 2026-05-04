@@ -1,11 +1,21 @@
 @php
-    $alertBackdropImages = !empty($backdrops ?? [])
+    // Las páginas /gaming/* corren bajo COEP require-corp + CSP estricto (img-src 'self'),
+    // así que TMDB directo se bloquea. Reescribimos a nuestro proxy interno, que re-emite
+    // la imagen con CORP same-origin desde nuestro propio origen.
+    $alertTmdbToProxy = static function (string $url): string {
+        if (preg_match('#^https://image\.tmdb\.org/t/p/([^/]+)/([A-Za-z0-9]+\.(?:jpg|jpeg|png|webp))$#', $url, $m)) {
+            return route('authenticated_images.tmdb_proxy', ['size' => $m[1], 'file' => $m[2]]);
+        }
+        return $url;
+    };
+
+    $alertBackdropImages = array_map($alertTmdbToProxy, !empty($backdrops ?? [])
         ? $backdrops
         : [
             'https://image.tmdb.org/t/p/w780/5XBYN5Sb0yBvvodwr8fJa7iyuo2.jpg',
             'https://image.tmdb.org/t/p/w780/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg',
             'https://image.tmdb.org/t/p/w780/zEqyD0SBt6HL7W9JQoWwtd5Do1T.jpg',
-        ];
+        ]);
 @endphp
 
 @if (config('other.freeleech') == true || config('other.invite-only') == false || config('other.doubleup') == true)
