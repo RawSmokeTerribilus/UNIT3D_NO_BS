@@ -30,12 +30,12 @@
         </div>
 
         <!-- Centro: Instrumental del Reloj -->
-        <div x-data="timer()" x-init="start()" style="padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; z-index: 10;">
+        <div x-data="timer()" x-init="start()" style="padding: 1.8rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; z-index: 10;">
             
             <!-- Título: Doble de tamaño y Morado/Fucsia Oscuro -->
-            <div style="display: flex; gap: 20px; font-weight: 900; font-size: 2.4rem; text-transform: uppercase; letter-spacing: 2px; text-align: center;">
+            <div style="display: flex; gap: 20px; font-weight: 900; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 2px; text-align: center;">
                 @if (config('other.freeleech') == true)
-                    <span style="color: #bf00ff; text-shadow: 0 0 15px rgba(191,0,255,0.6);">⚡⚡⚡ {{ __('common.freeleech_activated') }} ⚡⚡⚡</span>
+                    <span style="color: #bf00ff; text-shadow: 0 0 15px rgba(191,0,255,0.6);">⚡⚡ {{ __('common.freeleech_activated') }} ⚡⚡</span>
                 @endif
 
                 @if (config('other.invite-only') == false)

@@ -119,7 +119,7 @@
 
                     Toast.fire({
                         icon: '{{ $key }}',
-                        title: '{{ Session::get($key) }}',
+                        title: {!! json_encode(Session::get($key)) !!},
                     });
                 </script>
             @endif

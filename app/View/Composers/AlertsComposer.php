@@ -29,13 +29,13 @@ class AlertsComposer
                 )
                 ->orderByDesc('seeders')
                 ->orderByDesc('times_completed')
-                ->limit(30)
+                ->limit(1800)
                 ->get()
                 ->map(fn (Torrent $torrent): ?string => $torrent->movie?->backdrop ?? $torrent->tv?->backdrop)
                 ->filter()
                 ->map(fn (string $backdrop): string => tmdb_image('back_small', $backdrop))
                 ->unique()
-                ->take(10)
+                ->take(200)
                 ->values()
                 ->all(),
         );
