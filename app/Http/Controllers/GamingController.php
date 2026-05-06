@@ -72,7 +72,8 @@ class GamingController extends Controller
      */
     public function buildScummIni(): string
     {
-        $ini = "[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\n\n";
+        $ini = "[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\n";
+        $ini .= "scaler=edge\nscale_factor=2\n\n";
 
         foreach ($this->catalog() as $id => $game) {
             // Section name (a.k.a. ScummVM "target") debe ser único en el catálogo;
@@ -107,6 +108,18 @@ class GamingController extends Controller
             }
             if (isset($opts['aspect_ratio']) && $opts['aspect_ratio'] === false) {
                 $ini .= "aspect_ratio=false\n";
+            }
+            if (! empty($opts['extra']) && preg_match('/^[A-Za-z0-9_-]+$/', $opts['extra']) === 1) {
+                $ini .= "extra={$opts['extra']}\n";
+            }
+            if (! empty($opts['guioptions']) && preg_match('/^[A-Z0-9_ ]+$/', $opts['guioptions']) === 1) {
+                $ini .= "guioptions={$opts['guioptions']}\n";
+            }
+            if (! empty($opts['audio_override'])) {
+                $ini .= "audio_override=true\n";
+            }
+            if (isset($opts['cdrom']) && is_int($opts['cdrom'])) {
+                $ini .= "cdrom={$opts['cdrom']}\n";
             }
 
             $ini .= "savepath=/saves\n\n";

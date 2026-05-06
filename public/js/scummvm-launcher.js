@@ -416,6 +416,19 @@
                 (async function () {
                     var fatal = false;
                     try {
+                        // ScummVM 2.6.0 emscripten port inherits POSIX semantics:
+                        // OSystem_POSIX::getDefaultConfigFileName() ends up resolving
+                        // to /local/scummvm.ini in MEMFS (the official build template
+                        // mounts /local via BrowserFS+localStorage; we don't, so we
+                        // just create the dir and seed the INI directly). The fetch
+                        // intercept above remains as a fallback for older builds that
+                        // load the ini through XHR.
+                        try { FS.mkdirTree('/local'); } catch (_) {}
+                        try {
+                            FS.writeFile('/local/scummvm.ini', scummIni);
+                            dbg('Pre-wrote /local/scummvm.ini (' + scummIni.length + ' bytes)', 'ok');
+                        } catch (e) { dbg('Failed to pre-write /local/scummvm.ini: ' + e, 'warn'); }
+
                         await mountPlugins();
                         await mountGameFiles();
                         try { FS.mkdir(SAVE_DIR); } catch (_) {}

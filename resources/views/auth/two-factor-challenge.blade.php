@@ -38,6 +38,7 @@
                     class="auth-form__form"
                     method="POST"
                     action="{{ route('two-factor.login') }}"
+                    x-on:submit="if (entered) { $event.preventDefault(); return; } entered = true;"
                 >
                     @csrf
                     <a class="auth-form__branding" href="{{ route('home.index') }}">
@@ -87,8 +88,7 @@
                             value="{{ old('code') }}"
                             x-on:input="
                                 if ($el.value.length === 6) {
-                                    $el.form.submit();
-                                    entered = true;
+                                    $el.form.requestSubmit();
                                 }
                             "
                             x-ref="code"

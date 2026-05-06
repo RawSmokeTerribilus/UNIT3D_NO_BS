@@ -68,6 +68,17 @@
                 para la carga inicial. Las partidas se sincronizan con tu cuenta automáticamente
                 al guardar dentro del juego.
             </div>
+
+            <a class="gaming-banner"
+               href="/retroarch/index.html"
+               target="_blank"
+               rel="noopener noreferrer">
+                <img
+                    src="/img/console-retroarch.png"
+                    alt="RetroArch — Más juegos en el navegador"
+                    class="gaming-banner__img"
+                />
+            </a>
         </div>
     </section>
 
@@ -192,6 +203,28 @@
         .gaming-notice i {
             margin-right: 6px;
             color: var(--primary);
+        }
+
+        .gaming-banner {
+            display: block;
+            margin-top: 24px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: border-color .2s, transform .15s, box-shadow .2s;
+            text-decoration: none;
+        }
+
+        .gaming-banner:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+        }
+
+        .gaming-banner__img {
+            display: block;
+            width: 100%;
+            height: auto;
         }
     </style>
 @endsection
