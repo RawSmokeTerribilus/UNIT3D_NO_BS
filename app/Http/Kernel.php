@@ -90,22 +90,23 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        'admin'            => Middleware\CheckForAdmin::class,
-        'auth'             => \Illuminate\Auth\Middleware\Authenticate::class,
-        'gaming.isolation' => Middleware\GamingIsolationHeaders::class,
-        'auth.basic'       => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'banned'           => Middleware\CheckIfBanned::class,
-        'bindings'         => \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        'cache.headers'    => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can'              => \Illuminate\Auth\Middleware\Authorize::class,
-        'csrf'             => \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
-        'guest'            => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
-        'language'         => Middleware\SetLanguage::class,
-        'modo'             => Middleware\CheckForModo::class,
-        'owner'            => Middleware\CheckForOwner::class,
-        'throttle'         => \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
-        'signed'           => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'verified'         => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class
+        'admin'                 => Middleware\CheckForAdmin::class,
+        'auth'                  => \Illuminate\Auth\Middleware\Authenticate::class,
+        'gaming.isolation'      => Middleware\GamingIsolationHeaders::class,
+        'auth.basic'            => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'banned'                => Middleware\CheckIfBanned::class,
+        'bindings'              => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        'cache.headers'         => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can'                   => \Illuminate\Auth\Middleware\Authorize::class,
+        'csrf'                  => \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+        'guest'                 => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
+        'language'              => Middleware\SetLanguage::class,
+        'modo'                  => Middleware\CheckForModo::class,
+        'owner'                 => Middleware\CheckForOwner::class,
+        'throttle'              => \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
+        'security.requirements' => Middleware\EnforceSecurityRequirements::class,
+        'signed'                => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'verified'              => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'password.confirm'      => \Illuminate\Auth\Middleware\RequirePassword::class
     ];
 }

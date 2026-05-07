@@ -256,7 +256,7 @@ Every container boot triggers automatic recovery:
 
 #### **Cold Backup (Surgical Snapshot)**
 
-**Philosophy**: Backups must be **corruption-proof, complete, and offline-capable**. 
+**Philosophy**: Backups must be **corruption-proof, complete, and easy to restore**.
 
 ```bash
 ./backup.sh workflow:
@@ -267,16 +267,17 @@ Every container boot triggers automatic recovery:
 2. 🛑 Container Freeze (docker compose stop)
    └─ Stops all containers for consistent file snapshot
    
-3. 📦 Image Snapshot (docker save)
-   └─ Exports all Docker images (php:8.4, mysql:8.0, redis, meilisearch)
-   └─ Used for offline reconstruction if Docker Hub unavailable
-   
-4. 📂 Full Archive (tar -czf)
+3. 📂 Full Archive (tar -czf)
    └─ Compresses: app code, vendor/, node_modules/, configs, data
-   └─ Includes everything needed for complete offline recovery
-   
-5. ♻️ Rotation (keep last 3 snapshots)
-   └─ Prevents disk fill-up, maintains recent backups
+   └─ Captures the project tree and exact deployment recipe
+
+4. 🧳 Optional External Mirror
+   └─ Copies the snapshot to `BACKUP_EXTERNAL_DIR` when `BACKUP_EXTERNAL_ENABLED=true`
+   └─ Keeps its own rotation so you have a second local copy outside the main tree
+    
+5. ♻️ Rotation (local + external)
+   └─ `BACKUP_LOCAL_RETENTION` controls local retention
+   └─ `BACKUP_EXTERNAL_RETENTION` controls external-disk retention
    
 6. 🚀 Resurrection (docker compose up)
    └─ Verifies backup was successful
@@ -286,7 +287,7 @@ Every container boot triggers automatic recovery:
 **Why "surgical"?**:
 - ✅ **No corruption**: Stopping containers ensures file consistency during copy
 - ✅ **Plug & Play**: Full `vendor/` and `node_modules/` included
-- ✅ **Offline recovery**: Docker images + all dependencies = works anywhere
+- ✅ **Integrated secondary copy**: Snapshot can be mirrored automatically to an external disk with its own retention
 - ✅ **Atomic**: Complete snapshot at single point in time
 
 ---
@@ -297,12 +298,13 @@ Every container boot triggers automatic recovery:
 make health  # Runs ./health_check.sh
 
 Checks:
-✅ Port 8008 responds with HTTP 200
+✅ Main site URL responds with HTTP 200/302
 ✅ Meilisearch /health endpoint
 ✅ MySQL connectivity
 ✅ Redis connectivity
 ✅ Queue worker alive
 ✅ Scheduler running
+✅ Optional announce endpoint when `ANNOUNCE_HEALTHCHECK_URL` is configured
 
 If any fail: Alerts + can auto-restart
 ```
@@ -507,8 +509,8 @@ make health
 **Why this works**:
 - Backup includes everything: source code, vendor/, node_modules/, configs
 - Database dump is included
-- Docker images are included (can work offline)
-- No need to download anything; entirely self-contained
+- Snapshot can be copied automatically to an external disk configured in `.env`
+- Rebuild relies on code-on-disk plus the versioned deployment recipe
 
 ---
 

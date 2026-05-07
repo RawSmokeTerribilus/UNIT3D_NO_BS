@@ -108,7 +108,7 @@ Route::middleware('language')->group(function (): void {
     | Website (When Authorized) (Alpha Ordered)
     |---------------------------------------------------------------------------------
     */
-    Route::middleware(['auth', 'banned', 'verified'])->group(function (): void {
+    Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->group(function (): void {
         // General
         Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
 

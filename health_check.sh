@@ -1,9 +1,41 @@
 #!/bin/bash
-# --- CONFIGURACIÓN ---
-DOCKER_DIR="/home/rawserver/UNIT3D_Docker"
-LOG_FILE="$DOCKER_DIR/backups/health_check.log"
+set -euo pipefail
 
-cd "$DOCKER_DIR"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$PROJECT_ROOT/.env"
+
+read_env() {
+  local key="$1"
+  local default="${2-}"
+  local value
+
+  value="$(grep -E "^${key}=" "$ENV_FILE" 2>/dev/null | head -1 | cut -d'=' -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+
+  if [ -n "$value" ]; then
+    printf '%s' "$value"
+  else
+    printf '%s' "$default"
+  fi
+}
+
+resolve_path() {
+  local path="$1"
+
+  if [[ "$path" = /* ]]; then
+    printf '%s' "$path"
+  else
+    printf '%s/%s' "$PROJECT_ROOT" "$path"
+  fi
+}
+
+HTTP_PORT="$(read_env HTTP_PORT 8008)"
+LOG_FILE="$(resolve_path "$(read_env HEALTHCHECK_LOG_FILE backups/health_check.log)")"
+SITE_HEALTH_URL="$(read_env HEALTHCHECK_SITE_URL "http://localhost:${HTTP_PORT}/")"
+ANNOUNCE_HEALTH_URL="$(read_env ANNOUNCE_HEALTHCHECK_URL '')"
+ANNOUNCE_SERVICE="$(read_env ANNOUNCE_HEALTHCHECK_SERVICE announce)"
+
+mkdir -p "$(dirname "$LOG_FILE")"
+cd "$PROJECT_ROOT"
 
 # Obtener lista de servicios desde docker-compose
 SERVICES=$(docker compose ps --format "{{.Service}}")
@@ -20,9 +52,18 @@ done
 
 # 2. Check de VIDA REAL (HTTP)
 # Verificamos si el sitio responde un 200/302 en el puerto 8008.
-HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8008/)
+HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$SITE_HEALTH_URL")
 
 if [[ "$HTTP_STATUS" -ne 200 && "$HTTP_STATUS" -ne 302 ]]; then
     echo "[$(date +"%Y-%m-%d %H:%M:%S")] 🚨 ALERTA CRÍTICA: Error HTTP $HTTP_STATUS detectado. El Búnker está herido. Reiniciando stack PHP..." >> "$LOG_FILE"
     docker compose restart app web >> "$LOG_FILE" 2>&1
+fi
+
+if [[ -n "$ANNOUNCE_HEALTH_URL" ]]; then
+    ANNOUNCE_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$ANNOUNCE_HEALTH_URL" || true)
+
+    if [[ "$ANNOUNCE_STATUS" -ne 200 ]]; then
+        echo "[$(date +"%Y-%m-%d %H:%M:%S")] 🚨 ALERTA CRÍTICA: Announce fuera de servicio (HTTP ${ANNOUNCE_STATUS:-000}). Reiniciando $ANNOUNCE_SERVICE..." >> "$LOG_FILE"
+        docker compose restart "$ANNOUNCE_SERVICE" >> "$LOG_FILE" 2>&1 || true
+    fi
 fi

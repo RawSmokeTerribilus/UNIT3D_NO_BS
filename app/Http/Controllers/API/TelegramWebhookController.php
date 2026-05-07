@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class TelegramWebhookController extends Controller
 {
+    private function telegramInstanceLabel(): string
+    {
+        return (string) config('services.telegram.instance_label', config('app.name', 'tracker'));
+    }
+
     public function handle(Request $request)
     {
         $message = $request->input('message');
@@ -41,9 +46,10 @@ class TelegramWebhookController extends Controller
     private function handleStart(int|string $chatId, string $text): void
     {
         $token = trim(str_replace('/start', '', $text));
+        $instanceLabel = $this->telegramInstanceLabel();
 
         if (empty($token)) {
-            $this->sendMessage($chatId, "\xE2\x9A\xA1 Bienvenido al bot de NOBS.\n\nUsa el enlace de vinculación desde tu panel de notificaciones para conectar tu cuenta.\n\nEscribe /help para ver los comandos disponibles.");
+            $this->sendMessage($chatId, "\xE2\x9A\xA1 Bienvenido al bot de {$instanceLabel}.\n\nUsa el enlace de vinculación desde tu panel de notificaciones para conectar tu cuenta.\n\nEscribe /help para ver los comandos disponibles.");
             return;
         }
 
@@ -96,6 +102,7 @@ class TelegramWebhookController extends Controller
      */
     private function handleStatus(int|string $chatId): void
     {
+        $instanceLabel = $this->telegramInstanceLabel();
         $user = User::where('telegram_chat_id', $chatId)->first();
 
         if ($user) {
@@ -108,7 +115,7 @@ class TelegramWebhookController extends Controller
                 $this->sendMessage($chatId, $statusText, 'HTML');
             }
         } else {
-            $this->sendMessage($chatId, "\xF0\x9F\x94\xB4 <b>SIN VINCULAR</b>\n\nTu cuenta de Telegram no está vinculada a ningún usuario de NOBS.\nUsa el enlace desde tu panel de notificaciones para conectarte.", 'HTML');
+            $this->sendMessage($chatId, "\xF0\x9F\x94\xB4 <b>SIN VINCULAR</b>\n\nTu cuenta de Telegram no está vinculada a ningún usuario de {$instanceLabel}.\nUsa el enlace desde tu panel de notificaciones para conectarte.", 'HTML');
         }
     }
 
@@ -117,7 +124,9 @@ class TelegramWebhookController extends Controller
      */
     private function handleHelp(int|string $chatId): void
     {
-        $this->sendMessage($chatId, "\xF0\x9F\xA4\x96 <b>NOBS Tracker Bot — Comandos</b>\n\n/start — Vincular tu cuenta (usa el enlace del panel)\n/status — Comprobar estado del enlace\n/help — Mostrar esta ayuda\n\n\xE2\x9A\xA1 Las notificaciones de nuevos torrents se envían automáticamente una vez vinculado.", 'HTML');
+        $instanceLabel = $this->telegramInstanceLabel();
+
+        $this->sendMessage($chatId, "\xF0\x9F\xA4\x96 <b>{$instanceLabel} Tracker Bot — Comandos</b>\n\n/start — Vincular tu cuenta (usa el enlace del panel)\n/status — Comprobar estado del enlace\n/help — Mostrar esta ayuda\n\n\xE2\x9A\xA1 Las notificaciones de nuevos torrents se envían automáticamente una vez vinculado.", 'HTML');
     }
 
     /**

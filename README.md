@@ -256,7 +256,7 @@ Cada arranque de contenedor desencadena una recuperación automática:
 
 #### **Backup en Frío (Snapshot Quirúrgico)**
 
-**Filosofía**: Los backups deben ser **a prueba de corrupción, completos y capaces de funcionar sin conexión**.
+**Filosofía**: Los backups deben ser **a prueba de corrupción, completos y fáciles de restaurar**.
 
 ```bash
 Flujo de trabajo de ./backup.sh:
@@ -267,16 +267,17 @@ Flujo de trabajo de ./backup.sh:
 2. 🛑 Congelación de Contenedores (docker compose stop)
    └─ Detiene todos los contenedores para un snapshot de archivos consistente
 
-3. 📦 Snapshot de Imágenes (docker save)
-   └─ Exporta todas las imágenes de Docker (php:8.4, mysql:8.0, redis, meilisearch)
-   └─ Se usa para la reconstrucción sin conexión si Docker Hub no está disponible
-
-4. 📂 Archivo Completo (tar -czf)
+3. 📂 Archivo Completo (tar -czf)
    └─ Comprime: código de la aplicación, vendor/, node_modules/, configuraciones, datos
-   └─ Incluye todo lo necesario para una recuperación completa sin conexión
+   └─ Incluye el árbol del proyecto y la receta exacta del despliegue
 
-5. ♻️ Rotación (mantiene los últimos 3 snapshots)
-   └─ Evita que el disco se llene, mantiene backups recientes
+4. 🧳 Espejo Externo Opcional
+   └─ Copia el snapshot a `BACKUP_EXTERNAL_DIR` si `BACKUP_EXTERNAL_ENABLED=true`
+   └─ Mantiene su propia rotación para tener una segunda copia local fuera del árbol principal
+
+5. ♻️ Rotación (local + externa)
+   └─ `BACKUP_LOCAL_RETENTION` controla la rotación local
+   └─ `BACKUP_EXTERNAL_RETENTION` controla la rotación de la copia en disco externo
 
 6. 🚀 Resurrección (docker compose up)
    └─ Verifica que el backup se haya realizado con éxito
@@ -286,7 +287,7 @@ Flujo de trabajo de ./backup.sh:
 **¿Por qué "quirúrgico"?**:
 - ✅ **Sin corrupción**: Detener los contenedores asegura la consistencia de los archivos durante la copia
 - ✅ **Plug & Play**: Se incluyen `vendor/` y `node_modules/` completos
-- ✅ **Recuperación sin conexión**: Imágenes de Docker + todas las dependencias = funciona en cualquier lugar
+- ✅ **Copia secundaria integrada**: El snapshot puede reflejarse automáticamente a un disco externo con rotación propia
 - ✅ **Atómico**: Snapshot completo en un único punto en el tiempo
 
 ---
@@ -297,12 +298,13 @@ Flujo de trabajo de ./backup.sh:
 make health  # Ejecuta ./health_check.sh
 
 Chequeos:
-✅ El puerto 8008 responde con HTTP 200
+✅ La URL principal responde con HTTP 200/302
 ✅ Endpoint /health de Meilisearch
 ✅ Conectividad con MySQL
 ✅ Conectividad con Redis
 ✅ El worker de la cola está vivo
 ✅ El scheduler se está ejecutando
+✅ Endpoint announce opcional si `ANNOUNCE_HEALTHCHECK_URL` está configurado
 
 Si alguno falla: Alertas + puede reiniciar automáticamente
 ```
@@ -594,8 +596,8 @@ make health
 **Por qué funciona esto**:
 - El backup incluye todo: código fuente, `vendor/`, `node_modules/`, configuraciones
 - El volcado de la base de datos está incluido
-- Las imágenes de Docker están incluidas (puede funcionar sin conexión)
-- No es necesario descargar nada; es completamente autocontenido
+- El snapshot puede copiarse automáticamente a un disco externo configurado en `.env`
+- La reconstrucción usa el código en disco y la receta del despliegue versionada
 
 ---
 

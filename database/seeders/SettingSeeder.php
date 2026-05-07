@@ -35,6 +35,7 @@ class SettingSeeder extends Seeder
             'torrent.magnet' => (string) config('torrent.magnet'),
             'other.invite-only' => config('other.invite-only') ? 'true' : 'false',
             'thanks-system.is-enabled' => config('thanks-system.is-enabled') ? 'true' : 'false',
+            'services.telegram.instance_label' => (string) config('services.telegram.instance_label'),
         ];
 
         foreach ($settings as $key => $value) {

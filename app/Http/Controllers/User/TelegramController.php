@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -10,9 +13,15 @@ use Illuminate\Support\Str;
 
 class TelegramController extends Controller
 {
-    public function resetToken(Request $request)
+    private function telegramInstanceLabel(): string
     {
-        $user = $request->user();
+        return (string) config('services.telegram.instance_label', config('app.name', 'tracker'));
+    }
+
+    public function resetToken(Request $request, User $user): \Illuminate\Http\RedirectResponse
+    {
+        abort_unless($request->user()?->is($user), 403);
+
         $oldChatId = $user->telegram_chat_id;
 
         // Clear link and generate new token
@@ -27,7 +36,7 @@ class TelegramController extends Controller
                 $telegram = app(TelegramService::class);
 
                 $telegram->sendMessage(
-                    "🔴 <b>Cuenta desvinculada</b>\n\nTu enlace con NOBS ha sido eliminado.\nSi quieres volver a vincular, usa el nuevo token desde tu panel de notificaciones.",
+                    "🔴 <b>Cuenta desvinculada</b>\n\nTu enlace con {$this->telegramInstanceLabel()} ha sido eliminado.\nSi quieres volver a vincular, usa el nuevo token desde tu panel de notificaciones.",
                     (string) $oldChatId,
                 );
 
@@ -46,10 +55,12 @@ class TelegramController extends Controller
             ->with('success', 'Telegram desvinculado y token regenerado correctamente.');
     }
 
-    public function checkLink(Request $request)
+    public function checkLink(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
+        abort_unless($request->user()?->is($user), 403);
+
         return response()->json([
-            'linked' => $request->user()->telegram_chat_id !== null,
+            'linked' => $user->telegram_chat_id !== null,
         ]);
     }
 }

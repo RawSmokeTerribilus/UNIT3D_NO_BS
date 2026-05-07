@@ -33,10 +33,11 @@ return [
     ],
 
     'telegram' => [
-        'token'    => env('TELEGRAM_BOT_TOKEN'),
-        'chat_id'  => env('TELEGRAM_GROUP_ID'),
-        'topic_id' => env('TELEGRAM_TOPIC_NOVEDADES'),
-        'bot_username' => env('TELEGRAM_BOT_USERNAME'),
+        'token'             => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id'           => env('TELEGRAM_GROUP_ID'),
+        'topic_id'          => env('TELEGRAM_TOPIC_NOVEDADES'),
+        'bot_username'      => env('TELEGRAM_BOT_USERNAME'),
         'group_invite_link' => env('TELEGRAM_GROUP_INVITE_LINK'),
+        'instance_label'    => env('TELEGRAM_INSTANCE_LABEL', env('APP_ENV', 'tracker')),
     ],
 ];
