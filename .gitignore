@@ -58,6 +58,31 @@ rclone_gdrive/config/
 rclone_gdrive/logs/
 rclone_gdrive/info-bkp.txt
 public/vendor/
+
+# Gaming assets — re-downloadable, too large for git
+# ScummVM games: https://archive.org/details/AbandonwareSpanish
+public/games/
+# RetroArch ROMs: https://archive.org/details/retro-roms-best-set
+public/retroarch/assets/cores/roms/
+
+# RetroArch — external/regenerable artefacts (mantén public/retroarch/libretro.{js,css}
+# y nuestros tweaks, ignora todo lo grande que se reconstruye con un comando):
+#   - cores libretro: descargables del nightly buildbot (~150 MB en .wasm/.js)
+#   - frontend bundle: parte de RetroArch web upstream (~126 MB)
+#   - covers: rehidrata con `php artisan retroarch:fetch-covers` (~423 MB, 1107 PNGs)
+#   - .index-xhr: regenerado por `php artisan retroarch:scan-roms`
+#   - storage/app/retroarch/catalog.json: idem
+# OJO con el patrón *_libretro.js — no afecta a public/retroarch/libretro.js
+# (sin sufijo _libretro), que es nuestra versión parcheada y SÍ se rastrea.
+public/retroarch/*_libretro.js
+public/retroarch/*_libretro.wasm
+public/retroarch/assets/frontend/
+public/retroarch/assets/cores/.index-xhr
+public/retroarch/covers/
+storage/app/retroarch/catalog.json
+
+# Source art originals (keep compressed versions in public/img and public/retroarch/media)
+Initial_NOBS_art/
 .docker/
 vendor/
 

@@ -70,12 +70,12 @@
             </div>
 
             <a class="gaming-banner"
-               href="/retroarch/index.html"
+               href="/retroarch"
                target="_blank"
                rel="noopener noreferrer">
                 <img
                     src="/img/console-retroarch.png"
-                    alt="RetroArch — Más juegos en el navegador"
+                    alt="RetroArch — Catálogo de juegos retro en el navegador"
                     class="gaming-banner__img"
                 />
             </a>

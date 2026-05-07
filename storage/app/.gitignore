@@ -1,3 +1,8 @@
 *
 !public/
 !.gitignore
+# RetroArch — mapa de nombres FBNeo (700 KB, estable, regenerable pero raro).
+# catalog.json sigue ignorado vía .gitignore raíz (cambia cada scan).
+!retroarch/
+retroarch/*
+!retroarch/arcade-names.json

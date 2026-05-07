@@ -41,6 +41,26 @@ if (config('unit3d.root_url_override')) {
 // ScummVM HTTPFilesystem probe — silencia el WRN de data/index.json en el cliente
 Route::get('/data/index.json', fn () => response()->json([]));
 
+// nginx auth_request endpoint — protege los assets estáticos del catálogo
+// (/retroarch/, /games/, /engine/) detrás de la sesión Laravel.  Devuelve
+// 204 si hay sesión autenticada, 401 si no.  No usa middleware 'auth' para
+// que la respuesta sea 401 limpia y no un 302 a /login (auth_request espera
+// 200/401, cualquier otro código devuelve 500 al cliente original).
+//
+// El endpoint se referencia desde .docker/nginx/default.conf:
+//   auth_request /__auth/check;
+//   error_page 401 = @gaming_unauth;
+Route::get('/__auth/check', static function () {
+    return \Illuminate\Support\Facades\Auth::check()
+        ? response('', 204)
+        : response('', 401);
+})->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value);
+// withoutMiddleware: el throttle global se agota en segundos cuando BrowserFS
+// dispara 60+ XHR por carga de juego (cada uno gatilla auth_request → /__auth/check).
+// Si el sub-request devuelve 429, nginx lo traduce como 500 al cliente — el
+// gate parece roto cuando en realidad está rate-limited. Quitar throttle aquí
+// es seguro porque la respuesta es <100 bytes y sólo lee la sesión.
+
 Route::middleware('language')->group(function (): void {
     /*
     |---------------------------------------------------------------------------------
@@ -369,6 +389,20 @@ Route::middleware('language')->group(function (): void {
         Route::prefix('gaming')->name('gaming.')->group(function (): void {
             Route::get('/', [App\Http\Controllers\GamingController::class, 'index'])->name('index');
             Route::get('/{gameId}', [App\Http\Controllers\GamingController::class, 'show'])->name('show')->middleware('gaming.isolation')->where('gameId', '[a-zA-Z0-9\-]+');
+        });
+
+        // Arcade — RetroArch (libretro web). show embebe /retroarch/index.html
+        // dentro de un iframe; aunque ese fichero estático ya viene con COOP/COEP
+        // desde nginx, el contexto cross-origin-isolated sólo se hereda al iframe
+        // si la página padre también lo está aislada → gaming.isolation en show.
+        // index/system son catálogo puro y no necesitan aislamiento.
+        Route::prefix('retroarch')->name('retroarch.')->group(function (): void {
+            Route::get('/', [App\Http\Controllers\RetroArchController::class, 'index'])->name('index');
+            Route::get('/{system}', [App\Http\Controllers\RetroArchController::class, 'system'])->name('system')->where('system', '[a-z][a-z0-9]*');
+            Route::get('/{system}/{slug}', [App\Http\Controllers\RetroArchController::class, 'show'])->name('show')
+                ->middleware('gaming.isolation')
+                ->where('system', '[a-z][a-z0-9]*')
+                ->where('slug', '[a-z0-9][a-z0-9-]*');
         });
 
         // API — Cloud Saves (gaming) — excluidas del throttle:web global para evitar 429 al guardar/restaurar partidas

@@ -4,8 +4,39 @@
  * This provides the basic JavaScript for the RetroArch web player.
  */
 
-const defaultCore = "gambatte";
-var autoStart = false;
+// Lanzador externo: el catálogo Laravel embebe esta página en un iframe con
+//   ?core=<libretro>&content=<path-en-VFS>&autoStart=1[&debug=1]
+// xhrfs ya monta los ROMs en /home/web_user/retroarch/userdata/content/downloads,
+// así que libretro carga directo sin pasar por "Add Content".
+const __raParams           = new URLSearchParams(window.location.search);
+const __raRequestedCore    = __raParams.get("core");
+const __raRequestedContent = __raParams.get("content");
+const __raDebugMode        = __raParams.get("debug") === "1";
+const defaultCore = __raRequestedCore || "gambatte";
+var autoStart = __raParams.get("autoStart") === "1";
+
+// Modo debug: con ?debug=1 reenviamos console.{log,warn,error,info} al
+// padre vía postMessage para que el panel del catálogo (/retroarch/<sys>/<slug>?debug)
+// muestre en vivo los logs del player. Hookear console aquí — antes que nadie
+// dentro del iframe la use — garantiza que ningún WEBPLAYER: se pierde, al
+// contrario que un hook desde el padre que llega tarde.
+if (__raDebugMode && window.parent && window.parent !== window) {
+    ["log", "warn", "error", "info"].forEach(function (level) {
+        var orig = console[level];
+        console[level] = function () {
+            try { orig.apply(console, arguments); } catch (_) {}
+            try {
+                var parts = [];
+                for (var i = 0; i < arguments.length; i++) {
+                    var a = arguments[i];
+                    parts.push(typeof a === "string" ? a : JSON.stringify(a));
+                }
+                window.parent.postMessage({ __ra: "log", level: level, msg: parts.join(" ") }, window.location.origin);
+            } catch (_) { /* parent gone or wrong-origin — silent */ }
+        };
+    });
+    console.log("[ra-debug] postMessage mirror enabled");
+}
 
 var BrowserFS = BrowserFS;
 var afs;
@@ -343,8 +374,13 @@ $(function() {
    });
 
    // Find which core to load.
-   currentCore = localStorage.getItem("core") || defaultCore;
-   loadCore(currentCore).then(function() {
+   currentCore = __raRequestedCore || localStorage.getItem("core") || defaultCore;
+   // Si el lanzador pidió core+contenido, lo pasamos a loadCore para que
+   // RetroArch arranque con el ROM ya cargado en vez de mostrar el menú.
+   const __raArgs = (autoStart && __raRequestedContent)
+      ? ["-v", __raRequestedContent, "-c", "/home/web_user/retroarch/userdata/retroarch.cfg"]
+      : null;
+   loadCore(currentCore, __raArgs).then(function() {
       console.log("WEBPLAYER: wasm runtime initialized");
       appInitialized();
    });
