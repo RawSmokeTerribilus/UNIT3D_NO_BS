@@ -32,7 +32,7 @@ return [
         |
         */
 
-        'is_enabled' => false,
+        'is_enabled' => env('TRACKER_ENABLED', false),
 
         /*
         |--------------------------------------------------------------------------

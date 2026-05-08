@@ -311,6 +311,44 @@ If any fail: Alerts + can auto-restart
 
 ---
 
+#### **Rust Announce (External Tracker Implementation)**
+
+The `/announce/` path no longer depends on the classic PHP announce controller. It is now served by a dedicated Docker `announce` service running **UNIT3D-Announce** in Rust.
+
+```bash
+Current architecture:
+
+Internet/Cloudflare
+    ↓
+Nginx (`web`)
+    ↓  proxy /announce/
+Rust tracker (`announce:6969`)
+    ↓  internal API
+Laravel (`app`) → Unit3dAnnounce::*
+```
+
+Important points:
+- ✅ **Tracker code is vendored in-repo** at `rust-announce/UNIT3D-Announce`
+- ✅ **No submodules, no symlinks, no hardlinks** in the vendored production tree
+- ✅ **Real client IP** is forwarded to the tracker via `CF-Connecting-IP` / `X-Real-IP`
+- ✅ **Tracker admin API is blocked publicly** at nginx (`/announce/{TRACKER_KEY}/...`)
+- ✅ **Dedicated healthcheck** at `/announce/health/ping`
+- ✅ **Simple rollback**: set `TRACKER_ENABLED=false` in `.env` and restart `app/scheduler/worker/web`
+
+Relevant variables:
+- `TRACKER_ENABLED`
+- `TRACKER_HOST=announce`
+- `TRACKER_PORT=6969`
+- `TRACKER_KEY`
+- `ANNOUNCE_HEALTHCHECK_URL`
+
+Operational implications:
+- `backup.sh` already captures the tracker code because it lives inside the project tree
+- `disaster-recovery-script.sh` already rebuilds the service during `docker compose up -d`
+- the dashboard can still read external tracker stats through `Unit3dAnnounce::getStats()`
+
+---
+
 ### 6. **🎨 N.O.B.S Branding (Custom Theme)**
 
 UNIT3D ships with a default theme. We created a custom N.O.B.S identity:

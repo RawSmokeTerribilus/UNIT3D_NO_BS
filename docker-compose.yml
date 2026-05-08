@@ -13,8 +13,55 @@ services:
             - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
         depends_on:
             - app
+            - announce
         networks:
             - unit3d
+
+    announce:
+        build:
+            context: .
+            dockerfile: .docker/announce/Dockerfile
+        container_name: unit3d-announce
+        restart: unless-stopped
+        environment:
+            - DB_USERNAME=${DB_USERNAME:-unit3d}
+            - DB_PASSWORD=${DB_PASSWORD:-unit3d}
+            - DB_DATABASE=${DB_DATABASE:-unit3d}
+            - TRACKER_DB_HOST=db
+            - TRACKER_DB_PORT=3306
+            - TRACKER_KEY=${TRACKER_KEY}
+            - TRACKER_LISTENING_IP_ADDRESS=0.0.0.0
+            - TRACKER_LISTENING_PORT=${TRACKER_PORT:-6969}
+            - TRACKER_RUST_LOG=${TRACKER_RUST_LOG:-unit3d_announce=info,axum::rejection=off}
+            - TRACKER_IS_CONNECTIVITY_CHECK_ENABLED=${TRACKER_IS_CONNECTIVITY_CHECK_ENABLED:-false}
+            - TRACKER_CONNECTIVITY_CHECK_INTERVAL=${TRACKER_CONNECTIVITY_CHECK_INTERVAL:-1800}
+            - TRACKER_REQUIRE_PEER_CONNECTIVITY=${TRACKER_REQUIRE_PEER_CONNECTIVITY:-false}
+            - TRACKER_IS_ANNOUNCE_LOGGING_ENABLED=${TRACKER_IS_ANNOUNCE_LOGGING_ENABLED:-false}
+            - TRACKER_REVERSE_PROXY_CLIENT_IP_HEADER_NAME=${TRACKER_REVERSE_PROXY_CLIENT_IP_HEADER_NAME:-X-Real-IP}
+            - TRACKER_ANNOUNCE_MIN=${TRACKER_ANNOUNCE_MIN:-1800}
+            - TRACKER_ANNOUNCE_MIN_ENFORCED=${TRACKER_ANNOUNCE_MIN_ENFORCED:-1740}
+            - TRACKER_ANNOUNCE_MAX=${TRACKER_ANNOUNCE_MAX:-3600}
+            - TRACKER_FLUSH_INTERVAL_MILLISECONDS=${TRACKER_FLUSH_INTERVAL_MILLISECONDS:-3000}
+            - TRACKER_MAX_BATCHES_PER_FLUSH=${TRACKER_MAX_BATCHES_PER_FLUSH:-1}
+            - TRACKER_NUMWANT_DEFAULT=${TRACKER_NUMWANT_DEFAULT:-15}
+            - TRACKER_NUMWANT_MAX=${TRACKER_NUMWANT_MAX:-15}
+            - TRACKER_UPLOAD_FACTOR=${TRACKER_UPLOAD_FACTOR:-100}
+            - TRACKER_DOWNLOAD_FACTOR=${TRACKER_DOWNLOAD_FACTOR:-100}
+            - TRACKER_PEER_EXPIRY_INTERVAL=${TRACKER_PEER_EXPIRY_INTERVAL:-1800}
+            - TRACKER_ACTIVE_PEER_TTL=${TRACKER_ACTIVE_PEER_TTL:-7200}
+            - TRACKER_INACTIVE_PEER_TTL=${TRACKER_INACTIVE_PEER_TTL:-1814400}
+            - TRACKER_MAX_PEERS_PER_TORRENT_PER_USER=${TRACKER_MAX_PEERS_PER_TORRENT_PER_USER:-3}
+            - TRACKER_USER_RECEIVE_SEED_LIST_RATE_LIMITS=${TRACKER_USER_RECEIVE_SEED_LIST_RATE_LIMITS:-60=10;900=25;7200=125;86400=500;604800=2500}
+            - TRACKER_USER_RECEIVE_LEECH_LIST_RATE_LIMITS=${TRACKER_USER_RECEIVE_LEECH_LIST_RATE_LIMITS:-60=20;900=50;7200=250;86400=1000;604800=5000}
+        depends_on:
+            - db
+        networks:
+            - unit3d
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://127.0.0.1:6969/announce/health/ping"]
+            interval: 30s
+            timeout: 5s
+            retries: 5
 
     app:
         build:
