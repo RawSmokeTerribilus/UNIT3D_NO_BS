@@ -259,6 +259,30 @@ body {
     padding: 16px 8px;
 }
 
+.auth-form__verification-link-box {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background-color: rgba(17, 0, 28, 0.22);
+    border: 1px solid rgba(17, 0, 28, 0.18);
+}
+
+.auth-form__verification-link {
+    display: block;
+    color: #f3efff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        Liberation Mono, Courier New, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 .auth-form__important-infos {
     list-style-type: none;
     margin: 0;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,48 @@ class TelegramWebhookController extends Controller
         return (string) config('services.telegram.instance_label', config('app.name', 'tracker'));
     }
 
+    private function replyCooldownSeconds(): int
+    {
+        return max(5, (int) config('services.telegram.reply_cooldown_seconds', 120));
+    }
+
+    private function isPrivateChat(array $message): bool
+    {
+        return ($message['chat']['type'] ?? null) === 'private';
+    }
+
+    private function isCommand(string $text, string $command): bool
+    {
+        return preg_match(sprintf('/^\/%s(?:@\w+)?$/u', preg_quote($command, '/')), $text) === 1;
+    }
+
+    private function extractStartToken(string $text): ?string
+    {
+        if (preg_match('/^\/start(?:@\w+)?(?:(?:\s+|=)(.*))?$/u', trim($text), $matches) !== 1) {
+            return null;
+        }
+
+        return ltrim(trim($matches[1] ?? ''), '=');
+    }
+
+    private function canSendReply(int|string $chatId, string $kind): bool
+    {
+        return Cache::add(
+            sprintf('telegram:webhook:reply:%s:%s', $kind, (string) $chatId),
+            true,
+            now()->addSeconds($this->replyCooldownSeconds()),
+        );
+    }
+
+    private function sendMessageOnce(int|string $chatId, string $kind, string $text, ?string $parseMode = null): void
+    {
+        if (!$this->canSendReply($chatId, $kind)) {
+            return;
+        }
+
+        $this->sendMessage($chatId, $text, $parseMode);
+    }
+
     public function handle(Request $request)
     {
         $message = $request->input('message');
@@ -24,16 +67,19 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'ignored'], 200);
         }
 
+        if (!$this->isPrivateChat($message)) {
+            return response()->json(['status' => 'ignored'], 200);
+        }
+
         $chatId = $message['chat']['id'];
         $text   = trim($message['text']);
-        $from   = $message['from']['first_name'] ?? 'usuario';
 
         // Route commands
         if (str_starts_with($text, '/start')) {
             $this->handleStart($chatId, $text);
-        } elseif ($text === '/status') {
+        } elseif ($this->isCommand($text, 'status')) {
             $this->handleStatus($chatId);
-        } elseif ($text === '/help') {
+        } elseif ($this->isCommand($text, 'help')) {
             $this->handleHelp($chatId);
         }
 
@@ -45,47 +91,71 @@ class TelegramWebhookController extends Controller
      */
     private function handleStart(int|string $chatId, string $text): void
     {
-        $token = trim(str_replace('/start', '', $text));
+        $token = $this->extractStartToken($text);
         $instanceLabel = $this->telegramInstanceLabel();
 
-        if (empty($token)) {
-            $this->sendMessage($chatId, "\xE2\x9A\xA1 Bienvenido al bot de {$instanceLabel}.\n\nUsa el enlace de vinculación desde tu panel de notificaciones para conectar tu cuenta.\n\nEscribe /help para ver los comandos disponibles.");
+        if ($token === null || $token === '') {
+            $this->sendMessageOnce($chatId, 'welcome', "\xE2\x9A\xA1 Bienvenido al bot de {$instanceLabel}.\n\nUsa el enlace de vinculación desde tu panel de notificaciones para conectar tu cuenta.\n\nEscribe /help para ver los comandos disponibles.");
             return;
         }
 
         // Validate token format
         if (!preg_match('/^TRK-[a-zA-Z0-9]+$/', $token)) {
-            $this->sendMessage($chatId, "\xE2\x9D\x8C Token inválido. Usa el botón \"Vincular con el Bot\" desde tu panel de notificaciones.");
+            $this->sendMessageOnce($chatId, 'invalid-token-format', "\xE2\x9D\x8C Token inválido. Usa el botón \"Vincular con el Bot\" desde tu panel de notificaciones.");
             Log::warning('Telegram: invalid token format', ['token' => $token, 'chat_id' => $chatId]);
-            return;
-        }
-
-        // Check if this chat is already linked to a different account
-        $existingUser = User::where('telegram_chat_id', $chatId)->first();
-
-        if ($existingUser) {
-            $this->sendMessage($chatId, "\xE2\x9A\xA0\xEF\xB8\x8F Ya tienes una cuenta vinculada: <b>{$existingUser->username}</b>.\n\nSi quieres vincular otra cuenta, primero regenera el token desde tu panel.", 'HTML');
             return;
         }
 
         // Transactional linking with pessimistic lock
         DB::transaction(function () use ($chatId, $token) {
-            $user = User::where('telegram_token', $token)
+            $chatUser = User::where('telegram_chat_id', $chatId)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$user) {
-                $this->sendMessage($chatId, "\xE2\x9D\x8C Token no encontrado o ya utilizado.\n\nRegenera tu token desde el panel de notificaciones e inténtalo de nuevo.");
+            $tokenUser = User::where('telegram_token', $token)
+                ->lockForUpdate()
+                ->first();
+
+            if ($chatUser && $tokenUser && $chatUser->is($tokenUser)) {
+                if ($chatUser->telegram_token !== null) {
+                    $chatUser->telegram_token = null;
+                    $chatUser->save();
+                }
+
+                $this->sendMessageOnce($chatId, 'already-linked-same-user', "\xE2\x9C\x85 Tu cuenta ya estaba vinculada: <b>{$chatUser->username}</b>.\n\nNo hace falta volver a usar el token. Escribe /status para comprobar el estado del enlace.", 'HTML');
+                return;
+            }
+
+            if ($chatUser) {
+                $this->sendMessageOnce($chatId, 'chat-already-linked', "\xE2\x9A\xA0\xEF\xB8\x8F Ya tienes una cuenta vinculada: <b>{$chatUser->username}</b>.\n\nSi quieres vincular otra cuenta, primero regenera el token desde tu panel.", 'HTML');
+                return;
+            }
+
+            if (!$tokenUser) {
+                $this->sendMessageOnce($chatId, 'token-not-found', "\xE2\x9D\x8C Token no encontrado o ya utilizado.\n\nRegenera tu token desde el panel de notificaciones e inténtalo de nuevo.");
                 Log::warning('Telegram: token not found', ['token' => $token, 'chat_id' => $chatId]);
                 return;
             }
 
-            $user->telegram_chat_id = $chatId;
-            $user->telegram_token = null;
-            $user->save();
+            if ($tokenUser->telegram_chat_id !== null && (string) $tokenUser->telegram_chat_id !== (string) $chatId) {
+                $tokenUser->telegram_token = null;
+                $tokenUser->save();
+
+                $this->sendMessageOnce($chatId, 'token-already-linked-elsewhere', "\xE2\x9A\xA0\xEF\xB8\x8F Ese token pertenece a una cuenta que ya estaba vinculada.\n\nPor seguridad, ese token ha caducado. Si necesitas mover el enlace, regenera uno nuevo desde el panel.", 'HTML');
+                Log::warning('Telegram: stale token reuse blocked', [
+                    'user'           => $tokenUser->username,
+                    'chat_id'        => $chatId,
+                    'linked_chat_id' => $tokenUser->telegram_chat_id,
+                ]);
+                return;
+            }
+
+            $tokenUser->telegram_chat_id = $chatId;
+            $tokenUser->telegram_token = null;
+            $tokenUser->save();
 
             $inviteLink = config('services.telegram.group_invite_link');
-            $successText = "\xE2\x9C\x85 <b>Handshake Successful, {$user->username}!</b>\n\n\xF0\x9F\x94\x92 Tu cuenta ha sido vinculada al bot de Nuclear Order.\nRecibirás notificaciones de nuevos torrents directamente aquí.\n\nEscribe /status para verificar tu enlace.";
+            $successText = "\xE2\x9C\x85 <b>Handshake Successful, {$tokenUser->username}!</b>\n\n\xF0\x9F\x94\x92 Tu cuenta ha sido vinculada al bot de Nuclear Order.\nRecibirás notificaciones de nuevos torrents directamente aquí.\n\nEscribe /status para verificar tu enlace.";
 
             if ($inviteLink) {
                 $this->sendMessageWithButton($chatId, $successText, "\xF0\x9F\x93\xA1 UNIRSE AL GRUPO", $inviteLink);
@@ -93,7 +163,7 @@ class TelegramWebhookController extends Controller
                 $this->sendMessage($chatId, $successText, 'HTML');
             }
 
-            Log::info('Telegram: account linked', ['user' => $user->username, 'chat_id' => $chatId]);
+            Log::info('Telegram: account linked', ['user' => $tokenUser->username, 'chat_id' => $chatId]);
         });
     }
 
@@ -115,7 +185,7 @@ class TelegramWebhookController extends Controller
                 $this->sendMessage($chatId, $statusText, 'HTML');
             }
         } else {
-            $this->sendMessage($chatId, "\xF0\x9F\x94\xB4 <b>SIN VINCULAR</b>\n\nTu cuenta de Telegram no está vinculada a ningún usuario de {$instanceLabel}.\nUsa el enlace desde tu panel de notificaciones para conectarte.", 'HTML');
+            $this->sendMessageOnce($chatId, 'status-unlinked', "\xF0\x9F\x94\xB4 <b>SIN VINCULAR</b>\n\nTu cuenta de Telegram no está vinculada a ningún usuario de {$instanceLabel}.\nUsa el enlace desde tu panel de notificaciones para conectarte.", 'HTML');
         }
     }
 

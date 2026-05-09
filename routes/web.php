@@ -103,6 +103,18 @@ Route::middleware('language')->group(function (): void {
         Route::get('/register/{code?}', fn (string $code) => to_route('register', ['code' => $code]));
     });
 
+    Route::middleware(['signed', 'throttle:'.config('fortify.limiters.verification', '6,1')])->group(function (): void {
+        Route::get('/email/verify-link/{id}/{hash}', [App\Http\Controllers\Auth\EmailVerificationLinkController::class, 'show'])
+            ->name('verification.link.show');
+        Route::post('/email/verify-link/{id}/{hash}', [App\Http\Controllers\Auth\EmailVerificationLinkController::class, 'store'])
+            ->name('verification.link.store');
+    });
+
+    Route::middleware(['auth', 'banned', 'throttle:'.config('fortify.limiters.verification', '6,1')])->group(function (): void {
+        Route::post('/email/verification-link', [App\Http\Controllers\Auth\EmailVerificationLinkController::class, 'reveal'])
+            ->name('verification.link.reveal');
+    });
+
     /*
     |---------------------------------------------------------------------------------
     | Website (When Authorized) (Alpha Ordered)

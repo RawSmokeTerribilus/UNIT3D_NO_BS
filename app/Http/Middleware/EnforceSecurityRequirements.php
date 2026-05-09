@@ -12,7 +12,11 @@ class EnforceSecurityRequirements
 {
     private const string DEPLOYMENT_DATE = '2026-05-07';
     private const string AMNESTY_CUTOFF = '2026-06-01';
-    private const string EXEMPT_USERNAME = 'CUNYAT';
+    private const array EXEMPT_USERNAMES = [
+        'CUNYAT',
+        'garfield1969',
+        'nahik99374',
+    ];
 
     /**
      * Handle an incoming request.
@@ -25,7 +29,7 @@ class EnforceSecurityRequirements
             return $next($request);
         }
 
-        if ($user->group->is_owner || strcasecmp($user->username, self::EXEMPT_USERNAME) === 0) {
+        if ($user->group->is_owner || $this->isExemptUsername($user->username)) {
             return $next($request);
         }
 
@@ -76,5 +80,16 @@ class EnforceSecurityRequirements
 
         return to_route('users.notification_settings.edit', ['user' => $user])
             ->withErrors('Seguridad critica: vincula tu cuenta de Telegram para acceder al tracker.');
+    }
+
+    private function isExemptUsername(string $username): bool
+    {
+        foreach (self::EXEMPT_USERNAMES as $exemptUsername) {
+            if (strcasecmp($username, $exemptUsername) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -52,7 +52,9 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-	\App\Models\Torrent::observe(\App\Observers\TorrentObserver::class);
+        parent::boot();
+
+        \App\Models\Torrent::observe(\App\Observers\TorrentObserver::class);
     }
 
     /**

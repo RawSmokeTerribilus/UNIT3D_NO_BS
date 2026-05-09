@@ -28,7 +28,7 @@
                 <form
                     class="auth-form__form"
                     method="POST"
-                    action="{{ route('verification.send') }}"
+                    action="{{ route('verification.link.reveal') }}"
                 >
                     @csrf
                     <a class="auth-form__branding" href="{{ route('home.index') }}">
@@ -56,6 +56,20 @@
                                 Success: {{ Session::get('success') }}
                             </li>
                         @endif
+
+                        @if (Session::has('verification_link'))
+                            <li class="auth-form__important-info">
+                                Verification link for {{ Session::get('verification_link_email') }}:
+                                <div class="auth-form__verification-link-box">
+                                    <a
+                                        class="auth-form__verification-link"
+                                        href="{{ Session::get('verification_link') }}"
+                                    >
+                                        {{ Session::get('verification_link') }}
+                                    </a>
+                                </div>
+                            </li>
+                        @endif
                     </ul>
                     @if (config('captcha.enabled'))
                         @hiddencaptcha
@@ -63,7 +77,7 @@
 
                     <details class="auth-form__dropdown">
                         <summary class="auth-form__dropdown-text">Having issues?</summary>
-                        <button class="auth-form__primary-button">Resend verification email</button>
+                        <button class="auth-form__primary-button">Show verification link</button>
                     </details>
                     @if (Session::has('errors') || Session::has('status'))
                         <ul class="auth-form__errors">

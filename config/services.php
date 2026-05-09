@@ -39,5 +39,6 @@ return [
         'bot_username'      => env('TELEGRAM_BOT_USERNAME'),
         'group_invite_link' => env('TELEGRAM_GROUP_INVITE_LINK'),
         'instance_label'    => env('TELEGRAM_INSTANCE_LABEL', env('APP_ENV', 'tracker')),
+        'reply_cooldown_seconds' => env('TELEGRAM_REPLY_COOLDOWN_SECONDS', 120),
     ],
 ];

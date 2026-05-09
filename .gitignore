@@ -11,6 +11,7 @@
 /storage/logs/*.log
 /bootstrap/cache/*
 .phpunit.result.cache
+.phpunit.cache/
 
 # Docker data (Critical!)
 .docker/data/mysql/*
