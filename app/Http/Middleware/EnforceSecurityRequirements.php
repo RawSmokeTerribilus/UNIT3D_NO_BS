@@ -43,7 +43,7 @@ class EnforceSecurityRequirements
         }
 
         $hasTwoFactor = !empty($user->two_factor_secret);
-        $hasTelegram = !empty($user->telegram_chat_id);
+        $hasTelegram = $user->telegram_group_joined_at !== null;
 
         if ($hasTwoFactor && $hasTelegram) {
             return $next($request);
@@ -69,7 +69,7 @@ class EnforceSecurityRequirements
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json([
                 'error'   => 'Security Restriction',
-                'message' => 'Pendiente activar 2FA o vincular Telegram en la web del tracker.',
+                'message' => 'Pendiente activar 2FA o completar la verificación de Telegram en la web del tracker.',
             ], 403);
         }
 
@@ -79,7 +79,7 @@ class EnforceSecurityRequirements
         }
 
         return to_route('users.notification_settings.edit', ['user' => $user])
-            ->withErrors('Seguridad critica: vincula tu cuenta de Telegram para acceder al tracker.');
+            ->withErrors('Seguridad critica: vincula tu Telegram y confirma tu entrada al grupo para acceder al tracker.');
     }
 
     private function isExemptUsername(string $username): bool

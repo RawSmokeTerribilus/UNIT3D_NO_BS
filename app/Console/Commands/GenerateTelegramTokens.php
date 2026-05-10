@@ -11,12 +11,15 @@ use Illuminate\Support\Str;
 class GenerateTelegramTokens extends Command
 {
     protected $signature = 'telegram:generate-tokens {--force : Skip confirmation}';
-    protected $description = 'Generate telegram_token for all users with NULL or empty token';
+    protected $description = 'Generate telegram_token only for users who are not linked and still need one';
 
     public function handle(): int
     {
-        $users = User::whereNull('telegram_token')
-            ->orWhere('telegram_token', '')
+        $users = User::whereNull('telegram_chat_id')
+            ->where(function ($query): void {
+                $query->whereNull('telegram_token')
+                    ->orWhere('telegram_token', '');
+            })
             ->get();
 
         $count = $users->count();

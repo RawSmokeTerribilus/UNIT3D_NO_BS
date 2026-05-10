@@ -73,7 +73,11 @@ class BanController extends Controller
                 Log::warning('Telegram kick failed for user '.$user->username, ['error' => $e->getMessage()]);
             }
 
-            $user->update(['telegram_chat_id' => null, 'telegram_token' => null]);
+            $user->update([
+                'telegram_chat_id'         => null,
+                'telegram_group_joined_at' => null,
+                'telegram_token'           => null,
+            ]);
         }
 
         $user->notify(new UserBan($ban));

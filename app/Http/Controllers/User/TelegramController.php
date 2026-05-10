@@ -26,8 +26,9 @@ class TelegramController extends Controller
 
         // Clear link and generate new token
         $user->update([
-            'telegram_chat_id' => null,
-            'telegram_token'   => 'TRK-' . Str::random(32),
+            'telegram_chat_id'         => null,
+            'telegram_group_joined_at' => null,
+            'telegram_token'           => 'TRK-' . Str::random(32),
         ]);
 
         // If the user was linked, notify them and kick from group
@@ -60,7 +61,10 @@ class TelegramController extends Controller
         abort_unless($request->user()?->is($user), 403);
 
         return response()->json([
-            'linked' => $user->telegram_chat_id !== null,
+            'linked'       => $user->telegram_chat_id !== null,
+            'group_joined' => $user->telegram_chat_id !== null
+                ? app(TelegramService::class)->syncLinkedUserMembership($user->fresh())
+                : false,
         ]);
     }
 }

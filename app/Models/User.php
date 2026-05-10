@@ -80,6 +80,7 @@ use AllowDynamicProperties;
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property int                             $own_flushes
  * @property string|null                     $email_verified_at
+ * @property \Illuminate\Support\Carbon|null $telegram_group_joined_at
  */
 #[AllowDynamicProperties]
 final class User extends Authenticatable implements MustVerifyEmail
@@ -124,6 +125,7 @@ final class User extends Authenticatable implements MustVerifyEmail
      *     last_login: 'datetime',
      *     last_action: 'datetime',
      *     disabled_at: 'datetime',
+     *     telegram_group_joined_at: 'datetime',
      *     can_comment: 'bool',
      *     can_download: 'bool',
      *     can_request: 'bool',
@@ -143,6 +145,7 @@ final class User extends Authenticatable implements MustVerifyEmail
             'last_action'             => 'datetime',
             'disabled_at'             => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
+            'telegram_group_joined_at'=> 'datetime',
             'can_comment'             => 'bool',
             'can_download'            => 'bool',
             'can_request'             => 'bool',

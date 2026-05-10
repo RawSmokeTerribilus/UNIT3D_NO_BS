@@ -4,11 +4,92 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class TelegramService
 {
+    public function syncLinkedUserMembership(User $user): bool
+    {
+        if (empty($user->telegram_chat_id)) {
+            if ($user->telegram_group_joined_at !== null) {
+                $user->forceFill(['telegram_group_joined_at' => null])->save();
+            }
+
+            return false;
+        }
+
+        $isMember = $this->isActiveGroupMember((string) $user->telegram_chat_id);
+
+        if ($isMember === null) {
+            return $user->telegram_group_joined_at !== null;
+        }
+
+        return $this->persistMembershipState($user, $isMember);
+    }
+
+    public function persistMembershipState(User $user, bool $isMember): bool
+    {
+        $newValue = $isMember ? now() : null;
+
+        if (($user->telegram_group_joined_at !== null) === $isMember) {
+            return $isMember;
+        }
+
+        $user->forceFill(['telegram_group_joined_at' => $newValue])->save();
+
+        return $isMember;
+    }
+
+    public function isActiveGroupMember(string $telegramChatId): ?bool
+    {
+        $token = config('services.telegram.token');
+        $chatId = config('services.telegram.chat_id');
+
+        if (empty($token) || empty($chatId)) {
+            Log::warning('TelegramService: Configuración incompleta para comprobar membresía de grupo');
+
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(10)->get("https://api.telegram.org/bot{$token}/getChatMember", [
+                'chat_id' => $chatId,
+                'user_id' => $telegramChatId,
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning('TelegramService: No se pudo consultar la membresía del grupo.', [
+                    'chat_id' => $telegramChatId,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            $result = $response->json('result');
+
+            if (!is_array($result)) {
+                Log::warning('TelegramService: Respuesta inválida de getChatMember.', ['chat_id' => $telegramChatId]);
+
+                return null;
+            }
+
+            return $this->isMemberStatus(
+                (string) ($result['status'] ?? ''),
+                (bool) ($result['is_member'] ?? false),
+            );
+        } catch (\Throwable $e) {
+            Log::warning('TelegramService: Error consultando membresía del grupo.', [
+                'chat_id' => $telegramChatId,
+                'error'   => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
     /**
      * Envía un mensaje con Poster (si existe) o solo texto.
      */
@@ -101,5 +182,11 @@ class TelegramService
             Log::error('TelegramService: Error en banChatMember.', ['id' => $telegramChatId]);
             return false;
         }
+    }
+
+    private function isMemberStatus(string $status, bool $isMember = false): bool
+    {
+        return in_array($status, ['member', 'administrator', 'creator'], true)
+            || ($status === 'restricted' && $isMember);
     }
 }

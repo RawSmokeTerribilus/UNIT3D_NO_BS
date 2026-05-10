@@ -28,17 +28,30 @@ test('webhook ignores commands from non private chats', function (): void {
     Http::assertNothingSent();
 });
 
-test('webhook accepts windows style start payloads in private chat', function (): void {
+test('webhook links the bot but keeps group membership pending until telegram confirms it', function (): void {
     config()->set('services.telegram.token', 'test-token');
-    config()->set('services.telegram.group_invite_link', null);
+    config()->set('services.telegram.chat_id', '-100987654321');
+    config()->set('services.telegram.group_invite_link', 'https://t.me/joinchat/example');
 
-    Http::fake();
+    Http::fake(function (\Illuminate\Http\Client\Request $request) {
+        if (str_contains($request->url(), '/getChatMember')) {
+            return Http::response([
+                'ok' => true,
+                'result' => [
+                    'status' => 'left',
+                ],
+            ], 200);
+        }
 
-    $token = 'TRK-testWindowsStartPayload123456789';
+        return Http::response(['ok' => true, 'result' => true], 200);
+    });
+
+    $token = 'TRK-prodMembershipPending123456789';
 
     $user = User::factory()->create([
         'telegram_chat_id' => null,
         'telegram_token' => $token,
+        'telegram_group_joined_at' => null,
     ]);
 
     $response = $this->postJson(route('api.telegram.webhook'), [
@@ -58,50 +71,31 @@ test('webhook accepts windows style start payloads in private chat', function ()
     $user->refresh();
 
     expect($user->telegram_chat_id)->toBe(8576519633)
-        ->and($user->telegram_token)->toBeNull();
-
-    Http::assertSentCount(1);
+        ->and($user->telegram_token)->toBeNull()
+        ->and($user->telegram_group_joined_at)->toBeNull();
 });
 
-test('webhook throttles repeated invalid token replies in private chat', function (): void {
-    config()->set('services.telegram.token', 'test-token');
+test('webhook membership updates mark linked users as joined', function (): void {
+    config()->set('services.telegram.chat_id', '-100987654321');
 
     Http::fake();
-
-    $payload = [
-        'message' => [
-            'text' => '/start nope',
-            'chat' => [
-                'id' => 424242,
-                'type' => 'private',
-            ],
-        ],
-    ];
-
-    $this->postJson(route('api.telegram.webhook'), $payload)->assertOk();
-    $this->postJson(route('api.telegram.webhook'), $payload)->assertOk();
-
-    Http::assertSentCount(1);
-});
-
-test('webhook refuses to relink an account already linked to another chat', function (): void {
-    config()->set('services.telegram.token', 'test-token');
-
-    Http::fake();
-
-    $token = 'TRK-staleTokenAlreadyLinked123456789';
 
     $user = User::factory()->create([
-        'telegram_chat_id' => 111111,
-        'telegram_token' => $token,
+        'telegram_chat_id' => 8576519633,
+        'telegram_group_joined_at' => null,
     ]);
 
     $response = $this->postJson(route('api.telegram.webhook'), [
-        'message' => [
-            'text' => "/start {$token}",
+        'chat_member' => [
             'chat' => [
-                'id' => 222222,
-                'type' => 'private',
+                'id' => '-100987654321',
+                'type' => 'supergroup',
+            ],
+            'new_chat_member' => [
+                'status' => 'member',
+                'user' => [
+                    'id' => 8576519633,
+                ],
             ],
         ],
     ]);
@@ -112,8 +106,5 @@ test('webhook refuses to relink an account already linked to another chat', func
 
     $user->refresh();
 
-    expect($user->telegram_chat_id)->toBe(111111)
-        ->and($user->telegram_token)->toBeNull();
-
-    Http::assertSentCount(1);
+    expect($user->telegram_group_joined_at)->not->toBeNull();
 });

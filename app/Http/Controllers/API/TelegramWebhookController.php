@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,14 @@ class TelegramWebhookController extends Controller
 
     public function handle(Request $request)
     {
+        $membershipUpdate = $request->input('chat_member') ?? $request->input('my_chat_member');
+
+        if (is_array($membershipUpdate)) {
+            $this->handleMembershipUpdate($membershipUpdate);
+
+            return response()->json(['status' => 'ok'], 200);
+        }
+
         $message = $request->input('message');
 
         if (!$message || !isset($message['text'])) {
@@ -154,8 +163,12 @@ class TelegramWebhookController extends Controller
             $tokenUser->telegram_token = null;
             $tokenUser->save();
 
+            $groupJoined = app(TelegramService::class)->syncLinkedUserMembership($tokenUser);
+
             $inviteLink = config('services.telegram.group_invite_link');
-            $successText = "\xE2\x9C\x85 <b>Handshake Successful, {$tokenUser->username}!</b>\n\n\xF0\x9F\x94\x92 Tu cuenta ha sido vinculada al bot de Nuclear Order.\nRecibirás notificaciones de nuevos torrents directamente aquí.\n\nEscribe /status para verificar tu enlace.";
+            $successText = $groupJoined
+                ? "\xE2\x9C\x85 <b>Handshake Successful, {$tokenUser->username}!</b>\n\n\xF0\x9F\x94\x92 Tu cuenta ha sido vinculada al bot y tu membresía del grupo ya está confirmada.\nRecibirás notificaciones de nuevos torrents directamente aquí.\n\nEscribe /status para verificar tu enlace."
+                : "\xE2\x9C\x85 <b>Handshake Successful, {$tokenUser->username}!</b>\n\n\xF0\x9F\x94\x92 Tu cuenta ha sido vinculada al bot de Nuclear Order.\nPara completar el acceso, entra ahora al grupo desde el botón inferior.\n\nEscribe /status para verificar tu enlace.";
 
             if ($inviteLink) {
                 $this->sendMessageWithButton($chatId, $successText, "\xF0\x9F\x93\xA1 UNIRSE AL GRUPO", $inviteLink);
@@ -176,10 +189,13 @@ class TelegramWebhookController extends Controller
         $user = User::where('telegram_chat_id', $chatId)->first();
 
         if ($user) {
+            $groupJoined = app(TelegramService::class)->syncLinkedUserMembership($user);
             $inviteLink = config('services.telegram.group_invite_link');
-            $statusText = "\xF0\x9F\x9F\xA2 <b>ENLACE ACTIVO</b>\n\n\xF0\x9F\x91\xA4 Usuario: <b>{$user->username}</b>\n\xF0\x9F\x94\x97 Estado: Vinculado\n\xF0\x9F\x93\xA1 Notificaciones: Activas";
+            $statusText = $groupJoined
+                ? "\xF0\x9F\x9F\xA2 <b>ACCESO VERIFICADO</b>\n\n\xF0\x9F\x91\xA4 Usuario: <b>{$user->username}</b>\n\xF0\x9F\x94\x97 Bot: Vinculado\n\xF0\x9F\x93\xA1 Grupo: Confirmado"
+                : "\xF0\x9F\x9F\xA1 <b>BOT VINCULADO</b>\n\n\xF0\x9F\x91\xA4 Usuario: <b>{$user->username}</b>\n\xF0\x9F\x94\x97 Bot: Vinculado\n\xF0\x9F\x93\xA1 Grupo: Pendiente de confirmación";
 
-            if ($inviteLink) {
+            if (!$groupJoined && $inviteLink) {
                 $this->sendMessageWithButton($chatId, $statusText, "\xF0\x9F\x93\xA1 UNIRSE AL GRUPO", $inviteLink);
             } else {
                 $this->sendMessage($chatId, $statusText, 'HTML');
@@ -196,7 +212,7 @@ class TelegramWebhookController extends Controller
     {
         $instanceLabel = $this->telegramInstanceLabel();
 
-        $this->sendMessage($chatId, "\xF0\x9F\xA4\x96 <b>{$instanceLabel} Tracker Bot — Comandos</b>\n\n/start — Vincular tu cuenta (usa el enlace del panel)\n/status — Comprobar estado del enlace\n/help — Mostrar esta ayuda\n\n\xE2\x9A\xA1 Las notificaciones de nuevos torrents se envían automáticamente una vez vinculado.", 'HTML');
+        $this->sendMessage($chatId, "\xF0\x9F\xA4\x96 <b>{$instanceLabel} Tracker Bot — Comandos</b>\n\n/start — Vincular tu cuenta (usa el enlace del panel)\n/status — Comprobar estado del enlace\n/help — Mostrar esta ayuda\n\n\xE2\x9A\xA1 Las notificaciones de nuevos torrents se envían automáticamente una vez vinculado. El acceso queda completo cuando también se confirma tu entrada al grupo.", 'HTML');
     }
 
     /**
@@ -255,5 +271,47 @@ class TelegramWebhookController extends Controller
         } catch (\Throwable $e) {
             Log::error('Telegram: failed to send button message', ['error' => $e->getMessage(), 'chat_id' => $chatId]);
         }
+    }
+
+    private function handleMembershipUpdate(array $update): void
+    {
+        $groupChatId = (string) config('services.telegram.chat_id', '');
+        $updateChatId = (string) ($update['chat']['id'] ?? '');
+
+        if ($groupChatId === '' || $updateChatId !== $groupChatId) {
+            return;
+        }
+
+        $member = $update['new_chat_member'] ?? null;
+
+        if (!is_array($member)) {
+            return;
+        }
+
+        $telegramChatId = $member['user']['id'] ?? null;
+
+        if ($telegramChatId === null) {
+            return;
+        }
+
+        $user = User::where('telegram_chat_id', $telegramChatId)->first();
+
+        if ($user === null) {
+            Log::info('Telegram: membership update ignored for unknown linked chat', ['chat_id' => $telegramChatId]);
+
+            return;
+        }
+
+        $isMember = in_array($member['status'] ?? null, ['member', 'administrator', 'creator'], true)
+            || (($member['status'] ?? null) === 'restricted' && (bool) ($member['is_member'] ?? false));
+
+        app(TelegramService::class)->persistMembershipState($user, $isMember);
+
+        Log::info('Telegram: group membership synced', [
+            'user'      => $user->username,
+            'chat_id'   => $telegramChatId,
+            'is_member' => $isMember,
+            'status'    => $member['status'] ?? null,
+        ]);
     }
 }

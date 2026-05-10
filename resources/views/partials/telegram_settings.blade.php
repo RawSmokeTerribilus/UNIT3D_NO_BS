@@ -217,13 +217,18 @@
     <h2 class="tg-heading"><span>🔌</span> Telegram Syndicate Link</h2>
 
     <div class="tg-console">
-        @if (Auth::user()->telegram_chat_id)
+        @php
+            $telegramLinked = Auth::user()->telegram_chat_id !== null;
+            $telegramGroupJoined = Auth::user()->telegram_group_joined_at !== null;
+        @endphp
+
+        @if ($telegramLinked && $telegramGroupJoined)
             <div class="tg-status-line">
                 <span class="tg-status-icon">🟢</span>
-                <span class="tg-status-label">ENLACE ACTIVO — Cuenta Vinculada</span>
+                <span class="tg-status-label">ACCESO VALIDADO — Bot y grupo confirmados</span>
             </div>
             <div class="tg-status-text">
-                Conexión establecida con el bot de Nuclear Order. Canal seguro operativo.
+                Conexión establecida con el bot de Nuclear Order y presencia en el grupo verificada.
             </div>
             <div class="tg-actions">
                 <form method="POST" action="{{ route('users.telegram.reset', ['user' => $user]) }}" style="display: inline;">
@@ -236,6 +241,42 @@
                         <span>🔄</span> Regenerar Token (Desvincular)
                     </button>
                 </form>
+            </div>
+        @elseif ($telegramLinked)
+            <div class="tg-status-line">
+                <span class="tg-status-icon">🟡</span>
+                <span class="tg-status-label">BOT VINCULADO — Falta confirmar entrada al grupo</span>
+            </div>
+            <div class="tg-status-text" style="margin-bottom: 14px;">
+                Tu cuenta ya está enlazada con el bot, pero zero-trust no se completará hasta que Telegram confirme que has entrado en el grupo.
+            </div>
+            <div class="tg-actions" style="margin-bottom: 14px;">
+                @if (config('services.telegram.group_invite_link'))
+                    <a
+                        href="{{ config('services.telegram.group_invite_link') }}"
+                        class="tg-btn-link"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        📡 UNIRSE AL GRUPO
+                    </a>
+                @endif
+                <form method="POST" action="{{ route('users.telegram.reset', ['user' => $user]) }}" style="display: inline;">
+                    @csrf
+                    <button
+                        type="submit"
+                        class="tg-btn-danger"
+                        id="tg-reset-linked-btn"
+                    >
+                        <span>🔄</span> Regenerar Token (Desvincular)
+                    </button>
+                </form>
+            </div>
+            <div id="tg-polling-status" style="margin-bottom: 12px;">
+                <div class="tg-status-line">
+                    <span class="tg-status-icon" style="animation: neonPulse 1s ease-in-out infinite;">⏳</span>
+                    <span class="tg-status-label" style="color: #00e5ff; text-shadow: 0 0 4px rgba(0, 229, 255, 0.3);">Esperando confirmación del grupo...</span>
+                </div>
             </div>
         @else
             @php
@@ -387,47 +428,54 @@
         });
     }
 
-    // Polling for link status after clicking VINCULAR CON EL BOT
+    // Polling for Telegram status after linking / joining
     var linkBtn = document.getElementById('tg-link-btn');
+    var statusEl = document.getElementById('tg-polling-status');
+    var checkUrl = '{{ route('users.telegram.check_link', ['user' => $user]) }}';
+
+    function startTelegramPolling() {
+        if (!statusEl || !checkUrl || statusEl.dataset.pollingStarted === '1') return;
+
+        statusEl.style.display = 'block';
+        statusEl.dataset.pollingStarted = '1';
+
+        var attempts = 0;
+        var maxAttempts = 20;
+
+        var interval = setInterval(function() {
+            attempts++;
+            fetch(checkUrl, {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function(data) {
+                if (data.group_joined) {
+                    clearInterval(interval);
+                    location.reload();
+                } else if (data.linked) {
+                    statusEl.innerHTML = '<div class="tg-hint">Bot vinculado correctamente. Falta que Telegram confirme tu entrada en el grupo.</div>';
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    statusEl.innerHTML = '<div class="tg-hint">Tiempo de espera agotado. Refresca la página manualmente tras vincular.</div>';
+                }
+            })
+            .catch(function() {
+                if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    statusEl.innerHTML = '<div class="tg-hint">No se pudo confirmar el estado ahora mismo. Refresca la página en unos segundos.</div>';
+                }
+            });
+        }, 3000);
+    }
+
     if (linkBtn) {
-        linkBtn.addEventListener('click', function() {
-            var statusEl = document.getElementById('tg-polling-status');
-            if (statusEl) statusEl.style.display = 'block';
-            console.log('[TG] Polling started');
-
-            var attempts = 0;
-            var maxAttempts = 20;
-            var checkUrl = '{{ route('users.telegram.check_link', ['user' => $user]) }}';
-            console.log('[TG] Check URL:', checkUrl);
-
-            var interval = setInterval(function() {
-                attempts++;
-                console.log('[TG] Poll attempt', attempts);
-                fetch(checkUrl, {
-                    credentials: 'same-origin',
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(function(r) {
-                    console.log('[TG] Response status:', r.status);
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json();
-                })
-                .then(function(data) {
-                    console.log('[TG] Data:', data);
-                    if (data.linked) {
-                        clearInterval(interval);
-                        console.log('[TG] Linked! Reloading...');
-                        location.reload();
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(interval);
-                        if (statusEl) statusEl.innerHTML = '<div class="tg-hint">Tiempo de espera agotado. Refresca la página manualmente tras vincular.</div>';
-                    }
-                })
-                .catch(function(err) {
-                    console.error('[TG] Fetch error:', err);
-                });
-            }, 3000);
-        });
+        linkBtn.addEventListener('click', startTelegramPolling);
+    } else if (statusEl && statusEl.style.display !== 'none') {
+        startTelegramPolling();
     }
 })();
 </script>
