@@ -28,7 +28,7 @@
 {{ old('message') }}</textarea
                 >
                 <label class="form__label form__label--floating" for="message">
-                    Postpone message
+                    Mensaje de posponer
                 </label>
             </p>
             <p class="form__group">

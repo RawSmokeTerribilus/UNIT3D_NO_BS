@@ -91,10 +91,10 @@
                             class="form__select"
                             placeholder=" "
                         >
-                            <option value="">Any</option>
+                            <option value="">Cualquiera</option>
                             <option value="Torrent">Torrent</option>
-                            <option value="Request">Request</option>
-                            <option value="User">User</option>
+                            <option value="Request">Solicitud</option>
+                            <option value="User">Usuario</option>
                         </select>
                         <label class="form__label form__label--floating" for="type">
                             {{ __('common.type') }}
@@ -107,11 +107,11 @@
                             class="form__select"
                             placeholder=" "
                         >
-                            <option value="open">Open</option>
-                            <option value="snoozed">Snoozed</option>
-                            <option value="closed">Closed</option>
-                            <option value="all">All</option>
-                            <option value="all_open">All open</option>
+                            <option value="open">Abierto</option>
+                            <option value="snoozed">Pospuesto</option>
+                            <option value="closed">Cerrado</option>
+                            <option value="all">Todos</option>
+                            <option value="all_open">Todos abiertos</option>
                         </select>
                         <label class="form__label form__label--floating" for="status">
                             {{ __('common.status') }}
@@ -219,7 +219,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">No reports</td>
+                            <td colspan="8">Sin reportes</td>
                         </tr>
                     @endforelse
                 </tbody>

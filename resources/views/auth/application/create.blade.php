@@ -37,7 +37,7 @@
                             </li>
                             @if (Session::has('warning'))
                                 <li class="auth-form__important-info">
-                                    Warning: {{ Session::get('warning') }}
+                                    Aviso: {{ Session::get('warning') }}
                                 </li>
                             @endif
 
@@ -49,7 +49,7 @@
 
                             @if (Session::has('success'))
                                 <li class="auth-form__important-info">
-                                    Success: {{ Session::get('success') }}
+                                    Listo: {{ Session::get('success') }}
                                 </li>
                             @endif
                         </ul>

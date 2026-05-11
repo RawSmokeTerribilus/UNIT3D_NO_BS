@@ -174,7 +174,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">No wishes</td>
+                            <td colspan="4">Sin deseos</td>
                         </tr>
                     @endforelse
                 </tbody>

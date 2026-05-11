@@ -111,11 +111,11 @@
                             class="form__select"
                             placeholder=" "
                         >
-                            <option value="none">None</option>
-                            <option value="user_id">Sender</option>
+                            <option value="none">Ninguno</option>
+                            <option value="user_id">Remitente</option>
                         </select>
                         <label class="form__label form__label--floating" for="groupBy">
-                            Group by
+                            Agrupar por
                         </label>
                     </div>
                     <div class="form__group">
@@ -270,7 +270,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8">No invites</td>
+                                    <td colspan="8">Sin invitaciones</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -65,7 +65,7 @@
                         <th>{{ __('common.ip') }}</th>
                         <th>{{ __('common.port') }}</th>
                         @if (\config('announce.connectable_check') == true)
-                            <th>Connectable</th>
+                            <th>Conectable</th>
                         @endif
 
                         <th>{{ __('torrent.started') }}</th>
@@ -145,7 +145,7 @@
                                         {{ __('torrent.leecher') }}
                                     @endif
                                 @else
-                                        Inactive
+                                        Inactivo
                                 @endif
                             </td>
                             <td class="{{ $peer->visible ? 'text-green' : 'text-red' }}">

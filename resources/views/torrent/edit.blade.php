@@ -181,7 +181,7 @@
                                     ({{ __('torrent.current') }})
                                 </option>
                             @endif
-                            <option value="">No distributor</option>
+                            <option value="">Sin distribuidora</option>
                             @foreach ($distributors as $distributor)
                                 <option
                                     x-bind:value="
@@ -219,7 +219,7 @@
                                     {{ $torrent->region->name }} ({{ __('torrent.current') }})
                                 </option>
                             @endif
-                            <option value="">No region</option>
+                            <option value="">Sin región</option>
                             @foreach ($regions as $region)
                                 <option
                                     x-bind:value="

@@ -31,9 +31,9 @@
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
-                    <a class="form__button form__button--primary" href="{{ config("app.url") }}/dashboard/manual/index.html" target="_blank" style="background-color: #ff5722; color: white;">
+                    <a class="form__button form__button--text" href="{{ config("app.url") }}/dashboard/manual/index.html" target="_blank">
                         <i class="{{ config("other.font-awesome") }} fa-book"></i>
-                        SUPER BOTÓN MANUAL
+                        NOBS WIKI
                     </a>
                 </p>
             </div>
@@ -76,7 +76,7 @@
                             href="{{ route('staff.commands.index') }}"
                         >
                             <i class="fab fa-laravel"></i>
-                            Commands
+                            Comandos
                         </a>
                     </p>
 
@@ -87,7 +87,7 @@
                                 href="{{ route('staff.donations.index') }}"
                             >
                                 <i class="{{ config('other.font-awesome') }} fa-money-bill"></i>
-                                Donations
+                                Donaciones
                             </a>
                         </p>
                         <p class="form__group form__group--horizontal">
@@ -96,7 +96,7 @@
                                 href="{{ route('staff.gateways.index') }}"
                             >
                                 <i class="{{ config('other.font-awesome') }} fa-money-bill"></i>
-                                Gateways
+                                Pasarelas de pago
                             </a>
                         </p>
                         <p class="form__group form__group--horizontal">
@@ -105,7 +105,7 @@
                                 href="{{ route('staff.packages.index') }}"
                             >
                                 <i class="{{ config('other.font-awesome') }} fa-money-bill"></i>
-                                Packages
+                                Paquetes
                             </a>
                         </p>
                     @endif
@@ -154,7 +154,7 @@
                         @csrf
                         <button
                             x-on:click.prevent="confirmAction"
-                            data-b64-deletion-message="{{ base64_encode('Are you sure you want to delete all chatbox messages in all chatrooms (including private chatbox messages)?') }}"
+                            data-b64-deletion-message="{{ base64_encode('¿Estás seguro de que quieres eliminar todos los mensajes del chat en todas las salas (incluidos los mensajes privados)?') }}"
                             class="form__button form__button--text"
                         >
                             <i class="{{ config('other.font-awesome') }} fa-broom"></i>
@@ -269,7 +269,7 @@
                         href="{{ route('staff.whitelisted_image_urls.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-globe"></i>
-                        Whitelisted image URLs
+                        URLs de imágenes permitidas
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -296,7 +296,7 @@
                         href="{{ route('staff.playlist_categories.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-list"></i>
-                        Playlist categories
+                        Categorías de playlists
                     </a>
                 </p>
             </div>
@@ -349,7 +349,7 @@
                         href="{{ route('staff.regions.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-columns"></i>
-                        Torrent regions
+                        Regiones de torrents
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -358,7 +358,7 @@
                         href="{{ route('staff.distributors.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-columns"></i>
-                        Torrent distributors
+                        Distribuidores de torrents
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -367,7 +367,7 @@
                         href="{{ route('staff.automatic_torrent_freeleeches.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-columns"></i>
-                        Automatic torrent freeleeches
+                        Freeleech automático de torrents
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -385,7 +385,7 @@
                         href="{{ route('staff.histories.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-columns"></i>
-                        Histories
+                        Historial
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -394,7 +394,7 @@
                         href="{{ route('staff.torrent_downloads.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-columns"></i>
-                        Downloads
+                        Descargas
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -412,7 +412,7 @@
                         href="{{ route('staff.unregistered_info_hashes.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-columns"></i>
-                        Unregistered info hashes
+                        Info hashes no registrados
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -439,7 +439,7 @@
                         href="{{ route('staff.cheated_torrents.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-question"></i>
-                        Cheated torrents
+                        Torrents tramposos
                     </a>
                 </p>
                 @if (config('announce.log_announces'))
@@ -464,7 +464,7 @@
                             @csrf
                             <button
                                 x-on:click.prevent="confirmAction"
-                                data-b64-deletion-message="{{ base64_encode('Are you sure you want to delete all ghost peers?') }}"
+                                data-b64-deletion-message="{{ base64_encode('¿Estás seguro de que quieres eliminar todos los peers fantasma?') }}"
                                 class="form__button form__button--text"
                             >
                                 <i class="{{ config('other.font-awesome') }} fa-ghost"></i>
@@ -553,7 +553,7 @@
                         href="{{ route('staff.watchlist.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-eye"></i>
-                        Watchlist
+                        Lista de vigilancia
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -583,7 +583,7 @@
                         @csrf
                         <button
                             x-on:click.prevent="confirmAction"
-                            data-b64-deletion-message="{{ base64_encode('Are you sure you want to automatically validate all users even if their email address isn\'t confirmed?') }}"
+                            data-b64-deletion-message="{{ base64_encode('¿Estás seguro de que quieres validar automáticamente a todos los usuarios aunque no hayan confirmado su dirección de correo?') }}"
                             class="form__button form__button--text"
                         >
                             <i class="{{ config('other.font-awesome') }} fa-history"></i>
@@ -606,7 +606,7 @@
                         href="{{ route('staff.leakers.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-faucet-drip"></i>
-                        Leakers
+                        Filtradores
                     </a>
                 </p>
                 <p class="form__group form__group--horizontal">
@@ -633,7 +633,7 @@
                         href="{{ route('staff.internals.index') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-magic"></i>
-                        Internals
+                        Internos
                     </a>
                 </p>
                 @if (auth()->user()->group->is_admin)
@@ -749,7 +749,7 @@
 
 @section('sidebar')
     <section class="panelV2">
-        <h2 class="panel__heading">SSL certificate</h2>
+        <h2 class="panel__heading">Certificado SSL</h2>
         <dl class="key-value">
             <div class="key-value__group">
                 <dt>URL</dt>
@@ -757,41 +757,41 @@
             </div>
             @if (request()->secure())
                 <div class="key-value__group">
-                    <dt>Connection</dt>
-                    <dd>Secure</dd>
+                    <dt>Conexión</dt>
+                    <dd>Segura</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Issued by</dt>
+                    <dt>Emitido por</dt>
                     <dd>
-                        {{ ! is_string($certificate) ? $certificate->getIssuer() : 'No certificate info found' }}
+                        {{ ! is_string($certificate) ? $certificate->getIssuer() : 'Sin información del certificado' }}
                     </dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Expires</dt>
+                    <dt>Expira</dt>
                     <dd>
-                        {{ ! is_string($certificate) ? $certificate->expirationDate()->diffForHumans() : 'No certificate info found' }}
+                        {{ ! is_string($certificate) ? $certificate->expirationDate()->diffForHumans() : 'Sin información del certificado' }}
                     </dd>
                 </div>
             @else
                 <div class="key-value__group">
-                    <dt>Connection</dt>
+                    <dt>Conexión</dt>
                     <dd>
-                        <strong>Not secure</strong>
+                        <strong>No segura</strong>
                     </dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Issued by</dt>
+                    <dt>Emitido por</dt>
                     <dd>N/A</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Expires</dt>
+                    <dt>Expira</dt>
                     <dd>N/A</dd>
                 </div>
             @endif
         </dl>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Server information</h2>
+        <h2 class="panel__heading">Información del servidor</h2>
         <dl class="key-value">
             <div class="key-value__group">
                 <dt>OS</dt>
@@ -802,7 +802,7 @@
                 <dd>{{ $basic['php'] }}</dd>
             </div>
             <div class="key-value__group">
-                <dt>Database</dt>
+                <dt>Base de datos</dt>
                 <dd>{{ $basic['database'] }}</dd>
             </div>
             <div class="key-value__group">
@@ -824,19 +824,19 @@
                     <dd>{{ $torrents->total }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Pending</dt>
+                    <dt>Pendientes</dt>
                     <dd>{{ $torrents->pending }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Approved</dt>
+                    <dt>Aprobados</dt>
                     <dd>{{ $torrents->approved }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Postponed</dt>
+                    <dt>Pospuestos</dt>
                     <dd>{{ $torrents->postponed }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Rejected</dt>
+                    <dt>Rechazados</dt>
                     <dd>{{ $torrents->rejected }}</dd>
                 </div>
             </dl>
@@ -849,11 +849,11 @@
                     <dd>{{ $peers->total }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Active</dt>
+                    <dt>Activos</dt>
                     <dd>{{ $peers->active }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Inactive</dt>
+                    <dt>Inactivos</dt>
                     <dd>{{ $peers->inactive }}</dd>
                 </div>
                 <div class="key-value__group">
@@ -867,18 +867,18 @@
             </dl>
         </section>
         <section class="panelV2 panel--grid-item">
-            <h2 class="panel__heading">Users</h2>
+            <h2 class="panel__heading">Usuarios</h2>
             <dl class="key-value">
                 <div class="key-value__group">
                     <dt>Total</dt>
                     <dd>{{ $users->total }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Validating</dt>
+                    <dt>Validando</dt>
                     <dd>{{ $users->validating }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Banned</dt>
+                    <dt>Baneados</dt>
                     <dd>{{ $users->banned }}</dd>
                 </div>
             </dl>
@@ -891,59 +891,59 @@
                     <dd>{{ $ram['total'] }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Used</dt>
+                    <dt>Usado</dt>
                     <dd>{{ $ram['used'] }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Free</dt>
+                    <dt>Libre</dt>
                     <dd>{{ $ram['available'] }}</dd>
                 </div>
             </dl>
         </section>
         <section class="panelV2 panel--grid-item">
-            <h2 class="panel__heading">Disk</h2>
+            <h2 class="panel__heading">Disco</h2>
             <dl class="key-value">
                 <div class="key-value__group">
                     <dt>Total</dt>
                     <dd>{{ $disk['total'] }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Used</dt>
+                    <dt>Usado</dt>
                     <dd>{{ $disk['used'] }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>Free</dt>
+                    <dt>Libre</dt>
                     <dd>{{ $disk['free'] }}</dd>
                 </div>
             </dl>
         </section>
         <section class="panelV2 panel--grid-item">
-            <h2 class="panel__heading">Load average</h2>
+            <h2 class="panel__heading">Carga media</h2>
             <dl class="key-value">
                 <div class="key-value__group">
-                    <dt>1 minute</dt>
+                    <dt>1 minuto</dt>
                     <dd>{{ $avg['1-minute'] ?? 'N/A' }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>5 minutes</dt>
+                    <dt>5 minutos</dt>
                     <dd>{{ $avg['5-minute'] ?? 'N/A' }}</dd>
                 </div>
                 <div class="key-value__group">
-                    <dt>15 minutes</dt>
+                    <dt>15 minutos</dt>
                     <dd>{{ $avg['15-minute'] ?? 'N/A' }}</dd>
                 </div>
             </dl>
         </section>
     </div>
     <section class="panelV2">
-        <h2 class="panel__heading">Directory permissions</h2>
+        <h2 class="panel__heading">Permisos de directorios</h2>
         <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Directory</th>
-                        <th>Current</th>
-                        <th><abbr title="Recommended">Rec.</abbr></th>
+                        <th>Directorio</th>
+                        <th>Actual</th>
+                        <th><abbr title="Recomendado">Rec.</abbr></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -973,22 +973,22 @@
     @if (config('announce.external_tracker.is_enabled'))
         @if ($externalTrackerStats === true)
             <section class="panelV2">
-                <h2 class="panel__heading">External tracker stats</h2>
-                <div class="panel__body">External tracker not enabled.</div>
+                <h2 class="panel__heading">Stats del tracker externo</h2>
+                <div class="panel__body">Tracker externo no habilitado.</div>
             </section>
         @elseif ($externalTrackerStats === false)
             <section class="panelV2">
-                <h2 class="panel__heading">External tracker stats</h2>
-                <div class="panel__body">Stats endpoint not found.</div>
+                <h2 class="panel__heading">Stats del tracker externo</h2>
+                <div class="panel__body">Endpoint de estadísticas no encontrado.</div>
             </section>
         @elseif ($externalTrackerStats === [])
             <section class="panelV2">
-                <h2 class="panel__heading">External tracker stats</h2>
-                <div class="panel__body">Tracker returned an error.</div>
+                <h2 class="panel__heading">Stats del tracker externo</h2>
+                <div class="panel__body">El tracker devolvió un error.</div>
             </section>
         @else
             <section class="panelV2">
-                <h2 class="panel__heading">External tracker stats</h2>
+                <h2 class="panel__heading">Stats del tracker externo</h2>
                 <dl class="key-value">
                     @php
                         $createdAt = \Illuminate\Support\Carbon::createFromTimestampUTC($externalTrackerStats['created_at']);
@@ -1008,7 +1008,7 @@
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Last request at</dt>
+                        <dt>Última petición</dt>
                         <dd>
                             <time
                                 title="{{ $lastRequestAt->format('Y-m-d h:i:s') }}"
@@ -1019,7 +1019,7 @@
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Last successful response at</dt>
+                        <dt>Última respuesta correcta</dt>
                         <dd>
                             <time
                                 title="{{ $lastAnnounceResponseAt->format('Y-m-d h:i:s') }}"
@@ -1033,9 +1033,9 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="text-align: right">Interval (s)</th>
-                            <th style="text-align: right">In (req/s)</th>
-                            <th style="text-align: right">Out (req/s)</th>
+                            <th style="text-align: right">Intervalo (s)</th>
+                            <th style="text-align: right">Entrada (req/s)</th>
+                            <th style="text-align: right">Salida (req/s)</th>
                         </tr>
                     </thead>
                     <tbody>

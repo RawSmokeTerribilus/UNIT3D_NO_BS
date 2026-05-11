@@ -75,7 +75,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8">No reports</td>
+                        <td colspan="8">Sin reportes</td>
                     </tr>
                 @endforelse
             </tbody>

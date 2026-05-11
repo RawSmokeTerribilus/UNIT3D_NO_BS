@@ -53,17 +53,17 @@
     @if ($externalTorrent === true)
         <section class="panelV2">
             <h2 class="panel__heading">{{ __('torrent.torrent') }}</h2>
-            <div class="panel__body">External tracker not enabled.</div>
+            <div class="panel__body">El tracker externo no está habilitado.</div>
         </section>
     @elseif ($externalTorrent === false)
         <section class="panelV2">
             <h2 class="panel__heading">{{ __('torrent.torrent') }}</h2>
-            <div class="panel__body">Torrent not found.</div>
+            <div class="panel__body">Torrent no encontrado.</div>
         </section>
     @elseif ($externalTorrent === [])
         <section class="panelV2">
             <h2 class="panel__heading">{{ __('torrent.torrent') }}</h2>
-            <div class="panel__body">Tracker returned an error.</div>
+            <div class="panel__body">El tracker devolvió un error.</div>
         </section>
     @else
         <section class="panelV2">
@@ -103,7 +103,7 @@
                                             />
                                         @endif
                                     @else
-                                            User not found
+                                            Usuario no encontrado
                                     @endif
                                 </td>
                                 <td>
@@ -111,7 +111,7 @@
                                 </td>
                                 <td>
                                     @if ($torrent === null)
-                                        Torrent size not available
+                                        Tamaño del torrent no disponible
                                     @else
                                         @php
                                             $progress = (100 * ($peer['downloaded'] % $torrent->size)) / $torrent->size;
@@ -162,7 +162,7 @@
                                             {{ __('torrent.leecher') }}
                                         @endif
                                     @else
-                                            Inactive
+                                            Inactivo
                                     @endif
                                 </td>
                                 <td class="{{ $peer['is_visible'] ? 'text-green' : 'text-red' }}">
@@ -199,15 +199,15 @@
                         <dd>{{ $externalTorrent['times_completed'] }}</dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Download factor</dt>
+                        <dt>Factor de descarga</dt>
                         <dd>{{ $externalTorrent['download_factor'] }}</dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Upload factor</dt>
+                        <dt>Factor de subida</dt>
                         <dd>{{ $externalTorrent['upload_factor'] }}</dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Deleted</dt>
+                        <dt>Eliminado</dt>
                         <dd>
                             {{ $externalTorrent['is_deleted'] ? __('common.yes') : __('common.no') }}
                         </dd>

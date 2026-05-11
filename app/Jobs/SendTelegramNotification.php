@@ -48,7 +48,7 @@ class SendTelegramNotification implements ShouldQueue
             $category = $torrent->category->name ?? 'Varios';
             $type     = $torrent->type->name ?? 'N/A';
             $size     = StringHelper::formatBytes((int) $torrent->size);
-            $uploader = $user->username;
+            $uploader = $torrent->anon ? 'Anónimo' : $user->username;
 
             $codec = 'N/A';
             $audioFormat = 'N/A';

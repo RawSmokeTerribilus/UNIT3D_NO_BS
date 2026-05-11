@@ -17,14 +17,14 @@
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
-        <div class="spinner__text">Chatbox loading</div>
+        <div class="spinner__text">Cargando chat...</div>
     </div>
 
     <div x-show="!state.ui.loading">
         <header class="panel__header" id="chatbox_header">
             <h2 class="panel__heading">
                 <i class="fas fa-comment-dots"></i>
-                Chatbox
+                Chat
             </h2>
             <div class="panel__actions">
                 <div class="panel__action">
@@ -36,7 +36,7 @@
                 <div class="panel__action" x-show="state.chat.target < 1 && state.chat.bot < 1">
                     <button class="form__button form__button--text" @click.prevent="toggleUserList">
                         <i class="fa fa-users"></i>
-                        Users:
+                        Usuarios:
                         <span x-text="users.size"></span>
                     </button>
                 </div>
@@ -330,7 +330,7 @@
                                         <li class="chatbox-message__menu-item">
                                             <button
                                                 class="chatbox-message__delete-button"
-                                                title="Delete message"
+                                                title="Eliminar mensaje"
                                                 @click.prevent="deleteMessage(message.id)"
                                                 style="
                                                     cursor: pointer;

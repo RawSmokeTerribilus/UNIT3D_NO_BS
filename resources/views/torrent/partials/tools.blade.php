@@ -168,7 +168,7 @@
                                     </p>
                                     <p class="form__group">
                                         <select id="fl_until" class="form__select" name="fl_until">
-                                            <option value="">No limit</option>
+                                            <option value="">Sin límite</option>
                                             <option value="1">1 Day</option>
                                             <option value="2">2 Days</option>
                                             <option value="3">3 Days</option>
@@ -217,7 +217,7 @@
                                     @csrf
                                     <p class="form__group">
                                         <select id="du_until" class="form__select" name="du_until">
-                                            <option value="">No limit</option>
+                                            <option value="">Sin límite</option>
                                             <option value="1">1 Day</option>
                                             <option value="2">2 Days</option>
                                             <option value="3">3 Days</option>

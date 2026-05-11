@@ -95,7 +95,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3">None used</td>
+                        <td colspan="3">Sin uso</td>
                     </tr>
                 @endforelse
             </table>
@@ -114,7 +114,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3">None used</td>
+                        <td colspan="3">Sin uso</td>
                     </tr>
                 @endforelse
             </table>
@@ -133,7 +133,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3">None used</td>
+                        <td colspan="3">Sin uso</td>
                     </tr>
                 @endforelse
             </table>

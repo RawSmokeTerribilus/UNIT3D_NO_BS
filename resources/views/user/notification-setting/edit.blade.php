@@ -341,7 +341,7 @@
                         </label>
                     </p>
                 </fieldset>
-                <h3>Block all notifications from the selected groups.</h3>
+                <h3>Bloquear notificaciones de los grupos seleccionados.</h3>
                 <div class="form__group">
                     <div class="data-table-wrapper">
                         <table
@@ -395,7 +395,7 @@
                         </table>
                     </div>
                 </div>
-                <h3>Override all notifications.</h3>
+                <h3>Anular todas las notificaciones.</h3>
                 <p class="form__group">
                     <label class="form__label">
                         <input type="hidden" name="block_notifications" value="0" />
@@ -406,7 +406,7 @@
                             name="block_notifications"
                             @checked($user->notification?->block_notifications)
                         />
-                        Block all notifications.
+                        Bloquear todas las notificaciones.
                     </label>
                 </p>
                 <p class="form__group">

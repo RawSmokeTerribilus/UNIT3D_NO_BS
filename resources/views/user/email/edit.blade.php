@@ -118,7 +118,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3">No email update history</td>
+                            <td colspan="3">Sin historial de cambios de correo</td>
                         </tr>
                     @endforelse
                 </tbody>

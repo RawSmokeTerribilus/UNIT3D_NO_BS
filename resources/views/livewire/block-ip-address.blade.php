@@ -152,7 +152,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">No blocked ip addresses</td>
+                        <td colspan="7">Sin IPs bloqueadas</td>
                     </tr>
                 @endforelse
             </tbody>

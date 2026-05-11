@@ -81,7 +81,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">No rsskey history</td>
+                            <td colspan="4">Sin historial de claves RSS</td>
                         </tr>
                     @endforelse
                 </tbody>

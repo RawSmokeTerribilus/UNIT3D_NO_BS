@@ -23,14 +23,14 @@
 
 @section('main')
     <section class="panelV2">
-        <h2 class="panel__heading">Most upload snatches</h2>
+        <h2 class="panel__heading">Más descargas de subidas propias</h2>
         <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>{{ __('common.user') }}</th>
-                        <th>Uploads snatched</th>
+                        <th>Subidas descargadas</th>
                     </tr>
                 </thead>
                 <tbody>

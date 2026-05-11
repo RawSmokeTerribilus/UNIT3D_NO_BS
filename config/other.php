@@ -169,7 +169,7 @@ return [
     | 17 = Refined NOBS
     | 18 = Refined NOBS V2 (Retro)
     */
-    'default_style' => 18,
+    'default_style' => 15,
 
     /*
     |--------------------------------------------------------------------------

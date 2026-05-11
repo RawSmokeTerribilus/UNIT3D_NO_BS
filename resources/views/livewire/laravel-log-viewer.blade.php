@@ -41,7 +41,7 @@
                 </div>
                 <div class="panel__action">
                     <button class="form__button form__button--text" wire:click="deleteAllLogs">
-                        Delete all logs
+                        Eliminar todos los logs
                     </button>
                 </div>
             </div>
@@ -139,7 +139,7 @@
                 @empty
                     <tbody>
                         <tr>
-                            <td colspan="7">No logs have been created yet.</td>
+                            <td colspan="7">No se han creado registros aún.</td>
                         </tr>
                     </tbody>
                 @endforelse

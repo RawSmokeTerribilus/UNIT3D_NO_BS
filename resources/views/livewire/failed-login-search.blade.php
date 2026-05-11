@@ -95,7 +95,7 @@
                                 <x-user-tag :anon="false" :user="$failedLogin->user" />
                             @endif
                         </td>
-                        <td>{{ $failedLogin->user_id ?? 'Not found' }}</td>
+                        <td>{{ $failedLogin->user_id ?? 'No encontrado' }}</td>
                         <td>{{ $failedLogin->ip_address }}</td>
                         <td>
                             <time
@@ -108,7 +108,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5">No failed logins</td>
+                        <td colspan="5">Sin intentos de acceso fallidos</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -119,14 +119,14 @@
 
 @section('sidebar')
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 failed logins by IP</h2>
+        <h2 class="panel__heading">Top 10 intentos fallidos por IP</h2>
         <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
                         <td>{{ __('common.ip') }}</td>
-                        <td>Count</td>
-                        <td>Most recent</td>
+                        <td>Intentos</td>
+                        <td>Más reciente</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -145,7 +145,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3">No IPs with more than 5 failed logins</td>
+                            <td colspan="3">Sin IPs con más de 5 intentos fallidos</td>
                         </tr>
                     @endforelse
                 </tbody>

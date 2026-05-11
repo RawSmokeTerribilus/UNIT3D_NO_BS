@@ -14,6 +14,12 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
+        // Prefer JSON snapshot written by the config panel — survives container rebuilds
+        $jsonPath  = storage_path('app/settings.json');
+        $overrides = file_exists($jsonPath)
+            ? (json_decode(file_get_contents($jsonPath), true) ?? [])
+            : [];
+
         $settings = [
             'other.ratio' => (string) config('other.ratio'),
             'other.freeleech' => config('other.freeleech') ? 'true' : 'false',
@@ -39,7 +45,7 @@ class SettingSeeder extends Seeder
         ];
 
         foreach ($settings as $key => $value) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+            Setting::firstOrCreate(['key' => $key], ['value' => $overrides[$key] ?? $value]);
         }
     }
 }

@@ -45,7 +45,7 @@
                 </p>
                 @if ($user->is_lifetime)
                     <p class="form__group">
-                        <label for="icon" class="form__label">Icon</label>
+                        <label for="icon" class="form__label">Icono</label>
                         <input
                             id="icon"
                             class="form__file"

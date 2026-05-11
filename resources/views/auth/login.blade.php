@@ -33,17 +33,11 @@
                     <a class="auth-form__branding" href="{{ route('home.index') }}">
                         <img src="{{ url('/img/logo_main.png') }}" alt="{{ config('other.title') }}" class="auth-form__logo">
                     </a>
-                    <ul class="auth-form__important-infos">
-                        <li class="auth-form__important-info">
-                            Hemos tenido un problemilla técnico reciente. Si tu login no funciona, vuelve a registrarte.
-                        </li>
-                    </ul>
-
                     @if (Session::has('warning') || Session::has('success') || Session::has('info'))
                         <ul class="auth-form__important-infos">
                             @if (Session::has('warning'))
                                 <li class="auth-form__important-info">
-                                    Warning: {{ Session::get('warning') }}
+                                    Aviso: {{ Session::get('warning') }}
                                 </li>
                             @endif
 
@@ -55,7 +49,7 @@
 
                             @if (Session::has('success'))
                                 <li class="auth-form__important-info">
-                                    Success: {{ Session::get('success') }}
+                                    Listo: {{ Session::get('success') }}
                                 </li>
                             @endif
                         </ul>

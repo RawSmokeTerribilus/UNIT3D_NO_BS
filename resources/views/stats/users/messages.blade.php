@@ -23,15 +23,15 @@
 
 @section('main')
     <section class="panelV2">
-        <h2 class="panel__heading">Top users by message count</h2>
+        <h2 class="panel__heading">Usuarios con más mensajes</h2>
         <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>{{ __('common.user') }}</th>
-                        <th>Messages</th>
-                        <th>Characters typed</th>
+                        <th>Mensajes</th>
+                        <th>Caracteres escritos</th>
                     </tr>
                 </thead>
                 <tbody>

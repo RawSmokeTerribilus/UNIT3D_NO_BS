@@ -27,7 +27,7 @@ class TwoFactorAuthController extends Controller
      */
     public function edit(Request $request, User $user): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        abort_unless($request->user()->is($user), 403);
+        abort_unless($request->user()->is($user) || $request->user()->group->is_modo, 403);
 
         return view('user.two-factor-auth.edit', ['user' => $user]);
     }

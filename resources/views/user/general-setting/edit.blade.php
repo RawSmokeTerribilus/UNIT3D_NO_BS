@@ -26,7 +26,7 @@
 
 @section('main')
     <section class="panelV2">
-        <h2 class="panel__heading">General {{ __('user.settings') }}</h2>
+        <h2 class="panel__heading">Ajustes generales</h2>
         <div class="panel__body">
             <form
                 class="form"
@@ -48,10 +48,10 @@
                             </option>
                         @endforeach
                     </select>
-                    <label class="form__label form__label--floating" for="locale">Language</label>
+                    <label class="form__label form__label--floating" for="locale">Idioma</label>
                 </p>
                 <fieldset class="form form__fieldset">
-                    <legend class="form__legend">Style</legend>
+                    <legend class="form__legend">Estilo</legend>
                     <p class="form__group">
                         <select id="style" class="form__select" name="style" required>
                             <option
@@ -59,70 +59,70 @@
                                 value="0"
                                 @selected($user->settings->style === 0)
                             >
-                                Light
+                                Claro
                             </option>
                             <option
                                 class="form__option"
                                 value="1"
                                 @selected($user->settings->style === 1)
                             >
-                                Galactic
+                                Galáctico
                             </option>
                             <option
                                 class="form__option"
                                 value="2"
                                 @selected($user->settings->style === 2)
                             >
-                                Dark blue
+                                Azul oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="3"
                                 @selected($user->settings->style === 3)
                             >
-                                Dark green
+                                Verde oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="4"
                                 @selected($user->settings->style === 4)
                             >
-                                Dark pink
+                                Rosa oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="5"
                                 @selected($user->settings->style === 5)
                             >
-                                Dark purple
+                                Morado oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="6"
                                 @selected($user->settings->style === 6)
                             >
-                                Dark red
+                                Rojo oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="7"
                                 @selected($user->settings->style === 7)
                             >
-                                Dark teal
+                                Verde azulado oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="8"
                                 @selected($user->settings->style === 8)
                             >
-                                Dark yellow
+                                Amarillo oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="9"
                                 @selected($user->settings->style === 9)
                             >
-                                Cosmic void
+                                Vacío cósmico
                             </option>
                             <option
                                 class="form__option"
@@ -136,28 +136,28 @@
                                 value="11"
                                 @selected($user->settings->style === 11)
                             >
-                                Revel (Desktop only)
+                                Revel (solo escritorio)
                             </option>
                             <option
                                 class="form__option"
                                 value="12"
                                 @selected($user->settings->style === 12)
                             >
-                                Material design 3 light
+                                Material Design 3 claro
                             </option>
                             <option
                                 class="form__option"
                                 value="13"
                                 @selected($user->settings->style === 13)
                             >
-                                Material design 3 dark
+                                Material Design 3 oscuro
                             </option>
                             <option
                                 class="form__option"
                                 value="15"
                                 @selected($user->settings->style === 15)
                             >
-                                Material design 3 navy
+                                Material Design 3 marino
                             </option>
 
                             <option
@@ -165,7 +165,7 @@
                                 value="14"
                                 @selected($user->settings->style === 14)
                             >
-                                Material design 3 amoled
+                                Material Design 3 AMOLED
                             </option>
                             <option
                                 class="form__option"
@@ -189,7 +189,7 @@
                                 Refined NOBS V2 (Retro)
                             </option>
                         </select>
-                        <label class="form__label form__label--floating" for="style">Theme</label>
+                        <label class="form__label form__label--floating" for="style">Tema</label>
                     </p>
                     <p class="form__group">
                         <input
@@ -201,7 +201,7 @@
                             value="{{ $user->settings->custom_css }}"
                         />
                         <label class="form__label form__label--floating" for="custom_css">
-                            External CSS stylesheet (stacks on top of above theme)
+                            CSS externo (se apila sobre el tema seleccionado)
                         </label>
                     </p>
                     <p class="form__group">
@@ -214,7 +214,7 @@
                             value="{{ $user->settings->standalone_css }}"
                         />
                         <label class="form__label form__label--floating" for="standalone_css">
-                            Standalone CSS stylesheet (no site theme used)
+                            CSS independiente (sin tema del sitio)
                         </label>
                     </p>
                 </fieldset>
@@ -230,14 +230,14 @@
                                 value="1"
                                 @checked($user->settings->censor)
                             />
-                            Language censor chat
+                            Censurar lenguaje en el chat
                         </label>
                     </p>
                 </fieldset>
                 <fieldset class="form form__fieldset">
                     <legend class="form__legend">{{ __('user.homepage-blocks') }}</legend>
                     <fieldset class="form__fieldset">
-                        <legend class="form__legend">Block visibility</legend>
+                        <legend class="form__legend">Visibilidad de bloques</legend>
                         <p class="form__group">
                             <label class="form__label">
                                 <input type="hidden" name="news_block_visible" value="0" />
@@ -387,7 +387,7 @@
                         </p>
                     </fieldset>
                     <fieldset class="form__fieldset">
-                        <legend class="form__legend">Block order</legend>
+                        <legend class="form__legend">Orden de bloques</legend>
                         <ul
                             x-data="{
             blocks: [
@@ -395,14 +395,14 @@
                     'news' => __('blocks.check-news'),
                     'chat' => __('blocks.chatbox'),
                     'featured' => __('blocks.featured-torrents'),
-                    'random_media' => 'Random media',
-                    'poll' => 'Polls',
+                    'random_media' => 'Contenido aleatorio',
+                    'poll' => 'Votaciones',
                     'top_torrents' => __('blocks.top-torrents'),
-                    'top_users' => 'Top users',
+                    'top_users' => 'Mejores usuarios',
                     'latest_topics' => __('blocks.latest-topics'),
                     'latest_posts' => __('blocks.latest-posts'),
                     'latest_comments' => __('blocks.latest-comments'),
-                    'online' => 'Online users'
+                    'online' => 'Usuarios online'
                 ] as $block => $label)
                     {
                         key: '{{ $block }}',
@@ -456,7 +456,7 @@
                                 </li>
                             </template>
                         </ul>
-                        <small class="text-info">Drag and drop to reorder blocks.</small>
+                        <small class="text-info">Arrastra y suelta para reordenar los bloques.</small>
                     </fieldset>
                 </fieldset>
                 <fieldset class="form form__fieldset">
@@ -473,32 +473,32 @@
                                 value="0"
                                 @selected($user->settings->torrent_layout === 0)
                             >
-                                Torrent list
+                                Lista de torrents
                             </option>
                             <option
                                 class="form__option"
                                 value="1"
                                 @selected($user->settings->torrent_layout === 1)
                             >
-                                Torrent cards
+                                Tarjetas de torrents
                             </option>
                             <option
                                 class="form__option"
                                 value="2"
                                 @selected($user->settings->torrent_layout === 2)
                             >
-                                Torrent groupings
+                                Agrupaciones de torrents
                             </option>
                             <option
                                 class="form__option"
                                 value="3"
                                 @selected($user->settings->torrent_layout === 3)
                             >
-                                Torrent posters
+                                Pósters de torrents
                             </option>
                         </select>
                         <label class="form__label form__label--floating" for="torrent_layout">
-                            Default torrent layout
+                            Disposición predeterminada de torrents
                         </label>
                     </p>
                     <p class="form__group">
@@ -513,18 +513,18 @@
                                 value="bumped_at"
                                 @selected($user->settings->torrent_sort_field === 'bumped_at')
                             >
-                                Most recently bumped
+                                Más reciente (por actividad)
                             </option>
                             <option
                                 class="form__option"
                                 value="created_at"
                                 @selected($user->settings->torrent_sort_field === 'created_at')
                             >
-                                Most recently uploaded
+                                Más reciente (por subida)
                             </option>
                         </select>
                         <label class="form__label form__label--floating" for="torrent_sort_field">
-                            Default torrent sort field
+                            Ordenación predeterminada
                         </label>
                     </p>
                     <div>
@@ -538,7 +538,7 @@
                                     value="1"
                                     @checked($user->settings->show_poster)
                                 />
-                                Show posters on torrent list view
+                                Mostrar pósters en la vista de lista de torrents
                             </label>
                         </p>
                         <p class="form__group">
@@ -551,7 +551,7 @@
                                     value="1"
                                     @checked($user->settings->torrent_search_autofocus)
                                 />
-                                Autofocus torrent search on page load
+                                Enfocar búsqueda de torrents al cargar la página
                             </label>
                         </p>
                         <p class="form__group">
@@ -568,7 +568,7 @@
                                     value="1"
                                     @checked($user->settings->unbookmark_torrents_on_completion)
                                 />
-                                Automatically unbookmark torrents upon completion
+                                Quitar marcadores automáticamente al completar la descarga
                             </label>
                         </p>
                         <p class="form__group">

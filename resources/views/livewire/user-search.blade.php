@@ -224,7 +224,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8">No users</td>
+                                <td colspan="8">Sin usuarios</td>
                             </tr>
                         @endforelse
                     </tbody>

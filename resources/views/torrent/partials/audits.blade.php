@@ -1,7 +1,7 @@
 <div class="panelV2" x-data="toggle">
     <h2 class="panel__heading" style="cursor: pointer" x-on:click="toggle">
         <i class="{{ config('other.font-awesome') }} fa-clipboard-list"></i>
-        Audits
+        Auditorías
         <i
             class="{{ config('other.font-awesome') }} fa-plus-circle fa-pull-right"
             x-show="isToggledOff"
@@ -16,10 +16,10 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>User</th>
+                    <th>Usuario</th>
                     <th>{{ __('common.action') }}</th>
-                    <th>Date</th>
-                    <th>Modifications</th>
+                    <th>Fecha</th>
+                    <th>Modificaciones</th>
                 </tr>
             </thead>
             <tbody>

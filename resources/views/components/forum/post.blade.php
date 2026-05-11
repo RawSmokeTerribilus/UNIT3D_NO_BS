@@ -149,7 +149,7 @@
                             type="submit"
                             title="{{ __('common.delete') }}"
                             x-on:click.prevent="confirmAction"
-                            data-b64-deletion-message="{{ base64_encode('Are you sure you want to delete this post?') }}"
+                            data-b64-deletion-message="{{ base64_encode('¿Estás seguro de que quieres eliminar este mensaje?') }}"
                         >
                             <i class="{{ \config('other.font-awesome') }} fa-trash"></i>
                         </button>
@@ -196,7 +196,7 @@
             @endif
 
             <dl class="post__author-join">
-                <dt>Joined</dt>
+                <dt>Registrado</dt>
                 <dd>
                     <time
                         class="post__author-join-datetime"

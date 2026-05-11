@@ -81,7 +81,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">No passkey history</td>
+                            <td colspan="4">Sin historial de passkeys</td>
                         </tr>
                     @endforelse
                 </tbody>

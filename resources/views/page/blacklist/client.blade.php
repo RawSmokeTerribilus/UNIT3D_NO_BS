@@ -15,8 +15,8 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Client name</th>
-                        <th>Reason</th>
+                        <th>Nombre del cliente</th>
+                        <th>Motivo</th>
                     </tr>
                 </thead>
                 @foreach ($clients as $client)

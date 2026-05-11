@@ -86,7 +86,7 @@
                                 datetime="{{ $apikey->deleted_at }}"
                                 title="{{ $apikey->deleted_at }}"
                             >
-                                {{ $apikey->deleted_at ?? 'Currently in use' }}
+                                {{ $apikey->deleted_at ?? 'Actualmente en uso' }}
                             </time>
                         </td>
                     </tr>

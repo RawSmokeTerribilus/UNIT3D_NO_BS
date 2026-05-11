@@ -10,7 +10,7 @@
             @endforeach
         </ul>
     @else
-        <div class="panel__body">No forums in category.</div>
+        <div class="panel__body">No hay foros en esta categoría.</div>
     @endif
     {{ $forums->links('partials.pagination') }}
 </section>

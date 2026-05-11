@@ -14,14 +14,14 @@
         <template x-if="searchResults === null">
             <div class="quick-search__results">
                 <article class="quick-search__result--default">
-                    <p class="quick-search__result-text">Search movies, tv series, or people</p>
+                    <p class="quick-search__result-text">Buscar películas, series o personas</p>
                 </article>
             </div>
         </template>
         <template x-if="Array.isArray(searchResults) && searchResults.length === 0">
             <div class="quick-search__results">
                 <article class="quick-search__result--empty">
-                    <p class="quick-search__result-text">No results found</p>
+                    <p class="quick-search__result-text">Sin resultados</p>
                 </article>
             </div>
         </template>

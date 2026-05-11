@@ -100,7 +100,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td>No password reset history</td>
+                            <td>Sin historial de restablecimiento de contraseña</td>
                         </tr>
                     @endforelse
                 </tbody>

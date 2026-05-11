@@ -5,12 +5,12 @@
             <div class="panel__action">
                 <div class="form__group">
                     <select id="status" class="form__select" wire:model.live="status">
-                        <option selected value="">All</option>
-                        <option value="1">Approved</option>
-                        <option value="0">Pending</option>
-                        <option value="2">Rejected</option>
+                        <option selected value="">Todos</option>
+                        <option value="1">Aprobado</option>
+                        <option value="0">Pendiente</option>
+                        <option value="2">Rechazado</option>
                     </select>
-                    <label class="form__label form__label--floating" for="status">Status</label>
+                    <label class="form__label form__label--floating" for="status">Estado</label>
                 </div>
             </div>
             <div class="panel__action">
@@ -84,19 +84,19 @@
                         <td>
                             @switch($application->status)
                                 @case(\App\Enums\ModerationStatus::PENDING)
-                                    <span class="application--pending">Pending</span>
+                                    <span class="application--pending">Pendiente</span>
 
                                     @break
                                 @case(\App\Enums\ModerationStatus::APPROVED)
-                                    <span class="application--approved">Approved</span>
+                                    <span class="application--approved">Aprobado</span>
 
                                     @break
                                 @case(\App\Enums\ModerationStatus::REJECTED)
-                                    <span class="application--rejected">Rejected</span>
+                                    <span class="application--rejected">Rechazado</span>
 
                                     @break
                                 @default
-                                    <span class="application--unknown">Unknown</span>
+                                    <span class="application--unknown">Desconocido</span>
                             @endswitch
                         </td>
                         <td>

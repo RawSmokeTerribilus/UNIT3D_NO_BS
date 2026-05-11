@@ -17,17 +17,17 @@
                         name="interval"
                         wire:model.live="interval"
                     >
-                        <option value="day">Past day</option>
-                        <option value="week">Past week</option>
-                        <option value="month">Past month</option>
-                        <option value="year">Past year</option>
-                        <option value="all">All-time</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="release_year">Release year</option>
-                        <option value="custom">Custom</option>
+                        <option value="day">Último día</option>
+                        <option value="week">Última semana</option>
+                        <option value="month">Último mes</option>
+                        <option value="year">Último año</option>
+                        <option value="all">Todo el tiempo</option>
+                        <option value="weekly">Semanal</option>
+                        <option value="monthly">Mensual</option>
+                        <option value="release_year">Año de lanzamiento</option>
+                        <option value="custom">Personalizado</option>
                     </select>
-                    <label class="form__label form__label--floating" for="interval">Interval</label>
+                    <label class="form__label form__label--floating" for="interval">Período</label>
                 </div>
             </div>
             @if ($this->interval === 'custom')
@@ -40,7 +40,7 @@
                             type="date"
                             wire:model.live="from"
                         />
-                        <label class="form__label form__label--floating" for="from">From</label>
+                        <label class="form__label form__label--floating" for="from">Desde</label>
                     </div>
                 </div>
                 <div class="panel__action">
@@ -52,7 +52,7 @@
                             type="date"
                             wire:model.live="until"
                         />
-                        <label class="form__label form__label--floating" for="until">Until</label>
+                        <label class="form__label form__label--floating" for="until">Hasta</label>
                     </div>
                 </div>
             @endif
@@ -69,19 +69,19 @@
                             <option value="{{ $type }}">{{ $name }}</option>
                         @endforeach
                     </select>
-                    <label class="form__label form__label--floating" for="metaType">Category</label>
+                    <label class="form__label form__label--floating" for="metaType">Categoría</label>
                 </div>
             </div>
         </div>
     </header>
     @if ($this->interval === 'weekly')
         <div class="data-table-wrapper">
-            <div wire:loading.delay class="panel__body">Computing...</div>
+            <div wire:loading.delay class="panel__body">Calculando...</div>
 
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Week</th>
+                        <th>Semana</th>
                         <th>Rankings</th>
                     </tr>
                 </thead>
@@ -128,12 +128,12 @@
         </div>
     @elseif ($this->interval === 'monthly')
         <div class="data-table-wrapper">
-            <div wire:loading.delay class="panel__body">Computing...</div>
+            <div wire:loading.delay class="panel__body">Calculando...</div>
 
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Month</th>
+                        <th>Mes</th>
                         <th>Rankings</th>
                     </tr>
                 </thead>
@@ -180,12 +180,12 @@
         </div>
     @elseif ($this->interval === 'release_year')
         <div class="data-table-wrapper">
-            <div wire:loading.delay class="panel__body">Computing...</div>
+            <div wire:loading.delay class="panel__body">Calculando...</div>
 
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Year</th>
+                        <th>Año</th>
                         <th>Rankings</th>
                     </tr>
                 </thead>
@@ -230,7 +230,7 @@
         </div>
     @else
         <div class="panel__body torrent-search--poster__results">
-            <div wire:loading.delay>Computing...</div>
+            <div wire:loading.delay>Calculando...</div>
 
             @switch($this->metaType)
                 @case('movie_meta')

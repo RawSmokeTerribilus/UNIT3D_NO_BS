@@ -110,12 +110,12 @@
                                             {{ __('common.delete') }}
                                         </button>
                                         <dialog class="dialog" x-bind="dialogElement">
-                                            <h3 class="dialog__heading">Delete backup</h3>
+                                            <h3 class="dialog__heading">Eliminar copia de seguridad</h3>
                                             <form class="dialog__form" x-bind="dialogForm">
                                                 @csrf
                                                 <p class="form__group">
-                                                    Are you sure you want to delete the backup
-                                                    created at {{ $backup['date'] }} ?
+                                                    ¿Seguro que quieres eliminar la copia de seguridad
+                                                    creada el {{ $backup['date'] }}?
                                                 </p>
                                                 <p class="form__group">
                                                     <button
@@ -142,7 +142,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">No backups present</td>
+                            <td colspan="4">Sin copias de seguridad</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -170,9 +170,9 @@
         function backup(option = '') {
           @this.createBackup(option)
           Swal.fire({
-            title: '<strong style=" color: rgb(17,17,17);">Success</strong>',
+            title: '<strong style=" color: rgb(17,17,17);">Listo</strong>',
             icon: 'success',
-            html: 'Creating a new backup in the background...' + (option ? ' (' + option + ')' : ''),
+            html: 'Creando copia de seguridad en segundo plano...' + (option ? ' (' + option + ')' : ''),
             showCloseButton: true,
           })
         }

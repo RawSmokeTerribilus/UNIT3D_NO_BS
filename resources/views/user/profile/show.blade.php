@@ -70,10 +70,10 @@
                     @if (auth()->id() !== $user->id)
                         <div class="panel__action" x-data="dialog">
                             <button class="form__button form__button--text" x-bind="showDialog">
-                                Report
+                                Reportar
                             </button>
                             <dialog class="dialog" x-bind="dialogElement">
-                                <h3 class="dialog__heading">Report user: {{ $user->username }}</h3>
+                                <h3 class="dialog__heading">Reportar usuario: {{ $user->username }}</h3>
                                 <form
                                     class="dialog__form"
                                     method="POST"
@@ -92,7 +92,7 @@
                                             class="form__label form__label--floating"
                                             for="report_reason"
                                         >
-                                            Reason
+                                            Motivo
                                         </label>
                                     </p>
                                     <p class="form__group">
@@ -184,7 +184,7 @@
                             alt="{{ $achievement->details->name }}"
                         />
                     @empty
-                        No recent achievements.
+                        Sin logros recientes.
                     @endforelse
                 </div>
             </section>
@@ -239,7 +239,7 @@
                             />
                         </a>
                     @empty
-                        No recent followers
+                        Sin seguidores recientes
                     @endforelse
                 </div>
             </section>
@@ -260,7 +260,7 @@
                                 <th>{{ __('torrent.peers') }}</th>
                                 <th>{{ __('torrent.size') }}</th>
                                 @if (\config('announce.connectable_check') === true)
-                                    <th>Connectable</th>
+                                    <th>Conectable</th>
                                 @endif
                             </tr>
                         </thead>
@@ -326,7 +326,7 @@
                                     <td
                                         colspan="{{ \config('announce.connectable_check') === true ? 8 : 7 }}"
                                     >
-                                        No clients
+                                        Sin clientes
                                     </td>
                                 </tr>
                             @endforelse
@@ -334,10 +334,10 @@
                         <tfoot>
                             <tr>
                                 <td colspan="{{ 7 + (int) config('announce.connectable_check') }}">
-                                    If you don't recognize a torrent client or IP address in the
-                                    list, please
+                                    Si no reconoces algún cliente torrent o dirección IP de la
+                                    lista, por favor
                                     <a href="{{ route('tickets.index') }}">
-                                        create a helpdesk ticket
+                                        abre un ticket de soporte
                                     </a>
                                 </td>
                             </tr>
@@ -377,19 +377,19 @@
                                 <td>
                                     @switch($user->application->status)
                                         @case(\App\Enums\ModerationStatus::PENDING)
-                                            <span class="application--pending">Pending</span>
+                                            <span class="application--pending">Pendiente</span>
 
                                             @break
                                         @case(\App\Enums\ModerationStatus::APPROVED)
-                                            <span class="application--approved">Approved</span>
+                                            <span class="application--approved">Aprobada</span>
 
                                             @break
                                         @case(\App\Enums\ModerationStatus::REJECTED)
-                                            <span class="application--rejected">Rejected</span>
+                                            <span class="application--rejected">Rechazada</span>
 
                                             @break
                                         @default
-                                            <span class="application--unknown">Unknown</span>
+                                            <span class="application--unknown">Desconocido</span>
                                     @endswitch
                                 </td>
                                 <td>
@@ -436,10 +436,10 @@
                                     <td>
                                         @if ($ticket->closed_at)
                                             <i class="fas fa-circle text-danger"></i>
-                                            Closed
+                                            Cerrado
                                         @else
                                             <i class="fas fa-circle text-success"></i>
-                                            Open
+                                            Abierto
                                         @endif
                                     </td>
                                     <td>{{ $ticket->created_at }}</td>
@@ -462,7 +462,7 @@
         @if (auth()->user()->group->is_modo)
             <section class="panelV2">
                 <header class="panel__header">
-                    <h2 class="panel__heading">Watchlist</h2>
+                    <h2 class="panel__heading">Lista de vigilancia</h2>
                     <div class="panel__actions">
                         @if ($watch === null)
                             <div class="panel__action" x-data="dialog">
@@ -470,11 +470,11 @@
                                     class="form__button form__button--text"
                                     x-bind="showDialog"
                                 >
-                                    Watch
+                                    Vigilar
                                 </button>
                                 <dialog class="dialog" x-bind="dialogElement">
                                     <h3 class="dialog__heading">
-                                        Watch user: {{ $user->username }}
+                                        Vigilar usuario: {{ $user->username }}
                                     </h3>
                                     <form
                                         class="dialog__form"
@@ -499,7 +499,7 @@
                                                 class="form__label form__label--floating"
                                                 for="watchlist_reason"
                                             >
-                                                Reason
+                                                Motivo
                                             </label>
                                         </p>
                                         <p class="form__group">
@@ -525,7 +525,7 @@
                             >
                                 @csrf
                                 @method('DELETE')
-                                <button class="form__button form__button--text">Unwatch</button>
+                                <button class="form__button form__button--text">Dejar de vigilar</button>
                             </form>
                         @endif
                     </div>
@@ -534,16 +534,16 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Watched by</th>
-                                <th>Message</th>
-                                <th>Created at</th>
+                                <th>Vigilado por</th>
+                                <th>Mensaje</th>
+                                <th>Creado el</th>
                                 <th>{{ __('common.action') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if ($watch === null)
                                 <tr>
-                                    <td colspan="4">Not watched</td>
+                                    <td colspan="4">Sin vigilancia activa</td>
                                 </tr>
                             @else
                                 <tr>
@@ -571,10 +571,10 @@
                                                     @method('DELETE')
                                                     <button
                                                         x-on:click.prevent="confirmAction"
-                                                        data-b64-deletion-message="{{ base64_encode('Are you sure you want to unwatch this user: ' . $watch->user->username . '?') }}"
+                                                        data-b64-deletion-message="{{ base64_encode('¿Estás seguro de que quieres dejar de vigilar a este usuario: ' . $watch->user->username . '?') }}"
                                                         class="form__button form__button--text"
                                                     >
-                                                        Unwatch
+                                                        Dejar de vigilar
                                                     </button>
                                                 </form>
                                             </li>
@@ -592,10 +592,10 @@
     @section('sidebar')
         @if (auth()->user()->group->is_modo ||auth()->user()->is($user))
             <section class="panelV2">
-                <h2 class="panel__heading">Donations</h2>
+                <h2 class="panel__heading">Donaciones</h2>
                 <dl class="key-value">
                     <div class="key-value__group">
-                        <dt>Active donor</dt>
+                        <dt>Donante activo</dt>
                         <dd>
                             @if ($user->is_donor)
                                 <i
@@ -609,7 +609,7 @@
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Lifetime donor</dt>
+                        <dt>Donante vitalicio</dt>
                         <dd>
                             @if ($user->is_lifetime)
                                 <i
@@ -623,23 +623,23 @@
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Latest donation amount</dt>
+                        <dt>Último importe donado</dt>
                         <dd>
                             {{ $donation->package->cost ?? 'N/A' }}
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Latest donation date</dt>
+                        <dt>Fecha de la última donación</dt>
                         <dd>
                             {{ $donation->starts_at ?? 'N/A' }}
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Donation expire date</dt>
+                        <dt>Fecha de vencimiento</dt>
                         <dd>
                             @if ($user->is_lifetime)
-                                Lifetime donor
-                                <i class="fal fa-star" id="lifeline" title="Lifetime donor"></i>
+                                Donante vitalicio
+                                <i class="fal fa-star" id="lifeline" title="Donante vitalicio"></i>
                             @else
                                 {{ $donation->ends_at ?? 'N/A' }}
                             @endif
@@ -665,9 +665,13 @@
             </section>
         @endif
 
+        @if (auth()->user()->is($user))
+            @include('user.profile.partials.my-conditions', ['user' => $user])
+        @endif
+
         @if (auth()->user()->isAllowed($user, 'profile', 'show_profile_torrent_seed'))
             <section class="panelV2">
-                <h2 class="panel__heading">Seed {{ __('user.statistics') }}</h2>
+                <h2 class="panel__heading">Estadísticas de seeding</h2>
                 <dl class="key-value">
                     <div class="key-value__group">
                         <dt>
@@ -713,13 +717,13 @@
         @if (auth()->user()->isAllowed($user, 'profile', 'show_profile_torrent_count'))
             @if (auth()->user()->is($user) || auth()->user()->group->is_modo)
                 <section class="panelV2">
-                    <h2 class="panel__heading">Torrent count</h2>
+                    <h2 class="panel__heading">Recuento de torrents</h2>
                     <dl class="key-value">
                         <div class="key-value__group">
                             <dt>
                                 <a href="{{ route('users.torrents.index', ['user' => $user]) }}">
                                     {{ __('user.total-uploads') }}
-                                    (Non-{{ __('common.anonymous') }})
+                                    (No {{ __('common.anonymous') }})
                                 </a>
                             </dt>
                             <dd>{{ $user->non_anon_uploads_count ?? 0 }}</dd>
@@ -767,7 +771,7 @@
                                 <a
                                     href="{{ route('users.peers.index', ['user' => $user, 'active' => 'exclude']) }}"
                                 >
-                                    Total inactive peers
+                                    Total de peers inactivos
                                 </a>
                             </dt>
                             <dd>{{ $peers->inactive ?? 0 }}</dd>
@@ -776,7 +780,7 @@
                 </section>
             @else
                 <section class="panelV2">
-                    <h2 class="panel__heading">Torrent count</h2>
+                    <h2 class="panel__heading">Recuento de torrents</h2>
                     <dl class="key-value">
                         <div class="key-value__group">
                             <dt>
@@ -801,7 +805,7 @@
                             <dd>{{ $peers->leeching ?? 0 }}</dd>
                         </div>
                         <div class="key-value__group">
-                            <dt>Total inactive peers</dt>
+                            <dt>Total de peers inactivos</dt>
                             <dd>{{ $peers->inactive ?? 0 }}</dd>
                         </div>
                     </dl>
@@ -811,14 +815,14 @@
 
         @if (auth()->user()->isAllowed($user, 'profile', 'show_profile_torrent_ratio'))
             <section class="panelV2">
-                <h2 class="panel__heading">Traffic {{ __('torrent.statistics') }}</h2>
+                <h2 class="panel__heading">Estadísticas de tráfico</h2>
                 <dl class="key-value">
                     <div class="key-value__group">
                         <dt>{{ __('common.ratio') }}</dt>
                         <dd>{{ $user->formatted_ratio }}</dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Real {{ __('common.ratio') }}</dt>
+                        <dt>{{ __('common.ratio') }} real</dt>
                         <dd>
                             {{ $history->download_sum ? round(($history->upload_sum ?? 0) / $history->download_sum, 2) : "\u{221E}" }}
                         </dd>
@@ -1040,7 +1044,7 @@
                         <dd>{{ $user->email }}</dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>2FA enabled</dt>
+                        <dt>2FA activado</dt>
                         <dd>
                             @if ($user->two_factor_confirmed_at !== null)
                                 <i
@@ -1070,7 +1074,7 @@
                         </dd>
                     </div>
                     <div class="key-value__group">
-                        <dt>Last action</dt>
+                        <dt>Última acción</dt>
                         <dd>
                             @if ($user->last_action === null)
                                 N/A
@@ -1192,11 +1196,11 @@
                                     class="form__button form__button--text"
                                     x-bind="showDialog"
                                 >
-                                    Gift BON
+                                    Regalar BON
                                 </button>
                                 <dialog class="dialog" x-bind="dialogElement">
                                     <h3 class="dialog__heading">
-                                        Gift BON to: {{ $user->username }}
+                                        Regalar BON a: {{ $user->username }}
                                     </h3>
                                     <form
                                         class="dialog__form"

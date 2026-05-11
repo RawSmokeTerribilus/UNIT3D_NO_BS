@@ -86,13 +86,13 @@
                                 datetime="{{ $passkey->deleted_at }}"
                                 title="{{ $passkey->deleted_at }}"
                             >
-                                {{ $passkey->deleted_at ?? 'Currently in use' }}
+                                {{ $passkey->deleted_at ?? 'Actualmente en uso' }}
                             </time>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4">No passkeys</td>
+                        <td colspan="4">Sin passkeys</td>
                     </tr>
                 @endforelse
             </tbody>

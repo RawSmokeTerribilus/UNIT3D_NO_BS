@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ auth()->user()->settings->locale }}">
+<html lang="{{ app()->getLocale() }}">
     <head>
         @include('partials.head')
     </head>
@@ -174,7 +174,7 @@
                 Alpine.data('confirmation', () => ({
                     confirmAction() {
                         Swal.fire({
-                            title: 'Are you sure?',
+                            title: '¿Estás seguro?',
                             text: atob(this.$el.dataset.b64DeletionMessage),
                             icon: 'warning',
                             showConfirmButton: true,

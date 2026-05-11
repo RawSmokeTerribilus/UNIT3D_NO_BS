@@ -12,7 +12,7 @@
                     @endforeach
                 </ul>
             @else
-                <div class="panel__body">No topics.</div>
+                <div class="panel__body">Sin temas.</div>
             @endif
             {{ $topics->links('partials.pagination') }}
         </section>
@@ -57,12 +57,12 @@
                     </p>
                     <p class="form__group">
                         <select id="read" class="form__select" name="read" wire:model.live="read">
-                            <option value="" selected default>Any</option>
-                            <option value="some">With unread posts</option>
-                            <option value="none">Newly added</option>
-                            <option value="all">Fully read</option>
+                            <option value="" selected default>Cualquiera</option>
+                            <option value="some">Con publicaciones no leídas</option>
+                            <option value="none">Recién añadido</option>
+                            <option value="all">Totalmente leído</option>
                         </select>
-                        <label class="form__label form__label--floating" for="read">Activity</label>
+                        <label class="form__label form__label--floating" for="read">Actividad</label>
                     </p>
                     <p class="form__group">
                         <select

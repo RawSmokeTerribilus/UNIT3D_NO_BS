@@ -35,21 +35,21 @@
 
 @section('main')
     <section class="panelV2">
-        <h2 class="panel__heading">Yearly overview</h2>
+        <h2 class="panel__heading">Resumen anual</h2>
         <div class="panel__body">
             <div class="overview__opening">
-                <h1 class="overview__opening-heading">That's a wrap!</h1>
+                <h1 class="overview__opening-heading">¡Lo hemos conseguido!</h1>
                 <h2 class="overview__opening-subheading">{{ $year }}</h2>
                 <p class="overview__opening-text">
-                    Another strong year here at {{ config('app.name') }}. To every user who made a
-                    contribution big or small please accept our sincere thanks. Now, without further
-                    ado, here's the best and worst of the year!
+                    Otro gran año en {{ config('app.name') }}. A cada usuario que hizo una
+                    contribución, grande o pequeña, os enviamos nuestro más sincero agradecimiento.
+                    Y ahora, sin más dilación, ¡esto es lo mejor y lo peor del año!
                 </p>
             </div>
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Movies (Based on downloads count)</h2>
+        <h2 class="panel__heading">Top 10 películas (por descargas)</h2>
         <div class="panel__body overview__poster-grid">
             @foreach ($topMovies as $work)
                 <figure class="trending-poster overview__poster">
@@ -69,7 +69,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">5 worst movies (based on downloads count)</h2>
+        <h2 class="panel__heading">5 peores películas (por descargas)</h2>
         <div class="panel__body overview__poster-grid">
             @foreach ($bottomMovies as $work)
                 <figure class="trending-poster overview__poster">
@@ -89,7 +89,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 TV shows (based on downloads count)</h2>
+        <h2 class="panel__heading">Top 10 series (por descargas)</h2>
         <div class="panel__body overview__poster-grid">
             @foreach ($topTv as $work)
                 <figure class="trending-poster overview__poster">
@@ -109,7 +109,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">5 worst TV shows (based on downloads count)</h2>
+        <h2 class="panel__heading">5 peores series (por descargas)</h2>
         <div class="panel__body overview__poster-grid">
             @foreach ($bottomTv as $work)
                 <figure class="trending-poster overview__poster">
@@ -129,7 +129,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Users (Based on number of torrent uploads made)</h2>
+        <h2 class="panel__heading">Top 10 usuarios (por subidas de torrents)</h2>
         <div class="panel__body user-stat-card-container">
             @foreach ($uploaders as $uploader)
                 <article class="user-stat-card">
@@ -149,7 +149,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Users (Based on number of torrent requests made)</h2>
+        <h2 class="panel__heading">Top 10 usuarios (por peticiones de torrents)</h2>
         <div class="panel__body user-stat-card-container">
             @foreach ($requesters as $requester)
                 <article class="user-stat-card">
@@ -169,7 +169,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Users (Based on number of torrent requests filled)</h2>
+        <h2 class="panel__heading">Top 10 usuarios (por peticiones completadas)</h2>
         <div class="panel__body user-stat-card-container">
             @foreach ($fillers as $filler)
                 <article class="user-stat-card">
@@ -189,7 +189,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Users (Based on number of comments made)</h2>
+        <h2 class="panel__heading">Top 10 usuarios (por comentarios)</h2>
         <div class="panel__body user-stat-card-container">
             @foreach ($commenters as $commenter)
                 <article class="user-stat-card">
@@ -209,7 +209,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Users (Based on number of posts made)</h2>
+        <h2 class="panel__heading">Top 10 usuarios (por mensajes en foros)</h2>
         <div class="panel__body user-stat-card-container">
             @foreach ($posters as $poster)
                 <article class="user-stat-card">
@@ -229,7 +229,7 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Top 10 Users (Based on number of thanks given)</h2>
+        <h2 class="panel__heading">Top 10 usuarios (por agradecimientos dados)</h2>
         <div class="panel__body user-stat-card-container">
             @foreach ($thankers as $thanker)
                 <article class="user-stat-card">
@@ -249,38 +249,38 @@
         </div>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Overall</h2>
+        <h2 class="panel__heading">Resumen</h2>
         <dl class="key-value">
             <div class="key-value__group">
-                <dt>New users this year</dt>
+                <dt>Nuevos usuarios este año</dt>
                 <dd>{{ $newUsers }}</dd>
             </div>
             <div class="key-value__group">
-                <dt>Movies uploaded this year</dt>
+                <dt>Películas subidas este año</dt>
                 <dd>{{ $movieUploads }}</dd>
             </div>
             <div class="key-value__group">
-                <dt>TV shows uploaded this year</dt>
+                <dt>Series subidas este año</dt>
                 <dd>{{ $tvUploads }}</dd>
             </div>
             <div class="key-value__group">
-                <dt>Total torrents uploaded this year</dt>
+                <dt>Total de torrents subidos este año</dt>
                 <dd>{{ $totalUploads }}</dd>
             </div>
             <div class="key-value__group">
-                <dt>Total torrents downloaded this year</dt>
+                <dt>Total de torrents descargados este año</dt>
                 <dd>{{ $totalDownloads }}</dd>
             </div>
         </dl>
     </section>
     <section class="panelV2">
-        <h2 class="panel__heading">Closing remarks</h2>
+        <h2 class="panel__heading">Palabras finales</h2>
         <div class="panel__body overview__closing">
-            <h3 class="overview__closing-heading">Thank you!</h3>
+            <h3 class="overview__closing-heading">¡Gracias!</h3>
             <h4 class="overview__closing-subheading">
-                For a wonderful {{ $year }} at {{ config('app.name') }}
+                Por un maravilloso {{ $year }} en {{ config('app.name') }}
             </h4>
-            <span class="overview__closing-thanks">Special thanks from,</span>
+            <span class="overview__closing-thanks">Con el agradecimiento especial de:</span>
             @foreach ($staffers as $group)
                 <ul class="overview__staff-list">
                     @foreach ($group->users as $user)

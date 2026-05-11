@@ -161,7 +161,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7">No warnings</td>
+                    <td colspan="7">Sin advertencias</td>
                 </tr>
             @endforelse
         </tbody>

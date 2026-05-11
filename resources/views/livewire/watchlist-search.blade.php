@@ -94,7 +94,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5">No watched users</td>
+                        <td colspan="5">Sin usuarios vigilados</td>
                     </tr>
                 @endforelse
             </tbody>

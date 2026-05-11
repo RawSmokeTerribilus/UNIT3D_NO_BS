@@ -33,7 +33,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td>No wikis in category.</td>
+                                <td>No hay wikis en esta categoría.</td>
                             </tr>
                         @endforelse
                     </tbody>

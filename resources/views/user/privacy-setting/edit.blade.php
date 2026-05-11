@@ -364,7 +364,7 @@
                         </label>
                     </p>
                 </fieldset>
-                <h3>Hide your profile options from the selected groups.</h3>
+                <h3>Ocultar opciones de perfil a los grupos seleccionados.</h3>
                 <div class="form__group">
                     <div class="data-table-wrapper">
                         <table

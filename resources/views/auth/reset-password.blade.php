@@ -38,7 +38,7 @@
                     @if (Session::has('warning') || Session::has('success') || Session::has('info'))
                         <ul class="auth-form__important-infos">
                             @if (Session::has('warning'))
-                                <li>Warning: {{ Session::get('warning') }}</li>
+                                <li>Aviso: {{ Session::get('warning') }}</li>
                             @endif
 
                             @if (Session::has('info'))
@@ -46,7 +46,7 @@
                             @endif
 
                             @if (Session::has('success'))
-                                <li>Success: {{ Session::get('success') }}</li>
+                                <li>Listo: {{ Session::get('success') }}</li>
                             @endif
                         </ul>
                     @endif

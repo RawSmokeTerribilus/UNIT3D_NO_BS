@@ -86,13 +86,13 @@
                                 datetime="{{ $rsskey->deleted_at }}"
                                 title="{{ $rsskey->deleted_at }}"
                             >
-                                {{ $rsskey->deleted_at ?? 'Currently in use' }}
+                                {{ $rsskey->deleted_at ?? 'Actualmente en uso' }}
                             </time>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4">No rsskeys</td>
+                        <td colspan="4">Sin claves RSS</td>
                     </tr>
                 @endforelse
             </tbody>

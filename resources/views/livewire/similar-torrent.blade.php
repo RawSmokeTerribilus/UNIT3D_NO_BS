@@ -117,7 +117,7 @@
                                 placeholder=" "
                             />
                             <label class="form__label form__label--floating" for="minSize">
-                                Minimum size
+                                Tamaño mínimo
                             </label>
                         </p>
                         <p class="form__group">
@@ -141,7 +141,7 @@
                                 class="form__label form__label--floating"
                                 for="minSizeMultiplier"
                             >
-                                Unit
+                                Unidad
                             </label>
                         </p>
                     </div>
@@ -156,7 +156,7 @@
                                 placeholder=" "
                             />
                             <label class="form__label form__label--floating" for="maxSize">
-                                Maximum size
+                                Tamaño máximo
                             </label>
                         </p>
                         <p class="form__group">
@@ -180,7 +180,7 @@
                                 class="form__label form__label--floating"
                                 for="maxSizeMultiplier"
                             >
-                                Unit
+                                Unidad
                             </label>
                         </p>
                     </div>
@@ -321,7 +321,7 @@
                                             value="1"
                                             wire:model.live="featured"
                                         />
-                                        Featured
+                                        Destacado
                                     </label>
                                 </p>
                                 <p class="form__group">
@@ -332,7 +332,7 @@
                                             value="1"
                                             wire:model.live="refundable"
                                         />
-                                        Refundable
+                                        Reembolsable
                                     </label>
                                 </p>
                             </div>
@@ -434,7 +434,7 @@
                                             value="1"
                                             wire:model.live="dying"
                                         />
-                                        Dying
+                                        Agonizante
                                     </label>
                                 </p>
                                 <p class="form__group">
@@ -445,7 +445,7 @@
                                             value="1"
                                             wire:model.live="dead"
                                         />
-                                        Dead
+                                        Muerto
                                     </label>
                                 </p>
                                 <p class="form__group">
@@ -474,7 +474,7 @@
                                             value="1"
                                             wire:model.live="notDownloaded"
                                         />
-                                        Not downloaded
+                                        No descargado
                                     </label>
                                 </p>
                                 <p class="form__group">
@@ -485,7 +485,7 @@
                                             value="1"
                                             wire:model.live="downloaded"
                                         />
-                                        Downloaded
+                                        Descargado
                                     </label>
                                 </p>
                                 <p class="form__group">
@@ -518,7 +518,7 @@
                                             value="1"
                                             wire:model.live="incomplete"
                                         />
-                                        Incomplete
+                                        Incompleto
                                     </label>
                                 </p>
                             </div>
@@ -537,7 +537,7 @@
                                 class="form__button form__button--filled"
                                 wire:click="alertConfirm()"
                             >
-                                Delete ({{ count($checked) }})
+                                Eliminar ({{ count($checked) }})
                             </button>
                         </div>
                     @endif
@@ -545,7 +545,7 @@
                     @if ($user->group->is_modo)
                         <div class="panel__action" title="{{ __('common.select') }}">
                             <label class="form__label">
-                                Select all
+                                Seleccionar todo
                                 <input
                                     class="form__checkbox"
                                     type="checkbox"
@@ -557,7 +557,7 @@
 
                     <div class="panel__action">
                         <button class="form__button form__button--text" x-bind="all">
-                            Expand all
+                            Expandir todo
                         </button>
                     </div>
                 </div>
@@ -571,7 +571,7 @@
                                 open
                                 wire:ignore.self
                             >
-                                <summary x-bind="complete">Complete pack</summary>
+                                <summary x-bind="complete">Pack completo</summary>
                                 <table class="similar-torrents__torrents">
                                     <tbody>
                                         @foreach ($similarTorrents['Complete Pack'] as $type => $torrents)
@@ -617,7 +617,7 @@
                                 @endif
                                 wire:ignore.self
                             >
-                                <summary x-bind="specials">Specials</summary>
+                                <summary x-bind="specials">Especiales</summary>
                                 @foreach ($similarTorrents['Specials'] as $specialName => $special)
                                     <details
                                         class="torrent-search--grouped__dropdown"
@@ -716,7 +716,7 @@
                                         class="torrent-search--grouped__dropdown"
                                         wire:ignore.self
                                     >
-                                        <summary x-bind="pack">Season pack</summary>
+                                        <summary x-bind="pack">Pack de temporada</summary>
                                         <table class="similar-torrents__torrents">
                                             @foreach ($season['Season Pack'] as $type => $torrents)
                                                 <tbody>
@@ -983,7 +983,7 @@
                 <div class="panel__actions">
                     <div class="panel__action">
                         <label class="form__label">
-                            Hide filled requests
+                            Ocultar solicitudes completadas
                             <input
                                 class="form__checkbox"
                                 type="checkbox"
@@ -1172,14 +1172,14 @@
             window.addEventListener('swal:confirm', event => {
               const { value: text } = Swal.fire({
                 input: 'textarea',
-                inputLabel: 'Delete reason',
-                inputPlaceholder: 'Type your reason here...',
+                inputLabel: 'Motivo de eliminación',
+                inputPlaceholder: 'Escribe tu motivo aquí...',
                 inputAttributes: {
-                  'aria-label': 'Type your reason here'
+                  'aria-label': 'Escribe tu motivo aquí'
                 },
                 inputValidator: (value) => {
                   if (!value) {
-                    return 'You need to write something!'
+                    return '¡Debes escribir algo!'
                   }
                 },
                 title: event.detail.message,
@@ -1188,7 +1188,7 @@
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!',
+                confirmButtonText: '¡Sí, eliminar!',
               }).then((result) => {
                 if (result.isConfirmed) {
                 @this.set('reason', result.value);

@@ -45,7 +45,7 @@
                         <tr>
                             <td>
                                 @if ($tip->sender === null)
-                                    Deleted user
+                                    Usuario eliminado
                                 @else
                                     <x-user-tag :user="$tip->sender" :anon="false" />
                                 @endif

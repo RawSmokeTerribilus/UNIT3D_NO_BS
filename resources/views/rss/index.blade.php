@@ -144,7 +144,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">No public RSS feeds</td>
+                            <td colspan="8">Sin feeds RSS públicos</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -297,7 +297,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9">No private RSS feeds</td>
+                            <td colspan="9">Sin feeds RSS privados</td>
                         </tr>
                     @endforelse
                 </tbody>

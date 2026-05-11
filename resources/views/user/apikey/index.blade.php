@@ -81,7 +81,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">No apikey history</td>
+                            <td colspan="4">Sin historial de API keys</td>
                         </tr>
                     @endforelse
                 </tbody>

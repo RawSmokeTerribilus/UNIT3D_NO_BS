@@ -10,22 +10,22 @@
             {{ __('stat.stats') }}
         </a>
     </li>
-    <li class="breadcrumb--active">Clients</li>
+    <li class="breadcrumb--active">Clientes</li>
 @endsection
 
 @section('page', 'page__stats--clients')
 
 @section('main')
     <section class="panelV2">
-        <h2 class="panel__heading">Clients</h2>
+        <h2 class="panel__heading">Clientes</h2>
         <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Client</th>
+                        <th>Cliente</th>
                         <th>{{ __('common.users') }}</th>
                         <th>{{ __('torrent.torrents') }}</th>
-                        <th>Single Seeds</th>
+                        <th>Seeds únicos</th>
                         <th>{{ __('torrent.peers') }}</th>
                     </tr>
                 </thead>

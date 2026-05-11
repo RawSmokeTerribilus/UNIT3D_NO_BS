@@ -66,13 +66,13 @@
                                 datetime="{{ $emailUpdate->deleted_at }}"
                                 title="{{ $emailUpdate->deleted_at }}"
                             >
-                                {{ $emailUpdate->deleted_at ?? 'Currently in use' }}
+                                {{ $emailUpdate->deleted_at ?? 'Actualmente en uso' }}
                             </time>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3">No email updates</td>
+                        <td colspan="3">Sin actualizaciones de correo</td>
                     </tr>
                 @endforelse
             </tbody>

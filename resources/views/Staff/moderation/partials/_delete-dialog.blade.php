@@ -22,7 +22,7 @@
             <p class="form__group">
                 <textarea class="form__textarea" name="message" id="message"></textarea>
                 <label class="form__label form__label--floating" for="message">
-                    Deletion reason
+                    Motivo de eliminación
                 </label>
             </p>
             <p class="form__group">

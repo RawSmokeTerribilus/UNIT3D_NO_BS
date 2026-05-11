@@ -78,7 +78,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6">No notes</td>
+                        <td colspan="6">Sin notas</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -1,7 +1,7 @@
 @extends('layout.with-main')
 
 @section('title')
-    <title>Moderation - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
+    <title>Moderación - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
 @endsection
 
 @section('breadcrumbs')
@@ -57,7 +57,7 @@
                                 ></i>
                             </td>
                             <td>{{ $torrent->type->name }}</td>
-                            <td>{{ $torrent->resolution->name ?? 'No res' }}</td>
+                            <td>{{ $torrent->resolution->name ?? 'Sin res' }}</td>
                             <td>{{ $torrent->getSize() }}</td>
                             <td>
                                 <x-user-tag :anon="false" :user="$torrent->user" />
@@ -95,7 +95,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">No pending torrents</td>
+                            <td colspan="8">Sin torrents pendientes</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -142,7 +142,7 @@
                                 ></i>
                             </td>
                             <td>{{ $torrent->type->name }}</td>
-                            <td>{{ $torrent->resolution->name ?? 'No res' }}</td>
+                            <td>{{ $torrent->resolution->name ?? 'Sin res' }}</td>
                             <td>{{ $torrent->getSize() }}</td>
                             <td>
                                 <x-user-tag :anon="false" :user="$torrent->user" />
@@ -193,7 +193,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9">No postponed torrents</td>
+                            <td colspan="9">Sin torrents pospuestos</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -240,7 +240,7 @@
                                 ></i>
                             </td>
                             <td>{{ $torrent->type->name }}</td>
-                            <td>{{ $torrent->resolution->name ?? 'No res' }}</td>
+                            <td>{{ $torrent->resolution->name ?? 'Sin res' }}</td>
                             <td>{{ $torrent->getSize() }}</td>
                             <td>
                                 <x-user-tag :anon="false" :user="$torrent->user" />
@@ -292,7 +292,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9">No rejected torrents</td>
+                            <td colspan="9">Sin torrents rechazados</td>
                         </tr>
                     @endforelse
                 </tbody>

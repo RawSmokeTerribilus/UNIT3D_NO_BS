@@ -42,12 +42,12 @@
             <div class="panel__action">
                 <div class="form__group">
                     <select id="action" class="form__select" wire:model.live="action">
-                        <option selected value="">All</option>
-                        <option value="create">Create</option>
-                        <option value="update">Update</option>
-                        <option value="delete">Delete</option>
+                        <option selected value="">Todas</option>
+                        <option value="create">Crear</option>
+                        <option value="update">Actualizar</option>
+                        <option value="delete">Eliminar</option>
                     </select>
-                    <label class="form__label form__label--floating" for="action">Action</label>
+                    <label class="form__label form__label--floating" for="action">Acción</label>
                 </div>
             </div>
             <div class="panel__action">
@@ -159,7 +159,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8">No audits</td>
+                        <td colspan="8">Sin registros de auditoría</td>
                     </tr>
                 @endforelse
             </tbody>

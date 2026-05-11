@@ -48,12 +48,12 @@
                             class="form__select"
                             placeholder=" "
                         >
-                            <option value="any">Any</option>
-                            <option value="include">Completed</option>
-                            <option value="exclude">Incomplete</option>
+                            <option value="any">Cualquiera</option>
+                            <option value="include">Completado</option>
+                            <option value="exclude">Incompleto</option>
                         </select>
                         <label class="form__label form__label--floating" for="seeder">
-                            Completed
+                            Completado
                         </label>
                     </p>
                     <p class="form__group">
@@ -63,11 +63,11 @@
                             class="form__select"
                             placeholder=" "
                         >
-                            <option value="any">Any</option>
-                            <option value="exclude">Inactive</option>
-                            <option value="include">Active</option>
+                            <option value="any">Cualquiera</option>
+                            <option value="exclude">Inactivo</option>
+                            <option value="include">Activo</option>
                         </select>
-                        <label class="form__label form__label--floating" for="active">Active</label>
+                        <label class="form__label form__label--floating" for="active">Activo</label>
                     </p>
                     <p class="form__group">
                         <select
@@ -76,11 +76,11 @@
                             class="form__select"
                             placeholder=" "
                         >
-                            <option value="none">None</option>
-                            <option value="user_id">User</option>
+                            <option value="none">Ninguno</option>
+                            <option value="user_id">Usuario</option>
                         </select>
                         <label class="form__label form__label--floating" for="groupBy">
-                            Group by
+                            Agrupar por
                         </label>
                     </p>
                 </div>

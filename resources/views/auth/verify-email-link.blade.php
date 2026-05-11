@@ -35,12 +35,12 @@
                         <img src="{{ url('/img/logo_main.png') }}" alt="{{ config('other.title') }}" class="auth-form__logo">
                     </a>
                     <ul class="auth-form__important-infos">
-                        <li class="auth-form__important-info">Confirm email verification</li>
+                        <li class="auth-form__important-info">Confirmar verificación de correo</li>
                         <li class="auth-form__important-info">
-                            We received a valid activation link for <strong>{{ $user->email }}</strong>.
+                            Hemos recibido un enlace de activación válido para <strong>{{ $user->email }}</strong>.
                         </li>
                         <li class="auth-form__important-info">
-                            This extra confirmation step helps avoid mail scanners or preview tools activating accounts automatically.
+                            Este paso extra evita que escáneres de correo o visores de previsualización activen cuentas automáticamente.
                         </li>
                     </ul>
 
@@ -52,7 +52,7 @@
                         </ul>
                     @endif
 
-                    <button class="auth-form__primary-button">Verify my account</button>
+                    <button class="auth-form__primary-button">Verificar mi cuenta</button>
                 </form>
             </section>
         </main>

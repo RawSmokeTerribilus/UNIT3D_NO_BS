@@ -15,7 +15,7 @@
             {{ __('stat.groups') }}
         </a>
     </li>
-    <li class="breadcrumb--active">{{ __('common.groups') }} requirements</li>
+    <li class="breadcrumb--active">Requisitos de {{ __('common.groups') }}</li>
 @endsection
 
 @section('nav-tabs')
@@ -32,8 +32,8 @@
                 <thead>
                     <tr>
                         <th>{{ __('common.group') }}</th>
-                        <th>Requirement</th>
-                        <th>Perks</th>
+                        <th>Requisito</th>
+                        <th>Ventajas</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -56,13 +56,13 @@
                                         <thead>
                                             <tr>
                                                 <td></td>
-                                                <td>Requirement</td>
-                                                <td>To advance</td>
+                                                <td>Requisito</td>
+                                                <td>Para avanzar</td>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>Min. Upload</td>
+                                                <td>Subida mín.</td>
                                                 <td>
                                                     {{ \App\Helpers\StringHelper::formatBytes($group->min_uploaded ?? 0) }}
                                                 </td>
@@ -81,7 +81,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Min. Ratio</td>
+                                                <td>Ratio mín.</td>
                                                 <td>{{ $group->min_ratio ?? 0 }}</td>
                                                 <td>
                                                     @if ($user->ratio >= $group->min_ratio ?? 0)
@@ -97,7 +97,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Min. account age</td>
+                                                <td>Antigüedad mín.</td>
                                                 <td>
                                                     @if ($group->min_age > 0)
                                                         {{ \App\Helpers\StringHelper::timeElapsed($group->min_age ?? 0) }}
@@ -120,7 +120,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Min. average seedtime</td>
+                                                <td>Tiempo de seed mín. (media)</td>
                                                 <td>
                                                     {{ \App\Helpers\StringHelper::timeElapsed($group->min_avg_seedtime ?? 0) }}
                                                 </td>
@@ -139,7 +139,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Min. Seedsize</td>
+                                                <td>Tamaño en seed mín.</td>
                                                 <td>
                                                     {{ \App\Helpers\StringHelper::formatBytes($group->min_seedsize ?? 0) }}
                                                 </td>
@@ -158,7 +158,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Min. Uploads</td>
+                                                <td>Subidas mín.</td>
                                                 <td>
                                                     {{ $group->min_uploads ?? 0 }}
                                                 </td>
@@ -254,7 +254,7 @@
                                                     <i
                                                         class="{{ config('other.font-awesome') }} fa-syringe"
                                                     ></i>
-                                                    Immune to automated HnR warnings
+                                                    Inmune a avisos automáticos de H&R
                                                 </td>
                                             </tr>
                                         @endif
@@ -263,7 +263,7 @@
                                             <tr>
                                                 <td>
                                                     <i class="fas fa-tasks"></i>
-                                                    {{ __('staff.torrent-moderation') }} bypass
+                                                    Sin moderación de torrents
                                                 </td>
                                             </tr>
                                         @endif

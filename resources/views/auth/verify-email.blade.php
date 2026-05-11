@@ -35,13 +35,13 @@
                         <img src="{{ url('/img/logo_main.png') }}" alt="{{ config('other.title') }}" class="auth-form__logo">
                     </a>
                     <ul class="auth-form__important-infos">
-                        <li class="auth-form__important-info">Almost done...</li>
+                        <li class="auth-form__important-info">¡Ya casi está...</li>
                         <li class="auth-form__important-info">
-                            Click the verification link sent to your email to activate your account.
+                            Haz clic en el enlace que te enviamos por correo para activar tu cuenta.
                         </li>
                         @if (Session::has('warning'))
                             <li class="auth-form__important-info">
-                                Warning: {{ Session::get('warning') }}
+                                Aviso: {{ Session::get('warning') }}
                             </li>
                         @endif
 
@@ -53,13 +53,13 @@
 
                         @if (Session::has('success'))
                             <li class="auth-form__important-info">
-                                Success: {{ Session::get('success') }}
+                                Listo: {{ Session::get('success') }}
                             </li>
                         @endif
 
                         @if (Session::has('verification_link'))
                             <li class="auth-form__important-info">
-                                Verification link for {{ Session::get('verification_link_email') }}:
+                                Enlace de verificación para {{ Session::get('verification_link_email') }}:
                                 <div class="auth-form__verification-link-box">
                                     <a
                                         class="auth-form__verification-link"
@@ -76,8 +76,8 @@
                     @endif
 
                     <details class="auth-form__dropdown">
-                        <summary class="auth-form__dropdown-text">Having issues?</summary>
-                        <button class="auth-form__primary-button">Show verification link</button>
+                        <summary class="auth-form__dropdown-text">¿Problemas con el correo?</summary>
+                        <button class="auth-form__primary-button">Mostrar enlace de verificación</button>
                     </details>
                     @if (Session::has('errors') || Session::has('status'))
                         <ul class="auth-form__errors">
