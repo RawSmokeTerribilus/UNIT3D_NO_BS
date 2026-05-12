@@ -307,6 +307,14 @@
                     {{ $user->formatted_ratio }}
                 </a>
             </li>
+            @if ($user->hasEnabledThanksRatio())
+                <li class="ratio-bar__thanks" title="{{ __('user.thanks-ratio') }}">
+                    <a href="{{ route('users.show', ['user' => auth()->user()]) }}">
+                        <i class="{{ config('other.font-awesome') }} fa-heartbeat"></i>
+                        {{ $user->formatted_thanks_ratio }}
+                    </a>
+                </li>
+            @endif
             <li class="ratio-bar__tokens" title="{{ __('user.my-fl-tokens') }}">
                 <a href="{{ route('users.show', ['user' => auth()->user()]) }}">
                     <i class="{{ config('other.font-awesome') }} fa-star"></i>

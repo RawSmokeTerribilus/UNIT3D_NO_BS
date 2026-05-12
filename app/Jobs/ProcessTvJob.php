@@ -45,7 +45,7 @@ class ProcessTvJob implements ShouldQueue
     /**
      * ProcessTvJob Constructor.
      */
-    public function __construct(public int $id)
+    public function __construct(public int $id, public bool $force = false)
     {
     }
 
@@ -73,8 +73,8 @@ class ProcessTvJob implements ShouldQueue
     public function middleware(): array
     {
         return [
-            Skip::when(cache()->has("tmdb-tv-scraper:{$this->id}")),
-            new WithoutOverlapping((string) $this->id)->dontRelease()->expireAfter(30),
+            Skip::when(!$this->force && cache()->has("tmdb-tv-scraper:{$this->id}")),
+            (new WithoutOverlapping((string) $this->id))->dontRelease()->expireAfter(30),
             new RateLimited(GlobalRateLimit::TMDB),
         ];
     }

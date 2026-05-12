@@ -155,9 +155,9 @@ class RequestController extends Controller
         }
 
         match (true) {
-            $torrentRequest->tmdb_tv_id !== null    => new TMDBScraper()->tv($torrentRequest->tmdb_tv_id),
-            $torrentRequest->tmdb_movie_id !== null => new TMDBScraper()->movie($torrentRequest->tmdb_movie_id),
-            $torrentRequest->igdb !== null          => new IgdbScraper()->game($torrentRequest->igdb),
+            $torrentRequest->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrentRequest->tmdb_tv_id, true),
+            $torrentRequest->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrentRequest->tmdb_movie_id, true),
+            $torrentRequest->igdb !== null          => (new IgdbScraper())->game($torrentRequest->igdb),
             default                                 => null,
         };
 
@@ -220,9 +220,9 @@ class RequestController extends Controller
         $torrentRequest->update($request->validated());
 
         match (true) {
-            $torrentRequest->tmdb_tv_id !== null    => new TMDBScraper()->tv($torrentRequest->tmdb_tv_id),
-            $torrentRequest->tmdb_movie_id !== null => new TMDBScraper()->movie($torrentRequest->tmdb_movie_id),
-            $torrentRequest->igdb !== null          => new IgdbScraper()->game($torrentRequest->igdb),
+            $torrentRequest->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrentRequest->tmdb_tv_id, true),
+            $torrentRequest->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrentRequest->tmdb_movie_id, true),
+            $torrentRequest->igdb !== null          => (new IgdbScraper())->game($torrentRequest->igdb),
             default                                 => null,
         };
 

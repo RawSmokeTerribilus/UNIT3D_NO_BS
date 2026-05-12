@@ -136,6 +136,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Thanks Ratio
+    |--------------------------------------------------------------------------
+    |
+    | Controls the thanks ratio based on completed downloads. Base ratio is
+    | thanked completed downloads / completed downloads, with a +0.01 bonus
+    | per completed download that has at least one torrent comment.
+    |
+    */
+    'thanks-ratio-enabled' => false,
+    'thanks-ratio-minimum-overall' => 0.0,
+    'thanks-ratio-minimum-invite' => 0.0,
+    'thanks-ratio-minimum-personal-freeleech' => 0.0,
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Users Stats
     |--------------------------------------------------------------------------
     |

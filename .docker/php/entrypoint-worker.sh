@@ -8,5 +8,5 @@ until nc -z db 3306; do
 done
 echo "Database is ready!"
 
-echo "Starting Queue Worker..."
-exec php artisan queue:work
+echo "Starting Queue Worker on queues: ${QUEUE_WORK_QUEUES:-default}"
+exec php artisan queue:work --queue="${QUEUE_WORK_QUEUES:-default}" --sleep="${QUEUE_WORK_SLEEP:-3}" --tries="${QUEUE_WORK_TRIES:-1}" --timeout="${QUEUE_WORK_TIMEOUT:-300}"

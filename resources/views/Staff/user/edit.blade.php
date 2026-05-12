@@ -189,163 +189,69 @@
                 class="form"
                 method="POST"
                 action="{{ route('staff.users.update_permissions', ['user' => $user]) }}"
-                x-data="{
-                    override_can_comment: {{ Js::from($user->can_comment !== null) }},
-                    override_can_chat: {{ Js::from($user->can_chat !== null) }},
-                    override_can_invite: {{ Js::from($user->can_invite !== null) }},
-                    override_can_request: {{ Js::from($user->can_request !== null) }},
-                    override_can_upload: {{ Js::from($user->can_upload !== null) }},
-                }"
             >
                 @csrf
                 @method('PATCH')
                 <p class="form__group">
                     <input type="hidden" name="can_chat" value="0" />
                     <input
-                        id="override_can_chat"
-                        class="form__checkbox"
                         type="checkbox"
-                        x-bind:checked="override_can_chat"
-                        x-model="override_can_chat"
+                        class="form__checkbox"
+                        id="can_chat"
+                        name="can_chat"
+                        value="1"
+                        @checked($user->can_chat ?? $user->group->can_chat)
                     />
-                    <label for="override_can_chat">Override group can chat</label>
+                    <label for="can_chat">{{ __('user.can-chat') }}?</label>
                 </p>
-                <div class="form__group" x-show="override_can_chat" x-cloak>
-                    <fieldset class="form__fieldset">
-                        <input
-                            type="hidden"
-                            name="can_chat"
-                            x-bind:value="override_can_chat ? '0' : ''"
-                        />
-                        <input
-                            type="checkbox"
-                            class="form__checkbox"
-                            id="can_chat"
-                            name="can_chat"
-                            value="1"
-                            x-bind:checked="override_can_chat && $el.checked"
-                            @checked($user->can_chat)
-                        />
-                        <label for="can_chat">{{ __('user.can-comment') }}?</label>
-                    </fieldset>
-                </div>
                 <p class="form__group">
                     <input type="hidden" name="can_comment" value="0" />
                     <input
-                        id="override_can_comment"
-                        class="form__checkbox"
                         type="checkbox"
-                        x-bind:checked="override_can_comment"
-                        x-model="override_can_comment"
+                        class="form__checkbox"
+                        id="can_comment"
+                        name="can_comment"
+                        value="1"
+                        @checked($user->can_comment ?? $user->group->can_comment)
                     />
-                    <label for="override_can_comment">Override group can comment</label>
+                    <label for="can_comment">{{ __('user.can-comment') }}?</label>
                 </p>
-                <div class="form__group" x-show="override_can_comment" x-cloak>
-                    <fieldset class="form__fieldset">
-                        <input
-                            type="hidden"
-                            name="can_comment"
-                            x-bind:value="override_can_comment ? '0' : ''"
-                        />
-                        <input
-                            type="checkbox"
-                            class="form__checkbox"
-                            id="can_comment"
-                            name="can_comment"
-                            value="1"
-                            x-bind:checked="override_can_comment && $el.checked"
-                            @checked($user->can_comment)
-                        />
-                        <label for="can_comment">{{ __('user.can-comment') }}?</label>
-                    </fieldset>
-                </div>
                 <p class="form__group">
+                    <input type="hidden" name="can_invite" value="0" />
                     <input
-                        id="override_can_invite"
-                        class="form__checkbox"
                         type="checkbox"
-                        x-bind:checked="override_can_invite"
-                        x-model="override_can_invite"
+                        class="form__checkbox"
+                        id="can_invite"
+                        name="can_invite"
+                        value="1"
+                        @checked($user->can_invite ?? $user->group->can_invite)
                     />
-                    <label for="override_can_invite">Override group can invite</label>
+                    <label for="can_invite">{{ __('user.can-invite') }}?</label>
                 </p>
-                <div class="form__group" x-show="override_can_invite" x-cloak>
-                    <fieldset class="form__fieldset">
-                        <input
-                            type="hidden"
-                            name="can_invite"
-                            x-bind:value="override_can_invite ? '0' : ''"
-                        />
-                        <input
-                            type="checkbox"
-                            class="form__checkbox"
-                            id="can_invite"
-                            name="can_invite"
-                            value="1"
-                            x-bind:checked="override_can_invite && $el.checked"
-                            @checked($user->can_invite)
-                        />
-                        <label for="can_invite">{{ __('user.can-invite') }}?</label>
-                    </fieldset>
-                </div>
                 <p class="form__group">
+                    <input type="hidden" name="can_request" value="0" />
                     <input
-                        id="override_can_request"
-                        class="form__checkbox"
                         type="checkbox"
-                        x-bind:checked="override_can_request"
-                        x-model="override_can_request"
+                        class="form__checkbox"
+                        id="can_request"
+                        name="can_request"
+                        value="1"
+                        @checked($user->can_request ?? $user->group->can_request)
                     />
-                    <label for="override_can_request">Override group can request</label>
+                    <label for="can_request">{{ __('user.can-request') }}?</label>
                 </p>
-                <div class="form__group" x-show="override_can_request" x-cloak>
-                    <fieldset class="form__fieldset">
-                        <input
-                            type="hidden"
-                            name="can_request"
-                            x-bind:value="override_can_request ? '0' : ''"
-                        />
-                        <input
-                            type="checkbox"
-                            class="form__checkbox"
-                            id="can_request"
-                            name="can_request"
-                            value="1"
-                            x-bind:checked="override_can_request && $el.checked"
-                            @checked($user->can_request)
-                        />
-                        <label for="can_request">{{ __('user.can-request') }}?</label>
-                    </fieldset>
-                </div>
                 <p class="form__group">
+                    <input type="hidden" name="can_upload" value="0" />
                     <input
-                        id="override_can_upload"
-                        class="form__checkbox"
                         type="checkbox"
-                        x-bind:checked="override_can_upload"
-                        x-model="override_can_upload"
+                        class="form__checkbox"
+                        id="can_upload"
+                        name="can_upload"
+                        value="1"
+                        @checked($user->can_upload ?? $user->group->can_upload)
                     />
-                    <label for="override_can_upload">Override group can upload</label>
+                    <label for="can_upload">{{ __('user.can-upload') }}?</label>
                 </p>
-                <div class="form__group" x-show="override_can_upload" x-cloak>
-                    <fieldset class="form__fieldset">
-                        <input
-                            type="hidden"
-                            name="can_upload"
-                            x-bind:value="override_can_upload ? '0' : ''"
-                        />
-                        <input
-                            type="checkbox"
-                            class="form__checkbox"
-                            id="can_upload"
-                            name="can_upload"
-                            value="1"
-                            x-bind:checked="override_can_upload && $el.checked"
-                            @checked($user->can_upload)
-                        />
-                        <label for="can_upload">{{ __('user.can-upload') }}?</label>
-                    </fieldset>
-                </div>
                 <p class="form__group">
                     <input type="hidden" name="can_download" value="0" />
                     <input

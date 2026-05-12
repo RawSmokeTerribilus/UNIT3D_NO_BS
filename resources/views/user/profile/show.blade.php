@@ -1321,7 +1321,7 @@
                         <dt>{{ __('common.fl_tokens') }}</dt>
                         <dd>{{ $user->fl_tokens }}</dd>
                     </div>
-                    @if (config('other.thanks-system.is-enabled'))
+                    @if (config('thanks-system.is-enabled'))
                         <div class="key-value__group">
                             <dt>{{ __('user.thanks-received') }}</dt>
                             <dd>{{ $user->thanksReceived()->count() }}</dd>

@@ -51,6 +51,7 @@ use App\Console\Commands\AutoUpsertHistories;
 use App\Console\Commands\AutoUpsertPeers;
 use App\Console\Commands\AutoWarning;
 use App\Console\Commands\DeleteUnparticipatedConversations;
+use App\Console\Commands\DispatchMetaRefresh;
 use App\Console\Commands\EmailBlacklistUpdate;
 use App\Console\Commands\SyncDisposableEmailDomains;
 use App\Console\Commands\SyncPeers;
@@ -101,6 +102,7 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoCorrectHistory::class)->daily();
         $schedule->command(EmailBlacklistUpdate::class)->weekends();
         $schedule->command(SyncDisposableEmailDomains::class)->hourly();
+        $schedule->command(DispatchMetaRefresh::class, ['--limit' => 5, '--stale-hours' => 720, '--dispatch-ttl-minutes' => 10])->everyMinute()->withoutOverlapping();
         $schedule->command(AutoResetUserFlushes::class)->daily();
         $schedule->command(AutoRemoveTimedTorrentBuffs::class)->hourly();
         $schedule->command(AutoRefundDownload::class)->daily();

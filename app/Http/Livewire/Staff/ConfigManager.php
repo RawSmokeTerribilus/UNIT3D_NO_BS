@@ -68,6 +68,10 @@ class ConfigManager extends Component
             'icon'  => 'fa-heart',
             'settings' => [
                 'thanks-system.is-enabled' => ['label' => 'Sistema de Thanks activo', 'hint' => 'Permite a los usuarios agradecer torrents y posts', 'type' => 'boolean'],
+                'other.thanks-ratio-enabled' => ['label' => 'Ratio de Thanks activo', 'hint' => 'Activa el ratio basado en descargas completadas, thanks y bonus por comentario', 'type' => 'boolean'],
+                'other.thanks-ratio-minimum-overall' => ['label' => 'Ratio de Thanks mínimo global', 'hint' => 'Ratio mínimo requerido para comprar cualquier elemento de la tienda BON', 'type' => 'decimal'],
+                'other.thanks-ratio-minimum-invite' => ['label' => 'Ratio de Thanks mínimo para invitaciones', 'hint' => 'Ratio mínimo requerido para comprar o enviar invitaciones', 'type' => 'decimal'],
+                'other.thanks-ratio-minimum-personal-freeleech' => ['label' => 'Ratio de Thanks mínimo para freeleech personal', 'hint' => 'Ratio mínimo requerido para activar el freeleech personal de 24h', 'type' => 'decimal'],
             ],
         ],
     ];

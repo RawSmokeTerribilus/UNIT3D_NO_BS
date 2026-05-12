@@ -314,7 +314,7 @@
                                 {{ __('notification.reseed-requests') }}
                             </label>
                         </p>
-                        @if (config('other.thanks-system.is-enabled'))
+                        @if (config('thanks-system.is-enabled'))
                             <p class="form__group">
                                 <label class="form__label">
                                     <input

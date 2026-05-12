@@ -161,6 +161,7 @@ Estos ajustes se anulan si no permites que ningún grupo envíe notificaciones s
     'invites-disabled' => 'Atención: las invitaciones están deshabilitadas debido a la inscripción abierta!',
     'invites-disabled-desc' => '¡Por favor, revise luego!',
     'invites-disabled-group' => 'Las invitaciones están desactivadas para tu grupo.',
+    'invites-disabled-thanks-ratio' => 'Necesitas un ratio de thanks de :ratio para usar invitaciones.',
     'invites-rules' => [
         'know-and-trust' => 'Solo invite a personas que conozca y en las que confíe.',
         'responsible' => 'Serás personalmente responsable por aquellos a quienes invitas.',
@@ -338,6 +339,9 @@ Estos ajustes se anulan si no permites que ningún grupo envíe notificaciones s
     'subscription-notification-help' => 'Controla qué notificaciones se envían relacionadas con tus suscripciones.
 Estos ajustes se anulan si no permites que ningún grupo envíe notificaciones sobre tus suscripciones o si <strong>desactivas las notificaciones</strong>',
     'thanks-given' => 'Agradecimientos expresados',
+    'thanks-ratio' => 'Ratio de Thanks',
+    'thanks-ratio-required' => 'Requiere :ratio',
+    'thanks-ratio-required-error' => 'Necesitas un ratio de thanks de :ratio para esta acción.',
     'thanks-received' => 'Gracias recibidas',
     'tips-given' => 'Consejos dados',
     'tips-received' => 'Consejos recibidos',

@@ -67,6 +67,13 @@ class InviteController extends Controller
                 ->withErrors(trans('user.invites-disabled-group'));
         }
 
+        if (! $user->hasRequiredThanksRatio($user->required_invite_thanks_ratio)) {
+            return to_route('home.index')
+                ->withErrors(trans('user.invites-disabled-thanks-ratio', [
+                    'ratio' => number_format($user->required_invite_thanks_ratio, 2, '.', ''),
+                ]));
+        }
+
         $minHours = config('other.hours-until-invite-after-2fa');
 
         if ($user->two_factor_confirmed_at === null || $user->two_factor_confirmed_at->addHours($minHours)->isFuture()) {
@@ -89,6 +96,13 @@ class InviteController extends Controller
         if (!$user->is_donor && config('other.invites_restriced') && !\in_array($user->group->name, config('other.invite_groups'), true)) {
             return to_route('home.index')
                 ->withErrors(trans('user.invites-disabled-group'));
+        }
+
+        if (! $user->hasRequiredThanksRatio($user->required_invite_thanks_ratio)) {
+            return to_route('home.index')
+                ->withErrors(trans('user.invites-disabled-thanks-ratio', [
+                    'ratio' => number_format($user->required_invite_thanks_ratio, 2, '.', ''),
+                ]));
         }
 
         if ($user->invites <= 0) {

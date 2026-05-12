@@ -36,6 +36,7 @@
                 </thead>
                 <tbody>
                     @foreach ($items as $item)
+                        @php($requiredThanksRatio = $user->requiredThanksRatioForBonExchange($item))
                         <tr>
                             <td>{{ $item->description }}</td>
                             <td>{{ $item->cost }}</td>
@@ -43,6 +44,10 @@
                                 @if ($item->personal_freeleech && $activefl)
                                     <button disabled class="form__button form__button--filled">
                                         {{ __('bon.activated') }}!
+                                    </button>
+                                @elseif ($requiredThanksRatio > 0 && ! $user->hasRequiredThanksRatio($requiredThanksRatio))
+                                    <button disabled class="form__button form__button--filled">
+                                        {{ __('user.thanks-ratio-required', ['ratio' => number_format($requiredThanksRatio, 2, '.', '')]) }}
                                     </button>
                                 @elseif ($item->upload && config('other.bon.max-buffer-to-buy-upload') !== null && $user->uploaded - $user->downloaded > config('other.bon.max-buffer-to-buy-upload'))
                                     <button disabled class="form__button form__button--filled">

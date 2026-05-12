@@ -176,6 +176,7 @@ return [
     'invites-disabled'                      => 'Attention: invites are disabled due to open registration!',
     'invites-disabled-desc'                 => 'Please check back soon!',
     'invites-disabled-group'                => 'Invites are currently disabled for your group.',
+    'invites-disabled-thanks-ratio'         => 'You need a thanks ratio of :ratio to use invites.',
     'invites-rules'                         => [
         'know-and-trust' => 'Only invite people you know and trust.',
         'responsibile' => 'You will be held personally responsible for those you invite.',
@@ -354,6 +355,9 @@ return [
     'subscription-notification-help'  => 'Control which notifications are sent concerning your subscriptions.
     These settings are overridden if you do not allow any groups to send notifications concerning your subscriptions or if you <strong>disable notifications</strong>',
     'thanks-given'         => 'Thanks given',
+    'thanks-ratio'         => 'Thanks ratio',
+    'thanks-ratio-required' => 'Requires :ratio',
+    'thanks-ratio-required-error' => 'You need a thanks ratio of :ratio for this action.',
     'thanks-received'      => 'Thanks received',
     'tips-given'           => 'Tips given',
     'tips-received'        => 'Tips received',

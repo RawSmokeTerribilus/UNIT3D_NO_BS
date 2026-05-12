@@ -93,14 +93,14 @@ class UserController extends Controller
     public function permissions(Request $request, User $user): \Illuminate\Http\RedirectResponse
     {
         $user->update([
-            'can_chat'    => $request->filled('can_chat') ? $request->boolean('can_chat') : null,
-            'can_comment' => $request->filled('can_comment') ? $request->boolean('can_comment') : null,
-            'can_invite'  => $request->filled('can_invite') ? $request->boolean('can_invite') : null,
-            'can_request' => $request->filled('can_request') ? $request->boolean('can_request') : null,
-            'can_upload'   => $request->filled('can_upload') ? $request->boolean('can_upload') : null,
+            'can_chat'     => $request->boolean('can_chat'),
+            'can_comment'  => $request->boolean('can_comment'),
+            'can_invite'   => $request->boolean('can_invite'),
+            'can_request'  => $request->boolean('can_request'),
+            'can_upload'   => $request->boolean('can_upload'),
             'can_download' => $request->boolean('can_download'),
             'is_donor'     => $request->boolean('is_donor'),
-            'is_lifetime' => $request->boolean('is_lifetime'),
+            'is_lifetime'  => $request->boolean('is_lifetime'),
         ]);
 
         cache()->forget('user:'.$user->passkey);

@@ -73,7 +73,7 @@
         >
             Posters
         </li>
-        @if (config('other.thanks-system.is-enabled'))
+        @if (config('thanks-system.is-enabled'))
             <li
                 class="panel__tab"
                 role="tab"

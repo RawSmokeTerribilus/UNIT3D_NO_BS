@@ -29,13 +29,21 @@ class TMDBScraper implements ShouldQueue
     {
     }
 
-    public function tv(int $id): void
+    public function tv(int $id, bool $force = false): void
     {
-        ProcessTvJob::dispatch($id);
+        if ($force) {
+            cache()->forget("tmdb-tv-scraper:{$id}");
+        }
+
+        ProcessTvJob::dispatch($id, $force);
     }
 
-    public function movie(int $id): void
+    public function movie(int $id, bool $force = false): void
     {
-        ProcessMovieJob::dispatch($id);
+        if ($force) {
+            cache()->forget("tmdb-movie-scraper:{$id}");
+        }
+
+        ProcessMovieJob::dispatch($id, $force);
     }
 }

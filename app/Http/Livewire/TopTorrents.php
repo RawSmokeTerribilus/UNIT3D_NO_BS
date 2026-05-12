@@ -98,7 +98,7 @@ class TopTorrents extends Component
                                 )
                         )
                 )
-                ->take(5)
+                ->take(10)
                 ->get();
 
             // See app/Traits/TorrentMeta.php

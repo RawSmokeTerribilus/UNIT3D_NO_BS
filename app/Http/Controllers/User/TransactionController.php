@@ -64,9 +64,16 @@ class TransactionController extends Controller
         return DB::transaction(function () use ($request, $user) {
             $user->refresh();
             $bonExchange = BonExchange::findOrFail($request->integer('exchange'));
+            $requiredThanksRatio = $user->requiredThanksRatioForBonExchange($bonExchange);
 
             if ($bonExchange->cost > $user->seedbonus) {
                 return back()->withErrors('Not enough BON.');
+            }
+
+            if (! $user->hasRequiredThanksRatio($requiredThanksRatio)) {
+                return back()->withErrors(trans('user.thanks-ratio-required-error', [
+                    'ratio' => number_format($requiredThanksRatio, 2, '.', ''),
+                ]));
             }
 
             switch (true) {

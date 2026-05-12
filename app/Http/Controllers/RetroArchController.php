@@ -126,6 +126,19 @@ class RetroArchController extends Controller
         $total = count($roms);
         $slice = array_slice($roms, ($page - 1) * $perPage, $perPage);
 
+        $hasMore = ($page * $perPage) < $total;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html'      => view('retroarch.partials.rom-items', [
+                    'roms'   => $slice,
+                    'system' => $system,
+                ])->render(),
+                'has_more'  => $hasMore,
+                'next_page' => $page + 1,
+            ]);
+        }
+
         $paginator = new LengthAwarePaginator(
             $slice,
             $total,
@@ -138,10 +151,11 @@ class RetroArchController extends Controller
         );
 
         return view('retroarch.system', [
-            'system'    => $system,
-            'meta'      => $entry,
-            'roms'      => $paginator,
-            'q'         => $q,
+            'system'   => $system,
+            'meta'     => $entry,
+            'roms'     => $paginator,
+            'hasMore'  => $hasMore,
+            'q'        => $q,
         ]);
     }
 

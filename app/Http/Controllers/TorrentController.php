@@ -411,9 +411,9 @@ class TorrentController extends Controller
         // Meta
 
         match (true) {
-            $torrent->tmdb_tv_id !== null    => new TMDBScraper()->tv($torrent->tmdb_tv_id),
-            $torrent->tmdb_movie_id !== null => new TMDBScraper()->movie($torrent->tmdb_movie_id),
-            $torrent->igdb !== null          => new IgdbScraper()->game($torrent->igdb),
+            $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, true),
+            $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, true),
+            $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
             default                          => null,
         };
 
@@ -600,9 +600,9 @@ class TorrentController extends Controller
 
         // Meta
         match (true) {
-            $torrent->tmdb_tv_id !== null    => new TMDBScraper()->tv($torrent->tmdb_tv_id),
-            $torrent->tmdb_movie_id !== null => new TMDBScraper()->movie($torrent->tmdb_movie_id),
-            $torrent->igdb !== null          => new IgdbScraper()->game($torrent->igdb),
+            $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, true),
+            $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, true),
+            $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
             default                          => null,
         };
 

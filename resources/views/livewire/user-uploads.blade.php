@@ -171,7 +171,7 @@
                         <i class="fas fa-coins"></i>
                         @include('livewire.includes._sort-icon', ['field' => 'tips_sum_bon'])
                     </th>
-                    @if (config('other.thanks-system.is-enabled'))
+                    @if (config('thanks-system.is-enabled'))
                         <th
                             class="user-uploads__thanks-header"
                             wire:click="sortBy('thanks_count')"
@@ -291,7 +291,7 @@
                             <td class="user-uploads__tips">
                                 {{ $torrent->tips_sum_bon ?? 0 }}
                             </td>
-                            @if (config('other.thanks-system.is-enabled'))
+                            @if (config('thanks-system.is-enabled'))
                                 <td class="user-uploads__thanks">
                                     {{ $torrent->thanks_count ?? 0 }}
                                 </td>

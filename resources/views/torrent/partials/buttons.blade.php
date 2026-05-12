@@ -82,7 +82,7 @@
         @endif
     @endif
 
-    @if ($torrent->status === \App\Enums\ModerationStatus::APPROVED && config('other.thanks-system.is-enabled'))
+    @if ($torrent->status === \App\Enums\ModerationStatus::APPROVED && config('thanks-system.is-enabled'))
         <li class="form__group form__group--short-horizontal">
             @livewire('thank-button', ['torrent' => $torrent])
         </li>

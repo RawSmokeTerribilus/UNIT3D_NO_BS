@@ -127,9 +127,9 @@ class SimilarTorrentController extends Controller
 
         /** @phpstan-ignore match.unhandled (The first line of this method ensures that at least one of these are true) */
         match (true) {
-            $category->movie_meta => new TMDBScraper()->movie($metaId),
-            $category->tv_meta    => new TMDBScraper()->tv($metaId),
-            $category->game_meta  => new IgdbScraper()->game($metaId),
+            $category->movie_meta => (new TMDBScraper())->movie($metaId, true),
+            $category->tv_meta    => (new TMDBScraper())->tv($metaId, true),
+            $category->game_meta  => (new IgdbScraper())->game($metaId),
         };
 
         return back()->with('success', 'Metadata update queued successfully.');

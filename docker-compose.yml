@@ -136,6 +136,37 @@ services:
             - DB_PASSWORD=${DB_PASSWORD:-unit3d}
             - REDIS_HOST=redis
             - MEILISEARCH_HOST=http://meilisearch:7700
+            - QUEUE_WORK_QUEUES=default
+            - QUEUE_WORK_TIMEOUT=300
+        depends_on:
+            - db
+            - redis
+            - meilisearch
+        networks:
+            - unit3d
+
+    meta-worker:
+        build:
+            context: .
+            dockerfile: .docker/php/Dockerfile.app
+        container_name: unit3d-meta-worker
+        restart: unless-stopped
+        entrypoint: ["/usr/local/bin/entrypoint-worker.sh"]
+        tmpfs:
+            - /var/www/html/storage/app/backups:size=10M,mode=777
+            - /var/www/html/storage/app/backup-temp:size=2G,mode=777
+        volumes:
+            - .:/var/www/html
+        environment:
+            - DB_HOST=db
+            - LD_PRELOAD=/usr/lib/libiconv.so.2
+            - DB_DATABASE=${DB_DATABASE:-unit3d}
+            - DB_USERNAME=${DB_USERNAME:-unit3d}
+            - DB_PASSWORD=${DB_PASSWORD:-unit3d}
+            - REDIS_HOST=redis
+            - MEILISEARCH_HOST=http://meilisearch:7700
+            - QUEUE_WORK_QUEUES=meta-refresh
+            - QUEUE_WORK_TIMEOUT=300
         depends_on:
             - db
             - redis

@@ -70,7 +70,7 @@ class FetchMeta extends Command
             usleep(250_000);
 
             try {
-                ProcessMovieJob::dispatchSync($id);
+                ProcessMovieJob::dispatchSync($id, true);
                 $this->info("Movie metadata fetched for tmdb {$id}");
             } catch (Exception $e) {
                 $this->warn("Movie metadata fetch failed for tmdb {$id}: ".$e->getMessage());
@@ -92,7 +92,7 @@ class FetchMeta extends Command
             usleep(250_000);
 
             try {
-                ProcessTvJob::dispatchSync($id);
+                ProcessTvJob::dispatchSync($id, true);
                 $this->info("TV metadata fetched for tmdb {$id}");
             } catch (Exception $e) {
                 $this->warn("TV metadata fetch failed for tmdb {$id}: ".$e->getMessage());

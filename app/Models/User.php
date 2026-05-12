@@ -337,7 +337,7 @@ final class User extends Authenticatable implements MustVerifyEmail
             'torrent_filters'                   => false,
             'custom_css'                        => null,
             'standalone_css'                    => null,
-            'show_poster'                       => false,
+            'show_poster'                       => true,
             'unbookmark_torrents_on_completion' => false,
             'torrent_sort_field'                => 'bumped_at',
             'torrent_search_autofocus'          => false,
@@ -1169,6 +1169,92 @@ final class User extends Authenticatable implements MustVerifyEmail
         return (string) $ratio;
     }
 
+    public function hasEnabledThanksRatio(): bool
+    {
+        return config('thanks-system.is-enabled') && config('other.thanks-ratio-enabled');
+    }
+
+    public function getCompletedDownloadsCountAttribute(): int
+    {
+        return (int) $this->history()
+            ->whereNotNull('completed_at')
+            ->distinct()
+            ->count('torrent_id');
+    }
+
+    public function getThankedCompletedDownloadsCountAttribute(): int
+    {
+        return (int) $this->thanksGiven()
+            ->whereIn('torrent_id', $this->completedDownloadTorrentIdsQuery())
+            ->distinct()
+            ->count('torrent_id');
+    }
+
+    public function getCommentedCompletedDownloadsCountAttribute(): int
+    {
+        return (int) $this->comments()
+            ->where('commentable_type', Torrent::class)
+            ->whereIn('commentable_id', $this->completedDownloadTorrentIdsQuery())
+            ->distinct()
+            ->count('commentable_id');
+    }
+
+    public function getThanksRatioAttribute(): float
+    {
+        $completedDownloads = $this->completed_downloads_count;
+
+        if ($completedDownloads === 0) {
+            return 0.0;
+        }
+
+        return round(
+            ($this->thanked_completed_downloads_count / $completedDownloads)
+            + ($this->commented_completed_downloads_count / 100),
+            2
+        );
+    }
+
+    public function getFormattedThanksRatioAttribute(): string
+    {
+        return number_format($this->thanks_ratio, 2, '.', '');
+    }
+
+    public function getRequiredInviteThanksRatioAttribute(): float
+    {
+        if (! $this->hasEnabledThanksRatio()) {
+            return 0.0;
+        }
+
+        return round(max(
+            (float) config('other.thanks-ratio-minimum-overall', 0),
+            (float) config('other.thanks-ratio-minimum-invite', 0)
+        ), 2);
+    }
+
+    public function requiredThanksRatioForBonExchange(BonExchange $bonExchange): float
+    {
+        if (! $this->hasEnabledThanksRatio()) {
+            return 0.0;
+        }
+
+        $minimum = (float) config('other.thanks-ratio-minimum-overall', 0);
+
+        if ($bonExchange->invite) {
+            $minimum = max($minimum, (float) config('other.thanks-ratio-minimum-invite', 0));
+        }
+
+        if ($bonExchange->personal_freeleech) {
+            $minimum = max($minimum, (float) config('other.thanks-ratio-minimum-personal-freeleech', 0));
+        }
+
+        return round($minimum, 2);
+    }
+
+    public function hasRequiredThanksRatio(float $minimum): bool
+    {
+        return ! $this->hasEnabledThanksRatio() || $this->thanks_ratio >= $minimum;
+    }
+
     /**
      * Return the size (pretty formatted) which can be safely downloaded
      * without falling under the minimum ratio.
@@ -1203,5 +1289,12 @@ final class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token): void
     {
         dispatch(fn () => $this->notify(new ResetPassword($token)))->afterResponse();
+    }
+
+    private function completedDownloadTorrentIdsQuery(): HasMany
+    {
+        return $this->history()
+            ->select('torrent_id')
+            ->whereNotNull('completed_at');
     }
 }
