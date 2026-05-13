@@ -203,6 +203,26 @@ class CommandController extends Controller
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // TMDB
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    /**
+     * Backfill missing YouTube trailers from TMDB (movies + TV).
+     */
+    public function syncMissingTrailers(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tmdb:sync-trailers');
+    }
+
+    /**
+     * Force re-fetch all trailers from TMDB, even already-set ones.
+     */
+    public function syncMissingTrailersForce(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tmdb:sync-trailers', ['--force' => true]);
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // PEER & TORRENT MANAGEMENT
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

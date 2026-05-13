@@ -196,6 +196,34 @@
         location.reload();
     }
 
+    // ── Engine data files (themes, fonts, icons) mounted at /data ────────────
+    // themepath=/data and extrapath=/data in scummvm.ini point here.
+    // Non-fatal: missing files produce ScummVM GUI warnings but the game runs.
+    var ENGINE_DATA = [
+        { url: '/engine/data/fonts.dat',           vfsPath: '/data/fonts.dat'           },
+        { url: '/engine/data/scummremastered.zip',  vfsPath: '/data/scummremastered.zip'  },
+        { url: '/engine/data/scummmodern.zip',      vfsPath: '/data/scummmodern.zip'      },
+        { url: '/engine/data/gui-icons.dat',        vfsPath: '/data/gui-icons.dat'        },
+    ];
+
+    async function mountEngineData() {
+        setLoading('Cargando temas y fuentes...');
+        try { FS.mkdir('/data'); } catch (_) {}
+        for (var i = 0; i < ENGINE_DATA.length; i++) {
+            var f = ENGINE_DATA[i];
+            try {
+                dbg('Fetching engine data: ' + f.url + '...');
+                var res = await fetch(f.url, { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var buf = await res.arrayBuffer();
+                FS.writeFile(f.vfsPath, new Uint8Array(buf));
+                dbg('Engine data OK: ' + f.vfsPath + ' (' + buf.byteLength + ' bytes)', 'ok');
+            } catch (e) {
+                dbg('Engine data WARN: ' + f.url + ' -- ' + e, 'warn');
+            }
+        }
+    }
+
     // ── Mount ScummVM engine plugins into VFS ────────────────────────────────
     // ScummVM WASM tries to browse plugins via HTTPFilesystem (data/index.json → 404).
     // Pre-loading libscumm.so into the VFS bypasses that entirely.
@@ -429,6 +457,7 @@
                             dbg('Pre-wrote /local/scummvm.ini (' + scummIni.length + ' bytes)', 'ok');
                         } catch (e) { dbg('Failed to pre-write /local/scummvm.ini: ' + e, 'warn'); }
 
+                        await mountEngineData();
                         await mountPlugins();
                         await mountGameFiles();
                         try { FS.mkdir(SAVE_DIR); } catch (_) {}

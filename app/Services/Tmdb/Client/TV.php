@@ -387,7 +387,10 @@ class TV
                 'status'             => $this->data['status'] ?? null,
                 'vote_average'       => $this->data['vote_average'] ?? null,
                 'vote_count'         => $this->data['vote_count'] ?? null,
-                'trailer'            => $this->data['videos']['results'][0]['key'] ?? null,
+                'trailer'            => collect($this->data['videos']['results'] ?? [])
+                    ->filter(fn ($v) => ($v['type'] ?? '') === 'Trailer' && ($v['site'] ?? '') === 'YouTube')
+                    ->sortByDesc('official')
+                    ->first()['key'] ?? null,
             ];
         }
 

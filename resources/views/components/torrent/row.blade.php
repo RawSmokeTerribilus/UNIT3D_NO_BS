@@ -4,6 +4,19 @@
     'personalFreeleech',
 ])
 
+@php
+    $trailerKey = $meta?->trailer;
+
+    if (!$trailerKey && !empty($torrent->description)) {
+        if (preg_match('/\[(?:youtube|video(?:="youtube")?)\]([a-zA-Z0-9_-]{11})\[\/(?:youtube|video)\]/i', $torrent->description, $m)) {
+            $trailerKey = $m[1];
+        }
+    }
+
+    $quickMI      = $torrent->mediainfo ? (new App\Helpers\MediaInfo)->parse($torrent->mediainfo) : null;
+    $hasQuickView = $trailerKey || $quickMI !== null;
+@endphp
+
 <tr
     @class([
         'torrent-search--list__row' => auth()->user()->settings->show_poster,
@@ -127,7 +140,16 @@
             </div>
         </div>
     </td>
-    <td class="torrent-search--list__overview">
+
+    {{-- Overview: name + uploader + hover quick-view popup --}}
+    <td
+        class="torrent-search--list__overview"
+        @if ($hasQuickView)
+            x-data="{ namePopup: false, leaveTimer: null }"
+            x-on:mouseenter="clearTimeout(leaveTimer); namePopup = true"
+            x-on:mouseleave="leaveTimer = setTimeout(() => namePopup = false, 150)"
+        @endif
+    >
         <div>
             <a
                 class="torrent-search--list__name"
@@ -142,7 +164,105 @@
             />
             @include('components.partials._torrent-icons')
         </div>
+
+        {{-- Hover popup: mirrors meta__poster-popup pattern (position: fixed, pointer-events: none) --}}
+        @if ($hasQuickView)
+            <div class="meta__poster-popup" x-show="namePopup" x-cloak>
+                <div class="meta__poster-popup-card" style="width: 560px;">
+
+                    {{-- Backdrop: trailer thumbnail > movie backdrop > movie poster --}}
+                    @if ($trailerKey)
+                        <div class="meta__poster-popup-backdrop">
+                            <img
+                                src="https://i.ytimg.com/vi/{{ $trailerKey }}/maxresdefault.jpg"
+                                alt="Trailer"
+                                x-on:error="$el.src = 'https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg'"
+                            />
+                            <div class="meta__poster-popup-backdrop-overlay"></div>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                                <svg width="64" height="45" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M66.52,7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13,34,0,34,0S12.21.13,6.9,1.55C3.97,2.33,2.27,4.81,1.48,7.74.06,13.05,0,24,0,24s.06,10.95,1.48,16.26c.78,2.93,2.49,5.41,5.42,6.19C12.21,47.87,34,48,34,48s21.79-.13,27.1-1.55c2.93-.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74Z" fill="#f00" opacity=".9"/>
+                                    <path d="M 45,24 27,14 27,34" fill="#fff"/>
+                                </svg>
+                            </div>
+                        </div>
+                    @elseif (isset($meta->backdrop) || isset($meta->poster))
+                        <div class="meta__poster-popup-backdrop">
+                            <img
+                                src="{{ isset($meta->backdrop) ? tmdb_image('back_mid', $meta->backdrop) : tmdb_image('poster_mid', $meta->poster) }}"
+                                alt="{{ $meta->title ?? ($meta->name ?? '') }}"
+                            />
+                            <div class="meta__poster-popup-backdrop-overlay"></div>
+                        </div>
+                    @endif
+
+                    {{-- Compact technical specs --}}
+                    @if ($quickMI !== null)
+                        <div class="meta__poster-popup-content" style="padding: 12px 20px;">
+                            <dl style="display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 5px; font-size: 13px; margin: 0;">
+                                @if ($quickMI['general']['format'] ?? null)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Format</dt>
+                                    <dd style="margin: 0;">{{ $quickMI['general']['format'] }}</dd>
+                                @endif
+                                @if (($quickMI['video'][0]['width'] ?? null) && ($quickMI['video'][0]['height'] ?? null))
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Video</dt>
+                                    <dd style="margin: 0;">
+                                        {{ $quickMI['video'][0]['format'] ?? '' }}
+                                        {{ $quickMI['video'][0]['width'] }}×{{ $quickMI['video'][0]['height'] }}
+                                        @if ($quickMI['video'][0]['bit_depth'] ?? null)
+                                            · {{ $quickMI['video'][0]['bit_depth'] }}bit
+                                        @endif
+                                    </dd>
+                                @endif
+                                @if (!empty($quickMI['audio']))
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Audio</dt>
+                                    <dd style="margin: 0; display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+                                        @foreach ($quickMI['audio'] as $a)
+                                            @php $flagSrc = language_flag($a['language'] ?? null); @endphp
+                                            @if ($flagSrc !== null)
+                                                <img
+                                                    src="{{ $flagSrc }}"
+                                                    width="18" height="12"
+                                                    alt="{{ $a['language'] }}"
+                                                    title="{{ $a['language'] }} · {{ $a['format'] ?? '—' }} · {{ $a['channels'] ?? '—' }}"
+                                                />
+                                            @endif
+                                        @endforeach
+                                    </dd>
+                                @endif
+                                @if (!empty($quickMI['text']))
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Subs</dt>
+                                    <dd style="margin: 0; display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+                                        @foreach ($quickMI['text'] as $t)
+                                            @php $flagSrc = language_flag($t['language'] ?? null); @endphp
+                                            @if ($flagSrc !== null)
+                                                <img
+                                                    src="{{ $flagSrc }}"
+                                                    width="18" height="12"
+                                                    alt="{{ $t['language'] }}"
+                                                    title="{{ $t['language'] }}"
+                                                />
+                                            @endif
+                                        @endforeach
+                                    </dd>
+                                @endif
+                                @if ($quickMI['general']['duration'] ?? null)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Duration</dt>
+                                    <dd style="margin: 0;">{{ $quickMI['general']['duration'] }}</dd>
+                                @endif
+                                @if ($quickMI['general']['file_size'] ?? null)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Size</dt>
+                                    <dd style="margin: 0;">{{ App\Helpers\StringHelper::formatBytes($quickMI['general']['file_size'], 2) }}</dd>
+                                @endif
+                            </dl>
+                        </div>
+                    @endif
+
+                </div>
+            </div>
+        @endif
     </td>
+
     <td class="torrent-search--list__buttons">
         <div>
             @if (auth()->user()->group->is_editor || auth()->user()->group->is_modo || auth()->id() === $torrent->user_id)
@@ -189,6 +309,151 @@
                 >
                     <i class="{{ config('other.font-awesome') }} fa-magnet"></i>
                 </a>
+            @endif
+
+            {{-- Quick View: film button + full dialog (lite-embed trailer) --}}
+            @if ($hasQuickView)
+                <div x-data="{ playing: false }" wire:ignore style="display: contents">
+                    <button
+                        class="form__standard-icon-button"
+                        x-on:click.stop="$refs.quickview.showModal()"
+                        title="Quick View"
+                    >
+                        <i class="{{ config('other.font-awesome') }} fa-film"></i>
+                    </button>
+                    <dialog
+                        x-ref="quickview"
+                        class="dialog"
+                        style="width: min(90vw, 960px); max-width: none;"
+                        x-on:click="if ($event.target === $el) $el.close()"
+                        x-on:close="playing = false"
+                    >
+                        <div class="dialog__form">
+                            <header class="dialog__header">
+                                <h2 class="dialog__heading">{{ $torrent->name }}</h2>
+                                <div class="dialog__actions">
+                                    <button class="form__button form__button--text" x-on:click="$refs.quickview.close()">✕</button>
+                                </div>
+                            </header>
+                            <div
+                                class="dialog__body"
+                                style="display: grid; grid-template-columns: {{ ($trailerKey && $quickMI) ? '1fr 1fr' : '1fr' }}; gap: 20px; align-items: start;"
+                            >
+                                @if ($trailerKey)
+                                    <div>
+                                        <h3 style="margin-bottom: 8px;">🎬 Trailer</h3>
+
+                                        {{-- Thumbnail (shown until clicked) --}}
+                                        <template x-if="!playing">
+                                            <div
+                                                style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; cursor: pointer; background: #000; border-radius: 4px;"
+                                                x-on:click="playing = true"
+                                            >
+                                                <img
+                                                    src="https://i.ytimg.com/vi/{{ $trailerKey }}/maxresdefault.jpg"
+                                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
+                                                    alt="Trailer thumbnail"
+                                                    x-on:error="$el.src = 'https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg'"
+                                                />
+                                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                                                    <svg width="68" height="48" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M66.52,7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13,34,0,34,0S12.21.13,6.9,1.55C3.97,2.33,2.27,4.81,1.48,7.74.06,13.05,0,24,0,24s.06,10.95,1.48,16.26c.78,2.93,2.49,5.41,5.42,6.19C12.21,47.87,34,48,34,48s21.79-.13,27.1-1.55c2.93-.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74Z" fill="#f00" opacity=".9"/>
+                                                        <path d="M 45,24 27,14 27,34" fill="#fff"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        {{-- iframe (created only after click, autoplay=1) --}}
+                                        <template x-if="playing">
+                                            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 4px;">
+                                                <iframe
+                                                    src="https://www.youtube-nocookie.com/embed/{{ $trailerKey }}?autoplay=1"
+                                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                                    allow="autoplay; encrypted-media"
+                                                    allowfullscreen
+                                                ></iframe>
+                                            </div>
+                                        </template>
+                                    </div>
+                                @endif
+
+                                @if ($quickMI !== null)
+                                    <div>
+                                        <h3 style="margin-bottom: 8px;">
+                                            <i class="{{ config('other.font-awesome') }} fa-info-square"></i>
+                                            Ficha Técnica
+                                        </h3>
+                                        <section class="mediainfo">
+                                            @isset($quickMI['general']['file_name'])
+                                                <section class="mediainfo__filename">
+                                                    <h3>Filename</h3>
+                                                    {{ $quickMI['general']['file_name'] }}
+                                                </section>
+                                            @endisset
+                                            <section class="mediainfo__general">
+                                                <h3>General</h3>
+                                                <dl>
+                                                    <dt>Format</dt><dd>{{ $quickMI['general']['format'] ?? '—' }}</dd>
+                                                    <dt>Duration</dt><dd>{{ $quickMI['general']['duration'] ?? '—' }}</dd>
+                                                    <dt>Bitrate</dt><dd>{{ $quickMI['general']['bit_rate'] ?? '—' }}</dd>
+                                                    <dt>Size</dt><dd>{{ App\Helpers\StringHelper::formatBytes($quickMI['general']['file_size'] ?? 0, 2) }}</dd>
+                                                </dl>
+                                            </section>
+                                            @isset($quickMI['video'])
+                                                <section class="mediainfo__video">
+                                                    <h3>Video</h3>
+                                                    @foreach ($quickMI['video'] as $v)
+                                                        <dl>
+                                                            <dt>Format</dt><dd>{{ ($v['format'] ?? '—') }} ({{ $v['bit_depth'] ?? '—' }} bits)</dd>
+                                                            <dt>Resolution</dt><dd>{{ ($v['width'] ?? '—') }} × {{ ($v['height'] ?? '—') }}</dd>
+                                                            <dt>Aspect ratio</dt><dd>{{ $v['aspect_ratio'] ?? '—' }}</dd>
+                                                            <dt>Frame rate</dt>
+                                                            <dd>{{ (isset($v['framerate_mode']) && $v['framerate_mode'] === 'Variable') ? 'VFR' : ($v['frame_rate'] ?? '—') }}</dd>
+                                                            <dt>Bit rate</dt><dd>{{ $v['bit_rate'] ?? '—' }}</dd>
+                                                        </dl>
+                                                    @endforeach
+                                                </section>
+                                            @endisset
+                                            @isset($quickMI['audio'])
+                                                <section class="mediainfo__audio">
+                                                    <h3>Audio</h3>
+                                                    <dl>
+                                                        @foreach ($quickMI['audio'] as $a)
+                                                            <dt>{{ $loop->iteration }}.</dt>
+                                                            <dd>
+                                                                @php $flagSrc = language_flag($a['language'] ?? null); @endphp
+                                                                @if ($flagSrc !== null)
+                                                                    <img src="{{ $flagSrc }}" width="20" height="13" alt="{{ $a['language'] }}" />
+                                                                @endif
+                                                                {{ $a['language'] ?? '—' }} / {{ $a['format'] ?? '—' }} / {{ $a['channels'] ?? '—' }} / {{ $a['bit_rate'] ?? '—' }}
+                                                            </dd>
+                                                        @endforeach
+                                                    </dl>
+                                                </section>
+                                            @endisset
+                                            @isset($quickMI['text'])
+                                                <section class="mediainfo__subtitles">
+                                                    <h3>Subtitles</h3>
+                                                    <ul>
+                                                        @foreach ($quickMI['text'] as $t)
+                                                            <li>
+                                                                @php $flagSrc = language_flag($t['language'] ?? null); @endphp
+                                                                @if ($flagSrc !== null)
+                                                                    <img src="{{ $flagSrc }}" width="20" height="13" alt="{{ $t['language'] }}" title="{{ $t['language'] }}" />
+                                                                @endif
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </section>
+                                            @endisset
+                                        </section>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </dialog>
+                </div>
             @endif
         </div>
     </td>

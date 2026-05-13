@@ -218,6 +218,28 @@ class MediaInfo
                                 $output['bit_rate'] = $this->parseBitRate($value);
 
                                 break;
+                            case 'nombre completo':
+                                $output['file_name'] = self::stripPath($value);
+
+                                break;
+                            case 'formato':
+                                $output['format'] = $value;
+
+                                break;
+                            case 'duración':
+                                $output['duration'] = $value;
+
+                                break;
+                            case 'tamaño de archivo':
+                            case 'tamaño':
+                                $output['file_size'] = $this->parseFileSize($value);
+
+                                break;
+                            case 'tasa de bits general':
+                            case 'velocidad de bits general':
+                                $output['bit_rate'] = $this->parseBitRate($value);
+
+                                break;
                         }
 
                         break;
@@ -328,6 +350,56 @@ class MediaInfo
                                 $output['hdr_format'] = $value;
 
                                 break;
+                            case 'formato':
+                                $output['format'] = $value;
+
+                                break;
+                            case 'anchura':
+                            case 'ancho':
+                                $output['width'] = $this->parseWidthHeight($value);
+
+                                break;
+                            case 'altura':
+                                $output['height'] = $this->parseWidthHeight($value);
+
+                                break;
+                            case 'relación de aspecto de visualización':
+                            case 'proporción aspecto de visualización':
+                                $output['aspect_ratio'] = str_replace('/', ':', $value);
+
+                                break;
+                            case 'tasa de bits':
+                                $output['bit_rate'] = $this->parseBitRate($value);
+
+                                break;
+                            case 'modo de tasa de bits':
+                                $output['bit_rate_mode'] = $value;
+
+                                break;
+                            case 'tasa de fotogramas':
+                                $output['frame_rate'] = $value;
+
+                                break;
+                            case 'modo de tasa de fotogramas':
+                                $output['framerate_mode'] = $value;
+
+                                break;
+                            case 'profundidad de bits':
+                                $output['bit_depth'] = $value;
+
+                                break;
+                            case 'idioma':
+                                $output['language'] = $value;
+
+                                break;
+                            case 'perfil del formato':
+                                $output['format_profile'] = $value;
+
+                                break;
+                            case 'ajustes de codificación':
+                                $output['encoding_settings'] = $value;
+
+                                break;
                         }
 
                         break;
@@ -369,6 +441,31 @@ class MediaInfo
                                 $output['stream_size'] = $this->parseFileSize($value);
 
                                 break;
+                            case 'formato':
+                                $output['format'] = $value;
+
+                                break;
+                            case 'tasa de bits':
+                                $output['bit_rate'] = $this->parseBitRate($value);
+
+                                break;
+                            case 'canal(es)':
+                            case 'canales':
+                                $output['channels'] = $this->parseAudioChannels($value);
+
+                                break;
+                            case 'título':
+                                $output['title'] = $value;
+
+                                break;
+                            case 'idioma':
+                                $output['language'] = $value;
+
+                                break;
+                            case 'perfil del formato':
+                                $output['format_profile'] = $value;
+
+                                break;
                         }
 
                         break;
@@ -396,6 +493,26 @@ class MediaInfo
 
                                 break;
                             case 'forced':
+                                $output['forced'] = $value;
+
+                                break;
+                            case 'formato':
+                                $output['format'] = $value;
+
+                                break;
+                            case 'título':
+                                $output['title'] = $value;
+
+                                break;
+                            case 'idioma':
+                                $output['language'] = $value;
+
+                                break;
+                            case 'predeterminado':
+                                $output['default'] = $value;
+
+                                break;
+                            case 'forzado':
                                 $output['forced'] = $value;
 
                                 break;

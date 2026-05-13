@@ -124,7 +124,19 @@
             </div>
         </section>
 
-        {{-- 4. Gestión de Peers y Torrents --}}
+        {{-- 4. TMDB --}}
+        <section class="panelV2">
+            <h2 class="panel__heading">
+                <i class="{{ config('other.font-awesome') }} fa-film"></i>
+                TMDB
+            </h2>
+            <div class="panel__body">
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-missing-trailers',       'label' => 'Sync trailers faltantes', 'icon' => 'fa-play-circle', 'level' => 'safe',    'tip' => 'Backfill trailers de YouTube desde TMDB (películas + TV sin trailer)'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-missing-trailers-force', 'label' => 'Sync trailers (forzado)', 'icon' => 'fa-sync',        'level' => 'warning', 'tip' => 'Re-fetch todos los trailers desde TMDB, incluso los ya configurados', 'confirm' => "⚠️ SYNC FORZADO DE TRAILERS\n\nEsto va a re-fetchear TODOS los trailers desde TMDB, incluso los que ya tienen uno.\n\n⏱️ Puede tardar varios minutos según el catálogo.\n\n¿Continuar?"])
+            </div>
+        </section>
+
+        {{-- 5. Gestión de Peers y Torrents --}}
         <section class="panelV2">
             <h2 class="panel__heading">
                 <i class="{{ config('other.font-awesome') }} fa-seedling"></i>

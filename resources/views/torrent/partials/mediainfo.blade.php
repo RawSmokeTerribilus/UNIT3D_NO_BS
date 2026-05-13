@@ -28,17 +28,17 @@
         <section class="mediainfo">
             <section class="mediainfo__filename">
                 <h3>Filename</h3>
-                {{ $mediaInfo['general']['file_name'] ?? __('common.unknown') }}
+                {{ $mediaInfo['general']['file_name'] ?? '—' }}
             </section>
             <section class="mediainfo__general">
                 <h3>General</h3>
                 <dl>
                     <dt>Format</dt>
-                    <dd>{{ $mediaInfo['general']['format'] ?? __('common.unknown') }}</dd>
+                    <dd>{{ $mediaInfo['general']['format'] ?? '—' }}</dd>
                     <dt>Duration</dt>
-                    <dd>{{ $mediaInfo['general']['duration'] ?? __('common.unknown') }}</dd>
+                    <dd>{{ $mediaInfo['general']['duration'] ?? '—' }}</dd>
                     <dt>Bitrate</dt>
-                    <dd>{{ $mediaInfo['general']['bit_rate'] ?? __('common.unknown') }}</dd>
+                    <dd>{{ $mediaInfo['general']['bit_rate'] ?? '—' }}</dd>
                     <dt>Size</dt>
                     <dd>
                         {{ App\Helpers\StringHelper::formatBytes($mediaInfo['general']['file_size'] ?? 0, 2) }}
@@ -55,30 +55,30 @@
                                 <dl>
                                     <dt>Format</dt>
                                     <dd>
-                                        {{ $videoElement['format'] ?? __('common.unknown') }}
-                                        ({{ $videoElement['bit_depth'] ?? __('common.unknown') }})
+                                        {{ $videoElement['format'] ?? '—' }}
+                                        ({{ $videoElement['bit_depth'] ?? '—' }})
                                     </dd>
                                     <dt>Resolution</dt>
                                     <dd>
-                                        {{ $videoElement['width'] ?? __('common.unknown') }}
+                                        {{ $videoElement['width'] ?? '—' }}
                                         &times;
-                                        {{ $videoElement['height'] ?? __('common.unknown') }}
+                                        {{ $videoElement['height'] ?? '—' }}
                                     </dd>
                                     <dt>Aspect ratio</dt>
                                     <dd>
-                                        {{ $videoElement['aspect_ratio'] ?? __('common.unknown') }}
+                                        {{ $videoElement['aspect_ratio'] ?? '—' }}
                                     </dd>
                                     <dt>Frame rate</dt>
                                     <dd>
                                         @if (isset($videoElement['framerate_mode']) && $videoElement['framerate_mode'] === 'Variable')
                                             VFR
                                         @else
-                                            {{ $videoElement['frame_rate'] ?? __('common.unknown') }}
+                                            {{ $videoElement['frame_rate'] ?? '—' }}
                                         @endif
                                     </dd>
                                     <dt>Bit rate</dt>
                                     <dd>
-                                        {{ $videoElement['bit_rate'] ?? __('common.unknown') }}
+                                        {{ $videoElement['bit_rate'] ?? '—' }}
                                     </dd>
                                     @if (isset($videoElement['format']) && $videoElement['format'] === 'HEVC')
                                         <dt>HDR</dt>
@@ -101,7 +101,7 @@
                                                         true
                                                     )
                                                 ) ?:
-                                                __('common.unknown')
+                                                '—'
                                             }}
                                         </dd>
                                     @endif
@@ -118,18 +118,21 @@
                             @foreach ($mediaInfo['audio'] as $key => $audioElement)
                                 <dt>{{ $loop->iteration }}.</dt>
                                 <dd>
-                                    <img
-                                        src="{{ language_flag($audioElement['language'] ?? __('common.unknown')) }}"
-                                        alt="{{ $audioElement['language'] ?? __('common.unknown') }}"
-                                        width="20"
-                                        height="13"
-                                        title="{{ $audioElement['language'] ?? __('common.unknown') }}"
-                                    />
-                                    {{ $audioElement['language'] ?? __('common.unknown') }}
-                                    / {{ $audioElement['format'] ?? __('common.unknown') }} /
-                                    {{ $audioElement['channels'] ?? __('common.unknown') }} /
-                                    {{ $audioElement['bit_rate'] ?? __('common.unknown') }} /
-                                    {{ $audioElement['title'] ?? __('common.unknown') }}
+                                    @php $flagSrc = language_flag($audioElement['language'] ?? null); @endphp
+                                    @if ($flagSrc !== null)
+                                        <img
+                                            src="{{ $flagSrc }}"
+                                            alt="{{ $audioElement['language'] }}"
+                                            width="20"
+                                            height="13"
+                                            title="{{ $audioElement['language'] }}"
+                                        />
+                                    @endif
+                                    {{ $audioElement['language'] ?? '—' }}
+                                    / {{ $audioElement['format'] ?? '—' }} /
+                                    {{ $audioElement['channels'] ?? '—' }} /
+                                    {{ $audioElement['bit_rate'] ?? '—' }} /
+                                    {{ $audioElement['title'] ?? '—' }}
                                 </dd>
                             @endforeach
                         </dl>
@@ -142,13 +145,16 @@
                         <ul>
                             @foreach ($mediaInfo['text'] as $key => $textElement)
                                 <li>
-                                    <img
-                                        src="{{ language_flag($textElement['language'] ?? __('common.unknown')) }}"
-                                        alt="{{ $textElement['language'] ?? __('common.unknown') }}"
-                                        width="20"
-                                        height="13"
-                                        title="{{ $textElement['language'] ?? __('common.unknown') }} | {{ $textElement['format'] ?? __('common.unknown') }} | {{ $textElement['title'] ?? __('common.unknown') }}"
-                                    />
+                                    @php $flagSrc = language_flag($textElement['language'] ?? null); @endphp
+                                    @if ($flagSrc !== null)
+                                        <img
+                                            src="{{ $flagSrc }}"
+                                            alt="{{ $textElement['language'] }}"
+                                            width="20"
+                                            height="13"
+                                            title="{{ $textElement['language'] }} | {{ $textElement['format'] ?? '—' }} | {{ $textElement['title'] ?? '—' }}"
+                                        />
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
@@ -162,7 +168,7 @@
                             @isset($videoElement['encoding_settings'])
                                 <article>
                                     <h4>#{{ $key }}</h4>
-                                    <pre><code>{{ $videoElement['encoding_settings'] ?? __('common.unknown') }}</code></pre>
+                                    <pre><code>{{ $videoElement['encoding_settings'] ?? '—' }}</code></pre>
                                 </article>
                             @endisset
                         @endforeach

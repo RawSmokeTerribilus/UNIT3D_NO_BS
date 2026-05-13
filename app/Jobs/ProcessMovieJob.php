@@ -49,6 +49,10 @@ class ProcessMovieJob implements ShouldQueue
     {
     }
 
+    public int $tries = 3;
+
+    public int $backoff = 300;
+
     /**
      * Get the middleware the job should pass through.
      *
@@ -68,7 +72,7 @@ class ProcessMovieJob implements ShouldQueue
      */
     public function retryUntil(): DateTime
     {
-        return now()->addDay();
+        return now()->addHour();
     }
 
     public function handle(): void

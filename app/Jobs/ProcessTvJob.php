@@ -49,6 +49,10 @@ class ProcessTvJob implements ShouldQueue
     {
     }
 
+    public int $tries = 3;
+
+    public int $backoff = 300;
+
     /**
      * The number of seconds the job can run before timing out.
      *
@@ -84,7 +88,7 @@ class ProcessTvJob implements ShouldQueue
      */
     public function retryUntil(): DateTime
     {
-        return now()->addDay();
+        return now()->addHour();
     }
 
     public function handle(): void

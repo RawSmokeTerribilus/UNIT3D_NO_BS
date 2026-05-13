@@ -72,7 +72,7 @@ class GamingController extends Controller
      */
     public function buildScummIni(): string
     {
-        $ini = "[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\n";
+        $ini = "[scummvm]\nversioninfo=2.6.0\npluginspath=/plugins\nthemepath=/data\nextrapath=/data\n";
         $ini .= "scaler=edge\nscale_factor=2\n\n";
 
         foreach ($this->catalog() as $id => $game) {

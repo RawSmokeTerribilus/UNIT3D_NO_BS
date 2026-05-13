@@ -483,11 +483,11 @@ return [
         'connect-src' => [
             'self' => true,
 
-            'allow' => [
-                'https://'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_HOST).(parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT) === null ? '' : ':'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT)).'/socket.io/',
-                'wss://'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_HOST).(parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT) === null ? '' : ':'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT)).'/socket.io/',
+            'allow' => array_values(array_filter([
+                env('VITE_ECHO_ADDRESS') ? 'https://'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_HOST).(parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT) === null ? '' : ':'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT)).'/socket.io/' : null,
+                env('VITE_ECHO_ADDRESS') ? 'wss://'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_HOST).(parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT) === null ? '' : ':'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT)).'/socket.io/' : null,
                 'https://api.themoviedb.org/',
-            ],
+            ])),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src

@@ -115,6 +115,16 @@ Route::middleware('language')->group(function (): void {
             ->name('verification.link.reveal');
     });
 
+    // TMDB image proxy — público porque las imágenes TMDB son públicas y el host
+    // upstream está hardcodeado (sin SSRF). Necesita ser público para que CF
+    // pueda servirlo desde caché sin sesión.
+    Route::prefix('authenticated-images')->name('authenticated_images.')->middleware('throttle:'.GlobalRateLimit::AUTHENTICATED_IMAGES->value)->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value)->group(function (): void {
+        Route::get('/tmdb-proxy/v2/{size}/{file}', [App\Http\Controllers\TmdbImageProxyController::class, 'show'])
+            ->name('tmdb_proxy')
+            ->where('size', '^(original|[wh][0-9]{2,4})$')
+            ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
+    });
+
     /*
     |---------------------------------------------------------------------------------
     | Website (When Authorized) (Alpha Ordered)
@@ -145,12 +155,6 @@ Route::middleware('language')->group(function (): void {
             Route::get('/user-avatars/{user:username}', [App\Http\Controllers\AuthenticatedImageController::class, 'userAvatar'])->name('user_avatar');
             Route::get('/user-icons/{user:username}', [App\Http\Controllers\AuthenticatedImageController::class, 'userIcon'])->name('user_icon');
 
-            // Proxy TMDB — re-emite imágenes desde nuestro propio origen para
-            // satisfacer COEP require-corp en /gaming/* y CSP img-src 'self'.
-            Route::get('/tmdb-proxy/{size}/{file}', [App\Http\Controllers\TmdbImageProxyController::class, 'show'])
-                ->name('tmdb_proxy')
-                ->where('size', '^(original|[wh][0-9]{2,4})$')
-                ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
         });
 
         // Donation System
@@ -924,6 +928,10 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/scout-reindex', [App\Http\Controllers\Staff\CommandController::class, 'reindexScout']);
                 Route::post('/meilisearch-full-repair', [App\Http\Controllers\Staff\CommandController::class, 'meilisearchFullRepair']);
                 Route::post('/clean-failed-logins', [App\Http\Controllers\Staff\CommandController::class, 'cleanFailedLogins']);
+
+                // TMDB
+                Route::post('/sync-missing-trailers', [App\Http\Controllers\Staff\CommandController::class, 'syncMissingTrailers']);
+                Route::post('/sync-missing-trailers-force', [App\Http\Controllers\Staff\CommandController::class, 'syncMissingTrailersForce']);
 
                 // Peer & Torrent Management
                 Route::post('/flush-old-peers', [App\Http\Controllers\Staff\CommandController::class, 'flushOldPeers']);
