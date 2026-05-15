@@ -44,6 +44,33 @@ class CommandController extends Controller
         return to_route('staff.commands.index')->with('info', $output);
     }
 
+    /**
+     * Write config.php directly from the current running app's config values.
+     *
+     * Using Artisan::call('config:cache') or a subprocess both require a window
+     * where config.php is deleted first, during which concurrent requests 500.
+     * Writing directly is atomic — the old config.php is never removed until
+     * the new one is ready — and APP_KEY is guaranteed correct because it comes
+     * from the already-booted app, not from a subprocess environment.
+     */
+    private function rebuildConfigCache(): string
+    {
+        $configPath = base_path('bootstrap/cache/config.php');
+
+        try {
+            $config = config()->all();
+            $contents = '<?php return ' . var_export($config, true) . ';' . PHP_EOL;
+
+            if (file_put_contents($configPath, $contents, LOCK_EX) === false) {
+                return '❌ config:cache failed: could not write ' . $configPath;
+            }
+        } catch (\Throwable $e) {
+            return '❌ config:cache failed: ' . $e->getMessage();
+        }
+
+        return 'Configuration cached successfully.';
+    }
+
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // MAINTENANCE & SITE CONTROL
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -108,26 +135,67 @@ class CommandController extends Controller
 
     /**
      * Clear Site Config Cache.
+     *
+     * Always rebuilds immediately — clearing without rebuilding leaves the site unable to read APP_KEY.
      */
     public function clearConfig(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('config:clear');
+        try {
+            Artisan::call('config:clear');
+            $output = trim(Artisan::output());
+        } catch (\Throwable $e) {
+            return to_route('staff.commands.index')->with('info', "❌ config:clear failed: {$e->getMessage()}");
+        }
+
+        $output .= "\n" . $this->rebuildConfigCache();
+
+        return to_route('staff.commands.index')->with('info', trim($output));
     }
 
     /**
      * Clear All Site Cache At Once.
+     *
+     * Runs each step explicitly so config:cache uses a subprocess (safe from PHP-FPM context).
      */
     public function clearAllCache(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('clear:all_cache');
+        $lines = [];
+
+        foreach (['view:clear', 'route:clear', 'config:clear'] as $cmd) {
+            try {
+                Artisan::call($cmd);
+                $lines[] = trim(Artisan::output());
+            } catch (\Throwable $e) {
+                $lines[] = "❌ {$cmd}: {$e->getMessage()}";
+            }
+        }
+
+        $lines[] = $this->rebuildConfigCache();
+
+        return to_route('staff.commands.index')->with('info', trim(implode("\n", array_filter($lines))));
     }
 
     /**
      * Set All Site Cache At Once.
+     *
+     * Runs each step explicitly so config:cache uses a subprocess (safe from PHP-FPM context).
      */
     public function setAllCache(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('set:all_cache');
+        $lines = [];
+
+        foreach (['view:cache', 'route:cache'] as $cmd) {
+            try {
+                Artisan::call($cmd);
+                $lines[] = trim(Artisan::output());
+            } catch (\Throwable $e) {
+                $lines[] = "❌ {$cmd}: {$e->getMessage()}";
+            }
+        }
+
+        $lines[] = $this->rebuildConfigCache();
+
+        return to_route('staff.commands.index')->with('info', trim(implode("\n", array_filter($lines))));
     }
 
     /**
@@ -140,10 +208,21 @@ class CommandController extends Controller
 
     /**
      * Clear Optimization Cache.
+     *
+     * Rebuilds config:cache after optimize:clear, because optimize:clear deletes config.php.
      */
     public function optimizeClear(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('optimize:clear');
+        try {
+            Artisan::call('optimize:clear');
+            $output = trim(Artisan::output());
+        } catch (\Throwable $e) {
+            return to_route('staff.commands.index')->with('info', "❌ optimize:clear failed: {$e->getMessage()}");
+        }
+
+        $output .= "\n" . $this->rebuildConfigCache();
+
+        return to_route('staff.commands.index')->with('info', trim($output));
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -220,6 +299,34 @@ class CommandController extends Controller
     public function syncMissingTrailersForce(): \Illuminate\Http\RedirectResponse
     {
         return $this->executeArtisanSafely('tmdb:sync-trailers', ['--force' => true]);
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // RUST TRACKER SYNC
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    /**
+     * Push all torrents to the Rust tracker.
+     */
+    public function syncTrackerTorrents(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tracker:sync-torrents');
+    }
+
+    /**
+     * Push all users to the Rust tracker.
+     */
+    public function syncTrackerUsers(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tracker:sync-users');
+    }
+
+    /**
+     * Push all groups to the Rust tracker.
+     */
+    public function syncTrackerGroups(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tracker:sync-groups');
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

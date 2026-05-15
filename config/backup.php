@@ -229,11 +229,11 @@ return [
         'notifiable' => Spatie\Backup\Notifications\Notifiable::class,
 
         'mail' => [
-            'to' => env('DEFAULT_OWNER_EMAIL'),
+            'to' => env('DEFAULT_OWNER_EMAIL', 'noreply@example.com'),
 
             'from' => [
-                'address' => env('MAIL_FROM_ADDRESS'),
-                'name'    => env('MAIL_FROM_NAME'),
+                'address' => env('MAIL_FROM_ADDRESS', 'noreply@example.com'),
+                'name'    => env('MAIL_FROM_NAME', 'UNIT3D'),
             ],
         ],
 

@@ -79,10 +79,10 @@
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-cache',        'label' => 'Limpiar caché',          'icon' => 'fa-broom',       'level' => 'safe',    'tip' => 'Limpiar caché de la aplicación'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-view-cache',   'label' => 'Limpiar vistas',         'icon' => 'fa-eye-slash',   'level' => 'safe',    'tip' => 'Limpiar caché de vistas compiladas'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-route-cache',  'label' => 'Limpiar rutas',          'icon' => 'fa-route',       'level' => 'safe',    'tip' => 'Limpiar caché de rutas compiladas'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-config-cache', 'label' => 'Limpiar config',         'icon' => 'fa-cog',         'level' => 'safe',    'tip' => 'Limpiar caché de configuración'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-all-cache',    'label' => 'Limpiar toda la caché',  'icon' => 'fa-trash-alt',   'level' => 'warning', 'tip' => 'Limpiar TODA la caché de golpe'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-config-cache', 'label' => 'Limpiar config',         'icon' => 'fa-cog',         'level' => 'warning', 'tip' => 'Limpiar y reconstruir caché de configuración (config:clear + config:cache)'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-all-cache',    'label' => 'Limpiar toda la caché',  'icon' => 'fa-trash-alt',   'level' => 'warning', 'tip' => 'Limpiar TODA la caché y reconstruir config'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/set-all-cache',      'label' => 'Fijar toda la caché',    'icon' => 'fa-database',    'level' => 'safe',    'tip' => 'Reconstruir y fijar toda la caché'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/optimize-clear',     'label' => 'Limpiar optimización',   'icon' => 'fa-tools',       'level' => 'safe',    'tip' => 'Limpiar caché de optimización'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/optimize-clear',     'label' => 'Limpiar optimización',   'icon' => 'fa-tools',       'level' => 'warning', 'tip' => 'optimize:clear + reconstruir config (config:cache)'])
                 @include('Staff.command._btn', [
                     'action'  => '/dashboard/commands/flush-queue',
                     'label'   => 'Vaciar cola Redis',
@@ -136,7 +136,20 @@
             </div>
         </section>
 
-        {{-- 5. Gestión de Peers y Torrents --}}
+        {{-- 5. Rust Tracker --}}
+        <section class="panelV2">
+            <h2 class="panel__heading">
+                <i class="{{ config('other.font-awesome') }} fa-broadcast-tower"></i>
+                Rust Tracker — Sincronización
+            </h2>
+            <div class="panel__body">
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/tracker-sync-torrents', 'label' => 'Sincronizar torrents',  'icon' => 'fa-film',       'level' => 'warning', 'tip' => 'Fuerza reenvío de todos los torrents al tracker Rust. Usar cuando torrents queden en estado de error por desync.', 'confirm' => "⚠️ SYNC TORRENTS → TRACKER\n\nReenviará todos los torrents al tracker Rust.\nPuede tardar unos segundos.\n\n¿Continuar?"])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/tracker-sync-users',    'label' => 'Sincronizar usuarios',  'icon' => 'fa-users',      'level' => 'warning', 'tip' => 'Fuerza reenvío de todos los usuarios al tracker Rust. Usar cuando passkeys o permisos no se reflejen.', 'confirm' => "⚠️ SYNC USUARIOS → TRACKER\n\nReenviará todos los usuarios al tracker Rust.\n\n¿Continuar?"])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/tracker-sync-groups',   'label' => 'Sincronizar grupos',    'icon' => 'fa-layer-group', 'level' => 'safe',    'tip' => 'Reenvía todos los grupos al tracker Rust. Rápido — usar tras cambios en permisos de grupo.'])
+            </div>
+        </section>
+
+        {{-- 6. Gestión de Peers y Torrents --}}
         <section class="panelV2">
             <h2 class="panel__heading">
                 <i class="{{ config('other.font-awesome') }} fa-seedling"></i>
@@ -145,8 +158,8 @@
             <div class="panel__body">
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/flush-old-peers',      'label' => 'Limpiar peers viejos',       'icon' => 'fa-wifi',         'level' => 'safe',    'tip' => 'Auto-limpiar peers inactivos > 2 horas'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/reset-user-flushes',   'label' => 'Resetear flushes usuarios',  'icon' => 'fa-redo',         'level' => 'warning', 'tip' => 'Resetear cuota diaria de flush de peers para todos los usuarios'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-peers',           'label' => 'Sincronizar peers',          'icon' => 'fa-exchange-alt', 'level' => 'safe',    'tip' => 'Sincronizar datos de peers y consistencia'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar torrents', 'icon' => 'fa-hdd',          'level' => 'safe',    'tip' => 'Sincronizar torrents en Meilisearch'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-peers',           'label' => 'Sincronizar peers (DB)',      'icon' => 'fa-exchange-alt', 'level' => 'safe',    'tip' => 'Recalcula seeders/leechers en la tabla torrents desde la tabla peers'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar Meilisearch', 'icon' => 'fa-hdd',       'level' => 'safe',    'tip' => 'Sincronizar índice de torrents en Meilisearch'])
             </div>
         </section>
 
@@ -166,7 +179,7 @@
                     'confirm' => '⚠️ Esto baneará automáticamente a todos los usuarios con emails desechables.\n¿Continuar?',
                 ])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/deactivate-warnings',        'label' => 'Desactivar avisos expirados', 'icon' => 'fa-bell-slash', 'level' => 'safe',    'tip' => 'Desactivar avisos de usuario expirados'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/generate-telegram-tokens',   'label' => 'Generar tokens Telegram',     'icon' => 'fa-key',        'level' => 'info',    'tip' => 'Generar tokens de verificación Telegram para todos los usuarios'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/generate-telegram-tokens',   'label' => 'Generar tokens Telegram',     'icon' => 'fa-key',        'level' => 'info',    'tip' => 'Generar tokens Telegram solo para usuarios no vinculados que aún no tienen token'])
             </div>
         </section>
 

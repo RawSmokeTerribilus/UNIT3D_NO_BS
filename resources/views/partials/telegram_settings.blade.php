@@ -213,7 +213,7 @@
     }
 </style>
 
-<div class="tg-syndicate">
+<div class="tg-syndicate" id="telegram-section">
     <h2 class="tg-heading"><span>🔌</span> Telegram Syndicate Link</h2>
 
     <div class="tg-console">

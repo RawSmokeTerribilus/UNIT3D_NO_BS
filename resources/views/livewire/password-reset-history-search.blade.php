@@ -46,7 +46,11 @@
                 @forelse ($passwordResetHistories as $passwordResetHistory)
                     <tr>
                         <td>
-                            <x-user-tag :user="$passwordResetHistory->user" :anon="false" />
+                            @if ($passwordResetHistory->user)
+                                <x-user-tag :user="$passwordResetHistory->user" :anon="false" />
+                            @else
+                                <span class="text-muted">{{ __('common.deleted') }} (ID: {{ $passwordResetHistory->user_id }})</span>
+                            @endif
                         </td>
                         <td>
                             <time

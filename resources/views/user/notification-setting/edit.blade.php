@@ -419,4 +419,12 @@
     </section>
 
     @include('partials.telegram_settings')
+
+    @if(auth()->user()->telegram_chat_id === null || auth()->user()->telegram_group_joined_at === null)
+        <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('telegram-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        </script>
+    @endif
 @endsection

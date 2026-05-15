@@ -32,11 +32,36 @@ class SyncMissingTrailers extends Command
         $this->info('Done.');
     }
 
+    /**
+     * Pick the best trailer key from TMDB results.
+     *
+     * Priority: official Spanish → official English → official any → unofficial Spanish → any trailer.
+     * Spanish trailers are hosted by Spanish/EU channels and are generally not geo-restricted for ES/EU.
+     */
     private function pickTrailer(array $results): ?string
     {
-        return collect($results)
-            ->filter(fn ($v) => ($v['type'] ?? '') === 'Trailer' && ($v['site'] ?? '') === 'YouTube')
-            ->sortByDesc('official')
+        $trailers = collect($results)
+            ->filter(fn ($v) => ($v['type'] ?? '') === 'Trailer' && ($v['site'] ?? '') === 'YouTube');
+
+        foreach (['es', 'en'] as $lang) {
+            $key = $trailers
+                ->filter(fn ($v) => ($v['iso_639_1'] ?? '') === $lang && ($v['official'] ?? false))
+                ->sortByDesc('published_at')
+                ->first()['key'] ?? null;
+            if ($key !== null) {
+                return $key;
+            }
+        }
+
+        // Any official trailer regardless of language
+        $key = $trailers->filter(fn ($v) => $v['official'] ?? false)->sortByDesc('published_at')->first()['key'] ?? null;
+        if ($key !== null) {
+            return $key;
+        }
+
+        // Last resort: unofficial Spanish, then anything
+        return $trailers
+            ->sortByDesc(fn ($v) => ($v['iso_639_1'] ?? '') === 'es' ? 1 : 0)
             ->first()['key'] ?? null;
     }
 
@@ -65,7 +90,7 @@ class SyncMissingTrailers extends Command
             try {
                 $response = Http::timeout(15)->get(
                     "https://api.TheMovieDB.org/3/{$type}/{$record->id}/videos",
-                    ['api_key' => config('api-keys.tmdb'), 'language' => 'en-US'],
+                    ['api_key' => config('api-keys.tmdb'), 'include_video_language' => 'es,en,null'],
                 );
 
                 if ($response->successful()) {

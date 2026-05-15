@@ -511,12 +511,15 @@
 
 .meta__poster-popup-card {
     width: 500px;
+    max-height: 90vh;
     background: var(--meta-popup-bg);
     border-radius: 20px;
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     position: relative;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .meta__poster-popup-backdrop {
@@ -545,6 +548,8 @@
     padding: 25px;
     background: var(--meta-popup-bg);
     position: relative;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .meta__poster-popup-header {

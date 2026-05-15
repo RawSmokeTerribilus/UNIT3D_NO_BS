@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Observers;
 
 use App\Models\User;
+use App\Services\Unit3dAnnounce;
 use Exception;
 
 class UserObserver
@@ -50,11 +51,23 @@ class UserObserver
     }
 
     /**
-     * Handle the User "deleted" event.
+     * Handle the User "deleted" event (soft delete).
      */
     public function deleted(User $user): void
     {
-        //\cache()->forget(\sprintf('user:%s', $user->passkey));
+        if (config('announce.external_tracker.is_enabled')) {
+            Unit3dAnnounce::removeUser($user);
+        }
+    }
+
+    /**
+     * Handle the User "forceDeleted" event (hard delete).
+     */
+    public function forceDeleted(User $user): void
+    {
+        if (config('announce.external_tracker.is_enabled')) {
+            Unit3dAnnounce::removeUser($user);
+        }
     }
 
     /**
@@ -62,6 +75,8 @@ class UserObserver
      */
     public function restored(User $user): void
     {
-        //\cache()->put(\sprintf('user:%s', $user->passkey), $user);
+        if (config('announce.external_tracker.is_enabled')) {
+            Unit3dAnnounce::addUser($user);
+        }
     }
 }

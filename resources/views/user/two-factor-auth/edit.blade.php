@@ -33,5 +33,5 @@
 @section('page', 'page__user-two-factor-auth--edit')
 
 @section('main')
-    @livewire('two-factor-auth-form')
+    @livewire('two-factor-auth-form', ['user' => $user])
 @endsection

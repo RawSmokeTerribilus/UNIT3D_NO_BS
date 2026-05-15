@@ -71,7 +71,7 @@
                     <div class="meta__poster-popup-detail">
                         <span class="detail-label">Actors</span>
                         <span class="detail-value">
-                            {{ $meta->actors->pluck('name')->join(', ') }}
+                            {{ $meta->actors->take(5)->pluck('name')->join(', ') }}{{ $meta->actors->count() > 5 ? ' y ' . ($meta->actors->count() - 5) . ' más…' : '' }}
                         </span>
                     </div>
                 @endif

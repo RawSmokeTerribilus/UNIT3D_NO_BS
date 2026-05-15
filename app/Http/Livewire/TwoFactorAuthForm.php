@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Livewire;
 
+use App\Models\User;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
@@ -25,6 +26,8 @@ use Livewire\Component;
 
 class TwoFactorAuthForm extends Component
 {
+    public int $userId;
+
     /**
      * Indicates if two-factor authentication QR code is being displayed.
      */
@@ -48,11 +51,15 @@ class TwoFactorAuthForm extends Component
     /**
      * Mount the component.
      */
-    final public function mount(): void
+    final public function mount(User $user): void
     {
+        abort_unless(auth()->user()->is($user) || auth()->user()->group->is_modo, 403);
+
+        $this->userId = $user->id;
+
         if (Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm') &&
-            null === auth()->user()->two_factor_confirmed_at) {
-            app(DisableTwoFactorAuthentication::class)(auth()->user());
+            null === $user->two_factor_confirmed_at) {
+            app(DisableTwoFactorAuthentication::class)($user);
         }
     }
 
@@ -61,7 +68,9 @@ class TwoFactorAuthForm extends Component
      */
     final public function enableTwoFactorAuthentication(EnableTwoFactorAuthentication $enable): void
     {
-        $enable(auth()->user());
+        abort_unless(auth()->user()->is($this->user) || auth()->user()->group->is_modo, 403);
+
+        $enable($this->user);
 
         $this->showingQrCode = true;
 
@@ -79,13 +88,15 @@ class TwoFactorAuthForm extends Component
      */
     final public function confirmTwoFactorAuthentication(ConfirmTwoFactorAuthentication $confirm): void
     {
+        abort_unless(auth()->user()->is($this->user) || auth()->user()->group->is_modo, 403);
+
         if (empty($this->code)) {
             $this->dispatch('error', type: 'error', message: 'The two factor authentication code input must not be empty.');
 
             return;
         }
 
-        $confirm(auth()->user(), $this->code);
+        $confirm($this->user, $this->code);
 
         $this->showingQrCode = false;
         $this->showingConfirmation = false;
@@ -105,7 +116,9 @@ class TwoFactorAuthForm extends Component
      */
     final public function regenerateRecoveryCodes(GenerateNewRecoveryCodes $generate): void
     {
-        $generate(auth()->user());
+        abort_unless(auth()->user()->is($this->user) || auth()->user()->group->is_modo, 403);
+
+        $generate($this->user);
 
         $this->showingRecoveryCodes = true;
     }
@@ -115,7 +128,9 @@ class TwoFactorAuthForm extends Component
      */
     final public function disableTwoFactorAuthentication(DisableTwoFactorAuthentication $disable): void
     {
-        $disable(auth()->user());
+        abort_unless(auth()->user()->is($this->user) || auth()->user()->group->is_modo, 403);
+
+        $disable($this->user);
 
         $this->showingQrCode = false;
         $this->showingConfirmation = false;
@@ -123,10 +138,10 @@ class TwoFactorAuthForm extends Component
     }
 
     /**
-     * Get the current user of the application.
+     * Get the target user for 2FA operations.
      */
-    final protected ?\Illuminate\Contracts\Auth\Authenticatable $user {
-        get => auth()->user();
+    final protected ?User $user {
+        get => User::find($this->userId);
     }
 
     /**

@@ -933,6 +933,11 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/sync-missing-trailers', [App\Http\Controllers\Staff\CommandController::class, 'syncMissingTrailers']);
                 Route::post('/sync-missing-trailers-force', [App\Http\Controllers\Staff\CommandController::class, 'syncMissingTrailersForce']);
 
+                // Rust Tracker Sync
+                Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
+                Route::post('/tracker-sync-users', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerUsers']);
+                Route::post('/tracker-sync-groups', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerGroups']);
+
                 // Peer & Torrent Management
                 Route::post('/flush-old-peers', [App\Http\Controllers\Staff\CommandController::class, 'flushOldPeers']);
                 Route::post('/reset-user-flushes', [App\Http\Controllers\Staff\CommandController::class, 'resetUserFlushes']);

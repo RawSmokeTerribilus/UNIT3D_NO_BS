@@ -28,37 +28,10 @@ class PreventRequestsDuringMaintenanceExceptStaff extends BaseMiddleware
      * @var array<int, string>
      */
     protected $except = [
-        '/dashboard/commands*',
-        '/dashboard/commands/*',
+        'login',
+        'dashboard',
+        'dashboard/*',
+        'dashboard/commands/emergency-disable-maintenance',
     ];
-
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
-     */
-    public function handle($request, Closure $next)
-    {
-        // Always allow staff command panel in maintenance mode
-        if ($this->isStaffCommandRequest($request)) {
-            return $next($request);
-        }
-
-        return parent::handle($request, $next);
-    }
-
-    /**
-     * Check if this is a staff command panel request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return bool
-     */
-    private function isStaffCommandRequest(Request $request): bool
-    {
-        $path = $request->getPathInfo();
-        return str_starts_with($path, '/dashboard/commands');
-    }
 }
 

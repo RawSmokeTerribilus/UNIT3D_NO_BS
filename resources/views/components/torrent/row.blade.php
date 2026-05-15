@@ -145,9 +145,13 @@
     <td
         class="torrent-search--list__overview"
         @if ($hasQuickView)
-            x-data="{ namePopup: false, leaveTimer: null }"
-            x-on:mouseenter="clearTimeout(leaveTimer); namePopup = true"
-            x-on:mouseleave="leaveTimer = setTimeout(() => namePopup = false, 150)"
+            x-data="{ namePopup: false, enterTimer: null, leaveTimer: null, trailerError: false }"
+            x-init="window.addEventListener('message', e => {
+                if (!$refs.trailerFrame || e.source !== $refs.trailerFrame.contentWindow) return;
+                try { const d = JSON.parse(e.data); if (d.event === 'onError' && (d.info === 150 || d.info === 101)) trailerError = true; } catch {}
+            })"
+            x-on:mouseenter="clearTimeout(leaveTimer); enterTimer = setTimeout(() => namePopup = true, 400)"
+            x-on:mouseleave="clearTimeout(enterTimer); leaveTimer = setTimeout(() => namePopup = false, 150)"
         @endif
     >
         <div>
@@ -170,21 +174,34 @@
             <div class="meta__poster-popup" x-show="namePopup" x-cloak>
                 <div class="meta__poster-popup-card" style="width: 560px;">
 
-                    {{-- Backdrop: trailer thumbnail > movie backdrop > movie poster --}}
+                    {{-- Backdrop: muted autoplay trailer > movie backdrop > movie poster --}}
                     @if ($trailerKey)
-                        <div class="meta__poster-popup-backdrop">
-                            <img
-                                src="https://i.ytimg.com/vi/{{ $trailerKey }}/maxresdefault.jpg"
-                                alt="Trailer"
-                                x-on:error="$el.src = 'https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg'"
-                            />
-                            <div class="meta__poster-popup-backdrop-overlay"></div>
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
-                                <svg width="64" height="45" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M66.52,7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13,34,0,34,0S12.21.13,6.9,1.55C3.97,2.33,2.27,4.81,1.48,7.74.06,13.05,0,24,0,24s.06,10.95,1.48,16.26c.78,2.93,2.49,5.41,5.42,6.19C12.21,47.87,34,48,34,48s21.79-.13,27.1-1.55c2.93-.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74Z" fill="#f00" opacity=".9"/>
-                                    <path d="M 45,24 27,14 27,34" fill="#fff"/>
-                                </svg>
-                            </div>
+                        <div
+                            class="meta__poster-popup-backdrop"
+                            @if (isset($meta->backdrop) || isset($meta->poster))
+                                style="background: url('{{ isset($meta->backdrop) ? tmdb_image('back_mid', $meta->backdrop) : tmdb_image('poster_mid', $meta->poster) }}') center / cover no-repeat;"
+                            @endif
+                        >
+                            {{-- Iframe: cleared on hide so nothing plays in background; enablejsapi fires error 150 on geo-block --}}
+                            <iframe
+                                x-ref="trailerFrame"
+                                x-show="!trailerError"
+                                style="width:100%; height:100%; border:0; display:block; position:absolute; top:0; left:0; z-index:1;"
+                                :src="namePopup && !trailerError ? 'https://www.youtube-nocookie.com/embed/{{ $trailerKey }}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist={{ $trailerKey }}&rel=0&enablejsapi=1' : ''"
+                                allow="autoplay; encrypted-media"
+                                tabindex="-1"
+                            ></iframe>
+                            {{-- Fallback shown when geo-restricted (error 150/101) --}}
+                            @if (isset($meta->backdrop) || isset($meta->poster))
+                                <img
+                                    x-show="trailerError"
+                                    x-cloak
+                                    src="{{ isset($meta->backdrop) ? tmdb_image('back_mid', $meta->backdrop) : tmdb_image('poster_mid', $meta->poster) }}"
+                                    style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; z-index:1;"
+                                    alt=""
+                                />
+                            @endif
+                            <div class="meta__poster-popup-backdrop-overlay" style="z-index:2;"></div>
                         </div>
                     @elseif (isset($meta->backdrop) || isset($meta->poster))
                         <div class="meta__poster-popup-backdrop">
