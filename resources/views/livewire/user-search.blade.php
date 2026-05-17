@@ -219,6 +219,40 @@
                                                 {{ __('common.edit') }}
                                             </a>
                                         </li>
+                                        @if($user->telegram_chat_id)
+                                        <li
+                                            class="data-table__action"
+                                            x-data="{ tg: null, loading: false }"
+                                            style="display: flex; align-items: center; gap: .4rem; flex-wrap: wrap"
+                                        >
+                                            <button
+                                                class="form__button form__button--text"
+                                                title="Consultar Telegram en vivo"
+                                                x-show="!tg"
+                                                :disabled="loading"
+                                                @click="
+                                                    loading = true;
+                                                    fetch('{{ route('staff.users.telegram_info', ['user' => $user]) }}')
+                                                        .then(r => r.json())
+                                                        .then(d => { tg = d; loading = false; })
+                                                        .catch(() => { tg = { error: 'Error de red' }; loading = false; })
+                                                "
+                                            >
+                                                <span x-show="!loading">TG</span>
+                                                <span x-show="loading" style="opacity:.6">…</span>
+                                            </button>
+                                            <span
+                                                x-show="tg && !tg.error"
+                                                style="font-size:2rem; white-space: nowrap"
+                                                x-text="tg ? [tg.first_name, tg.last_name].filter(Boolean).join(' ') + (tg.username ? ' @' + tg.username : '') + ' [' + tg.status + ']' : ''"
+                                            ></span>
+                                            <span
+                                                x-show="tg && tg.error"
+                                                style="font-size:2rem; opacity:.6"
+                                                x-text="tg ? tg.error : ''"
+                                            ></span>
+                                        </li>
+                                        @endif
                                     </menu>
                                 </td>
                             </tr>

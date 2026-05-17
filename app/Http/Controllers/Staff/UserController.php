@@ -112,6 +112,24 @@ class UserController extends Controller
     }
 
     /**
+     * Live Telegram profile lookup for a linked user.
+     */
+    public function telegramInfo(User $user): \Illuminate\Http\JsonResponse
+    {
+        if (empty($user->telegram_chat_id)) {
+            return response()->json(['error' => 'No vinculado a Telegram'], 404);
+        }
+
+        $profile = app(\App\Services\TelegramService::class)->getGroupMemberProfile((string) $user->telegram_chat_id);
+
+        if ($profile === null) {
+            return response()->json(['error' => 'Sin respuesta de Telegram'], 502);
+        }
+
+        return response()->json($profile);
+    }
+
+    /**
      * Delete A User.
      */
     protected function destroy(Request $request, User $user): \Illuminate\Http\RedirectResponse

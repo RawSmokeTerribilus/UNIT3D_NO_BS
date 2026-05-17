@@ -32,6 +32,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'mal' => [
+        'client_id' => env('MAL_CLIENT_ID'),
+    ],
+
     'telegram' => [
         'token'             => env('TELEGRAM_BOT_TOKEN'),
         'chat_id'           => env('TELEGRAM_GROUP_ID'),
@@ -40,5 +44,6 @@ return [
         'group_invite_link' => env('TELEGRAM_GROUP_INVITE_LINK'),
         'instance_label'    => env('TELEGRAM_INSTANCE_LABEL', env('APP_ENV', 'tracker')),
         'reply_cooldown_seconds' => env('TELEGRAM_REPLY_COOLDOWN_SECONDS', 120),
+        'news_bot_id'           => env('TELEGRAM_NEWS_BOT_ID'),
     ],
 ];

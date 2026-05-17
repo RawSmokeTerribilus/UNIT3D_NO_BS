@@ -42,6 +42,49 @@ class TelegramService
         return $isMember;
     }
 
+    public function getGroupMemberProfile(string $telegramChatId): ?array
+    {
+        $token  = config('services.telegram.token');
+        $chatId = config('services.telegram.chat_id');
+
+        if (empty($token) || empty($chatId)) {
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(10)->get("https://api.telegram.org/bot{$token}/getChatMember", [
+                'chat_id' => $chatId,
+                'user_id' => $telegramChatId,
+            ]);
+
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $result = $response->json('result');
+
+            if (!is_array($result) || !isset($result['user'])) {
+                return null;
+            }
+
+            $tgUser = $result['user'];
+
+            return [
+                'first_name' => $tgUser['first_name'] ?? null,
+                'last_name'  => $tgUser['last_name'] ?? null,
+                'username'   => $tgUser['username'] ?? null,
+                'status'     => $result['status'] ?? null,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('TelegramService: Error obteniendo perfil de miembro.', [
+                'chat_id' => $telegramChatId,
+                'error'   => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
     public function isActiveGroupMember(string $telegramChatId): ?bool
     {
         $token = config('services.telegram.token');
@@ -147,6 +190,35 @@ class TelegramService
             return $response->successful();
         } catch (\Throwable $e) {
             Log::error('TelegramService: Fallo en envío.', ['msg' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Abre o cierra el topic de novedades en el grupo de Telegram.
+     */
+    public function setForumTopicState(bool $open): bool
+    {
+        $token    = config('services.telegram.token');
+        $chatId   = config('services.telegram.chat_id');
+        $threadId = config('services.telegram.topic_id');
+
+        if (empty($token) || empty($chatId) || empty($threadId)) {
+            Log::warning('TelegramService: Configuración incompleta para gestión de topics.');
+            return false;
+        }
+
+        $method = $open ? 'reopenForumTopic' : 'closeForumTopic';
+
+        try {
+            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$token}/{$method}", [
+                'chat_id'           => $chatId,
+                'message_thread_id' => (int) $threadId,
+            ]);
+
+            return $response->successful() && (bool) $response->json('ok');
+        } catch (\Throwable $e) {
+            Log::error("TelegramService: Error en {$method}.", ['error' => $e->getMessage()]);
             return false;
         }
     }

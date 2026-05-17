@@ -33,7 +33,13 @@
 
             @break
         @case($torrent->category->tv_meta)
-            @include('torrent.partials.tv-meta', ['category' => $torrent->category, 'meta' => $torrent->tv, 'tmdb' => $torrent->tmdb_tv_id])
+            @if ($torrent->tv !== null)
+                @include('torrent.partials.tv-meta', ['category' => $torrent->category, 'meta' => $torrent->tv, 'tmdb' => $torrent->tmdb_tv_id])
+            @elseif ($torrent->malAnime !== null)
+                @include('torrent.partials.mal-meta', ['category' => $torrent->category, 'mal' => $torrent->malAnime])
+            @else
+                @include('torrent.partials.no-meta', ['category' => $torrent->category])
+            @endif
 
             @break
         @case($torrent->category->game_meta)

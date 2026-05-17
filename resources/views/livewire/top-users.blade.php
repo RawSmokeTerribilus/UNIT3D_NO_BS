@@ -182,7 +182,7 @@
                                 </div>
                             </h3>
                             <h4 class="user-stat-card__stat">
-                                {{ App\Helpers\StringHelper::formatBytes($upload->uploaded, 2) }}
+                                {{ App\Helpers\StringHelper::formatBytes($upload->real_uploaded ?? 0, 2) }}
                                 Uploaded
                             </h4>
 

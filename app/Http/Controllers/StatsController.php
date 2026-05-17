@@ -60,9 +60,10 @@ class StatsController extends Controller
     {
         return view('stats.users.uploaded', [
             'uploaded' => User::query()
+                ->withSum(['history as real_uploaded' => fn ($q) => $q->whereNull('deleted_at')], 'actual_uploaded')
                 ->with('group')
                 ->whereDoesntHave('group', fn ($query) => $query->whereIn('slug', ['banned', 'validating', 'disabled', 'pruned']))
-                ->orderByDesc('uploaded')
+                ->orderByDesc('real_uploaded')
                 ->take(100)
                 ->get(),
         ]);

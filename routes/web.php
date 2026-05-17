@@ -115,16 +115,6 @@ Route::middleware('language')->group(function (): void {
             ->name('verification.link.reveal');
     });
 
-    // TMDB image proxy — público porque las imágenes TMDB son públicas y el host
-    // upstream está hardcodeado (sin SSRF). Necesita ser público para que CF
-    // pueda servirlo desde caché sin sesión.
-    Route::prefix('authenticated-images')->name('authenticated_images.')->middleware('throttle:'.GlobalRateLimit::AUTHENTICATED_IMAGES->value)->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value)->group(function (): void {
-        Route::get('/tmdb-proxy/v2/{size}/{file}', [App\Http\Controllers\TmdbImageProxyController::class, 'show'])
-            ->name('tmdb_proxy')
-            ->where('size', '^(original|[wh][0-9]{2,4})$')
-            ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
-    });
-
     /*
     |---------------------------------------------------------------------------------
     | Website (When Authorized) (Alpha Ordered)
@@ -155,6 +145,12 @@ Route::middleware('language')->group(function (): void {
             Route::get('/user-avatars/{user:username}', [App\Http\Controllers\AuthenticatedImageController::class, 'userAvatar'])->name('user_avatar');
             Route::get('/user-icons/{user:username}', [App\Http\Controllers\AuthenticatedImageController::class, 'userIcon'])->name('user_icon');
 
+            // Proxy TMDB — re-emite imágenes desde nuestro propio origen para
+            // satisfacer COEP require-corp en /gaming/* y CSP img-src 'self'.
+            Route::get('/tmdb-proxy/{size}/{file}', [App\Http\Controllers\TmdbImageProxyController::class, 'show'])
+                ->name('tmdb_proxy')
+                ->where('size', '^(original|[wh][0-9]{2,4})$')
+                ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
         });
 
         // Donation System
@@ -291,6 +287,7 @@ Route::middleware('language')->group(function (): void {
             Route::get('/{id}/edit', [App\Http\Controllers\TorrentController::class, 'edit'])->name('edit')->whereNumber('id');
             Route::patch('/{id}', [App\Http\Controllers\TorrentController::class, 'update'])->name('update')->whereNumber('id');
             Route::delete('/{id}', [App\Http\Controllers\TorrentController::class, 'destroy'])->name('destroy')->whereNumber('id');
+            Route::patch('/{torrent}/mal', [App\Http\Controllers\TorrentController::class, 'malUpdate'])->name('mal.update');
         });
 
         Route::prefix('torrents')->group(function (): void {
@@ -895,9 +892,9 @@ Route::middleware('language')->group(function (): void {
             });
 
             // Commands
-            Route::prefix('commands')->middleware('owner')->group(function (): void {
+            Route::prefix('commands')->middleware('admin')->group(function (): void {
                 Route::get('/', [App\Http\Controllers\Staff\CommandController::class, 'index'])->name('commands.index');
-                
+
                 // EMERGENCY: Kill-switch to disable maintenance mode (always accessible, even during maintenance)
                 Route::get('/emergency-disable-maintenance', function () {
                     $downFile = storage_path('framework/down');
@@ -928,15 +925,6 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/scout-reindex', [App\Http\Controllers\Staff\CommandController::class, 'reindexScout']);
                 Route::post('/meilisearch-full-repair', [App\Http\Controllers\Staff\CommandController::class, 'meilisearchFullRepair']);
                 Route::post('/clean-failed-logins', [App\Http\Controllers\Staff\CommandController::class, 'cleanFailedLogins']);
-
-                // TMDB
-                Route::post('/sync-missing-trailers', [App\Http\Controllers\Staff\CommandController::class, 'syncMissingTrailers']);
-                Route::post('/sync-missing-trailers-force', [App\Http\Controllers\Staff\CommandController::class, 'syncMissingTrailersForce']);
-
-                // Rust Tracker Sync
-                Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
-                Route::post('/tracker-sync-users', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerUsers']);
-                Route::post('/tracker-sync-groups', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerGroups']);
 
                 // Peer & Torrent Management
                 Route::post('/flush-old-peers', [App\Http\Controllers\Staff\CommandController::class, 'flushOldPeers']);
@@ -1226,6 +1214,7 @@ Route::middleware('language')->group(function (): void {
                 Route::get('/', [App\Http\Controllers\Staff\UserController::class, 'index'])->name('index');
                 Route::patch('/{user:username}', [App\Http\Controllers\Staff\UserController::class, 'update'])->name('update')->withTrashed();
                 Route::get('/{user:username}/edit', [App\Http\Controllers\Staff\UserController::class, 'edit'])->name('edit');
+                Route::get('/{user:username}/telegram-info', [App\Http\Controllers\Staff\UserController::class, 'telegramInfo'])->name('telegram_info');
                 Route::patch('/{user:username}/permissions', [App\Http\Controllers\Staff\UserController::class, 'permissions'])->name('update_permissions');
                 Route::delete('/{user:username}', [App\Http\Controllers\Staff\UserController::class, 'destroy'])->name('destroy');
             });
@@ -1290,10 +1279,10 @@ Route::middleware('language')->group(function (): void {
                 Route::patch('/{wiki}/update', [App\Http\Controllers\Staff\WikiController::class, 'update'])->name('update');
                 Route::delete('/{wiki}/destroy', [App\Http\Controllers\Staff\WikiController::class, 'destroy'])->name('destroy');
             });
-            
+
             // --- WIKI PRIVADA (SOLO USUARIOS LOGUEADOS) ---
             Route::middleware(['web', 'auth'])->group(function () {
-                
+
                 // Redirección para arreglar la URL automáticamente
                 Route::get('/manual', function () {
                     // Ponemos index.html explícitamente para evitar fallos de rutas relativas

@@ -34,6 +34,7 @@ use App\Models\TmdbTv;
 use App\Models\User;
 use App\Repositories\ChatRepository;
 use App\Services\Igdb\IgdbScraper;
+use App\Services\Mal\MalScraper;
 use App\Services\Tmdb\TMDBScraper;
 use App\Services\Unit3dAnnounce;
 use App\Traits\TorrentMeta;
@@ -406,6 +407,10 @@ class TorrentController extends BaseController
             $category->game_meta && $torrent->igdb > 0           => new IgdbScraper()->game($torrent->igdb),
             default                                              => null,
         };
+
+        if ($torrent->mal > 0) {
+            (new MalScraper())->anime((int) $torrent->mal);
+        }
 
         // Torrent Keywords System
         $keywords = [];

@@ -48,7 +48,7 @@
                                 />
                             </td>
                             <td>
-                                {{ \App\Helpers\StringHelper::formatBytes($user->uploaded, 2) }}
+                                {{ \App\Helpers\StringHelper::formatBytes($user->real_uploaded ?? 0, 2) }}
                             </td>
                             <td>
                                 {{ \App\Helpers\StringHelper::formatBytes($user->downloaded, 2) }}

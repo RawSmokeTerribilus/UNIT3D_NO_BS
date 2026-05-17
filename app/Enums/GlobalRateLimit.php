@@ -24,6 +24,7 @@ enum GlobalRateLimit: string
     case CHAT = 'chat';
     case FORGOT_PASSWORD = 'forgot-password';
     case IGDB = 'igdb';
+    case MAL = 'mal';
     case RESET_PASSWORD = 'reset-password';
     case RSS = 'rss';
     case GAMING_SAVES = 'gaming-saves';

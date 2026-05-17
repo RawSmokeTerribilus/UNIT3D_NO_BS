@@ -64,11 +64,12 @@ class TopUsers extends Component
             'top-users:uploaded',
             [3600, 3600 * 2],
             fn () => User::query()
-                ->select(['id', 'group_id', 'username', 'uploaded', 'image'])
+                ->select(['id', 'group_id', 'username', 'image'])
+                ->withSum(['history as real_uploaded' => fn ($q) => $q->whereNull('deleted_at')], 'actual_uploaded')
                 ->with('group')
                 ->where('id', '!=', User::SYSTEM_USER_ID)
                 ->whereDoesntHave('group', fn ($query) => $query->whereIn('slug', ['banned', 'validating', 'disabled', 'pruned']))
-                ->orderByDesc('uploaded')
+                ->orderByDesc('real_uploaded')
                 ->take(8)
                 ->get(),
         );

@@ -59,6 +59,17 @@
                         {{ __('staff.staff-dashboard') }}
                     </a>
                 </p>
+                @if (auth()->user()->group->is_admin)
+                    <p class="form__group form__group--horizontal">
+                        <a
+                            class="form__button form__button--text"
+                            href="{{ route('staff.commands.index') }}"
+                        >
+                            <i class="fab fa-laravel"></i>
+                            Comandos
+                        </a>
+                    </p>
+                @endif
                 @if (auth()->user()->group->is_owner)
                     <p class="form__group form__group--horizontal">
                         <a
@@ -70,16 +81,6 @@
                             {{ __('backup.manager') }}
                         </a>
                     </p>
-                    <p class="form__group form__group--horizontal">
-                        <a
-                            class="form__button form__button--text"
-                            href="{{ route('staff.commands.index') }}"
-                        >
-                            <i class="fab fa-laravel"></i>
-                            Comandos
-                        </a>
-                    </p>
-
                     @if (config('donation.is_enabled'))
                         <p class="form__group form__group--horizontal">
                             <a

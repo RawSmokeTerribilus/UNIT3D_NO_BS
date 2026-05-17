@@ -40,13 +40,10 @@ return [
             'label' => 'Famicom Disk System',
             'core'  => 'fceumm',
             'icon'  => '/img/console/fds.png',
-            // Cerrado: FDS necesita el BIOS `disksys.rom` (8KB, copyright Nintendo)
-            // en /home/web_user/retroarch/userdata/system/disksys.rom y no se
-            // distribuye con los cores libretro. Sin él, fceumm/nestopia
-            // erroran al cargar cualquier .fds. Sólo 2 juegos en disco así
-            // que prioridad baja hasta resolver el deploy del BIOS.
+            // BIOS disksys.rom (8KB, copyright Nintendo) requerido y no disponible.
+            // ROMs eliminadas 2026-05-16. Sección permanentemente desactivada.
             'unavailable'        => true,
-            'unavailable_reason' => 'BIOS disksys.rom no desplegado.',
+            'unavailable_reason' => 'Sistema no disponible.',
         ],
         'gb'      => ['label' => 'Game Boy',                 'core' => 'gambatte',         'icon' => '/img/console/gb.png'],
         'gbc'     => ['label' => 'Game Boy Color',           'core' => 'gambatte',         'icon' => '/img/console/gbc.png'],
@@ -59,13 +56,6 @@ return [
             'label' => 'Arcade',
             'core'  => 'fbneo',
             'icon'  => '/img/console/arcade.png',
-            // Cerrado: el set de ROMs en disco es incompatible con el FBNeo
-            // actual (split-set incompleto). Probado mame2003_plus también
-            // falla porque los CRC no coinciden con su romset MAME 0.78.
-            // Hasta resourcear un set válido, mantenemos la sección visible
-            // (icono + conteo) pero sin lanzador → "Cerrado por mantenimiento".
-            'unavailable'        => true,
-            'unavailable_reason' => 'Romsets actuales incompatibles con el core. Trabajando en ello.',
         ],
     ],
 

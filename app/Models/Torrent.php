@@ -576,6 +576,11 @@ final class Torrent extends Model
         return $this->belongsTo(IgdbGame::class, 'igdb');
     }
 
+    public function malAnime(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\MalAnime::class, 'mal');
+    }
+
     /**
      * Get the playlists that belong to the torrent.
      *

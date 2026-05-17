@@ -143,7 +143,7 @@ class SetTelegramWebhook extends Command
         try {
             $response = Http::timeout(15)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
                 'url' => $webhookUrl,
-                'allowed_updates' => ['message'],  // Solo mensajes
+                'allowed_updates' => ['message', 'chat_member', 'my_chat_member'],
             ]);
 
             if (!$response->successful()) {

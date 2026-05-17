@@ -40,6 +40,7 @@ use App\Models\User;
 use App\Notifications\TorrentDeleted;
 use App\Repositories\ChatRepository;
 use App\Services\Igdb\IgdbScraper;
+use App\Services\Mal\MalScraper;
 use App\Services\Tmdb\TMDBScraper;
 use App\Services\Unit3dAnnounce;
 use Illuminate\Http\Request;
@@ -117,6 +118,7 @@ class TorrentController extends Controller
                     'networks',
                     'recommendedTv' => fn ($query) => $query->withMin('torrents', 'category_id')->has('torrents'),
                 ],
+                'malAnime',
             ])
             ->withCount([
                 'bookmarks',
@@ -417,6 +419,10 @@ class TorrentController extends Controller
             default                          => null,
         };
 
+        if ($torrent->mal !== null && $torrent->mal > 0) {
+            (new MalScraper())->anime((int) $torrent->mal, true);
+        }
+
         return to_route('torrents.show', ['id' => $id])
             ->with('success', 'Successfully edited!');
     }
@@ -479,6 +485,16 @@ class TorrentController extends Controller
 
         return to_route('torrents.index')
             ->with('success', 'Torrent has been deleted!');
+    }
+
+    public function malUpdate(Request $request, Torrent $torrent): \Illuminate\Http\RedirectResponse
+    {
+        abort_unless($torrent->mal > 0, 422);
+
+        (new MalScraper())->anime((int) $torrent->mal, true);
+
+        return to_route('torrents.show', ['id' => $torrent->id])
+            ->with('success', 'MAL metadata update queued.');
     }
 
     /**
@@ -605,6 +621,10 @@ class TorrentController extends Controller
             $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
             default                          => null,
         };
+
+        if ($torrent->mal !== null && $torrent->mal > 0) {
+            (new MalScraper())->anime((int) $torrent->mal);
+        }
 
         // Torrent Keywords System
         $keywords = [];

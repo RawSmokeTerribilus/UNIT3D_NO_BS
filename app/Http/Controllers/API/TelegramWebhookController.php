@@ -51,13 +51,13 @@ class TelegramWebhookController extends Controller
         );
     }
 
-    private function sendMessageOnce(int|string $chatId, string $kind, string $text, ?string $parseMode = null): void
+    private function sendMessageOnce(int|string $chatId, string $kind, string $text, ?string $parseMode = null, ?int $threadId = null): void
     {
         if (!$this->canSendReply($chatId, $kind)) {
             return;
         }
 
-        $this->sendMessage($chatId, $text, $parseMode);
+        $this->sendMessage($chatId, $text, $parseMode, $threadId);
     }
 
     public function handle(Request $request)
@@ -76,20 +76,29 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'ignored'], 200);
         }
 
-        if (!$this->isPrivateChat($message)) {
-            return response()->json(['status' => 'ignored'], 200);
-        }
+        $chatId    = $message['chat']['id'];
+        $fromId    = $message['from']['id'] ?? null;
+        $threadId  = $message['message_thread_id'] ?? null;
+        $text      = trim($message['text']);
+        $isPrivate = $this->isPrivateChat($message);
 
-        $chatId = $message['chat']['id'];
-        $text   = trim($message['text']);
-
-        // Route commands
-        if (str_starts_with($text, '/start')) {
+        if (str_starts_with($text, '/start') && $isPrivate) {
             $this->handleStart($chatId, $text);
         } elseif ($this->isCommand($text, 'status')) {
-            $this->handleStatus($chatId);
+            $isPrivate ? $this->handleStatus($chatId) : $this->handleGroupStatus($chatId, $fromId, $threadId);
         } elseif ($this->isCommand($text, 'help')) {
-            $this->handleHelp($chatId);
+            $this->handleHelp($chatId, $isPrivate, $threadId);
+        } elseif ($this->isCommand($text, 'opennews')) {
+            $this->handleOpenNews($chatId, $fromId, $threadId);
+        } elseif ($this->isCommand($text, 'closenews')) {
+            $this->handleCloseNews($chatId, $fromId, $threadId);
+        } elseif ($this->isCommand($text, 'myid')) {
+            $this->handleMyId($chatId, $fromId, $threadId);
+        } elseif ($isPrivate && str_starts_with($text, 'TELEGRAPH ') && $fromId !== null) {
+            $url = trim(substr($text, 10));
+            if (filter_var($url, FILTER_VALIDATE_URL)) {
+                $this->handleNewsTelegraph($chatId, $fromId, $url);
+            }
         }
 
         return response()->json(['status' => 'ok'], 200);
@@ -181,10 +190,14 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * /status — Check link status.
+     * /status — Check link status (private chat).
      */
     private function handleStatus(int|string $chatId): void
     {
+        if (!$this->canSendReply($chatId, 'status')) {
+            return;
+        }
+
         $instanceLabel = $this->telegramInstanceLabel();
         $user = User::where('telegram_chat_id', $chatId)->first();
 
@@ -206,19 +219,140 @@ class TelegramWebhookController extends Controller
     }
 
     /**
+     * /status — Check link status (group chat).
+     */
+    private function handleGroupStatus(int|string $chatId, ?int $fromId, ?int $threadId = null): void
+    {
+        if ($fromId === null) {
+            return;
+        }
+
+        if (!$this->canSendReply($fromId, 'group-status')) {
+            return;
+        }
+
+        $user = User::where('telegram_chat_id', $fromId)->first();
+
+        if ($user && $user->telegram_group_joined_at !== null) {
+            $this->sendMessage($chatId, "\xF0\x9F\x9F\xA2 Vinculado y acceso confirmado.", 'HTML', $threadId);
+        } elseif ($user) {
+            $inviteLink = config('services.telegram.group_invite_link');
+            $text = "\xF0\x9F\x9F\xA1 Bot vinculado — pendiente de confirmar el grupo.";
+            $inviteLink
+                ? $this->sendMessageWithButton($chatId, $text, "\xF0\x9F\x93\xA1 UNIRSE AL GRUPO", $inviteLink, $threadId)
+                : $this->sendMessage($chatId, $text, null, $threadId);
+        } else {
+            $instanceLabel = $this->telegramInstanceLabel();
+            $this->sendMessage($chatId, "\xF0\x9F\x94\xB4 Sin vincular. Usa el enlace del panel de notificaciones en {$instanceLabel}.", null, $threadId);
+        }
+    }
+
+    /**
+     * /opennews — Reopen novedades forum topic (admin only).
+     */
+    private function handleOpenNews(int|string $chatId, ?int $fromId, ?int $threadId = null): void
+    {
+        if (!$this->isTrackerAdmin($fromId)) {
+            $this->sendMessageOnce($chatId, 'opennews-denied', "\xF0\x9F\x94\x92 Solo administradores del tracker.", null, $threadId);
+            return;
+        }
+
+        $ok = app(TelegramService::class)->setForumTopicState(true);
+        $this->sendMessage($chatId, $ok
+            ? "\xE2\x9C\x85 Topic de novedades abierto."
+            : "\xE2\x9D\x8C No se pudo abrir el topic. \xC2\xBFTengo permisos de admin con Manage Topics?", null, $threadId);
+    }
+
+    /**
+     * /closenews — Close novedades forum topic (admin only).
+     */
+    private function handleCloseNews(int|string $chatId, ?int $fromId, ?int $threadId = null): void
+    {
+        if (!$this->isTrackerAdmin($fromId)) {
+            $this->sendMessageOnce($chatId, 'closenews-denied', "\xF0\x9F\x94\x92 Solo administradores del tracker.", null, $threadId);
+            return;
+        }
+
+        $ok = app(TelegramService::class)->setForumTopicState(false);
+        $this->sendMessage($chatId, $ok
+            ? "\xE2\x9C\x85 Topic de novedades cerrado."
+            : "\xE2\x9D\x8C No se pudo cerrar el topic. \xC2\xBFTengo permisos de admin con Manage Topics?", null, $threadId);
+    }
+
+    /**
+     * /myid — Return caller's Telegram user ID.
+     */
+    private function handleMyId(int|string $chatId, ?int $fromId, ?int $threadId = null): void
+    {
+        if ($fromId === null) {
+            return;
+        }
+
+        $this->sendMessageOnce($chatId, sprintf('myid:%s', $fromId), "\xF0\x9F\x86\x94 Tu ID de Telegram: <code>{$fromId}</code>", 'HTML', $threadId);
+    }
+
+    /**
+     * TELEGRAPH <url> — post daily news from trusted news bot (private DM only).
+     */
+    private function handleNewsTelegraph(int|string $chatId, int $fromId, string $url): void
+    {
+        $allowedBotId = (int) config('services.telegram.news_bot_id');
+
+        if ($allowedBotId === 0 || $fromId !== $allowedBotId) {
+            Log::warning('Telegram: TELEGRAPH request from unauthorized sender', ['from_id' => $fromId]);
+            return;
+        }
+
+        $service     = app(TelegramService::class);
+        $groupChatId = config('services.telegram.chat_id');
+        $topicId     = (int) config('services.telegram.topic_id');
+
+        $service->setForumTopicState(true);
+
+        $this->sendMessage($groupChatId, "\xF0\x9F\x93\xB0 " . $url, null, $topicId);
+
+        $service->setForumTopicState(false);
+
+        $this->sendMessage($chatId, "\xE2\x9C\x85 Publicado en novedades.");
+
+        Log::info('Telegram: TELEGRAPH posted to novedades', ['url' => $url]);
+    }
+
+    /**
+     * Check whether the Telegram user is a tracker admin/mod/owner.
+     */
+    private function isTrackerAdmin(?int $fromId): bool
+    {
+        if ($fromId === null) {
+            return false;
+        }
+
+        $user = User::where('telegram_chat_id', $fromId)->with('group')->first();
+
+        return $user !== null
+            && ($user->group->is_admin || $user->group->is_owner || $user->group->is_modo);
+    }
+
+    /**
      * /help — Command list.
      */
-    private function handleHelp(int|string $chatId): void
+    private function handleHelp(int|string $chatId, bool $isPrivate = true, ?int $threadId = null): void
     {
         $instanceLabel = $this->telegramInstanceLabel();
 
-        $this->sendMessage($chatId, "\xF0\x9F\xA4\x96 <b>{$instanceLabel} Tracker Bot — Comandos</b>\n\n/start — Vincular tu cuenta (usa el enlace del panel)\n/status — Comprobar estado del enlace\n/help — Mostrar esta ayuda\n\n\xE2\x9A\xA1 Las notificaciones de nuevos torrents se envían automáticamente una vez vinculado. El acceso queda completo cuando también se confirma tu entrada al grupo.", 'HTML');
+        if ($isPrivate) {
+            $text = "\xF0\x9F\xA4\x96 <b>{$instanceLabel} Tracker Bot — Comandos</b>\n\n/start — Vincular tu cuenta (usa el enlace del panel)\n/status — Comprobar estado del enlace\n/help — Mostrar esta ayuda\n\n\xE2\x9A\xA1 Las notificaciones de nuevos torrents se envían automáticamente una vez vinculado. El acceso queda completo cuando también se confirma tu entrada al grupo.";
+        } else {
+            $text = "\xF0\x9F\xA4\x96 <b>{$instanceLabel} Bot — Comandos de grupo</b>\n\n/status — Estado de tu vinculación\n/myid — Ver tu ID de Telegram\n/opennews — Abrir topic de novedades <i>(admin)</i>\n/closenews — Cerrar topic de novedades <i>(admin)</i>\n/help — Esta ayuda\n\n\xF0\x9F\x92\xAC Para vincular tu cuenta, escríbeme en privado.";
+        }
+
+        $this->sendMessage($chatId, $text, 'HTML', $threadId);
     }
 
     /**
      * Send a message via Telegram API.
      */
-    private function sendMessage(int|string $chatId, string $text, ?string $parseMode = null): void
+    private function sendMessage(int|string $chatId, string $text, ?string $parseMode = null, ?int $threadId = null): void
     {
         $botToken = config('services.telegram.token');
 
@@ -236,6 +370,10 @@ class TelegramWebhookController extends Controller
             $payload['parse_mode'] = $parseMode;
         }
 
+        if ($threadId !== null) {
+            $payload['message_thread_id'] = $threadId;
+        }
+
         try {
             Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/sendMessage", $payload);
         } catch (\Throwable $e) {
@@ -246,7 +384,7 @@ class TelegramWebhookController extends Controller
     /**
      * Send a message with an inline keyboard button (URL).
      */
-    private function sendMessageWithButton(int|string $chatId, string $text, string $buttonText, string $url): void
+    private function sendMessageWithButton(int|string $chatId, string $text, string $buttonText, string $url, ?int $threadId = null): void
     {
         $botToken = config('services.telegram.token');
 
@@ -265,6 +403,10 @@ class TelegramWebhookController extends Controller
                 ],
             ],
         ];
+
+        if ($threadId !== null) {
+            $payload['message_thread_id'] = $threadId;
+        }
 
         try {
             Http::timeout(10)->asJson()->post("https://api.telegram.org/bot{$botToken}/sendMessage", $payload);
