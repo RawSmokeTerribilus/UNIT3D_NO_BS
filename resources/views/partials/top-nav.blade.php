@@ -104,6 +104,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('swarm.graph') }}">
+                        <i class="{{ config('other.font-awesome') }} fa-satellite-dish"></i>
+                        Swarm Intel
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('articles.index') }}">
                         <i class="{{ config('other.font-awesome') }} fa-newspaper"></i>
                         {{ __('common.news') }}

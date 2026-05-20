@@ -93,10 +93,15 @@ class RetroArchScanRoms extends Command
                 $slug = $this->uniqueSlug($stem, $sysSlugs);
                 $sysSlugs[$slug] = true;
 
-                $coverFile = public_path('retroarch/covers/'.$system.'/'.$stem.'.png');
-                $cover = is_file($coverFile)
-                    ? '/retroarch/covers/'.rawurlencode($system).'/'.rawurlencode($stem.'.png')
-                    : null;
+                $coverWebp = public_path('retroarch/covers/'.$system.'/'.$stem.'.webp');
+                $coverPng  = public_path('retroarch/covers/'.$system.'/'.$stem.'.png');
+                if (is_file($coverWebp)) {
+                    $cover = '/retroarch/covers/'.rawurlencode($system).'/'.rawurlencode($stem.'.webp');
+                } elseif (is_file($coverPng)) {
+                    $cover = '/retroarch/covers/'.rawurlencode($system).'/'.rawurlencode($stem.'.png');
+                } else {
+                    $cover = null;
+                }
 
                 $roms[] = [
                     'slug'     => $slug,

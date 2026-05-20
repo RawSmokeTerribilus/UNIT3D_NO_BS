@@ -23,6 +23,12 @@ if [ ! -d "public/build" ] || [ ! -f "public/build/manifest.json" ]; then
     npm run build
 fi
 
+# Fetch vendored JS libs for Swarm Map (force-graph, etc.)
+# public/vendor/ is gitignored — may be missing after fresh clone or new server
+if [ -x ./install-swarm-assets.sh ]; then
+    ./install-swarm-assets.sh || echo "WARN: swarm assets install failed (non-fatal)"
+fi
+
 # 1. Crear estructura de carpetas interna (Evita errores de "Folder not found")
 mkdir -p storage/framework/cache/data \
          storage/framework/sessions \

@@ -12,5 +12,6 @@ services:
       --transfers 4
       --checkers 8
       --delete-after
+      --drive-use-trash=false
       -v
       --log-file=/logs/sync_execution.log

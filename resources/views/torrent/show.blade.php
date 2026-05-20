@@ -56,6 +56,7 @@
     </h1>
     @include('torrent.partials.general')
     @include('torrent.partials.buttons')
+    <livewire:swarm-intelligence :torrentId="$torrent->id" />
 
     {{-- Tools block --}}
     @if (auth()->user()->internals()->exists() ||auth()->user()->group->is_editor ||auth()->user()->group->is_modo ||(auth()->id() === $torrent->user_id && $canEdit))

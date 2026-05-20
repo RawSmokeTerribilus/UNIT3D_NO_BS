@@ -237,6 +237,12 @@ Route::middleware('language')->group(function (): void {
             Route::get('/themes', [App\Http\Controllers\StatsController::class, 'themes'])->name('themes');
         });
 
+        // Swarm Graph
+        Route::prefix('swarm')->name('swarm.')->group(function (): void {
+            Route::get('/', [App\Http\Controllers\SwarmGraphController::class, 'index'])->name('graph');
+            Route::get('/data', [App\Http\Controllers\SwarmGraphController::class, 'data'])->name('data');
+        });
+
         // Requests System
         Route::prefix('requests')->name('requests.')->group(function (): void {
             Route::get('/', [App\Http\Controllers\RequestController::class, 'index'])->name('index');
