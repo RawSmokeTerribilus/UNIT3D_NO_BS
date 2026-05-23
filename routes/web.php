@@ -938,6 +938,16 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/sync-peers', [App\Http\Controllers\Staff\CommandController::class, 'syncPeers']);
                 Route::post('/sync-torrents-meilisearch', [App\Http\Controllers\Staff\CommandController::class, 'syncTorrents']);
 
+                // Rust Tracker Sync
+                Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
+                Route::post('/tracker-sync-users', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerUsers']);
+                Route::post('/tracker-sync-groups', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerGroups']);
+
+                // Metadata Consensus Resolver
+                Route::post('/meta-sync', [App\Http\Controllers\Staff\CommandController::class, 'metaSync']);
+                Route::post('/meta-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'metaSyncForce']);
+                Route::post('/meta-rotate-covers', [App\Http\Controllers\Staff\CommandController::class, 'metaRotateCovers']);
+
                 // User & Cleanup
                 Route::post('/ban-disposable-users', [App\Http\Controllers\Staff\CommandController::class, 'banDisposableUsers']);
                 Route::post('/deactivate-warnings', [App\Http\Controllers\Staff\CommandController::class, 'deactivateWarnings']);

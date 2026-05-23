@@ -195,6 +195,37 @@
             </div>
         </section>
 
+        {{-- Metadata — Identificación --}}
+        <section class="panelV2">
+            <h2 class="panel__heading">
+                <i class="{{ config('other.font-awesome') }} fa-fingerprint"></i>
+                Metadata — Identificación
+            </h2>
+            <div class="panel__body">
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/meta-sync',
+                    'label'  => 'Resolver ids faltantes',
+                    'icon'   => 'fa-fingerprint',
+                    'level'  => 'safe',
+                    'tip'    => 'Resuelve ids (tmdb/imdb/tvdb/mal) por consenso multi-proveedor para un lote de torrents sin resolver. El catálogo completo se drena solo cada pocos minutos.',
+                ])
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/meta-sync-force',
+                    'label'  => 'Re-resolver lote antiguo',
+                    'icon'   => 'fa-sync',
+                    'level'  => 'safe',
+                    'tip'    => 'Re-resuelve un lote de los torrents con la resolución más antigua. Púlsalo varias veces para ir recorriendo el catálogo.',
+                ])
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/meta-rotate-covers',
+                    'label'  => 'Rotar carátulas',
+                    'icon'   => 'fa-images',
+                    'level'  => 'safe',
+                    'tip'    => 'Rota la carátula activa de cada título desde el pool multi-fuente (TMDB/OMDb/MAL/...). También se ejecuta a diario de forma automática.',
+                ])
+            </div>
+        </section>
+
     </div>
 
     <style>
@@ -335,4 +366,8 @@
         .cmd-btn--muted:hover { color: #94a3b8; }
     </style>
 
+@endsection
+
+@section('scripts')
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}"></script>
 @endsection

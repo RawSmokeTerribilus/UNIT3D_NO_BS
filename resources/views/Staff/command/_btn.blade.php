@@ -1,13 +1,7 @@
-@php
-    $confirmJs = isset($confirm)
-        ? "return confirm(" . json_encode($confirm) . ")"
-        : null;
-@endphp
-
 <form
     action="{{ $action }}"
     method="POST"
-    @if($confirmJs) onsubmit="{{ $confirmJs }}" @endif
+    @isset($confirm) data-confirm="{{ $confirm }}" @endisset
 >
     @csrf
     <button

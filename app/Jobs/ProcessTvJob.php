@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
+use App\Exceptions\MetaFetchNotFoundException;
 use App\Models\TmdbCompany;
 use App\Models\TmdbCredit;
 use App\Models\TmdbGenre;
@@ -34,6 +35,8 @@ use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\Middleware\Skip;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProcessTvJob implements ShouldQueue
 {
@@ -95,7 +98,20 @@ class ProcessTvJob implements ShouldQueue
     {
         // Tv
 
-        $tvScraper = new Client\TV($this->id);
+        try {
+            $tvScraper = new Client\TV($this->id);
+        } catch (MetaFetchNotFoundException $e) {
+            // TMDB returned 404 (id deleted/merged/private). Touch updated_at
+            // so DispatchMetaRefresh's stale-hours query stops re-picking this
+            // id every 10 minutes forever.
+            Log::warning('ProcessTvJob: TMDB 404 — touching updated_at to break dispatch loop', [
+                'tmdb_tv_id' => $this->id,
+                'error'      => $e->getMessage(),
+            ]);
+            DB::table('tmdb_tv')->where('id', $this->id)->update(['updated_at' => now()]);
+
+            return;
+        }
 
         if ($tvScraper->getTv() === null) {
             return;

@@ -24,4 +24,17 @@ return [
     */
 
     'tmdb' => env('TMDB_API_KEY', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | OMDb (IMDB metadata)
+    |--------------------------------------------------------------------------
+    |
+    | OMDb API Key — used by the metadata consensus resolver for IMDB-id
+    | voting and by-id cross-verification. The resolver degrades gracefully
+    | when this is empty (OMDb is simply skipped as a provider).
+    |
+    */
+
+    'omdb' => env('OMDB_API_KEY', ''),
 ];

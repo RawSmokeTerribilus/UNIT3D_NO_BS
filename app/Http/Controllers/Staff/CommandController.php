@@ -366,6 +366,35 @@ class CommandController extends Controller
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // METADATA
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    /**
+     * Resolve metadata ids for a bounded batch of unresolved torrents.
+     * The full initial backfill is a CLI run; the scheduler drains the rest.
+     */
+    public function metaSync(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('meta:sync', ['--limit' => 15]);
+    }
+
+    /**
+     * Re-resolve a bounded batch of the stalest-resolved torrents.
+     */
+    public function metaSyncForce(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('meta:sync', ['--force' => true, '--limit' => 15]);
+    }
+
+    /**
+     * Rotate each title's active cover from the artwork pool.
+     */
+    public function metaRotateCovers(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('meta:rotate-covers');
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // USER & CLEANUP
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

@@ -23,14 +23,14 @@ return [
     |
     */
 
-    'enabled'      => false,
-    'hostname'     => 'example.com',
-    'server'       => 'irc.example.com',
-    'port'         => 6667,
-    'username'     => 'UNIT3D',
-    'password'     => 'UNIT3D',
-    'channel'      => '#announce',
-    'channel_key'  => 'UNIT3D',
-    'nickservpass' => false,
-    'joinchannel'  => false,
+    'enabled'      => (bool) env('IRC_BOT_ENABLED', false),
+    'hostname'     => env('IRC_BOT_HOSTNAME', 'example.com'),
+    'server'       => env('IRC_BOT_SERVER', 'irc.example.com'),
+    'port'         => (int) env('IRC_BOT_PORT', 6667),
+    'username'     => env('IRC_BOT_USERNAME', 'UNIT3D'),
+    'password'     => env('IRC_BOT_PASSWORD', 'UNIT3D'),
+    'channel'      => env('IRC_BOT_CHANNEL', '#announce'),
+    'channel_key'  => env('IRC_BOT_CHANNEL_KEY', ''),
+    'nickservpass' => env('IRC_BOT_NICKSERV_PASS', false),
+    'joinchannel'  => (bool) env('IRC_BOT_JOIN_CHANNEL', false),
 ];

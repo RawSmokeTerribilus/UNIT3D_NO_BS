@@ -1365,6 +1365,18 @@ function attachMouseTracker() {
     });
 }
 
+// Opera (incl. Opera GX) has flaky WebGL/rAF behaviour that breaks the 3D
+// swarm map — warn the user, leave everything else untouched.
+function showBrowserNote() {
+    if (!/OPR\//i.test(navigator.userAgent)) return;
+    const b = document.createElement('div');
+    b.textContent = 'Tu navegador es Opera — el Mapa del Enjambre puede no renderizar correctamente. Recomendamos Chrome o Firefox.';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;'
+        + 'background:#3a0d0d;color:#ffc9c9;border-bottom:1px solid #6a1a1a;'
+        + 'font:13px/1.5 sans-serif;text-align:center;padding:7px 14px;';
+    document.body.appendChild(b);
+}
+
 function boot() {
     console.log('[swarm] boot — globals check:',
         'd3:', typeof d3,
@@ -1376,6 +1388,7 @@ function boot() {
     svgEl = document.getElementById('chord-container');
     const ind = document.getElementById('js-indicator');
     if (ind) ind.remove();
+    showBrowserNote();
 
     if (typeof ForceGraph === 'undefined') {
         console.error('[swarm] ForceGraph missing');

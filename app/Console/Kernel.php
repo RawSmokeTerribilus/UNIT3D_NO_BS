@@ -111,6 +111,12 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoSyncPeopleToMeilisearch::class)->daily();
         $schedule->command(AutoRemoveExpiredDonors::class)->daily();
         $schedule->command(AutoRemoveReseeds::class)->daily();
+        // withoutOverlapping(10) — auto-release the lock after 10 minutes.
+        // Default TTL is 24h; if the 06:00 server-wide backup nukes a running
+        // command mid-execution, the leaked lock would silently block the next
+        // ~24h of scheduled runs (seen on 2026-05-23).
+        $schedule->command('meta:sync', ['--limit' => 25])->everyFiveMinutes()->withoutOverlapping(10);
+        $schedule->command('meta:rotate-covers')->daily()->withoutOverlapping(60);
         // $schedule->command(AutoBanDisposableUsers::class)->weekends();
         $schedule->command(CleanupCommand::class)->daily();
         $schedule->command(BackupCommand::class, ['--only-db'])->daily();

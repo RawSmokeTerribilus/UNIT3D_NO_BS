@@ -89,6 +89,7 @@ services:
             - meilisearch
         networks:
             - unit3d
+            - irc_net
 
     scheduler:
         build:
@@ -147,6 +148,7 @@ services:
             - meilisearch
         networks:
             - unit3d
+            - irc_net
 
     meta-worker:
         build:
@@ -246,3 +248,5 @@ services:
 networks:
     unit3d:
         driver: bridge
+    irc_net:
+        external: true
