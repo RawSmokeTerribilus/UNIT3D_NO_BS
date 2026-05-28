@@ -787,7 +787,7 @@ meta-worker:
 | `2026_05_22_000002_create_metadata_artwork_table.php` | Almacén multi-poster por torrent (artwork rotativo) |
 
 **Implicaciones operativas**:
-- ⚠️ **No intentes migrar este fork contra una DB de UNIT3D Community vanilla** — las tablas extra son obligatorias para que arrancen Telegram, arcade y resolver multi-proveedor.
+- ⚠️ **No intentes migrar este fork contra una DB de UNIT3D Community vanilla** — las tablas extra son obligatorias para que arranquen Telegram, arcade y resolver multi-proveedor.
 - ⚠️ **`migrate:fresh` está prohibido en producción** — borra todo el catálogo, todos los logs, todas las partidas guardadas, toda la auditoría de metadatos.
 - ✅ Para restaurar usa **Ruta B (Restaurar desde Backup)** — los backups capturan el SQL completo, incluyendo todas las migraciones aplicadas.
 - ✅ Los seeders no rellenan tablas N.O.B.S — la lista de dominios desechables se siembra desde `EmailBlacklistUpdater::sync()`, la metadata se rellena vía `meta:sync` y `meta:refresh-dispatch`.
@@ -798,8 +798,7 @@ meta-worker:
 
 ### 20. **🎛️ Super-Paneles de Staff (Lo que HDInnovations Cobra Aparte, en FOSS)**
 
-**Contexto**: UNIT3D Community Edition viene con un Staff Dashboard funcional pero **deliberadamente incompleto**. Los paneles avanzados de administración — los que de verdad usa el operador a diario — son extras de pago en la versión privada de HDInnovations: se han visto facturas de hasta **mil euros** por un panel de comandos serio. Ningún fork público de UNIT3D los había construido. Nadie había tenido los huevos.
-
+**Contexto**: UNIT3D Community Edition viene con un Staff Dashboard funcional pero **deliberadamente incompleto**. Los paneles avanzados de administración — los que de verdad usa el operador a diario — son extras de la versión privada. Ningún fork público de UNIT3D los había construido.
 **Lo único que vimos fue una foto borrosa de uno**. Una semana de diseño en papel después, empezamos. Lo que sigue lleva 2000+ horas de iteración encima — y algún nuke por accidente del tracker que duele recordar.
 
 #### **Comparativa Directa con Community Edition**
@@ -810,7 +809,7 @@ meta-worker:
 | Carpeta `app/Http/Livewire/Staff/` | **no existe** | presente (`ConfigManager`) | +∞ |
 | Paneles temáticos en `/staff/commands` | 1 lista plana | **9 paneles con iconos** | +8 |
 | Rutas Staff totales | 257 | 282 | +25 |
-| Panel de configuración global del sitio | **inexistente** (editas `.env` a pelo) | UI Livewire con 6 grupos, 25 ajustes hot-swap | nuevo |
+| Panel de configuración global del sitio | **inexistente** (editas `.php` a pelo) | UI Livewire con 6 grupos, 25 ajustes hot-swap | nuevo |
 | Métodos en `UserController` (Staff) | 4 | 5 (`telegramInfo`) | +1 |
 
 #### **§20.1 — Command Panel: De Lista Plana a Centro de Operaciones**
@@ -870,7 +869,7 @@ La versión Community es una sola lista vertical de 8-9 botones (clear cache, ma
 
 #### **§20.2 — Config Manager: El Panel que NUNCA EXISTIÓ en Community**
 
-UNIT3D Community **no tiene panel de configuración global**. Si quieres cambiar `other.ratio`, `other.freeleech`, `hitrun.seedtime` o cualquier ajuste profundo del tracker, tienes que editar `.env`, recargar caché, rezar.
+UNIT3D Community **no tiene panel de configuración global**. Si quieres cambiar `other.ratio`, `other.freeleech`, `hitrun.seedtime` o cualquier ajuste profundo del tracker, tienes que editar `.php`, recargar caché, rezar.
 
 **Nosotros lo tenemos en producción en una ruta real**:
 - `https://nobs.rawsmoke.net/dashboard/config`
@@ -896,7 +895,7 @@ UNIT3D Community **no tiene panel de configuración global**. Si quieres cambiar
 
 **Tipos de campo soportados**: `boolean`, `bool01`, `text`, `integer`, `decimal`, `bytes`, `theme`. Cada uno con su hint contextual.
 
-**Resultado**: El operador cambia el ratio mínimo del tracker desde la UI. Sin SSH, sin editar `.env`, sin `php artisan config:cache`. El cambio persiste en DB (tabla `settings` que también añadimos — ver §19) y se aplica en caliente.
+**Resultado**: El operador cambia el ratio mínimo del tracker desde la UI. Sin SSH, sin editar `.php`, sin `php artisan config:cache`. El cambio persiste en DB (tabla `settings` que también añadimos — ver §19) y se aplica en caliente.
 
 #### **§20.3 — Por qué esto importa**
 
@@ -916,12 +915,13 @@ Este panel es un par de cosas a la vez:
 #### **§20.4 — Coordinación con Singularity / RaW_Suite (Admin Innovation)**
 
 El panel del tracker no vive aislado. La lógica de identificación y mantenimiento masivo se coordina con **Singularity / RaW_Suite**, cuyo repo local está en:
-- `/home/rawserver/scripts/Media-Management/RaW_Suite`
+- `https://github.com/RawSmokeTerribilus/Singularity`
+- `https://codeberg.org/RawSmoke/Singularity`
 
 Lo relevante para admins y owners:
-- `docs/unit3d_orchestrator.md` — documenta la suite de **Mass-Edition**
-- `docs/unit3d_mass_edition/*` — pipeline, workflows, setup y seguridad
-- `singularity.py` → `unit3d_orchestrator()` — menú interactivo del módulo UNIT3D
+- `https://rawsmoke.codeberg.page/Singularity/unit3d_mass_edition/` — documenta la suite de **Mass-Edition**
+- `https://rawsmoke.codeberg.page/Singularity/unit3d_mass_edition/pipeline/` — pipeline, workflows, setup y seguridad
+- `https://rawsmoke.codeberg.page/Singularity/unit3d_mass_edition/workflows/` — menú interactivo del módulo UNIT3D
 - `config/mass_config.py` — config del tracker para edición masiva
 
 **Qué aporta**:
@@ -933,8 +933,6 @@ Lo relevante para admins y owners:
 - Recoordinación de metadata a escala, no torrent a torrent
 
 Esto no es una curiosidad lateral. Es otra innovación de admin/owner: **un multi-tool externo que habla el idioma del tracker y permite operar cientos de torrents con disciplina de pipeline, no con clics manuales.**
-
-> *"Es mejorable pero ya es cien veces mejor que lo que había. Sudor, lágrimas, y algún nuke por accidente del tracker."*
 
 ---
 
