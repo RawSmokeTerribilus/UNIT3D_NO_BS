@@ -428,7 +428,7 @@ function setStatus(msg) {
 let propIsGlobal = false;
 
 // ── Viz parameter panel ──────────────────────────────────────────────────────
-const VIZ_DEFAULTS = { charge: -150, linkDist: 30, linkWidth: 1.4, nodeSize: 6, cooldown: 0 };
+const VIZ_DEFAULTS = { charge: -150, linkDist: 30, linkWidth: 1.4, nodeSize: 6, cooldown: 300 };
 const VIZ_RANGES = {
     charge:    { min: -800, max: -5,   step: 5,   label: 'REPULSIÓN' },
     linkDist:  { min: 10,   max: 400,  step: 5,   label: 'DIST. ENLACES' },

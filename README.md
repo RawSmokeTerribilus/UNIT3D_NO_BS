@@ -8,7 +8,7 @@
 █   🛡️  UNIT3D BÚNKER  |  Nuclear Order Bit Syndicate         █
 █                                                             █
 █   "From the Scene, For the Scene"                           █
-█   100+ hours of stabilization, automation, and resilience   █
+█   2000+ hours of stabilization, automation, and resilience  █
 █                                                             █
 ███████████████████████████████████████████████████████████████
 ```
@@ -100,9 +100,13 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 | Característica | Beneficio |
 |---|---|
 | **Estrategia de Backup en Frío** | Detener contenedores → copiar → reiniciar (cero corrupción, integridad de datos garantizada) |
-| **Automatización de Health Check** | Monitoriza el puerto 8008, Meilisearch, MySQL, Redis; alerta en caso de fallo |
+| **Sincronización Cifrada a Google Drive** | Snapshots cifrados con rclone + contenedor efímero (recuperación off-site) |
+| **Automatización de Health Check** | Monitoriza Nginx, Meilisearch, MySQL, Redis, scheduler, worker y endpoint announce |
 | **Entrypoints de Autoreparación** | Apagar/encender → todo funciona (sin intervención manual) |
-| **Control con Makefile** | `make up`, `make backup`, `make health` (operaciones simples, curva de aprendizaje cero) |
+| **Cola Dedicada de Metadatos** | Worker aislado `meta-refresh` para que TMDB/MAL/IGDB no ahoguen la cola principal |
+| **Tracker en Rust (UNIT3D-Announce)** | `/announce/` desacoplado de PHP, con sync en caliente desde Laravel |
+| **Notificaciones a Telegram** | Bot vinculado por deep-link, kick automático en baneos, póster + mediainfo |
+| **Control con Makefile** | `make up`, `make backup`, `make health`, `make meilisearch` (operaciones simples) |
 
 **Resultado**: Un sistema listo para producción, autónomo y diseñado para **comunidades que gestionan su propia infraestructura**.
 
@@ -509,7 +513,432 @@ bash rclone_gdrive/scripts/restore_snapshot.sh
 
 ---
 
-### 11. **🕹️ Arcade Integrado: ScummVM WebAssembly (Pioneros)**
+### 11. **🧬 Metadata Multi-Proveedor con Consenso (TMDB · IGDB · MAL · Anilist · IMDb · TVmaze)**
+
+**El Desafío**: La Edición Comunitaria solo habla con TMDB. Si el match es ambiguo (título genérico, año confuso, animes con varias versiones), el póster, sinopsis y géneros terminan equivocados — y el operador acaba editando torrents a mano.
+
+**Nuestra Solución — `ConsensusResolver`**:
+
+```
+🔍 6 PROVEEDORES EN PARALELO:
+  • TmdbClient   — películas + series (autoritativo para media occidental)
+  • ImdbClient   — fallback de fichas y ratings cuando TMDB falla
+  • TvmazeClient — calendario y datos episódicos de TV
+  • MalClient    — anime (MyAnimeList API + scraper como respaldo)
+  • AnilistClient — anime/manga GraphQL (votos cruzados con MAL)
+  • IgdbClient   — videojuegos (categoría aparte, no se mezcla con cine)
+
+🗳️ ALGORITMO DE CONSENSO:
+  • Cada proveedor devuelve un score normalizado (título + año + tipo)
+  • Hits con score por debajo del umbral NO votan (evita ruido)
+  • Voto mayoritario decide canonical_id y artwork
+  • Empates se rompen con prioridad por categoría (anime→MAL, cine→TMDB, juegos→IGDB)
+
+🖼️ ARTWORK ROTATIVO:
+  • Cada torrent guarda N pósters en `metadata_artwork`
+  • `meta:rotate-covers` rota el póster activo para que el catálogo respire visualmente
+  • Tabla `metadata_resolutions` audita qué proveedor ganó y por qué
+```
+
+**Componentes**:
+- `app/Services/Metadata/ConsensusResolver.php` — orquestador del voto
+- `app/Services/Metadata/*Client.php` — un cliente por proveedor
+- Tablas: `metadata_resolutions`, `metadata_artwork`, `mal_anime`
+- Comandos: `meta:sync`, `meta:refresh-dispatch`, `meta:rotate-covers`, `fetch:meta`, `sync:missing-trailers`
+
+**Resultado**: Match de metadatos mucho más robusto, especialmente en anime (donde TMDB es históricamente débil) y en títulos con colisiones de nombre.
+
+---
+
+### 12. **🛰️ Meta-Worker (Cola Dedicada para Refresco de Metadatos)**
+
+**El Desafío**: Refrescar metadatos puede colgar la cola principal: rate-limits de TMDB, scrapes lentos de MAL, timeouts de IMDb. Si comparten queue, las notificaciones de Telegram se atascan detrás de un scrape de 30 segundos.
+
+**Nuestra Solución — Worker Aislado**:
+
+```yaml
+meta-worker:
+  entrypoint: /usr/local/bin/entrypoint-worker.sh
+  environment:
+    QUEUE_WORK_QUEUES: meta-refresh
+    QUEUE_WORK_TIMEOUT: 300
+```
+
+```
+🚦 SEPARACIÓN DE COLAS:
+  • Cola `default`  → worker normal (Telegram, mails, jobs ligeros)
+  • Cola `meta-refresh` → meta-worker (TMDB/IGDB/MAL/Anilist/IMDb)
+  • Timeout extendido (300s) para tolerar APIs lentas
+  • Sin contención: un scrape colgado no afecta a notificaciones
+
+⏰ DISPATCH AUTOMÁTICO:
+  • `php artisan meta:refresh-dispatch --limit=5 --stale-hours=720 --dispatch-ttl-minutes=10`
+  • Corre cada minuto desde el scheduler
+  • TTL de despacho evita re-encolar trabajos en vuelo
+  • Refresca metadatos de torrents con más de 30 días sin actualizar
+```
+
+**Resultado**: La UI sigue rápida mientras el catálogo se reindexa en segundo plano. La cola crítica nunca se ahoga.
+
+---
+
+### 13. **🕸️ Swarm Intelligence + Mapa 3D del Tracker**
+
+**El Desafío**: El operador no tiene visibilidad de la topología real del swarm. ¿Quién comparte con quién? ¿Hay cliques? ¿Hay un nodo central que si se cae fragmenta el swarm?
+
+**Nuestra Solución — Dos Vistas Inéditas**:
+
+```
+📊 SWARM INTEL (página de torrent):
+  • Componente Livewire plegable incrustado en cada ficha (`torrent/show.blade.php`)
+  • Se carga por torrent vía <livewire:swarm-intelligence :torrentId="$torrent->id" />
+  • Distribución geográfica de peers (banderas, ASN, ISP)
+  • Histograma de clientes BitTorrent
+  • Detección de patrones sospechosos (mismo ASN, ventanas idénticas)
+  • Panel foldable: el staff/usuario lo abre solo cuando necesita inteligencia, sin ensuciar la página principal
+
+🌐 MAPA 3D INTERACTIVO (sección Community):
+  • Grafo de fuerza 3D renderizado en WebGL (three.js + 3d-force-graph)
+  • Nodos = usuarios, aristas = co-seedeo en torrents comunes
+  • Filtros por categoría, rol, actividad
+  • Visualización en tiempo casi real (refresco periódico)
+```
+
+**Stack técnico**:
+- `app/Http/Controllers/SwarmGraphController.php` — API del grafo
+- `resources/views/livewire/swarm-intelligence.blade.php` — vista por torrent
+- `resources/views/swarm/*` — visor 3D
+- Vendor JS bajo `public/vendor/` (force-graph, 3d-force-graph, three, d3) — **gitignored**
+- `install-swarm-assets.sh` — descarga las libs en clonado fresco / rebuild
+
+**Resultado**: Primer fork público de UNIT3D con visualización 3D del swarm. Útil para detectar abuso, medir salud comunitaria y, francamente, queda increíble.
+
+---
+
+### 14. **🎮 RetroArch Web (Arcade Multi-Sistema, 26 Cores Libretro)**
+
+**El Desafío**: ScummVM cubre point-and-click clásico, pero el catálogo retro de verdad vive en NES, SNES, Mega Drive, Game Boy, PS1, arcade Capcom/Neo Geo. Hacía falta un emulador genérico en el navegador.
+
+**Nuestra Solución — RetroArch Compilado a WebAssembly**:
+
+```
+🕹️ 26 CORES LIBRETRO EN public/retroarch/:
+  • fceumm (NES), snes9x (SNES), genesis_plus_gx (Mega Drive/SMS/GG)
+  • gambatte (Game Boy/GBC), mgba (GBA), mednafen_psx (PS1)
+  • fbneo (arcade), pcsx_rearmed, ecwolf (Wolfenstein 3D), …
+  • Lista completa en core_list.js
+
+🔐 AUTH-WALL:
+  • /retroarch/* protegido tras sesión de Laravel (no scraping anónimo)
+  • Middleware `gaming.isolation` aplica COOP/COEP en la página show
+  • Páginas index/show separadas: catálogo abierto a miembros, reproductor aislado
+
+📦 BIBLIOTECA Y CUBIERTAS:
+  • Cubiertas vía `retroarch:fetch-covers`
+  • Escaneo de ROMs con `retroarch:scan-roms`
+  • ROMs gitignoreadas — solo skeleton + README por sistema en git
+  • Modo `?debug` para diagnosticar arranques fallidos de core
+```
+
+**Componentes**:
+- `app/Http/Controllers/RetroArchController.php`
+- `public/retroarch/` (gitignored salvo skeleton + core_list.js)
+- Comandos: `retroarch:fetch-covers`, `retroarch:scan-roms`
+
+**Resultado**: NES, SNES, Mega Drive, PS1 y más, jugables directamente en el navegador del miembro. Cero instalaciones, sesión Laravel como única puerta.
+
+---
+
+### 15. **🛡️ Aislamiento COOP/COEP + Proxy de Imágenes TMDB (CSP Compliant)**
+
+**El Desafío**: Para que ciertos cores libretro y módulos WASM funcionen, hace falta `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`. Pero entonces el navegador bloquea pósters de `image.tmdb.org` por faltar `Cross-Origin-Resource-Policy`. Conflicto.
+
+**Nuestra Solución — Middleware Selectivo + Proxy Local**:
+
+```
+🧱 MIDDLEWARE gaming.isolation:
+  • Aplicado SOLO a /gaming/{id} y /retroarch/{system}/show
+  • Inyecta COOP/COEP únicamente donde hace falta WASM aislado
+  • El resto del sitio sigue sin restricciones (rendimiento intacto)
+
+🖼️ TMDB IMAGE PROXY:
+  • Ruta /tmdb-proxy/{size}/{file} → TmdbImageProxyController
+  • Sirve imágenes TMDB desde el mismo origen (cumple CSP img-src 'self')
+  • Cache HTTP largo en la capa nginx
+  • Transparente para las vistas: helpers reescriben las URLs
+
+🔐 CSP LIMPIO:
+  • Sin nonces dinámicos por petición (KISS)
+  • Inline JS minimizado, vendor bajo /vendor/
+  • Cabeceras consolidadas en nginx + capa Laravel
+```
+
+**Resultado**: WASM aislado funcionando y pósters mostrándose, todo en el mismo dominio, sin abrir agujeros en la CSP global.
+
+---
+
+### 16. **🤝 Thanks Ratio + Localización al Español por Defecto**
+
+**Thanks Ratio**:
+- Métrica de "agradecimientos recibidos / agradecimientos enviados" expuesta en perfil, top-nav, y en formularios de invitaciones/BON.
+- Incentiva participación más allá del ratio de seedeo crudo.
+- Integrada en `User`, `InviteController`, `TransactionController`.
+
+**Localización**:
+- Locale por defecto migrado de `en` → `es` (`change_locale_default_to_es_in_user_settings`).
+- Traducción completa de audit logs, downloads, reports, subtitles, tools, configuración de usuario y secciones de perfil.
+- Componentes Blade nuevos para botones de comando del staff y condicionales de perfil.
+- `show_poster` activo por defecto (mejor primera impresión en catálogo nuevo).
+
+**Perfil Autoexplicativo — "Condiciones que te aplican"**:
+- Parcial nueva en `resources/views/user/profile/partials/my-conditions.blade.php`, integrada en `user/profile/show.blade.php`.
+- Expone al usuario, sin ambigüedades, qué reglas le afectan realmente:
+  - Freeleech (por sitio, por grupo o ambos)
+  - Double upload
+  - Ratio mínimo efectivo (global o override de grupo)
+  - Hit & Run: seed mínimo, gracia, avisos máximos, expiración
+  - Slots de descarga
+- Resultado: menos tickets absurdos de "¿por qué a mí sí/no me cuenta esto?" y menos staff haciendo de calculadora humana.
+
+---
+
+### 17. **🔒 Endurecimiento del Edge (Nginx Announce + Verificación)**
+
+**Nginx Announce Hardening** (`.docker/nginx/default.conf`):
+- Límites de conexión por IP en `/announce/`
+- Timeouts ajustados (lectura/escritura cortos, evita conexiones zombies)
+- Admin API del tracker Rust (`/announce/{TRACKER_KEY}/...`) bloqueada al exterior
+- Healthcheck público solo en `/announce/health/ping`
+
+**Flujo de Verificación Endurecido**:
+- Rate-limit propio en `/email/verify-link/{id}/{hash}` (GET y POST)
+- Tokens single-use, expiración corta
+- Logs explícitos de intentos fallidos
+- Registro resiliente: backoff en `RegisterController`, validación reforzada contra dominios desechables (lista local), `ApplicationController` y flujo de aplicación con throttling separado para que los bots no asfixien el formulario público
+
+**Comandos de Sincronización con Tracker Rust**:
+- `tracker:sync-users` — empuja cambios de usuarios al tracker en caliente
+- `tracker:sync-torrents` — re-sincroniza catálogo
+- `tracker:sync-groups` — actualiza permisos por grupo
+- Útiles tras restore de backup o cambios masivos de permisos
+
+---
+
+### 18. **🎞️ UI Reactiva: Trailers Flotantes, Flash Cards y Backdrops de Freeleech**
+
+**El Desafío**: La lista de torrents de UNIT3D es texto plano: título, tamaño, ratio. El usuario tiene que abrir cada ficha para ver de qué va el contenido. Los pósters quedan escondidos. La portada de freeleech es un banner liso.
+
+**Nuestra Solución — Metadata Pulverizada por Toda la UI**:
+
+```
+🎬 TRAILER FLOTANTE EN HOVER (sobre el nombre del torrent):
+  • Componente Alpine.js en components/torrent/row.blade.php
+  • Detecta clave de YouTube vía $meta->trailer o regex sobre description
+  • Embed youtube-nocookie con autoplay+mute+loop+modestbranding
+  • Fallback automático al póster si el video reporta onError (150/101)
+  • Delays calculados (400ms enter / 150ms leave) — no se dispara con paseos rápidos
+
+🪪 FLASH CARD CON MEDIAINFO + TRAILER EMBEBIDO (botón quick-view):
+  • Botoncito junto al torrent abre una tarjeta lado a lado:
+    Trailer YouTube (autoplay) │ MediaInfo resumido (codec, res, audio, bitrate)
+  • Layout grid 1fr 1fr si hay ambos, 1fr si solo hay uno
+  • Thumbnail HD del trailer con fallback a hqdefault
+  • Cero peticiones extra: la metadata viaja con la fila del torrent
+
+🃏 FLASH CARD DE TMDB EN MINIATURAS:
+  • Hover sobre el póster mini → tarjeta con sinopsis, género, rating, año
+  • Tirando del ConsensusResolver: el mismo voto que decide el poster decide la card
+  • Sin scrapeo extra en cliente — todo desde el caché local
+
+🌌 BACKDROPS DINÁMICOS EN BANNER DE FREELEECH (resources/views/partials/alerts.blade.php):
+  • AlertsComposer (app/View/Composers/AlertsComposer.php) selecciona 10 backdrops
+  • Top torrents por seeders + completados (cache::flexible 900/1800)
+  • Imágenes servidas vía /authenticated-images/tmdb-proxy/{size}/{file}
+  • Cumple CSP img-src 'self' incluso con COOP/COEP global activa
+  • Las URLs de image.tmdb.org se reescriben on-the-fly antes de renderizar
+
+🔖 BOOKMARKS REFINADOS:
+  • Botón muestra contador en vivo de cuántos usuarios lo han marcado
+  • Estado filled/outlined según si es propio
+  • Tooltip "Bookmarked by N users" (señal social útil sin filtrar identidades)
+```
+
+**Resultado**: El catálogo deja de ser una tabla y pasa a ser un escaparate. El usuario navega con preview cinematográfico antes de decidir qué descargar. **Todo apoyado en los 6 proveedores de metadatos — TMDB, IGDB, MAL, Anilist, IMDb, TVmaze cagando bits por todo el tracker.**
+
+---
+
+### 19. **🗄️ Base de Datos Profundamente Modificada (Ya No es UNIT3D Community)**
+
+**El Estado**: Tras 2000+ horas, la DB de este fork ya no es reconocible para alguien que clone UNIT3D Community Edition y mire `database/migrations/`.
+
+**Total de migraciones**: 376 archivos en `database/migrations/`. De ellas, 10 son aportes propios de N.O.B.S construidos sobre las migraciones originales:
+
+| Migración | Propósito |
+|---|---|
+| `2026_03_08_000000_create_settings_table.php` | Tabla de settings dinámicos del tracker (sustituye constantes hardcodeadas) |
+| `2026_03_24_010501_add_telegram_fields_to_users_table.php` | `telegram_chat_id`, `telegram_token`, `telegram_username` por usuario |
+| `2026_03_27_000001_create_disposable_email_domains_table.php` | Lista negra de dominios desechables persistida en DB (no en JSON volátil) |
+| `2026_04_27_000001_create_game_saves_table.php` | Partidas guardadas por usuario para el arcade ScummVM |
+| `2026_05_10_000600_add_telegram_group_joined_at_to_users_table.php` | Auditoría de cuándo un usuario entró al grupo de Telegram |
+| `2026_05_11_000000_change_locale_default_to_es_in_user_settings.php` | Locale por defecto migrado a `es` |
+| `2026_05_12_000000_default_show_poster_to_true_in_user_settings.php` | `show_poster` activo por defecto en nuevas cuentas |
+| `2026_05_17_000001_create_mal_anime_table.php` | Caché local de anime de MyAnimeList (evita rate-limit de scrapeo) |
+| `2026_05_22_000001_create_metadata_resolutions_table.php` | Auditoría de votos del ConsensusResolver por torrent |
+| `2026_05_22_000002_create_metadata_artwork_table.php` | Almacén multi-poster por torrent (artwork rotativo) |
+
+**Implicaciones operativas**:
+- ⚠️ **No intentes migrar este fork contra una DB de UNIT3D Community vanilla** — las tablas extra son obligatorias para que arrancen Telegram, arcade y resolver multi-proveedor.
+- ⚠️ **`migrate:fresh` está prohibido en producción** — borra todo el catálogo, todos los logs, todas las partidas guardadas, toda la auditoría de metadatos.
+- ✅ Para restaurar usa **Ruta B (Restaurar desde Backup)** — los backups capturan el SQL completo, incluyendo todas las migraciones aplicadas.
+- ✅ Los seeders no rellenan tablas N.O.B.S — la lista de dominios desechables se siembra desde `EmailBlacklistUpdater::sync()`, la metadata se rellena vía `meta:sync` y `meta:refresh-dispatch`.
+
+**Resultado**: La DB es ahora una extensión coherente de UNIT3D, no un parche pegado encima. Cualquier feature N.O.B.S tiene su tabla, su migración y su lugar en el backup.
+
+---
+
+### 20. **🎛️ Super-Paneles de Staff (Lo que HDInnovations Cobra Aparte, en FOSS)**
+
+**Contexto**: UNIT3D Community Edition viene con un Staff Dashboard funcional pero **deliberadamente incompleto**. Los paneles avanzados de administración — los que de verdad usa el operador a diario — son extras de pago en la versión privada de HDInnovations: se han visto facturas de hasta **mil euros** por un panel de comandos serio. Ningún fork público de UNIT3D los había construido. Nadie había tenido los huevos.
+
+**Lo único que vimos fue una foto borrosa de uno**. Una semana de diseño en papel después, empezamos. Lo que sigue lleva 2000+ horas de iteración encima — y algún nuke por accidente del tracker que duele recordar.
+
+#### **Comparativa Directa con Community Edition**
+
+| Métrica | Community Edition | NOBS Fork | Delta |
+|---|---|---|---|
+| Métodos en `CommandController` | 9 | **34** | +25 acciones |
+| Carpeta `app/Http/Livewire/Staff/` | **no existe** | presente (`ConfigManager`) | +∞ |
+| Paneles temáticos en `/staff/commands` | 1 lista plana | **9 paneles con iconos** | +8 |
+| Rutas Staff totales | 257 | 282 | +25 |
+| Panel de configuración global del sitio | **inexistente** (editas `.env` a pelo) | UI Livewire con 6 grupos, 25 ajustes hot-swap | nuevo |
+| Métodos en `UserController` (Staff) | 4 | 5 (`telegramInfo`) | +1 |
+
+#### **§20.1 — Command Panel: De Lista Plana a Centro de Operaciones**
+
+La versión Community es una sola lista vertical de 8-9 botones (clear cache, maintenance, test email). La nuestra es un **centro de operaciones segmentado en 9 paneles temáticos con iconos**:
+
+```
+🛡️ Mantenimiento y Control del Sitio   (fa-shield-alt)
+   • Activar/desactivar modo mantenimiento
+   • Toggle invite-only
+   • Crear storage:link
+
+⚡ Caché y Rendimiento                    (fa-bolt)
+   • Clear cache / view / route / config
+   • Optimize:clear (Laravel + OPcache)
+   • Set all cache (precaching agresivo)
+   • Flush queue
+
+☢️ Operaciones de Datos Críticas         (fa-radiation, estilo danger)
+   • Acciones destructivas confinadas a UN panel rojo
+   • Confirmación explícita antes de cada disparo
+   • Logs persistentes de quién apretó qué y cuándo
+
+🎬 TMDB                                   (fa-film)
+   • Sync de trailers faltantes (normal y --force)
+   • Rotate covers (artwork rotativo)
+
+📡 Rust Tracker — Sincronización          (fa-broadcast-tower)
+   • Sync de users / torrents / groups con UNIT3D-Announce
+   • Útil tras restore o cambio masivo de permisos
+
+🌱 Gestión de Peers y Torrents            (fa-seedling)
+   • Flush old peers / reset user flushes
+   • Sync peers / sync torrents
+   • Limpieza quirúrgica del state del tracker
+
+👥 Usuarios y Limpieza                    (fa-users)
+   • Ban masivo de cuentas con email desechable
+   • Desactivar warnings caducados
+   • Generar tokens de Telegram en lote
+   • Clean failed login attempts
+
+🧪 Pruebas y Utilidades                   (fa-flask)
+   • Test email (con resultado en pantalla, no en logs)
+   • Set Telegram webhook
+   • Fix Meilisearch + reindex scout
+   • Meilisearch full repair (nuke + rebuild)
+   • Update email blacklist desde CDN
+
+🔎 Metadata — Identificación              (fa-fingerprint)
+   • meta:sync y meta:sync --force
+   • Rotar póster activo
+   • Re-resolver torrents huérfanos
+```
+
+**Componente reutilizable**: `Staff/command/_btn.blade.php` — botón con confirmación inline, spinner Livewire y feedback visual. Cada panel lo usa para mantener la UI coherente.
+
+#### **§20.2 — Config Manager: El Panel que NUNCA EXISTIÓ en Community**
+
+UNIT3D Community **no tiene panel de configuración global**. Si quieres cambiar `other.ratio`, `other.freeleech`, `hitrun.seedtime` o cualquier ajuste profundo del tracker, tienes que editar `.env`, recargar caché, rezar.
+
+**Nosotros lo tenemos en producción en una ruta real**:
+- `https://nobs.rawsmoke.net/dashboard/config`
+- Ahí el staff puede abrir/cerrar registros, tocar flags de sitio, revisar el estado actual y cambiar la configuración PHP efectiva sin salir del navegador.
+
+**Construimos uno desde cero**:
+
+- `app/Http/Controllers/Staff/ConfigController.php` — endpoint
+- `app/Http/Livewire/Staff/ConfigManager.php` — componente Livewire (**141 líneas**, persistencia en tabla `settings`)
+- `resources/views/livewire/staff/config-manager.blade.php` — UI (175 líneas)
+- `resources/views/Staff/config/index.blade.php` — page shell
+
+**6 grupos temáticos, 25 ajustes hot-swap**:
+
+| Grupo | Icono | Ajustes |
+|---|---|---|
+| **Sitio** | 🌐 | Solo por invitación, tema por defecto, etiqueta Telegram |
+| **Freeleech & Double Upload** | 🎁 | Freeleech global, hasta-cuándo, double upload, ratio reembolsable |
+| **Ratio & Descargas** | ⚖️ | Ratio mínimo, upload/download inicial, página de verificación, magnet links |
+| **Invitaciones** | ✉️ | Expiración (días), máx. invitaciones sin usar por usuario |
+| **Hit & Run** | ⚠️ | H&R activo, tiempo mínimo de seed (horas), máx. advertencias |
+| **Sistema de Thanks** | (custom) | Umbrales de Thanks Ratio, integración con ratio bonus |
+
+**Tipos de campo soportados**: `boolean`, `bool01`, `text`, `integer`, `decimal`, `bytes`, `theme`. Cada uno con su hint contextual.
+
+**Resultado**: El operador cambia el ratio mínimo del tracker desde la UI. Sin SSH, sin editar `.env`, sin `php artisan config:cache`. El cambio persiste en DB (tabla `settings` que también añadimos — ver §19) y se aplica en caliente.
+
+#### **§20.3 — Por qué esto importa**
+
+Este panel es un par de cosas a la vez:
+
+1. **Reducción de riesgo operativo**: cada acción crítica del tracker tiene un botón con confirmación y log. Antes había que recordar la incantación exacta de `php artisan` en una terminal de root a las 03:00. Ahora hay un panel rojo con `fa-radiation` que dice "vas a borrar el cache de Meilisearch, ¿seguro?".
+
+2. **Documentación viva**: la organización del panel ES la documentación. Un nuevo miembro del staff abre `/staff/commands` y entiende qué herramientas existen sin tener que leer 40 archivos en `app/Console/Commands/`.
+
+3. **Aporte a la escena FOSS**: hasta donde sabemos, **ningún fork público de UNIT3D ha tenido esto**. Es trabajo que la comunidad puede portar — los archivos están versionados, sin obfuscar, sin licencia restrictiva más allá de la AGPLv3 del proyecto madre.
+
+4. **Wiki Gate + flujo guiado para uploaders**:
+   - El tracker no suelta al usuario a ciegas: `config('other.upload-guide_url')` apunta a `/pages/4`.
+   - El `PageSeeder` documenta explícitamente el uso de **Singularity / RaW_Suite** como vía recomendada de subida profesional.
+   - Resultado: el staff no responde 80 veces la misma pregunta; la wiki hace de puerta de entrada y Singularity hace de herramienta pesada.
+
+#### **§20.4 — Coordinación con Singularity / RaW_Suite (Admin Innovation)**
+
+El panel del tracker no vive aislado. La lógica de identificación y mantenimiento masivo se coordina con **Singularity / RaW_Suite**, cuyo repo local está en:
+- `/home/rawserver/scripts/Media-Management/RaW_Suite`
+
+Lo relevante para admins y owners:
+- `docs/unit3d_orchestrator.md` — documenta la suite de **Mass-Edition**
+- `docs/unit3d_mass_edition/*` — pipeline, workflows, setup y seguridad
+- `singularity.py` → `unit3d_orchestrator()` — menú interactivo del módulo UNIT3D
+- `config/mass_config.py` — config del tracker para edición masiva
+
+**Qué aporta**:
+- Procesado masivo
+- Upload masivo
+- Edición masiva de páginas de torrents en trackers UNIT3D
+- Resurrección de imágenes
+- Limpieza / enriquecimiento de descripciones
+- Recoordinación de metadata a escala, no torrent a torrent
+
+Esto no es una curiosidad lateral. Es otra innovación de admin/owner: **un multi-tool externo que habla el idioma del tracker y permite operar cientos de torrents con disciplina de pipeline, no con clics manuales.**
+
+> *"Es mejorable pero ya es cien veces mejor que lo que había. Sudor, lágrimas, y algún nuke por accidente del tracker."*
+
+---
+
+### 21. **🕹️ Arcade Integrado: ScummVM WebAssembly (Pioneros)**
 
 ![Arcade en acción dentro del tracker](Initial_NOBS_art/photo_2026-04-27_20-23-32.jpg)
 
@@ -642,15 +1071,18 @@ make health
 ## 🛠️ Gestión: El Makefile
 
 ```bash
-make help        # Muestra todos los comandos
-make up          # Inicia los contenedores (modo daemon)
-make stop        # Detiene los contenedores
-make restart     # Reinicia la app + web (después de cambios en el código)
-make status      # Muestra el estado de los contenedores
-make backup      # Ejecuta el backup quirúrgico
-make health      # Ejecuta los chequeos de salud
-make logs        # Muestra los logs de la app en vivo
-make clean       # Limpia las cachés de Laravel (config, rutas, vistas)
+make help            # Muestra todos los comandos
+make install         # Instalación fresca (carpetas, permisos, build, up)
+make up              # Inicia los contenedores (modo daemon)
+make stop            # Detiene los contenedores
+make restart         # Reinicia app + web (después de cambios en el código)
+make status          # Muestra el estado de los contenedores
+make backup          # Ejecuta el backup quirúrgico (sudo ./backup.sh)
+make health          # Ejecuta los chequeos de salud
+make logs            # Muestra los logs de la app en vivo
+make clean           # Limpia y recachea config/route/view de Laravel
+make meilisearch     # Aplica la configuración de índices duales (Torrents + People)
+make meilisearch-fix # Reinicia Meilisearch desde cero (borra data y reindexa)
 ```
 
 ---
@@ -658,25 +1090,31 @@ make clean       # Limpia las cachés de Laravel (config, rutas, vistas)
 ## 📊 Arquitectura
 
 ```
-┌──────────────────────────────────────────────────┐
-│                     NGINX (Puerto 8008)          │
-│                (Proxy Inverso + Estáticos)       │
-└────────────┬─────────────────────────────────────┘
-             │
-      ┌──────▼──────┐
-      │   PHP-FPM   │ (App de Laravel)
-      │ (Puerto 9000)│
-      └──────┬──────┘
-             │
-   ┌─────────┼─────────┬────────────┬──────────────┐
-   │         │         │            │              │
-┌──▼──┐   ┌──▼──┐   ┌───▼────┐   ┌───▼────┐   ┌───▼──┐
-│MySQL│   │Redis│   │Meili   │   │Mailpit │   │Worker│
-│8.0  │   │     │   │search  │   │(Buzón) │   │Cola  │
-└─────┘   └─────┘   └────────┘   └────────┘   └──────┘
+┌──────────────────────────────────────────────────────────┐
+│                  NGINX (web · puerto 8008)               │
+│      Proxy Inverso + Estáticos + TMDB Image Proxy        │
+└─────┬────────────────────────────────────┬───────────────┘
+      │ /announce/*                        │ /* (Laravel)
+      ▼                                    ▼
+┌──────────────┐                  ┌────────────────┐
+│ announce     │                  │ PHP-FPM (app)  │
+│ Rust tracker │                  │ Laravel 12     │
+│ :6969        │                  │ :9000          │
+└──────┬───────┘                  └────────┬───────┘
+       │ API interna                       │
+       └────────────────┬──────────────────┘
+                        │
+   ┌────────┬───────────┼──────────────┬──────────────┬─────────────┐
+   │        │           │              │              │             │
+┌──▼──┐  ┌──▼──┐  ┌────▼─────┐  ┌─────▼──────┐  ┌────▼─────┐  ┌────▼──────┐
+│MySQL│  │Redis│  │Meilisearch│  │  Mailpit   │  │  Worker  │  │meta-worker│
+│ 8.0 │  │     │  │           │  │ (test box) │  │ default  │  │meta-refresh│
+└─────┘  └─────┘  └───────────┘  └────────────┘  └──────────┘  └───────────┘
 
-Scheduler: Ejecuta php artisan schedule:work (cron en segundo plano)
-Worker: Ejecuta php artisan queue:work (trabajos en segundo plano)
+Scheduler:    php artisan schedule:work (cron en segundo plano)
+Worker:       php artisan queue:work --queue=default  (Telegram, mails, jobs ligeros)
+Meta-worker:  php artisan queue:work --queue=meta-refresh  (TMDB/IGDB/MAL/Anilist/IMDb)
+Announce:     binario Rust (UNIT3D-Announce) — código vendorizado en rust-announce/
 ```
 
 ---
@@ -685,12 +1123,16 @@ Worker: Ejecuta php artisan queue:work (trabajos en segundo plano)
 
 | Servicio | Interno | Externo | Propósito |
 |---|---|---|---|
-| Nginx | 80 | 8008 | UI Web |
-| PHP-FPM | 9000 | — | Entorno de ejecución de la app |
-| MySQL | 3306 | 3307 | Base de datos |
+| Nginx (`web`) | 80 | 8008 | UI Web + proxy a `/announce/` |
+| Rust Tracker (`announce`) | 6969 | — | Tracker BitTorrent (solo accesible vía nginx) |
+| PHP-FPM (`app`) | 9000 | — | Entorno de ejecución de la app |
+| MySQL (`db`) | 3306 | 3307 | Base de datos |
 | Redis | 6379 | 6380 | Caché/Sesiones/Cola |
 | Meilisearch | 7700 | 7701 | Motor de Búsqueda |
 | Mailpit | 1025/8025 | 8026 | Pruebas de Correo |
+| Scheduler | — | — | `schedule:work` (background) |
+| Worker | — | — | Cola `default` |
+| Meta-worker | — | — | Cola `meta-refresh` |
 
 ---
 
@@ -774,11 +1216,63 @@ docker compose exec -T app php artisan route:list | grep telegram
 curl https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo
 ```
 
+### **Metadatos no se actualizan / catálogo con pósters viejos**
+
+```bash
+# Confirmar que el meta-worker está vivo
+docker compose ps meta-worker
+docker compose logs meta-worker | tail -50
+
+# Forzar refresco manual de un lote
+docker compose exec app php artisan meta:refresh-dispatch --limit=20 --stale-hours=0
+
+# Re-resolver un torrent puntual (multi-proveedor)
+docker compose exec app php artisan meta:sync --force --limit=1
+
+# Rotar póster activo (artwork rotativo)
+docker compose exec app php artisan meta:rotate-covers
+```
+
+### **Mapa 3D del Swarm no carga / consola con 404 en /vendor/**
+
+```bash
+# Los assets de Swarm son gitignored. Re-descargar:
+./install-swarm-assets.sh
+# o dentro del contenedor:
+docker compose exec app ./install-swarm-assets.sh
+
+# Verificar que los archivos existen y tienen tamaño razonable
+ls -lh public/vendor/{force-graph,3d-force-graph,three,d3}/*.js
+```
+
+### **RetroArch: core no arranca / pantalla negra**
+
+```bash
+# Activar modo debug en el reproductor
+# Abrir: https://tu-tracker/retroarch/{system}/{game}?debug
+
+# Recargar el listado de cores y cubiertas
+docker compose exec app php artisan retroarch:scan-roms
+docker compose exec app php artisan retroarch:fetch-covers
+
+# Verificar headers COOP/COEP en la página show (requeridos por algunos cores)
+curl -I https://tu-tracker/retroarch/snes/show | grep -iE 'cross-origin'
+```
+
+### **Tracker Rust desincronizado con Laravel (permisos / nuevo grupo)**
+
+```bash
+# Sincronización en caliente con el binario Rust
+docker compose exec app php artisan tracker:sync-users
+docker compose exec app php artisan tracker:sync-torrents
+docker compose exec app php artisan tracker:sync-groups
+```
+
 ---
 
 ## 🎯 Filosofía: "De la Scene, Para la Scene"
 
-Este proyecto refleja más de 100 horas de trabajo para resucitar UNIT3D de su estado roto en la edición comunitaria. Cada arreglo, cada automatización, cada redundancia existe porque **creemos en la plataforma**.
+Este proyecto refleja más de 2000 horas de trabajo para resucitar UNIT3D de su estado roto en la edición comunitaria. Cada arreglo, cada automatización, cada redundancia existe porque **creemos en la plataforma**.
 
 - **Primero sin conexión**: Funciona de forma completamente autónoma (sin dependencias en la nube)
 - **Resiliente**: Se autorepara de fallos comunes (permisos, carpetas faltantes, tiempos de espera de red)
@@ -810,11 +1304,11 @@ Este fork mantiene la misma licencia y espíritu: abierto, transparente e impuls
 
 - **HDInnovations** por crear UNIT3D
 - **La escena de trackers privados** por décadas de innovación y construcción de comunidades
-- **El equipo de N.O.B.S** por las 100 horas que tomó hacer que esto funcionara
+- **El equipo de N.O.B.S** por las 2000+ horas que tomó hacer que esto funcionara
 
 ---
 
-**Última Actualización**: Abril 2026 | **Estado**: 🟢 Listo para Producción
+**Última Actualización**: Mayo 2026 | **Estado**: 🟢 Listo para Producción
 
 ```
 Hecho con resiliencia y cuidado.
