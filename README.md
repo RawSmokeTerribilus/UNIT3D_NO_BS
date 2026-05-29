@@ -72,7 +72,7 @@ La Edición Comunitaria tenía **bugs sin corregir y funciones faltantes**:
 
 | Problema | Impacto | Nuestra Solución |
 |---|---|---|
-| **Instalador Eliminado** | El script de instalación oficial fue eliminado por los desarrolladores; dejado en un estado roto | Reimplementamos la lógica de configuración en `entrypoint.sh` (ejecución automática de migraciones, listas negras, caché) |
+| **Sin Instalador** | El script de instalación oficial ya no está disponible en la edición comunitaria | Reimplementamos la lógica de configuración en `entrypoint.sh` (ejecución automática de migraciones, listas negras, caché) |
 | **Meilisearch sin Configurar** | El motor de búsqueda se incluía pero no se indexaba ni sincronizaba | Implementamos indexación en arranque en frío, sincronización con observadores en tiempo real y protección con Llave Maestra |
 | **Fuerza Bruta Demasiado Agresiva** | La configuración bloqueaba a usuarios legítimos (5 intentos = bloqueo de 24h) | Ajustamos FortifyServiceProvider (5→15 intentos, 24h→1h, creamos propietario de respaldo) |
 | **Fragilidad de la Lista Negra de Correos** | El sistema se rompía si el CDN externo no era accesible | Creamos una caché local persistente (`storage/app/email-blacklist.json`) con un sistema de respaldo híbrido |
@@ -796,9 +796,9 @@ meta-worker:
 
 ---
 
-### 20. **🎛️ Super-Paneles de Staff (Lo que HDInnovations Cobra Aparte, en FOSS)**
+### 20. **🎛️ Super-Paneles de Staff (Administración Avanzada, en FOSS)**
 
-**Contexto**: UNIT3D Community Edition viene con un Staff Dashboard funcional pero **deliberadamente incompleto**. Los paneles avanzados de administración — los que de verdad usa el operador a diario — son extras de la versión privada. Ningún fork público de UNIT3D los había construido.
+**Contexto**: UNIT3D Community Edition viene con un Staff Dashboard funcional pero básico. Los paneles avanzados de administración — los que de verdad usa el operador a diario — no formaban parte de la edición pública. Ningún fork público de UNIT3D los había construido.
 **Lo único que vimos fue una foto borrosa de uno**. Una semana de diseño en papel después, empezamos. Lo que sigue lleva 2000+ horas de iteración encima — y algún nuke por accidente del tracker que duele recordar.
 
 #### **Comparativa Directa con Community Edition**
@@ -1312,7 +1312,7 @@ docker compose exec app php artisan tracker:sync-groups
 
 ## 🎯 Filosofía: "De la Scene, Para la Scene"
 
-Este proyecto refleja más de 2000 horas de trabajo para resucitar UNIT3D de su estado roto en la edición comunitaria. Cada arreglo, cada automatización, cada redundancia existe porque **creemos en la plataforma**.
+Este proyecto refleja más de 2000 horas de trabajo para reparar y ampliar UNIT3D partiendo de la edición comunitaria. Cada arreglo, cada automatización, cada redundancia existe porque **creemos en la plataforma**.
 
 - **Primero sin conexión**: Funciona de forma completamente autónoma (sin dependencias en la nube)
 - **Resiliente**: Se autorepara de fallos comunes (permisos, carpetas faltantes, tiempos de espera de red)
