@@ -55,8 +55,8 @@
         <label>table
           <input id="e-table" type="text" placeholder="click a table in topology →">
         </label>
-        <button id="btn-export" class="go">Export missing</button>
         <p class="hint">Writes INSERT IGNORE .sql for human review. Never auto-applied to prod.</p>
+        <button id="btn-export" class="go">Export missing</button>
       </div>
 
       <div class="panel">
@@ -73,8 +73,8 @@
         <label>type RESET
           <input id="x-confirm" type="text" placeholder="RESET" autocomplete="off">
         </label>
-        <button id="btn-reset" class="go danger-btn">Wipe lab datadir</button>
         <p class="hint">Stops the lab and deletes <code>mysql_lab</code>. Prod untouched.</p>
+        <button id="btn-reset" class="go danger-btn">Wipe lab datadir</button>
       </div>
     </div>
   </section>
@@ -98,6 +98,21 @@
         <label>export <select id="kit-file"></select></label>
         <button id="btn-kit" class="go">Generate kit + command</button>
         <p class="hint">Combined .sql + exact terminal one-liner. Dash never writes prod. The fallback.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Maintenance</h3>
+        <label>op
+          <select id="mt-op">
+            <option value="check">check (read-only)</option>
+            <option value="analyze">analyze (fix estimates)</option>
+            <option value="optimize">optimize (defrag/rebuild)</option>
+          </select>
+        </label>
+        <label>tables <input id="mt-tables" type="text" placeholder="space-separated"></label>
+        <label id="mt-pw-wrap" style="display:none">prod DB password <input id="mt-pw" type="password" autocomplete="off"></label>
+        <p class="hint">check reads. analyze refreshes the row estimates. optimize reclaims fragmentation (locks/rebuilds, backup-first).</p>
+        <button id="btn-maint" class="go">Run maintenance</button>
       </div>
 
       <div class="panel danger">
@@ -156,8 +171,10 @@
     <span id="topo-lab" class="badge muted">lab —</span>
   </div>
   <div id="topo-summary" class="muted small">loading…</div>
+  <div id="topo-disk" class="disk-gauge"></div>
   <div class="topo-controls">
     <input id="topo-search" type="text" placeholder="filter tables…" autocomplete="off">
+    <button id="btn-exact-all" class="link" title="exact COUNT(*) for every table">exact all</button>
     <select id="topo-sort">
       <option value="size">sort: size</option>
       <option value="rows">sort: rows</option>

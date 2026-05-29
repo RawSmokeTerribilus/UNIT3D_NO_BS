@@ -59,6 +59,10 @@ main { padding: 0 1.5rem 2rem; min-width: 0; }
 .vu-chip.frag { background: var(--warn); }
 .vu-chip.lab { background: #3fb950; }
 
+.disk-gauge { display: grid; grid-template-columns: 2.2rem 1fr auto; align-items: center; gap: .4rem; margin: .4rem 0 .2rem; }
+.disk-gauge:empty { display: none; }
+.disk-gauge .mval { font-size: .68rem; color: var(--muted); white-space: nowrap; }
+.disk-gauge .mlabel { font-size: .62rem; color: var(--muted); text-transform: uppercase; }
 .topo-list { display: flex; flex-direction: column; gap: .35rem; }
 .trow {
   background: var(--panel); border: 1px solid var(--line); border-left: 3px solid transparent;

@@ -34,7 +34,7 @@ let lastStats = {};
 let labUp = false;
 
 const ACTION_BTNS = ["btn-restore", "btn-diff", "btn-export", "btn-tv", "btn-reset",
-  "btn-apply-dry", "btn-apply", "btn-kit", "btn-dr", "btn-scan"];
+  "btn-apply-dry", "btn-apply", "btn-kit", "btn-dr", "btn-scan", "btn-exact-all", "btn-maint"];
 
 async function refreshStatus() {
   try {
@@ -200,6 +200,7 @@ async function streamJob(jobId, action) {
     } catch (e) {}
     refreshStatus(); refreshBackups(); refreshExports();
     if (action === "timeline") { $("btn-scan").textContent = "scan binlogs"; loadTimeline(); }
+    if (action === "exact-count") { $("btn-exact-all").textContent = "exact all"; loadExactCounts(); }
   }
 }
 
@@ -257,13 +258,13 @@ function renderTopology() {
   $("topo-lab").textContent = labUp ? "lab overlay on" : "lab off";
 
   let rows = topoData.prod.slice();
-  const totalSize = rows.reduce((a, t) => a + t.data + t.idx, 0);
+  const totalSize = rows.reduce((a, t) => a + t.data + t.idx, 0) || 1;
   $("topo-summary").textContent =
-    `${rows.length} tables · ${fmtSize(totalSize)} · ${topoIds.size} diffable`;
+    `${rows.length} tables · ${fmtSize(totalSize)} DB · ${topoIds.size} diffable`;
+  renderDisk(topoData.disk);
 
   if (q) rows = rows.filter((t) => t.name.toLowerCase().includes(q));
   const maxRows = Math.max(1, ...rows.map((t) => t.rows));
-  const maxSize = Math.max(1, ...rows.map((t) => t.data + t.idx));
   const fragPct = (t) => { const tot = t.data + t.idx + t.free; return tot ? t.free / tot * 100 : 0; };
   rows.sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
@@ -297,8 +298,8 @@ function renderTopology() {
           <div class="vu"><div class="vu-fill rows" style="width:${logScale(prodRows, maxRows)}%"></div></div>
           <span class="mval">${rowsTxt}</span></div>
         <div class="meter"><span class="mlabel">size</span>
-          <div class="vu"><div class="vu-fill size" style="width:${logScale(size, maxSize)}%"></div></div>
-          <span class="mval">${fmtSize(size)}</span></div>
+          <div class="vu"><div class="vu-fill size" style="width:${Math.max(size / totalSize * 100, size ? 1.5 : 0)}%"></div></div>
+          <span class="mval" title="${(size / totalSize * 100).toFixed(1)}% of DB">${fmtSize(size)}</span></div>
         <div class="meter"><span class="mlabel">frag</span>
           <div class="vu"><div class="vu-fill frag ${fragClass(fp)}" style="width:${Math.min(fp, 100)}%"></div></div>
           <span class="mval">${fp.toFixed(0)}%</span></div>
@@ -327,6 +328,17 @@ async function exactCount(name) {
   } catch (e) {}
 }
 
+function renderDisk(disk) {
+  const el = $("topo-disk");
+  if (!disk) { el.innerHTML = ""; return; }
+  const pct = disk.pct || 0;
+  const cls = pct >= 90 ? "bad" : pct >= 75 ? "warn" : "ok";
+  el.innerHTML =
+    `<span class="mlabel">disk</span>` +
+    `<div class="vu"><div class="vu-fill frag ${cls}" style="width:${pct}%"></div></div>` +
+    `<span class="mval" title="datadir filesystem">${fmtSize(disk.used)} / ${fmtSize(disk.total)} (${pct}%)</span>`;
+}
+
 async function refreshTopology() {
   try {
     topoData = await (await fetch("/api/topology")).json();
@@ -337,8 +349,17 @@ async function refreshTopology() {
   }
 }
 
+async function loadExactCounts() {
+  try {
+    const d = await (await fetch("/api/exact-counts")).json();
+    for (const [t, v] of Object.entries(d.counts || {})) exactCounts[t] = v;
+    renderTopology();
+  } catch (e) {}
+}
+
 $("topo-search").oninput = renderTopology;
 $("topo-sort").onchange = renderTopology;
+$("btn-exact-all").onclick = () => { $("btn-exact-all").textContent = "counting…"; post("exact-count", {}); };
 
 // ---- damage timeline ---------------------------------------------------------
 let tlData = { events: [], by_severity: {}, top_tables: [] };
@@ -442,6 +463,25 @@ $("btn-dr").onclick = () => {
   $("dr-pw").value = ""; $("dr-confirm").value = "";
 };
 
+// maintenance: show password field only for analyze/optimize (writes prod)
+$("mt-op").onchange = () => {
+  $("mt-pw-wrap").style.display = $("mt-op").value === "check" ? "none" : "flex";
+};
+$("btn-maint").onclick = () => {
+  const op = $("mt-op").value;
+  const tables = $("mt-tables").value.trim().split(/\s+/).filter(Boolean);
+  if (!tables.length) { $("log").textContent = "enter at least one table"; return; }
+  const body = { op, tables };
+  if (op !== "check") {
+    const pw = $("mt-pw").value;
+    if (!pw) { $("log").textContent = "enter the prod DB password for " + op; return; }
+    body.password = pw;
+    if (op === "optimize" && !confirm("OPTIMIZE rebuilds " + tables.join(", ") + " on PROD (can lock under live traffic). Backup-first runs. Continue?")) return;
+  }
+  post("maint", body);
+  $("mt-pw").value = "";
+};
+
 $("btn-refresh").onclick = refreshBackups;
 $("btn-refresh-exports").onclick = refreshExports;
 
@@ -451,7 +491,7 @@ fetch("/api/tables").then((r) => r.json()).then((d) => {
 }).catch(() => {});
 
 refreshStats().then(refreshStatus);
-refreshBackups(); refreshExports(); refreshTopology(); loadTimeline();
+refreshBackups(); refreshExports(); refreshTopology(); loadTimeline(); loadExactCounts();
 setInterval(refreshStatus, 3000);
 setInterval(() => refreshStats().then(refreshStatus), 5000);
 setInterval(refreshBackups, 30000);

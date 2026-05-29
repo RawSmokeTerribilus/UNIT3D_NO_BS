@@ -39,5 +39,11 @@ if docker ps --format '{{.Names}}' | grep -Fxq "$LAB_DB_CONTAINER"; then
   [ -z "$LAB_JSON" ] && LAB_JSON='{}'
 fi
 
-printf '{"prod":%s,"ids":%s,"lab":%s,"lab_up":%s,"ts":"%s"}\n' \
-  "$PROD_JSON" "$IDS_JSON" "$LAB_JSON" "$LAB_UP" "$(date +%FT%T%:z)"
+# Disk capacity of the filesystem holding the prod datadir (the real capacity ceiling).
+DATADIR="$PROJECT_ROOT/${PROD_MYSQL_DIR#./}"
+DISK="$(df -B1 --output=size,used,avail,pcent "$DATADIR" 2>/dev/null \
+  | awk 'NR==2{gsub("%","",$4); printf "{\"total\":%d,\"used\":%d,\"avail\":%d,\"pct\":%d}",$1,$2,$3,$4}')"
+[ -z "$DISK" ] && DISK=null
+
+printf '{"prod":%s,"ids":%s,"lab":%s,"lab_up":%s,"disk":%s,"ts":"%s"}\n' \
+  "$PROD_JSON" "$IDS_JSON" "$LAB_JSON" "$LAB_UP" "$DISK" "$(date +%FT%T%:z)"

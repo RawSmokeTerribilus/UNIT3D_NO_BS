@@ -49,8 +49,12 @@ SCRIPTS = {
     "prod-apply": "prod-apply.sh",
     "build-apply-kit": "build-apply-kit.sh",
     "prod-restore": "prod-restore.sh",
+    "exact-count": "exact-count-all.sh",
+    "maint": "prod-maint.sh",
 }
+MAINT_OPS = ("check", "analyze", "optimize")
 TIMELINE_JSON = os.path.join(RUN_DIR, "timeline.json")
+EXACT_COUNTS_JSON = os.path.join(RUN_DIR, "exact-counts.json")
 DIFF_DEFAULT_TABLES = ["users", "topics", "posts", "comments", "torrents"]
 
 # --- strict input validation (args are interpolated into SQL/shell by scripts) -
@@ -118,6 +122,19 @@ def build_argv(action, params):
         if params.get("all"):
             argv.append("--all")
         return argv
+    if action == "exact-count":
+        return [script, EXACT_COUNTS_JSON]
+    if action == "maint":
+        op = params.get("op")
+        if op not in MAINT_OPS:
+            raise BadInput("op must be one of %s" % (MAINT_OPS,))
+        tables = params.get("tables") or []
+        if not isinstance(tables, list) or not tables:
+            raise BadInput("no tables given")
+        for t in tables:
+            if not RE_TABLE.match(str(t)):
+                raise BadInput("bad table name: %r" % t)
+        return [script, op] + [str(t) for t in tables]
     if action in ("prod-apply", "build-apply-kit"):
         # one or more bare .sql filenames inside the export dir
         files = params.get("files") or ([params["file"]] if params.get("file") else [])
@@ -162,6 +179,11 @@ def build_env(action, params):
         if (params.get("confirm") or "") != "RESTORE PROD":
             raise BadInput("type 'RESTORE PROD' to confirm the destructive restore")
         env["PROD_RESTORE_CONFIRM"] = "RESTORE PROD"
+    if action == "maint" and params.get("op") in ("analyze", "optimize"):
+        pw = params.get("password")
+        if not pw:
+            raise BadInput("prod DB password required for %s" % params.get("op"))
+        env["PROD_WRITE_PW"] = pw
     return env
 
 # --- in-process state --------------------------------------------------------
@@ -462,6 +484,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(data)
             except (OSError, ValueError):
                 return self._json({"events": [], "count": 0, "mtime": None})
+        if path == "/api/exact-counts":
+            try:
+                with open(EXACT_COUNTS_JSON) as f:
+                    data = json.load(f)
+                return self._json({"counts": data,
+                                   "mtime": datetime.fromtimestamp(
+                                       os.path.getmtime(EXACT_COUNTS_JSON)).isoformat(timespec="seconds")})
+            except (OSError, ValueError):
+                return self._json({"counts": {}, "mtime": None})
         if path == "/api/table-count":
             qs = urllib.parse.urlparse(self.path).query
             table = urllib.parse.parse_qs(qs).get("table", [""])[0]
