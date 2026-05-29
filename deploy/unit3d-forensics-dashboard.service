@@ -1,0 +1,15 @@
+[Unit]
+Description=UNIT3D forensics lab dashboard (local web front for the MySQL recovery bench)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/UNIT3D_Docker
+EnvironmentFile=%h/UNIT3D_Docker/forensics/dashboard/dashboard.env
+ExecStart=/usr/bin/python3 %h/UNIT3D_Docker/forensics/dashboard/server.py
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

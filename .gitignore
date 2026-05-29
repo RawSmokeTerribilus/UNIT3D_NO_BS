@@ -110,6 +110,13 @@ public/img/games/*
 # forensics bench local config (may hold lab password)
 forensics/forensics.env
 
+# forensics lab dashboard — local config + runtime job logs/locks
+forensics/dashboard/dashboard.env
+forensics/dashboard/run/
+
 # nginx logs (relocated out of storage/logs) + logrotate runtime state/config
 /storage/logs-nginx/
 /storage/logrotate/
+
+# python bytecode cache for the dashboard
+forensics/dashboard/__pycache__/

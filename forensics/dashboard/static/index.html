@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forensics Lab</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <h1>UNIT3D Forensics Lab</h1>
+  <div id="status" class="status">
+    <span class="dot" id="dot"></span>
+    <span id="state-text">checking…</span>
+    <span id="health" class="muted"></span>
+  </div>
+  <div class="actions">
+    <button id="btn-wake">Wake lab</button>
+    <button id="btn-sleep">Sleep lab</button>
+  </div>
+</header>
+
+<div class="layout">
+<main>
+  <section>
+    <h2>Containers</h2>
+    <div id="cards" class="cards"></div>
+  </section>
+
+  <section>
+    <h2>Recovery actions</h2>
+    <div class="panels">
+      <div class="panel">
+        <h3>Restore <span class="muted">(PITR)</span></h3>
+        <label>snapshot
+          <select id="r-dump"><option value="latest">latest</option></select>
+        </label>
+        <label>until
+          <input id="r-until" type="text" value="HEAD" placeholder="YYYY-MM-DD HH:MM:SS or HEAD">
+        </label>
+        <label class="check"><input id="r-noreplay" type="checkbox"> skip binlog replay</label>
+        <button id="btn-restore" class="go">Restore to lab</button>
+      </div>
+
+      <div class="panel">
+        <h3>Diff <span class="muted">(lab vs prod)</span></h3>
+        <label>tables
+          <input id="d-tables" type="text" placeholder="click tables in topology →">
+        </label>
+        <button id="btn-diff" class="go">Run diff</button>
+      </div>
+
+      <div class="panel">
+        <h3>Export <span class="muted">(lab-only rows)</span></h3>
+        <label>table
+          <input id="e-table" type="text" placeholder="click a table in topology →">
+        </label>
+        <button id="btn-export" class="go">Export missing</button>
+        <p class="hint">Writes INSERT IGNORE .sql for human review. Never auto-applied to prod.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Torrent validate</h3>
+        <label>id or infohash
+          <input id="t-target" type="text" placeholder="numeric id or 40-hex">
+        </label>
+        <button id="btn-tv" class="go">Validate</button>
+        <div id="tv-verdict"></div>
+      </div>
+
+      <div class="panel danger">
+        <h3>Reset lab <span class="muted">(destructive)</span></h3>
+        <label>type RESET
+          <input id="x-confirm" type="text" placeholder="RESET" autocomplete="off">
+        </label>
+        <button id="btn-reset" class="go danger-btn">Wipe lab datadir</button>
+        <p class="hint">Stops the lab and deletes <code>mysql_lab</code>. Prod untouched.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Apply &amp; disaster recovery <span class="muted">(writes prod — password-gated)</span></h2>
+    <div class="panels">
+      <div class="panel danger">
+        <h3>Apply export → prod</h3>
+        <label>export <select id="ap-file"></select></label>
+        <label>prod DB password <input id="ap-pw" type="password" autocomplete="off"></label>
+        <div class="btnrow">
+          <button id="btn-apply-dry" class="go">Dry-run</button>
+          <button id="btn-apply" class="go danger-btn">Apply (commit)</button>
+        </div>
+        <p class="hint">Additive INSERT IGNORE. Backup-first + dry-run run before commit.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Build apply kit <span class="muted">(read-only)</span></h3>
+        <label>export <select id="kit-file"></select></label>
+        <button id="btn-kit" class="go">Generate kit + command</button>
+        <p class="hint">Combined .sql + exact terminal one-liner. Dash never writes prod. The fallback.</p>
+      </div>
+
+      <div class="panel danger">
+        <h3>Full DR: snapshot → PROD <span class="muted">(destructive)</span></h3>
+        <label>snapshot <select id="dr-dump"></select></label>
+        <label>until <input id="dr-until" type="text" value="HEAD" placeholder="from timeline"></label>
+        <label>prod DB password <input id="dr-pw" type="password" autocomplete="off"></label>
+        <label>type RESTORE PROD <input id="dr-confirm" type="text" autocomplete="off" placeholder="RESTORE PROD"></label>
+        <button id="btn-dr" class="go danger-btn">Restore snapshot to PROD</button>
+        <p class="hint">DROP+recreate prod schema → import → replay to <code>until</code>. Backup-first. Set <code>until</code> from the timeline to stop before the wipe.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="row">
+      <h2>Damage timeline <button id="btn-scan" class="link">scan binlogs</button></h2>
+      <span id="tl-meta" class="muted small"></span>
+    </div>
+    <p class="hint">Destructive events in the replay window. Click one → sets Restore <code>until</code> to just before it, so you recover up to — not through — the damage.</p>
+    <div id="tl-list" class="tl-list"><div class="muted small">no scan yet.</div></div>
+  </section>
+
+  <section>
+    <div class="row">
+      <h2>Live log <span id="job-label" class="muted"></span></h2>
+      <span id="job-result" class="badge"></span>
+    </div>
+    <pre id="log" class="log">idle.</pre>
+  </section>
+
+  <section>
+    <h2>Export artifacts <button id="btn-refresh-exports" class="link">refresh</button></h2>
+    <table id="exports">
+      <thead><tr><th>file</th><th>size</th><th>created</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="row">
+      <h2>Backup snapshots <button id="btn-refresh" class="link">refresh</button></h2>
+      <div id="backup-health" class="badge muted">…</div>
+    </div>
+    <div id="backup-summary" class="muted small"></div>
+    <table id="backups">
+      <thead><tr><th>dump</th><th>size</th><th class="chart-col">relative size</th><th>taken</th><th>binlogpos</th><th>sha256</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<aside class="topo">
+  <div class="topo-head">
+    <h2>Data topology</h2>
+    <span id="topo-lab" class="badge muted">lab —</span>
+  </div>
+  <div id="topo-summary" class="muted small">loading…</div>
+  <div class="topo-controls">
+    <input id="topo-search" type="text" placeholder="filter tables…" autocomplete="off">
+    <select id="topo-sort">
+      <option value="size">sort: size</option>
+      <option value="rows">sort: rows</option>
+      <option value="name">sort: name</option>
+      <option value="frag">sort: fragmentation</option>
+    </select>
+  </div>
+  <div class="topo-legend muted">
+    <span><i class="iddot ok"></i> diffable</span>
+    <span><i class="vu-chip rows"></i> rows</span>
+    <span><i class="vu-chip size"></i> size</span>
+    <span><i class="vu-chip frag"></i> frag</span>
+    <span><i class="vu-chip lab"></i> lab</span>
+  </div>
+  <div id="topo-list" class="topo-list"></div>
+</aside>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
