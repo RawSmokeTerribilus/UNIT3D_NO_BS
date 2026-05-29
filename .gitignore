@@ -109,3 +109,7 @@ public/img/games/*
 
 # forensics bench local config (may hold lab password)
 forensics/forensics.env
+
+# nginx logs (relocated out of storage/logs) + logrotate runtime state/config
+/storage/logs-nginx/
+/storage/logrotate/
