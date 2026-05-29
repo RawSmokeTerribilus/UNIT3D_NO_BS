@@ -152,6 +152,29 @@ button.danger-btn:hover:not(:disabled) { border-color: var(--bad); color: #fff; 
 }
 .panel input[type=password]:focus { outline: none; border-color: var(--accent); }
 
+/* storage health gauges */
+.storage-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: .3rem 1.2rem; }
+.storage-gauges .meter { grid-template-columns: 3rem 1fr auto; }
+.storage-gauges .mval { font-size: .72rem; }
+
+/* topology health advisories */
+.advisories { display: flex; flex-direction: column; gap: .25rem; margin-bottom: .6rem; }
+.advisories:empty { display: none; }
+.adv {
+  display: flex; align-items: center; gap: .5rem; font-size: .76rem;
+  padding: .25rem .5rem; border-radius: 5px; background: var(--panel);
+  border-left: 3px solid var(--off);
+}
+.adv.warn { border-left-color: var(--warn); }
+.adv.bad { border-left-color: var(--bad); }
+.adv.info { border-left-color: var(--accent); }
+.adv.ok { border-left-color: var(--ok); }
+.adv[data-op] { cursor: pointer; }
+.adv[data-op]:hover { border-color: var(--accent); background: #11243a; }
+.adv-tag { font-size: .62rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); min-width: 3.4rem; }
+.adv .mono { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adv-fix { color: var(--accent); font-size: .7rem; white-space: nowrap; }
+
 /* damage timeline */
 .tl-list { display: flex; flex-direction: column; gap: .2rem; max-height: 340px; overflow: auto; }
 .tl-row {

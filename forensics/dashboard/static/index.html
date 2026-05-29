@@ -153,8 +153,17 @@
   </section>
 
   <section>
+    <h2>Storage health</h2>
+    <div id="storage-gauges" class="storage-gauges muted small">loading…</div>
+  </section>
+
+  <section>
     <div class="row">
-      <h2>Backup snapshots <button id="btn-refresh" class="link">refresh</button></h2>
+      <h2>Backup snapshots
+        <button id="btn-snapshot" class="link">snapshot now</button>
+        <button id="btn-verify" class="link">verify checksums</button>
+        <button id="btn-refresh" class="link">refresh</button>
+      </h2>
       <div id="backup-health" class="badge muted">…</div>
     </div>
     <div id="backup-summary" class="muted small"></div>
@@ -189,6 +198,7 @@
     <span><i class="vu-chip frag"></i> frag</span>
     <span><i class="vu-chip lab"></i> lab</span>
   </div>
+  <div id="topo-advisories" class="advisories"></div>
   <div id="topo-list" class="topo-list"></div>
 </aside>
 </div>

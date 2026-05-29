@@ -34,7 +34,8 @@ let lastStats = {};
 let labUp = false;
 
 const ACTION_BTNS = ["btn-restore", "btn-diff", "btn-export", "btn-tv", "btn-reset",
-  "btn-apply-dry", "btn-apply", "btn-kit", "btn-dr", "btn-scan", "btn-exact-all", "btn-maint"];
+  "btn-apply-dry", "btn-apply", "btn-kit", "btn-dr", "btn-scan", "btn-exact-all", "btn-maint",
+  "btn-snapshot", "btn-verify"];
 
 async function refreshStatus() {
   try {
@@ -201,6 +202,8 @@ async function streamJob(jobId, action) {
     refreshStatus(); refreshBackups(); refreshExports();
     if (action === "timeline") { $("btn-scan").textContent = "scan binlogs"; loadTimeline(); }
     if (action === "exact-count") { $("btn-exact-all").textContent = "exact all"; loadExactCounts(); }
+    if (action === "snapshot") { $("btn-snapshot").textContent = "snapshot now"; refreshBackups(); refreshStorageHealth(); }
+    if (action === "verify-backups") { $("btn-verify").textContent = "verify checksums"; }
   }
 }
 
@@ -262,6 +265,7 @@ function renderTopology() {
   $("topo-summary").textContent =
     `${rows.length} tables · ${fmtSize(totalSize)} DB · ${topoIds.size} diffable`;
   renderDisk(topoData.disk);
+  renderAdvisories();
 
   if (q) rows = rows.filter((t) => t.name.toLowerCase().includes(q));
   const maxRows = Math.max(1, ...rows.map((t) => t.rows));
@@ -347,6 +351,93 @@ async function refreshTopology() {
   } catch (e) {
     $("topo-summary").textContent = "topology unreachable";
   }
+}
+
+// ---- storage health gauges ---------------------------------------------------
+function gauge(label, fillPct, cls, valText, title) {
+  return `<div class="meter" title="${title || ""}"><span class="mlabel">${label}</span>` +
+    `<div class="vu"><div class="vu-fill ${cls}" style="width:${Math.max(0, Math.min(fillPct, 100))}%"></div></div>` +
+    `<span class="mval">${valText}</span></div>`;
+}
+
+async function refreshStorageHealth() {
+  const el = $("storage-gauges");
+  try {
+    const s = await (await fetch("/api/storage-health")).json();
+    const disk = s.disk || {};
+    const diskTotal = disk.total || 1;
+    const bl = s.binlogs || {};
+    const span = (bl.oldest && bl.newest) ? fmtAge(bl.newest - bl.oldest) : "—";
+    const diskCls = (disk.pct || 0) >= 90 ? "bad" : (disk.pct || 0) >= 75 ? "warn" : "ok";
+    el.innerHTML =
+      gauge("disk", disk.pct || 0, "frag " + diskCls,
+            `${fmtSize(disk.used || 0)} / ${fmtSize(disk.total || 0)} (${disk.pct || 0}%)`, "datadir filesystem") +
+      gauge("binlog", (bl.bytes || 0) / diskTotal * 100, "size",
+            `${fmtSize(bl.bytes || 0)} · ${bl.count || 0} files · PITR ${span}`, "binlog footprint + recovery window") +
+      gauge("redis", (s.redis_bytes || 0) / diskTotal * 100, "rows",
+            fmtSize(s.redis_bytes || 0), "redis datadir (read-only)") +
+      gauge("meili", (s.meili_bytes || 0) / diskTotal * 100, "lab",
+            fmtSize(s.meili_bytes || 0), "meilisearch datadir (read-only)");
+  } catch (e) { el.textContent = "storage health unreachable"; }
+}
+
+// ---- topology health advisories (link to the gated maintenance actions) ------
+const ID_CEIL = { "int": 2147483647, "int unsigned": 4294967295, "bigint": 9223372036854775807,
+                  "bigint unsigned": 18446744073709551615, "smallint": 32767, "smallint unsigned": 65535,
+                  "mediumint": 8388607, "mediumint unsigned": 16777215 };
+
+function renderAdvisories() {
+  const el = $("topo-advisories");
+  if (!el) return;
+  const prod = topoData.prod || [];
+  const items = [];
+
+  // fragmentation / OPTIMIZE candidates: only flag meaningful reclaim — a floor of
+  // 16 MiB free, and either >50 MiB absolute or >30% of the table is free space.
+  const MiB = 1024 * 1024;
+  const frag = prod.filter((t) => t.free >= 16 * MiB &&
+      (t.free >= 50 * MiB || t.free / (t.data + t.idx + t.free) >= 0.30))
+    .sort((a, b) => b.free - a.free).slice(0, 8);
+  for (const t of frag)
+    items.push(`<div class="adv warn" data-op="optimize" data-table="${t.name}">` +
+      `<span class="adv-tag">defrag</span><span class="mono">${t.name}</span>` +
+      `<span class="muted">${fmtSize(t.free)} free</span><span class="adv-fix">optimize →</span></div>`);
+
+  // stale estimates: exact vs estimate diverge a lot
+  for (const t of prod) {
+    const ex = exactCounts[t.name];
+    if (!ex || ex.prod == null || ex.prod < 1000) continue;
+    const est = t.rows || 0;
+    const diff = Math.abs(ex.prod - est) / ex.prod;
+    if (diff > 0.2)
+      items.push(`<div class="adv info" data-op="analyze" data-table="${t.name}">` +
+        `<span class="adv-tag">stale</span><span class="mono">${t.name}</span>` +
+        `<span class="muted">est ${est.toLocaleString()} vs ${ex.prod.toLocaleString()}</span><span class="adv-fix">analyze →</span></div>`);
+  }
+
+  // autoincrement headroom
+  const idtypes = topoData.idtypes || {};
+  for (const t of prod) {
+    const ty = (idtypes[t.name] || "").toLowerCase();
+    const ceil = ID_CEIL[ty];
+    if (!ceil || !t.autoinc) continue;
+    const pct = t.autoinc / ceil * 100;
+    if (pct >= 60)
+      items.push(`<div class="adv ${pct >= 85 ? "bad" : "warn"}">` +
+        `<span class="adv-tag">id ${pct.toFixed(0)}%</span><span class="mono">${t.name}</span>` +
+        `<span class="muted">${t.autoinc.toLocaleString()} / ${ty}</span></div>`);
+  }
+
+  if (!items.length) { el.innerHTML = '<div class="adv ok"><span class="adv-tag">ok</span><span class="muted">no fragmentation / stale-estimate / id-headroom issues</span></div>'; return; }
+  el.innerHTML = items.join("");
+  el.querySelectorAll(".adv[data-op]").forEach((row) => {
+    row.onclick = () => {
+      $("mt-op").value = row.dataset.op;
+      $("mt-op").onchange();   // toggles the password field visibility
+      $("mt-tables").value = row.dataset.table;
+      $("mt-op").scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+  });
 }
 
 async function loadExactCounts() {
@@ -482,6 +573,10 @@ $("btn-maint").onclick = () => {
   $("mt-pw").value = "";
 };
 
+// backup lifecycle
+$("btn-snapshot").onclick = () => { $("btn-snapshot").textContent = "snapshotting…"; post("snapshot", {}); };
+$("btn-verify").onclick = () => { $("btn-verify").textContent = "verifying…"; post("verify-backups", {}); };
+
 $("btn-refresh").onclick = refreshBackups;
 $("btn-refresh-exports").onclick = refreshExports;
 
@@ -491,8 +586,9 @@ fetch("/api/tables").then((r) => r.json()).then((d) => {
 }).catch(() => {});
 
 refreshStats().then(refreshStatus);
-refreshBackups(); refreshExports(); refreshTopology(); loadTimeline(); loadExactCounts();
+refreshBackups(); refreshExports(); refreshTopology(); loadTimeline(); loadExactCounts(); refreshStorageHealth();
 setInterval(refreshStatus, 3000);
 setInterval(() => refreshStats().then(refreshStatus), 5000);
 setInterval(refreshBackups, 30000);
 setInterval(refreshTopology, 8000);   // near-realtime topology (cheap info_schema)
+setInterval(refreshStorageHealth, 20000);

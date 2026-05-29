@@ -51,8 +51,11 @@ SCRIPTS = {
     "prod-restore": "prod-restore.sh",
     "exact-count": "exact-count-all.sh",
     "maint": "prod-maint.sh",
+    "verify-backups": "verify-backups.sh",
 }
 MAINT_OPS = ("check", "analyze", "optimize")
+# snapshot uses the shared backup script in bin/ (not bin/forensics/)
+SNAPSHOT_SCRIPT = os.path.join(PROJECT_ROOT, "bin", "db-backup-regular.sh")
 TIMELINE_JSON = os.path.join(RUN_DIR, "timeline.json")
 EXACT_COUNTS_JSON = os.path.join(RUN_DIR, "exact-counts.json")
 DIFF_DEFAULT_TABLES = ["users", "topics", "posts", "comments", "torrents"]
@@ -70,8 +73,10 @@ class BadInput(ValueError):
 
 def build_argv(action, params):
     """Map an action + request params to a validated script argv. Raises BadInput."""
+    if action == "snapshot":
+        return [SNAPSHOT_SCRIPT]
     script = os.path.join(BIN_FORENSICS, SCRIPTS[action])
-    if action in ("wake", "sleep"):
+    if action in ("wake", "sleep", "verify-backups"):
         return [script]
     if action == "restore":
         argv = [script]
@@ -341,6 +346,23 @@ def run_bin(script, args=(), timeout=30):
         return 1, str(e)
 
 
+_STORAGE_CACHE = {"ts": 0.0, "data": None}
+
+
+def get_storage_health():
+    """Cached (15s) read-only binlog/redis/meili/disk footprint."""
+    if time.time() - _STORAGE_CACHE["ts"] < 15 and _STORAGE_CACHE["data"] is not None:
+        return _STORAGE_CACHE["data"]
+    rc, out = run_bin("storage-health.sh", timeout=30)
+    try:
+        data = json.loads(out.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        data = {"error": "storage-health failed", "rc": rc,
+                "binlogs": {}, "redis_bytes": None, "meili_bytes": None, "disk": None}
+    _STORAGE_CACHE.update(ts=time.time(), data=data)
+    return data
+
+
 _TOPO_CACHE = {"ts": 0.0, "data": None}
 
 
@@ -473,6 +495,8 @@ class Handler(BaseHTTPRequestHandler):
             })
         if path == "/api/tables":
             return self._json({"default_tables": DIFF_DEFAULT_TABLES})
+        if path == "/api/storage-health":
+            return self._json(get_storage_health())
         if path == "/api/topology":
             return self._json(get_topology())
         if path == "/api/timeline":
@@ -577,7 +601,7 @@ class Handler(BaseHTTPRequestHandler):
         if not path.startswith("/api/"):
             return self._json({"error": "not found"}, 404)
         action = path[len("/api/"):]
-        if action not in SCRIPTS:
+        if action not in SCRIPTS and action != "snapshot":
             return self._json({"error": "unknown action"}, 404)
         params = self._read_json_body()
         try:

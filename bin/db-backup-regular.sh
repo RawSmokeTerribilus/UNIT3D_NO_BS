@@ -103,6 +103,6 @@ else
   SNAPSHOT_CUTOFF="$(date -d 'yesterday' +"%F") ${FULL_SNAPSHOT_HOUR}:00:00"
 fi
 
-find "$BACKUP_ROOT" -type f \( -name 'db_unit3d_*.sql.gz' -o -name 'db_unit3d_*.sql.gz.sha256' \) ! -newermt "$SNAPSHOT_CUTOFF" -delete
+find "$BACKUP_ROOT" -type f \( -name 'db_unit3d_*.sql.gz' -o -name 'db_unit3d_*.sql.gz.sha256' -o -name 'db_unit3d_*.sql.gz.binlogpos' \) ! -newermt "$SNAPSHOT_CUTOFF" -delete
 
 log "OK size=$(du -h "$OUT_FILE" | cut -f1) sha256=$(cut -d' ' -f1 "$SHA_FILE") cutoff=$SNAPSHOT_CUTOFF"
