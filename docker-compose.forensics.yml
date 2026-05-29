@@ -1,0 +1,68 @@
+# UNIT3D forensics & recovery bench — local, off-by-default, public feature.
+#
+# Nothing here starts during normal ops: both services are gated behind the
+# `forensics` profile. Bring the bench up with bin/forensics/lab-up.sh.
+#
+# Config comes from forensics/forensics.env (see forensics.env.example). The
+# lab-*.sh scripts export those vars; every value below has a default so a
+# vanilla UNIT3D_Docker install works with no config.
+#
+# Isolation:
+#   - own project name (default unit3d_forensics) — never touches the prod stack
+#   - own network with internal:true — no egress, no route to the prod DB
+#   - lab-db has NO published host port; all access is via `docker exec`
+#   - every prod path is mounted read-only (:ro)
+#   - lab-db uses a separate datadir, never the prod datadir
+name: ${FORENSICS_PROJECT:-unit3d_forensics}
+
+services:
+  lab-db:
+    image: ${LAB_DB_IMAGE:-mysql/mysql-server:8.0}
+    container_name: ${LAB_DB_CONTAINER:-unit3d-lab-db}
+    profiles: [forensics]
+    restart: "no"
+    command:
+      - --server-id=2
+      - --skip-log-bin
+    environment:
+      - MYSQL_ROOT_PASSWORD=${LAB_DB_PASSWORD:-labforensics}
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=${DB_NAME:-unit3d}
+    volumes:
+      - ${LAB_DATADIR:-./.docker/data/mysql_lab}:/var/lib/mysql
+    networks:
+      - forensics
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${LAB_DB_PASSWORD:-labforensics}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  forensics:
+    image: ${FORENSICS_IMAGE:-rawsmoke/unit3d-forensics:v0.1.0}
+    build:
+      context: ./forensics
+    container_name: ${FX_CONTAINER:-unit3d-forensics}
+    profiles: [forensics]
+    restart: "no"
+    user: "0:0"
+    environment:
+      - LAB_DB_HOST=lab-db
+      - LAB_DB_PASSWORD=${LAB_DB_PASSWORD:-labforensics}
+    volumes:
+      - ${PROD_MYSQL_DIR:-./.docker/data/mysql}:/prod/mysql:ro
+      - ${BACKUPS_DIR:-./backups}:/backups:ro
+      - ${TORRENTS_DIR:-./storage/app/files/torrents}:/torrents:ro
+      - ${REDIS_DIR:-./.docker/data/redis}:/prod/redis:ro
+      - ${MEILI_DIR:-./.docker/data/meilisearch}:/prod/meili:ro
+      - ./bin/forensics:/scripts:ro
+    networks:
+      - forensics
+    depends_on:
+      lab-db:
+        condition: service_healthy
+
+networks:
+  forensics:
+    driver: bridge
+    internal: true

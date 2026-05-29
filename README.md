@@ -988,6 +988,48 @@ Una sala de arcade completa integrada en el tracker, con ScummVM compilado a Web
 
 ---
 
+### 22. **🔬 Banco de Forense y Recuperación (Point-in-Time, Aislado)**
+
+**El Desafío**: El 10 de mayo de 2026 sufrimos un desastre en la BD de producción y tuvimos que recuperarla con un laboratorio improvisado y desechable. Nunca más a ciegas: convertimos esa recuperación en algo **repetible, aislado y rápido**.
+
+**Lo que construimos**:
+
+Un laboratorio MySQL permanente, **apagado por defecto**, junto al stack de producción. Hace recuperación híbrida point-in-time (PITR): restaura el último dump en un laboratorio aislado, **reproduce los binlogs hacia adelante** para rellenar el hueco, compara laboratorio contra producción por clave primaria, y exporta **solo las filas que faltan** para una fusión manual deliberada. El banco **nunca escribe en producción**.
+
+```
+🔒 GARANTÍAS DE AISLAMIENTO:
+  • Apagado por defecto (profiles: [forensics]) — 0 RAM en reposo
+  • Red internal: true — sin egreso, sin ruta a la BD de prod
+  • Toda ruta de prod montada :ro (solo lectura)
+  • Datadir propio del laboratorio — jamás el datadir de prod
+  • Cero escalada de privilegios en prod (coordenada PITR sin grants)
+
+🧬 RECUPERACIÓN HÍBRIDA PITR:
+  • Restaura el último dump de 4h + replay de binlog a HEAD (o --until)
+  • lab-diff: anti-join exacto por id → qué le falta a prod (autoritativo)
+  • lab-export: INSERT IGNORE solo de las filas faltantes
+  • torrent-validate: fila BD <-> .torrent <-> info_hash (bencode propio)
+
+⚙️ STACK TÉCNICO:
+  • docker-compose.forensics.yml — lab-db (mysql 8.0) + forensics (Percona)
+  • Imagen Percona: trae mysqlbinlog versión-correcta (server pkg) + toolkit
+  • Coordenada PITR sin privilegios: sidecar <dump>.binlogpos (file+pos vía stat)
+  • Orquestación por host vía docker exec: bin/forensics/*.sh
+  • Imagen pública: rawsmoke/unit3d-forensics en Docker Hub
+```
+
+**Detalles de la implementación**:
+- Toda la config es por entorno: `forensics/forensics.env.example` (plantilla, en git) y `forensics/forensics.env` local **gitignoreado** (puede contener la contraseña del laboratorio).
+- `gtid_mode=OFF` en prod → el replay es por **file+pos** (`mysqlbinlog --start-position`), no GTID. Ventana PITR de 30 días (`binlog_expire_logs_seconds`).
+- Probado el 2026-05-29: una fila ausente del snapshot, recuperada puramente por replay de binlog, verificada exacta — sin grant, sin escritura en prod, sin downtime.
+- Tablas con clave compuesta (`peers`, `history`) se omiten en diff/export; las tablas de contenido humano (users/topics/posts/comments/torrents) todas tienen `id`.
+
+**Por qué importa**: La mayoría de los forks confían en backups y rezan. Nosotros tenemos un banco forense air-gapped que recupera pérdidas *recientes* fila a fila, sin tocar producción jamás. Recuperación como disciplina, no como pánico.
+
+> *"El banco nunca escribe en producción. La fusión a prod siempre la confirma un humano."*
+
+---
+
 ## 📦 Dos Rutas de Instalación
 
 ### **🚀 Ruta A: Instalación Fresca (Nuevo Tracker)**

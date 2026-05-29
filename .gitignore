@@ -106,3 +106,6 @@ public/img/games/*
 
 # Scripts de backup (credenciales en variables de entorno, no embebidas)
 # backup.sh — tracked in git
+
+# forensics bench local config (may hold lab password)
+forensics/forensics.env

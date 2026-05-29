@@ -63,6 +63,15 @@ trap cleanup EXIT
 
 log "Inicio dump regular -> $OUT_FILE"
 
+# Capture the binlog coordinate for point-in-time replay WITHOUT any DB privilege:
+# the newest binlog file and its current byte size == the next write position.
+# Recorded just before the dump's consistent snapshot; the few-ms overlap is
+# absorbed by `mysql --force` during lab replay, and lab-diff is authoritative.
+POS_FILE="$OUT_FILE.binlogpos"
+BINLOG_COORD="$(docker exec "$DB_CONTAINER" sh -c \
+  'f=$(ls -1 /var/lib/mysql/binlog.[0-9]* 2>/dev/null | sort | tail -1); \
+   [ -n "$f" ] && printf "%s %s" "$(basename "$f")" "$(stat -c %s "$f")"' 2>/dev/null || true)"
+
 docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" \
   mysqldump \
     -h127.0.0.1 \
@@ -80,6 +89,13 @@ docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" \
 gzip -t "$TMP_FILE"
 mv "$TMP_FILE" "$OUT_FILE"
 sha256sum "$OUT_FILE" > "$SHA_FILE"
+
+if [ -n "$BINLOG_COORD" ]; then
+  printf 'SOURCE_LOG_FILE=%s\nSOURCE_LOG_POS=%s\n' $BINLOG_COORD > "$POS_FILE"
+  log "binlog coordinate: $BINLOG_COORD -> $POS_FILE"
+else
+  log "WARNING: could not read binlog coordinate (PITR replay will be snapshot-only)"
+fi
 
 if [ "$(date +%H)" -ge "$FULL_SNAPSHOT_HOUR" ]; then
   SNAPSHOT_CUTOFF="$(date +"%F") ${FULL_SNAPSHOT_HOUR}:00:00"
