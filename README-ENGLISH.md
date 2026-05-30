@@ -29,7 +29,7 @@
 
 ---
 
-### 📚 La Biblia de Operaciones
+### La Biblia de Operaciones
 Todo lo que necesitas para que el tracker no explote está en nuestra Wiki oficial:
 
 👉 **[ACCEDER AL MANUAL COMPLETO](https://rawsmoketerribilus.github.io/UNIT3D/)**
@@ -44,7 +44,54 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 
 ---
 
-## 📚 What is UNIT3D?
+## Index
+
+- [What is UNIT3D?](#what-is-unit3d)
+- [Why NOBS? What We Built](#why-nobs-what-we-built)
+  - [Part 1 — Fixed the broken pieces](#part-1-fixed-what-unit3d-left-broken)
+  - [Part 2 — Dockerized it](#part-2-dockerized-it-no-trivial-task)
+  - [Part 3 — Added resilience (Búnker)](#part-3-added-resilience-the-búnker-philosophy)
+- [Core Improvements (22)](#core-improvements)
+- [Installation Paths](#installation-paths)
+- [Management: The Makefile](#management-the-makefile)
+- [Architecture](#architecture)
+- [Port Mapping](#port-mapping)
+- [Security Notes](#security-notes)
+- [Troubleshooting](#troubleshooting)
+- [Philosophy: From the Scene, For the Scene](#philosophy-from-the-scene-for-the-scene)
+- [Contributing](#contributing) · [License](#license) · [Acknowledgments](#acknowledgments)
+
+<details>
+<summary><b>📂 The 22 Core Improvements, one by one</b></summary>
+
+1. [Meilisearch: Instant, Resilient Search](#1-meilisearch-instant-resilient-search)
+2. [Resilient Email Blacklist](#2-resilient-email-blacklist)
+3. [IP Address Transparency (Docker Networks)](#3-ip-address-transparency-docker-networks)
+4. [Brute-Force Protection: Balancing Security and Usability](#4-brute-force-protection-balancing-security-and-usability)
+5. [Autonomous Infrastructure (The "Búnker")](#5-autonomous-infrastructure-the-búnker)
+6. [NOBS Branding (Custom Theme)](#6-nobs-branding-custom-theme)
+7. [Configuration Adjustments](#7-configuration-adjustments)
+8. [Aesthetic and Functional Refactor: Retro Theme (v2)](#8-aesthetic-and-functional-refactor-retro-theme-v2)
+9. [Telegram Integration (Torrent Notification Bot)](#9-telegram-integration-torrent-notification-bot)
+10. [Google Drive Backup Sync (rclone and encryption)](#10-google-drive-backup-sync-rclone-and-encryption)
+11. [Multi-Provider Metadata with Consensus (TMDB IGDB MAL Anilist IMDb TVmaze)](#11-multi-provider-metadata-with-consensus-tmdb-igdb-mal-anilist-imdb-tvmaze)
+12. [Meta-Worker (Dedicated Queue for Metadata Refresh)](#12-meta-worker-dedicated-queue-for-metadata-refresh)
+13. [Swarm Intelligence and 3D Tracker Map](#13-swarm-intelligence-and-3d-tracker-map)
+14. [RetroArch Web (Multi-System Arcade, 26 Libretro Cores)](#14-retroarch-web-multi-system-arcade-26-libretro-cores)
+15. [COOP COEP Isolation and TMDB Image Proxy (CSP Compliant)](#15-coop-coep-isolation-and-tmdb-image-proxy-csp-compliant)
+16. [Thanks Ratio and Spanish Default Locale](#16-thanks-ratio-and-spanish-default-locale)
+17. [Edge Hardening (Nginx Announce and Verification)](#17-edge-hardening-nginx-announce-and-verification)
+18. [Reactive UI: Floating Trailers, Flash Cards and Freeleech Backdrops](#18-reactive-ui-floating-trailers-flash-cards-and-freeleech-backdrops)
+19. [Deeply Modified Database (No Longer UNIT3D Community)](#19-deeply-modified-database-no-longer-unit3d-community)
+20. [Staff Super-Panels (What HDInnovations Sells Separately, in FOSS)](#20-staff-super-panels-what-hdinnovations-sells-separately-in-foss)
+21. [Integrated Arcade: ScummVM WebAssembly (Pioneers)](#21-integrated-arcade-scummvm-webassembly-pioneers)
+22. [Forensics and Recovery Bench (Point-in-Time, Isolated)](#22-forensics-and-recovery-bench-point-in-time-isolated)
+
+</details>
+
+---
+
+## What is UNIT3D?
 
 **[UNIT3D](https://github.com/HDInnovations/UNIT3D)** is a modern, feature-rich Private Torrent Tracker software built on **Laravel 12**, **Livewire**, and **AlpineJS**. Created by the HDInnovations team, it powers high-performance private tracker communities with support for:
 
@@ -56,23 +103,23 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 - 🔗 **IRC Integration**: Live announcements and bot integration
 - 🌍 **Internationalization**: Multi-language support
 
-### **Big Thanks to HDInnovations** ❤️
+### **Big Thanks to HDInnovations**
 
 This project would not exist without UNIT3D. The original developers created an incredible platform for private tracker communities. [**→ Visit UNIT3D GitHub**](https://github.com/HDInnovations/UNIT3D)
 
 ---
 
-## 🔧 Why N.O.B.S? What We Built
+## Why NOBS? What We Built
 
-UNIT3D is a **brilliant platform**, but it arrives as source code, not a packaged deployment. We took the Community Edition and did two things:
+UNIT3D is a **brilliant platform**, but it arrives as source code, not a packaged deployment. We took the Community Edition and did three things: **fixed** what was broken, **dockerized** the whole stack, and **hardened** it to run itself (the "Búnker" philosophy).
 
-### **Part 1: Fixed UNIT3D's Broken Pieces**
+### **Part 1: Fixed What UNIT3D Left Broken**
 
 The Community Edition had **unfixed bugs and missing features**:
 
 | Problem | Impact | Our Solution |
 |---------|--------|--------------|
-| **Installer Removed** | Official install script deleted by devs; left in broken state | Re-implemented setup logic in `entrypoint.sh` (auto-run migrations, blacklist, cache) |
+| **No installer** | The Community Edition ships no installer; the official automated install is a paid HDInnovations service | Two **free paths** of our own: (1) the Docker `entrypoint.sh` does the full setup on every boot (migrations, blacklist, cache, permissions), and (2) a **bare-metal installer rewritten from scratch** for Debian/Ubuntu at `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` |
 | **Unconfigured Meilisearch** | Search engine shipped but not indexed or synced | Implemented cold-boot indexing, real-time observer syncing, Master Key protection |
 | **Brute-Force Too Aggressive** | Settings locked out legitimate users (5 attempts = 24h block) | Tuned FortifyServiceProvider (5→15 attempts, 24h→1h, created backup owner) |
 | **Email Blacklist Fragility** | System breaks if external CDN unreachable | Created persistent local cache (`storage/app/email-blacklist.json`) with hybrid fallback |
@@ -112,9 +159,12 @@ Beyond fixing and dockerizing, we added **autonomous, offline-first features**:
 
 ---
 
-## 🚀 Core Improvements
+## Core Improvements
 
-### 1. **🔍 Meilisearch: Instant, Resilient Search**
+### 1. **Meilisearch: Instant, Resilient Search**
+🔍 *Millisecond search, auto-indexed and resilient.*
+
+![Instant Meilisearch search in the tracker](repo-png/1.png)
 
 **The Challenge**: UNIT3D includes Meilisearch as its search engine, but **provides no documentation or setup**. Installing it and configuring it are left to the operator.
 
@@ -146,7 +196,10 @@ Beyond fixing and dockerizing, we added **autonomous, offline-first features**:
 
 ---
 
-### 2. **📧 Resilient Email Blacklist**
+### 2. **Resilient Email Blacklist**
+📧 *Registration survives the disposable-email CDN going down.*
+
+![Registration rejected for a disposable email domain](repo-png/2.png)
 
 **The Problem**: UNIT3D fetches disposable email domains from an external CDN during registration validation. **If the CDN is down or unreachable, registrations fail entirely.**
 
@@ -178,7 +231,8 @@ PERSISTENCE:
 
 ---
 
-### 3. **🌐 IP Address Transparency (Docker Networks)**
+### 3. **IP Address Transparency (Docker Networks)**
+🌐 *The user's real IP behind Docker's proxy.*
 
 **The Problem**: In Docker, Nginx and the Laravel app run in separate containers. Without proper headers, all requests appear to come from Docker's internal gateway (`172.21.0.1`). **All users show the same IP in their profiles.**
 
@@ -204,7 +258,8 @@ RESULT:
 
 ---
 
-### 4. **🔒 Brute-Force Protection: Balance Security & Usability**
+### 4. **Brute-Force Protection: Balancing Security and Usability**
+🔒 *Anti brute-force without locking out the legit.*
 
 **The Problem**: UNIT3D's default Fortify settings were **too aggressive**:
 - 5 failed logins → blocked for 24 hours
@@ -234,7 +289,8 @@ Multi-account check: 1 → 3 threshold                      // Allow account swi
 
 ---
 
-### 5. **🛡️ Autonomous Infrastructure (The "Búnker")**
+### 5. **Autonomous Infrastructure (The "Búnker")**
+🛡️ *Self-healing, cold backups and health checks: the "Búnker".*
 
 #### **Auto-Healing on Startup**
 
@@ -353,7 +409,8 @@ Operational implications:
 
 ---
 
-### 6. **🎨 N.O.B.S Branding (Custom Theme)**
+### 6. **NOBS Branding (Custom Theme)**
+🎨 *NOBS visual identity, without touching the core.*
 
 UNIT3D ships with a default theme. We created a custom N.O.B.S identity:
 
@@ -377,7 +434,16 @@ This is **not a core UNIT3D change** — it's a custom skin that respects the or
 
 ---
 
-### 7. **⚙️ Configuration Adjustments**
+### 7. **Configuration Adjustments**
+⚙️ *Fine-tuning of invites, ratios and security.*
+
+<p>
+  <img src="repo-png/7-a.png" width="760" alt="Configuration tweak 1"><br>
+  <img src="repo-png/7-b.png" width="760" alt="Configuration tweak 2"><br>
+  <img src="repo-png/7-c.png" width="760" alt="Configuration tweak 3"><br>
+  <img src="repo-png/7-d.png" width="760" alt="Configuration tweak 4"><br>
+  <img src="repo-png/7-e.png" width="760" alt="Configuration tweak 5">
+</p>
 
 **config/other.php** optimizations:
 - Invitation wait time: 24h → 1h (after 2FA activation)
@@ -392,7 +458,8 @@ This is **not a core UNIT3D change** — it's a custom skin that respects the or
 
 ---
 
-### 8. **🎨 Aesthetic and Functional Refactor: Retro Theme (v2)**
+### 8. **Aesthetic and Functional Refactor: Retro Theme (v2)**
+🎨 *Retro Theme v2: neon dark mode and UX fixes.*
 
 **The Challenge**: The original `refined_nobs` theme had critical UX/UI issues: dropdowns blocked by z-index conflicts, buttons rendered as flat black blocks without depth, and a pink saturation that hurt long reading sessions. On top of that, torrent ratios were leaking technical garbage (`INF` strings, raw HTML).
 
@@ -415,7 +482,10 @@ This is **not a core UNIT3D change** — it's a custom skin that respects the or
 
 ---
 
-### 9. **📡 Telegram Integration (Torrent Notification Bot)**
+### 9. **Telegram Integration (Torrent Notification Bot)**
+📡 *Torrent notifications in Telegram with poster and mediainfo.*
+
+<img src="repo-png/9.png" width="820" alt="Telegram torrent notification with poster and mediainfo">
 
 **The Challenge**: UNIT3D has no native Telegram notification system. Operators have no way to automatically announce new torrents to a Telegram group or integrate bot-based user linking.
 
@@ -457,7 +527,8 @@ This is **not a core UNIT3D change** — it's a custom skin that respects the or
 
 ---
 
-### 10. **☁️ Google Drive Backup Sync (rclone + encryption)**
+### 10. **Google Drive Backup Sync (rclone and encryption)**
+☁️ *Encrypted snapshots to Google Drive via rclone.*
 
 **The Challenge**: Local cold backups protect against software failures, but hardware loss or server destruction destroys them too. A redundant encrypted cloud copy is essential for true disaster recovery.
 
@@ -501,7 +572,11 @@ This is **not a core UNIT3D change** — it's a custom skin that respects the or
 
 ---
 
-### 11. **🧬 Multi-Provider Metadata with Consensus (TMDB · IGDB · MAL · Anilist · IMDb · TVmaze)**
+### 11. **Multi-Provider Metadata with Consensus (TMDB IGDB MAL Anilist IMDb TVmaze)**
+🧬 *Metadata by consensus of six providers.*
+
+![Consensus metadata resolution — providers voting](repo-png/11-a.png)
+![Audit of the winning provider per torrent](repo-png/11-b.png)
 
 **The Challenge**: The community edition only talks to TMDB. When the match is ambiguous — generic titles, fuzzy years, anime with multiple versions — posters, synopses and genres come back wrong, and the operator ends up editing torrents by hand.
 
@@ -538,7 +613,8 @@ This is **not a core UNIT3D change** — it's a custom skin that respects the or
 
 ---
 
-### 12. **🛰️ Meta-Worker (Dedicated Queue for Metadata Refresh)**
+### 12. **Meta-Worker (Dedicated Queue for Metadata Refresh)**
+🛰️ *Separate queue so metadata refresh won't choke the main one.*
 
 **The Challenge**: Refreshing metadata can choke the main queue: TMDB rate limits, slow MAL scrapes, IMDb timeouts. If they share a queue, Telegram notifications stall behind a 30-second scrape.
 
@@ -570,7 +646,16 @@ meta-worker:
 
 ---
 
-### 13. **🕸️ Swarm Intelligence + 3D Tracker Map**
+### 13. **Swarm Intelligence and 3D Tracker Map**
+🕸️ *Swarm intelligence and a 3D map of the tracker.*
+
+<p>
+  <img src="repo-png/13-a.png" width="780" alt="3D swarm map — overview"><br>
+  <img src="repo-png/13-b.png" width="780" alt="3D swarm map — co-seeding clusters"><br>
+  <img src="repo-png/13-c.png" width="780" alt="3D swarm map — filters"><br>
+  <img src="repo-png/13-d.png" width="780" alt="Swarm Intelligence — per-torrent panel"><br>
+  <img src="repo-png/13-e.png" width="780" alt="Swarm Intelligence — peer distribution">
+</p>
 
 **The Challenge**: Operators have no view of the actual swarm topology. Who's seeding to whom? Are there cliques? Is there a central node whose absence would shatter the swarm?
 
@@ -603,7 +688,14 @@ meta-worker:
 
 ---
 
-### 14. **🎮 RetroArch Web (Multi-System Arcade, 26 Libretro Cores)**
+### 14. **RetroArch Web (Multi-System Arcade, 26 Libretro Cores)**
+🎮 *RetroArch in the browser: 26 libretro cores.*
+
+<p>
+  <img src="repo-png/14.png" width="820" alt="RetroArch Web — multi-system catalog"><br>
+  <img src="repo-png/14-b.png" width="820" alt="RetroArch Web — core selection"><br>
+  <img src="repo-png/14-c.png" width="820" alt="RetroArch Web — game running in the browser">
+</p>
 
 **The Challenge**: ScummVM covers classic point-and-click, but the real retro catalog lives on NES, SNES, Mega Drive, Game Boy, PS1, Capcom/Neo Geo arcade. A general-purpose in-browser emulator was needed.
 
@@ -637,7 +729,8 @@ meta-worker:
 
 ---
 
-### 15. **🛡️ COOP/COEP Isolation + TMDB Image Proxy (CSP Compliant)**
+### 15. **COOP COEP Isolation and TMDB Image Proxy (CSP Compliant)**
+🛡️ *Isolated WASM and TMDB posters coexisting under CSP.*
 
 **The Challenge**: To make certain libretro cores and WASM modules work, you need `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`. But then the browser blocks `image.tmdb.org` posters for missing `Cross-Origin-Resource-Policy`. Conflict.
 
@@ -665,7 +758,8 @@ meta-worker:
 
 ---
 
-### 16. **🤝 Thanks Ratio + Spanish Default Locale**
+### 16. **Thanks Ratio and Spanish Default Locale**
+🤝 *Thanks Ratio and Spanish by default.*
 
 **Thanks Ratio**:
 - A "thanks received / thanks given" metric exposed in profiles, top-nav, and invite/BON forms.
@@ -690,7 +784,8 @@ meta-worker:
 
 ---
 
-### 17. **🔒 Edge Hardening (Nginx Announce + Verification)**
+### 17. **Edge Hardening (Nginx Announce and Verification)**
+🔒 *Hardened edge: nginx announce and verification.*
 
 **Nginx Announce Hardening** (`.docker/nginx/default.conf`):
 - Per-IP connection limits on `/announce/`
@@ -712,7 +807,8 @@ meta-worker:
 
 ---
 
-### 18. **🎞️ Reactive UI: Floating Trailers, Flash Cards and Freeleech Backdrops**
+### 18. **Reactive UI: Floating Trailers, Flash Cards and Freeleech Backdrops**
+🎞️ *Floating trailers, flash cards and freeleech backdrops.*
 
 **The Challenge**: UNIT3D's torrent listing is plain text — title, size, ratio. Users have to open every detail page to figure out what a torrent actually is. Posters stay hidden. The freeleech banner is a flat strip.
 
@@ -755,7 +851,8 @@ meta-worker:
 
 ---
 
-### 19. **🗄️ Deeply Modified Database (No Longer UNIT3D Community)**
+### 19. **Deeply Modified Database (No Longer UNIT3D Community)**
+🗄️ *Deeply extended database (no longer Community).*
 
 **Where we are**: After 2000+ hours, this fork's DB is no longer recognizable to anyone cloning UNIT3D Community Edition and inspecting `database/migrations/`.
 
@@ -784,7 +881,10 @@ meta-worker:
 
 ---
 
-### 20. **🎛️ Staff Super-Panels (What HDInnovations Sells Separately, in FOSS)**
+### 20. **Staff Super-Panels (What HDInnovations Sells Separately, in FOSS)**
+🎛️ *Staff operations center, in FOSS.*
+
+<img src="repo-png/20.png" width="820" alt="Staff operations center — themed panels">
 
 **Context**: UNIT3D Community Edition ships with a Staff Dashboard that's functional but **deliberately incomplete**. The advanced admin panels — the ones an operator actually uses daily — are paid extras in HDInnovations' private edition: there are invoices in the wild for up to **one thousand euros** for a serious command panel. No public UNIT3D fork had built them. Nobody had the balls.
 
@@ -926,9 +1026,12 @@ This is not a side curiosity. It is another admin/owner innovation: **an externa
 
 ---
 
-### 21. **🕹️ Integrated Arcade: ScummVM WebAssembly (Pioneers)**
+### 21. **Integrated Arcade: ScummVM WebAssembly (Pioneers)**
+🕹️ *ScummVM arcade in WebAssembly (pioneers).*
 
 ![Arcade in action inside the tracker](Initial_NOBS_art/photo_2026-04-27_20-23-32.jpg)
+
+<img src="repo-png/21.png" width="820" alt="ScummVM arcade room inside the tracker">
 
 **The Challenge**: No UNIT3D fork had ever tried to run classic adventure games directly inside the tracker. We did.
 
@@ -978,9 +1081,54 @@ A full arcade room inside the tracker, with ScummVM compiled to WebAssembly runn
 
 ---
 
-## 📦 Two Installation Paths
+### 22. Forensics and Recovery Bench (Point-in-Time, Isolated)
+🔬 *Point-in-time forensic recovery, isolated from prod.*
 
-### **🚀 Path A: Fresh Install (New Tracker)**
+<img src="repo-png/22.png" width="700" alt="Forensics bench web panel — recovery, timeline and topology">
+
+**The Challenge**: On 2026-05-10 we hit a production DB disaster and had to recover it with an improvised, throwaway lab. Never blind again: we turned that recovery into something **repeatable, isolated and fast**.
+
+**What we built**:
+
+A permanent MySQL lab, **off by default**, beside the production stack. It does hybrid point-in-time recovery (PITR): restores the latest dump into an isolated lab, **replays binlogs forward** to fill the gap, diffs lab vs production by primary key, and exports **only the missing rows** for a deliberate manual merge. The bench **never writes to production**.
+
+```
+🔒 ISOLATION GUARANTEES:
+  • Off by default (profiles: [forensics]) — 0 RAM idle
+  • internal: true network — no egress, no route to the prod DB
+  • Every prod path mounted :ro (read-only)
+  • Lab's own datadir — never the prod datadir
+  • Zero prod privilege escalation (PITR coordinate needs no grants)
+
+🧬 HYBRID PITR RECOVERY:
+  • Restore the latest 4h dump + binlog replay to HEAD (or --until)
+  • lab-diff: exact id anti-join → what prod is missing (authoritative)
+  • lab-export: INSERT IGNORE of the missing rows only
+  • torrent-validate: DB row <-> .torrent <-> info_hash (own bencode)
+
+⚙️ TECH STACK:
+  • docker-compose.forensics.yml — lab-db (mysql 8.0) + forensics (Percona)
+  • Percona image: ships the version-matched mysqlbinlog (server pkg) + toolkit
+  • Privilege-free PITR coordinate: sidecar <dump>.binlogpos (file+pos via stat)
+  • Host-orchestrated via docker exec: bin/forensics/*.sh
+  • Public image: rawsmoke/unit3d-forensics on Docker Hub
+```
+
+**Implementation details**:
+- All config is env-driven: `forensics/forensics.env.example` (template, in git) and local `forensics/forensics.env` **gitignored** (may hold the lab password).
+- `gtid_mode=OFF` in prod → replay is by **file+pos** (`mysqlbinlog --start-position`), not GTID. 30-day PITR window (`binlog_expire_logs_seconds`).
+- Verified 2026-05-29: a row absent from the snapshot, recovered purely from binlog replay, verified exact — no grant, no prod write, no downtime.
+- Composite-key tables (`peers`, `history`) are skipped in diff/export; the human-content tables (users/topics/posts/comments/torrents) all have `id`.
+
+**Why it matters**: Most forks trust backups and pray. We run an air-gapped forensics bench that recovers *recent* losses row by row, never touching production. Recovery as a discipline, not a panic.
+
+> *"The bench never writes to production. The merge to prod is always confirmed by a human."*
+
+---
+
+## Installation Paths
+
+### **Path A: Fresh Install (New Tracker)**
 
 For a brand-new tracker on a fresh machine:
 
@@ -1019,7 +1167,7 @@ docker compose exec app php artisan scout:import
 
 ---
 
-### **📀 Path B: Restore from Backup (Disaster Recovery)**
+### **Path B: Restore from Backup (Disaster Recovery)**
 
 If your tracker dies or you're moving to a new server:
 
@@ -1056,7 +1204,56 @@ make health
 
 ---
 
-## 🛠️ Management: The Makefile
+### **Route C: Bare-Metal Install (No Docker, Experts Only)**
+
+> ⚠️ **Not recommended unless you know exactly what you're doing.** The NOBS
+> reference stack is the **dockerized** one (Routes A/B): it's what we test, back
+> up, and what the rest of this README targets. The bare-metal path exists to
+> revive the Community Edition on a Docker-less host, **not** to reproduce the full
+> fork. If you're not comfortable hand-administering nginx, PHP-FPM, MariaDB/MySQL,
+> Redis, Meilisearch and supervisor, stay on Docker.
+
+Installer: `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` (Debian Trixie /
+Ubuntu 22.04 / 24.04). Installs PHP 8.4-FPM, nginx, MariaDB, Redis, Meilisearch
+(systemd), Node 20/Bun, Certbot/SSL, supervisor (queue) and the scheduler cron;
+~20-25 min on a clean host. Also read `Unit3d_9.2-Installer-fixed/readme.en.md` and
+`SECURITY_CHANGES.md`.
+
+**What to adapt vs the dockerized setup** (the installer does NOT cover it):
+
+- **Source of the code**: clone **this fork**, not vanilla Community — otherwise you
+  get none of the NOBS features (the 10 custom migrations, Telegram, arcade,
+  multi-provider resolver…).
+- **`.env` with local hosts**: swap the Docker service names for `127.0.0.1` + real
+  ports — `DB_HOST`, `REDIS_HOST`, `MEILISEARCH_HOST`, `MAIL_*` (no Mailpit
+  container → real SMTP), `TRUSTED_PROXIES` per your edge.
+- **Rust tracker (UNIT3D-Announce)**: the installer does **not** set it up.
+  `/announce/` needs the Rust binary built and run as a separate service, its nginx
+  proxy, and the `TRACKER_*` vars. Without it there's no decoupled tracker.
+- **Meta-worker**: the installer's supervisor only runs `queue:work` (the `default`
+  queue). Add a second program for `--queue=meta-refresh` (300s timeout) or metadata
+  refresh will choke the main queue.
+- **Backups and forensics**: `backup.sh` and the forensics bench are **Docker-only**
+  (`docker compose stop/up`, `docker exec`). On bare-metal use `mysqldump` via cron;
+  the forensics PITR **does not apply** (it assumes MySQL 8.0 ROW binlogs, not MariaDB).
+- **Heavy gitignored assets**: run `install-swarm-assets.sh` (3D map) and place the
+  RetroArch/ScummVM WASM blobs by hand; fix the `chown` to the host's native
+  `www-data` (not the container's uid 82).
+- **COOP/COEP headers + TMDB proxy**: port the `gaming.isolation` middleware and the
+  `/tmdb-proxy` · `/authenticated-images` routes to your native nginx, or the WASM
+  arcade and posters under CSP will break.
+- **Telegram**: integration not included on bare-metal — config + webhook by hand.
+- **Self-healing**: with no `entrypoint.sh`, you run the migrations, the
+  `auto:email-blacklist-update` (cron) and the `775` / `www-data` permissions after
+  every change yourself.
+
+**Bottom line**: the bare-metal route leaves you a stabilized, working Community
+UNIT3D; **rebuilding the full NOBS fork on top is significant manual work**. We
+recommend Docker unless you have a strong reason and the knowledge to maintain it.
+
+---
+
+## Management: The Makefile
 
 ```bash
 make help            # Show all commands
@@ -1075,7 +1272,7 @@ make meilisearch-fix # Reinitialize Meilisearch from scratch (wipes data and rei
 
 ---
 
-## 📊 Architecture
+## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -1107,7 +1304,7 @@ Announce:     Rust binary (UNIT3D-Announce) — code vendored in rust-announce/
 
 ---
 
-## ⚙️ Port Mapping
+## Port Mapping
 
 | Service | Internal | External | Purpose |
 |---------|----------|----------|---------|
@@ -1124,7 +1321,7 @@ Announce:     Rust binary (UNIT3D-Announce) — code vendored in rust-announce/
 
 ---
 
-## 🔐 Security Notes
+## Security Notes
 
 ### Environment Variables (.env)
 
@@ -1146,9 +1343,9 @@ Announce:     Rust binary (UNIT3D-Announce) — code vendored in rust-announce/
 
 ---
 
-## 📖 Troubleshooting
+## Troubleshooting
 
-### **Error 500 / Permission Denied**
+### **Error 500 Permission Denied**
 
 ```bash
 # Auto-fixed on restart, but to force:
@@ -1157,7 +1354,7 @@ docker exec unit3d-app chmod -R 775 storage bootstrap/cache
 docker exec unit3d-app chown -R www-data:www-data storage bootstrap/cache
 ```
 
-### **Search not working / No results**
+### **Search not working No results**
 
 ```bash
 # Re-index Meilisearch
@@ -1181,7 +1378,7 @@ docker compose exec app php artisan tinker
 # >>> Mail::raw('Test', fn($m) => $m->to('test@example.com')->send());
 ```
 
-### **Database locked / MySQL issues**
+### **Database locked MySQL issues**
 
 ```bash
 # Check MySQL logs
@@ -1191,7 +1388,7 @@ docker compose logs db
 # See "Path B: Restore from Backup" above
 ```
 
-### **Telegram: Webhook not receiving updates / 500 errors**
+### **Telegram: Webhook not receiving updates 500 errors**
 
 ```bash
 # Check worker is processing queued jobs
@@ -1205,7 +1402,7 @@ docker compose exec -T app php artisan route:list | grep telegram
 - **No notifications after approve**: Ensure the queue worker is running (`docker compose ps worker`) and `TELEGRAM_BOT_TOKEN` / `TELEGRAM_GROUP_ID` are set correctly in `.env`.
 - **`+` stripped from invite link**: Confirm `config/services.php` `group_invite_link` is populated and `TelegramService` uses `Http::asJson()` for `sendMessageWithButton`.
 
-### **Metadata not updating / catalog showing stale posters**
+### **Metadata not updating catalog showing stale posters**
 
 ```bash
 # Confirm the meta-worker is alive
@@ -1222,7 +1419,7 @@ docker compose exec app php artisan meta:sync --force --limit=1
 docker compose exec app php artisan meta:rotate-covers
 ```
 
-### **3D Swarm Map fails to load / console shows 404 under /vendor/**
+### **3D Swarm Map fails to load, console shows 404 under /vendor**
 
 ```bash
 # Swarm assets are gitignored. Re-fetch them:
@@ -1234,7 +1431,7 @@ docker compose exec app ./install-swarm-assets.sh
 ls -lh public/vendor/{force-graph,3d-force-graph,three,d3}/*.js
 ```
 
-### **RetroArch: core won't boot / black screen**
+### **RetroArch: core fails to boot, black screen**
 
 ```bash
 # Enable debug mode on the player
@@ -1248,7 +1445,7 @@ docker compose exec app php artisan retroarch:fetch-covers
 curl -I https://your-tracker/retroarch/snes/show | grep -iE 'cross-origin'
 ```
 
-### **Rust tracker out of sync with Laravel (permissions / new group)**
+### **Rust tracker out of sync with Laravel (permissions new group)**
 
 ```bash
 # Hot-sync with the Rust binary
@@ -1259,7 +1456,7 @@ docker compose exec app php artisan tracker:sync-groups
 
 ---
 
-## 🎯 Philosophy: "From the Scene, For the Scene"
+## Philosophy: "From the Scene, For the Scene"
 
 This project reflects 2000+ hours of work to resurrect UNIT3D from its broken community edition state. Every fix, every automation, every redundancy exists because **we believe in the platform**.
 
@@ -1273,7 +1470,7 @@ This is tracker software **for people who run trackers**, not a SaaS product wit
 
 ---
 
-## 📝 Contributing
+## Contributing
 
 Found a bug? Have an improvement? Issues and PRs welcome!
 
@@ -1281,7 +1478,7 @@ This is a community fork. We're improving UNIT3D for the benefit of private trac
 
 ---
 
-## 📜 License
+## License
 
 UNIT3D is licensed under the GNU Affero General Public License v3.0. See [LICENSE.txt](./LICENSE.txt).
 
@@ -1289,7 +1486,7 @@ This fork maintains the same license and spirit: open, transparent, and communit
 
 ---
 
-## ❤️ Acknowledgments
+## Acknowledgments
 
 - **HDInnovations** for creating UNIT3D
 - **The private tracker scene** for decades of innovation and community building
