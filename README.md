@@ -46,46 +46,46 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 
 ## 🧭 Índice
 
-- [¿Qué es UNIT3D?](#-qué-es-unit3d)
-- [¿Por qué N.O.B.S? Lo que Construimos](#-por-qué-nobs-lo-que-construimos)
-  - [Parte 1 — Arreglamos las piezas rotas](#parte-1-arreglamos-las-piezas-rotas-de-unit3d)
-  - [Parte 2 — Lo dockerizamos](#parte-2-lo-dockerizamos-no-es-una-tarea-trivial)
-  - [Parte 3 — Añadimos resiliencia (Búnker)](#parte-3-añadimos-resiliencia-la-filosofía-búnker)
-- [Mejoras Clave (22)](#-mejoras-clave)
-- [Rutas de Instalación](#-rutas-de-instalación)
-- [Gestión: El Makefile](#-gestión-el-makefile)
-- [Arquitectura](#-arquitectura)
-- [Mapeo de Puertos](#-mapeo-de-puertos)
-- [Notas de Seguridad](#-notas-de-seguridad)
-- [Solución de Problemas](#-solución-de-problemas)
-- [Filosofía: De la Scene, Para la Scene](#-filosofía-de-la-scene-para-la-scene)
-- [Contribuciones](#-contribuciones) · [Licencia](#-licencia) · [Agradecimientos](#-agradecimientos)
+- [¿Qué es UNIT3D?](#user-content-qué-es-unit3d)
+- [¿Por qué N.O.B.S? Lo que Construimos](#user-content-por-qué-n-o-b-s-lo-que-construimos)
+  - [Parte 1 — Arreglamos las piezas rotas](#user-content-parte-1-arreglamos-las-piezas-rotas-de-unit3d)
+  - [Parte 2 — Lo dockerizamos](#user-content-parte-2-lo-dockerizamos-no-es-una-tarea-trivial)
+  - [Parte 3 — Añadimos resiliencia (Búnker)](#user-content-parte-3-añadimos-resiliencia-la-filosofía-búnker)
+- [Mejoras Clave (22)](#user-content-mejoras-clave)
+- [Rutas de Instalación](#user-content-rutas-de-instalación)
+- [Gestión: El Makefile](#user-content-gestión-el-makefile)
+- [Arquitectura](#user-content-arquitectura)
+- [Mapeo de Puertos](#user-content-mapeo-de-puertos)
+- [Notas de Seguridad](#user-content-notas-de-seguridad)
+- [Solución de Problemas](#user-content-solución-de-problemas)
+- [Filosofía: De la Scene, Para la Scene](#user-content-filosofía-de-la-scene-para-la-scene)
+- [Contribuciones](#user-content-contribuciones) · [Licencia](#user-content-licencia) · [Agradecimientos](#user-content-agradecimientos)
 
 <details>
 <summary><b>📂 Las 22 Mejoras Clave, una por una</b></summary>
 
-1. [Meilisearch: búsqueda instantánea y resiliente](#1--meilisearch-búsqueda-instantánea-y-resiliente)
-2. [Lista negra de correos resiliente](#2--lista-negra-de-correos-resiliente)
-3. [Transparencia de IPs (redes de Docker)](#3--transparencia-de-direcciones-ip-redes-de-docker)
-4. [Protección contra fuerza bruta equilibrada](#4--protección-contra-fuerza-bruta-equilibrio-entre-seguridad-y-usabilidad)
-5. [Infraestructura autónoma (el "Búnker")](#5--infraestructura-autónoma-el-búnker)
-6. [Branding de N.O.B.S (tema personalizado)](#6--branding-de-nobs-tema-personalizado)
-7. [Ajustes de configuración](#7--ajustes-de-configuración)
-8. [Tema Retro v2 (estética + fixes)](#8--refactorización-estética-y-funcional-tema-retro-v2)
-9. [Integración con Telegram (bot)](#9--integración-con-telegram-bot-de-notificaciones)
-10. [Sincronización cifrada a Google Drive](#10--sincronización-con-google-drive-rclone--cifrado)
-11. [Metadata multi-proveedor con consenso](#11--metadata-multi-proveedor-con-consenso-tmdb--igdb--mal--anilist--imdb--tvmaze)
-12. [Meta-Worker (cola dedicada de metadatos)](#12--meta-worker-cola-dedicada-para-refresco-de-metadatos)
-13. [Swarm Intelligence + mapa 3D](#13--swarm-intelligence--mapa-3d-del-tracker)
-14. [RetroArch Web (26 cores libretro)](#14--retroarch-web-arcade-multi-sistema-26-cores-libretro)
-15. [Aislamiento COOP/COEP + proxy TMDB](#15--aislamiento-coopcoep--proxy-de-imágenes-tmdb-csp-compliant)
-16. [Thanks Ratio + locale español](#16--thanks-ratio--localización-al-español-por-defecto)
-17. [Endurecimiento del edge (nginx announce)](#17--endurecimiento-del-edge-nginx-announce--verificación)
-18. [UI reactiva (trailers, flash cards, backdrops)](#18--ui-reactiva-trailers-flotantes-flash-cards-y-backdrops-de-freeleech)
-19. [Base de datos profundamente modificada](#19--base-de-datos-profundamente-modificada-ya-no-es-unit3d-community)
-20. [Super-paneles de staff (en FOSS)](#20--super-paneles-de-staff-administración-avanzada-en-foss)
-21. [Arcade ScummVM WebAssembly](#21--arcade-integrado-scummvm-webassembly-pioneros)
-22. [Banco forense y de recuperación (PITR)](#22--banco-de-forense-y-recuperación-point-in-time-aislado)
+1. [Meilisearch: búsqueda instantánea y resiliente](#user-content-1-meilisearch-búsqueda-instantánea-y-resiliente)
+2. [Lista negra de correos resiliente](#user-content-2-lista-negra-de-correos-resiliente)
+3. [Transparencia de IPs (redes de Docker)](#user-content-3-transparencia-de-direcciones-ip-redes-de-docker)
+4. [Protección contra fuerza bruta equilibrada](#user-content-4-protección-contra-fuerza-bruta-equilibrio-entre-seguridad-y-usabilidad)
+5. [Infraestructura autónoma (el "Búnker")](#user-content-5-infraestructura-autónoma-el-búnker)
+6. [Branding de N.O.B.S (tema personalizado)](#user-content-6-branding-de-n-o-b-s-tema-personalizado)
+7. [Ajustes de configuración](#user-content-7-ajustes-de-configuración)
+8. [Tema Retro v2 (estética + fixes)](#user-content-8-refactorización-estética-y-funcional-tema-retro-v2)
+9. [Integración con Telegram (bot)](#user-content-9-integración-con-telegram-bot-de-notificaciones)
+10. [Sincronización cifrada a Google Drive](#user-content-10-sincronización-con-google-drive-rclone-cifrado)
+11. [Metadata multi-proveedor con consenso](#user-content-11-metadata-multi-proveedor-con-consenso-tmdb-igdb-mal-anilist-imdb-tvmaze)
+12. [Meta-Worker (cola dedicada de metadatos)](#user-content-12-meta-worker-cola-dedicada-para-refresco-de-metadatos)
+13. [Swarm Intelligence + mapa 3D](#user-content-13-swarm-intelligence-mapa-3d-del-tracker)
+14. [RetroArch Web (26 cores libretro)](#user-content-14-retroarch-web-arcade-multi-sistema-26-cores-libretro)
+15. [Aislamiento COOP/COEP + proxy TMDB](#user-content-15-aislamiento-coop-coep-proxy-de-imágenes-tmdb-csp-compliant)
+16. [Thanks Ratio + locale español](#user-content-16-thanks-ratio-localización-al-español-por-defecto)
+17. [Endurecimiento del edge (nginx announce)](#user-content-17-endurecimiento-del-edge-nginx-announce-verificación)
+18. [UI reactiva (trailers, flash cards, backdrops)](#user-content-18-ui-reactiva-trailers-flotantes-flash-cards-y-backdrops-de-freeleech)
+19. [Base de datos profundamente modificada](#user-content-19-base-de-datos-profundamente-modificada-ya-no-es-unit3d-community)
+20. [Super-paneles de staff (en FOSS)](#user-content-20-super-paneles-de-staff-administración-avanzada-en-foss)
+21. [Arcade ScummVM WebAssembly](#user-content-21-arcade-integrado-scummvm-webassembly-pioneros)
+22. [Banco forense y de recuperación (PITR)](#user-content-22-banco-de-forense-y-recuperación-point-in-time-aislado)
 
 </details>
 
@@ -163,6 +163,8 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 
 ### 1. **🔍 Meilisearch: Búsqueda Instantánea y Resiliente**
 
+![Búsqueda instantánea de Meilisearch en el tracker](repo-png/1.png)
+
 **El Desafío**: UNIT3D incluye Meilisearch como su motor de búsqueda, pero **no proporciona documentación ni configuración**. La instalación y configuración quedan a cargo del operador.
 
 **Nuestra Solución**:
@@ -194,6 +196,8 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 ---
 
 ### 2. **📧 Lista Negra de Correos Resiliente**
+
+![Registro rechazado por dominio de correo desechable](repo-png/2.png)
 
 **El Problema**: UNIT3D obtiene dominios de correo desechables de un CDN externo durante la validación del registro. **Si el CDN está caído o inaccesible, los registros fallan por completo.**
 
@@ -426,6 +430,14 @@ Esto **no es un cambio en el núcleo de UNIT3D** — es una piel personalizada q
 
 ### 7. **⚙️ Ajustes de Configuración**
 
+<p>
+  <img src="repo-png/7-a.png" width="760" alt="Ajuste de configuración 1"><br>
+  <img src="repo-png/7-b.png" width="760" alt="Ajuste de configuración 2"><br>
+  <img src="repo-png/7-c.png" width="760" alt="Ajuste de configuración 3"><br>
+  <img src="repo-png/7-d.png" width="760" alt="Ajuste de configuración 4"><br>
+  <img src="repo-png/7-e.png" width="760" alt="Ajuste de configuración 5">
+</p>
+
 Optimizaciones en **config/other.php**:
 - Tiempo de espera para invitaciones: 24h → 1h (después de la activación de 2FA)
 - Máximo de invitaciones sin usar por usuario: 1 → 10 (amigable para el staff)
@@ -463,6 +475,8 @@ Optimizaciones en **config/other.php**:
 ---
 
 ### 9. **📡 Integración con Telegram (Bot de Notificaciones)**
+
+<img src="repo-png/9.png" width="820" alt="Notificación de torrent en Telegram con póster y mediainfo">
 
 **El Desafío**: UNIT3D no incluye ningún canal de notificaciones externo en tiempo real. Los usuarios no reciben alertas cuando se aprueba un torrent, y el staff no puede actuar sobre los miembros del grupo de Telegram directamente desde la plataforma.
 
@@ -562,6 +576,9 @@ bash rclone_gdrive/scripts/restore_snapshot.sh
 
 ### 11. **🧬 Metadata Multi-Proveedor con Consenso (TMDB · IGDB · MAL · Anilist · IMDb · TVmaze)**
 
+![Resolución de metadatos por consenso — fuentes votando](repo-png/11-a.png)
+![Auditoría del proveedor ganador por torrent](repo-png/11-b.png)
+
 **El Desafío**: La Edición Comunitaria solo habla con TMDB. Si el match es ambiguo (título genérico, año confuso, animes con varias versiones), el póster, sinopsis y géneros terminan equivocados — y el operador acaba editando torrents a mano.
 
 **Nuestra Solución — `ConsensusResolver`**:
@@ -631,6 +648,14 @@ meta-worker:
 
 ### 13. **🕸️ Swarm Intelligence + Mapa 3D del Tracker**
 
+<p>
+  <img src="repo-png/13-a.png" width="780" alt="Mapa 3D del swarm — vista general"><br>
+  <img src="repo-png/13-b.png" width="780" alt="Mapa 3D del swarm — clústeres de co-seedeo"><br>
+  <img src="repo-png/13-c.png" width="780" alt="Mapa 3D del swarm — filtros"><br>
+  <img src="repo-png/13-d.png" width="780" alt="Swarm Intelligence — panel por torrent"><br>
+  <img src="repo-png/13-e.png" width="780" alt="Swarm Intelligence — distribución de peers">
+</p>
+
 **El Desafío**: El operador no tiene visibilidad de la topología real del swarm. ¿Quién comparte con quién? ¿Hay cliques? ¿Hay un nodo central que si se cae fragmenta el swarm?
 
 **Nuestra Solución — Dos Vistas Inéditas**:
@@ -663,6 +688,12 @@ meta-worker:
 ---
 
 ### 14. **🎮 RetroArch Web (Arcade Multi-Sistema, 26 Cores Libretro)**
+
+<p>
+  <img src="repo-png/14.png" width="820" alt="RetroArch Web — catálogo multi-sistema"><br>
+  <img src="repo-png/14-b.png" width="820" alt="RetroArch Web — selección de cores"><br>
+  <img src="repo-png/14-c.png" width="820" alt="RetroArch Web — juego corriendo en el navegador">
+</p>
 
 **El Desafío**: ScummVM cubre point-and-click clásico, pero el catálogo retro de verdad vive en NES, SNES, Mega Drive, Game Boy, PS1, arcade Capcom/Neo Geo. Hacía falta un emulador genérico en el navegador.
 
@@ -845,6 +876,8 @@ meta-worker:
 
 ### 20. **🎛️ Super-Paneles de Staff (Administración Avanzada, en FOSS)**
 
+<img src="repo-png/20.png" width="820" alt="Centro de operaciones de staff — paneles temáticos">
+
 **Contexto**: UNIT3D Community Edition viene con un Staff Dashboard funcional pero básico. Los paneles avanzados de administración — los que de verdad usa el operador a diario — no formaban parte de la edición pública. Ningún fork público de UNIT3D los había construido.
 **Lo único que vimos fue una foto borrosa de uno**. Una semana de diseño en papel después, empezamos. Lo que sigue lleva 2000+ horas de iteración encima — y algún nuke por accidente del tracker que duele recordar.
 
@@ -987,6 +1020,8 @@ Esto no es una curiosidad lateral. Es otra innovación de admin/owner: **un mult
 
 ![Arcade en acción dentro del tracker](Initial_NOBS_art/photo_2026-04-27_20-23-32.jpg)
 
+<img src="repo-png/21.png" width="820" alt="Sala de arcade ScummVM dentro del tracker">
+
 **El Desafío**: Ningún fork de UNIT3D había intentado jamás ejecutar juegos de aventura clásicos directamente dentro del tracker. Nosotros lo hicimos.
 
 **Lo que construimos**:
@@ -1036,6 +1071,8 @@ Una sala de arcade completa integrada en el tracker, con ScummVM compilado a Web
 ---
 
 ### 22. **🔬 Banco de Forense y Recuperación (Point-in-Time, Aislado)**
+
+<img src="repo-png/22.png" width="700" alt="Panel web del banco forense — recuperación, timeline y topología">
 
 **El Desafío**: El 10 de mayo de 2026 sufrimos un desastre en la BD de producción y tuvimos que recuperarla con un laboratorio improvisado y desechable. Nunca más a ciegas: convertimos esa recuperación en algo **repetible, aislado y rápido**.
 
