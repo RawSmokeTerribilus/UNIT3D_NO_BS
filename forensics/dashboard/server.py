@@ -8,6 +8,9 @@ by hand) — no docker.sock, no new privilege, no container. Local-only by defau
 MVP surface: status, list-backups, wake, sleep, plus a job + log-stream model so
 the (minutes-long) wake can be followed live. Restore/diff/export land later.
 """
+import base64
+import hashlib
+import hmac
 import json
 import os
 import re
@@ -15,7 +18,9 @@ import shutil
 import subprocess
 import threading
 import time
+import urllib.error
 import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -35,6 +40,18 @@ LAB_DB_CONTAINER = os.environ.get("LAB_DB_CONTAINER", "unit3d-lab-db")
 FX_CONTAINER = os.environ.get("FX_CONTAINER", "unit3d-forensics")
 BACKUPS_DIR = os.path.join(PROJECT_ROOT, "backups", "db_regular")
 EXPORT_DIR = os.path.join(PROJECT_ROOT, "backups", "forensics-export")
+
+# --- auth (fail-closed: this panel can DROP/restore prod, never expose it bare) -
+# AUTH_MODE=none     -> only allowed when bound to a local address (default).
+# AUTH_MODE=cf-access-> verify a Cloudflare Access JWT on every request and check
+#                       the authenticated email against ALLOWED_EMAILS. The actual
+#                       OAuth/MFA login happens at Cloudflare's edge, not here.
+AUTH_MODE = os.environ.get("AUTH_MODE", "none").strip().lower()
+ALLOWED_EMAILS = {e.strip().lower()
+                  for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()}
+CF_ACCESS_TEAM = os.environ.get("CF_ACCESS_TEAM", "").strip()   # <team>.cloudflareaccess.com
+CF_ACCESS_AUD = os.environ.get("CF_ACCESS_AUD", "").strip()     # Access application AUD tag
+LOCAL_ADDRS = {"127.0.0.1", "::1", "localhost", ""}
 
 # actions the dashboard is allowed to run -> script filename (in bin/forensics/)
 SCRIPTS = {
@@ -424,6 +441,88 @@ CTYPE = {".html": "text/html; charset=utf-8", ".js": "application/javascript",
          ".css": "text/css", ".json": "application/json"}
 JOB_RE = re.compile(r"^/api/jobs/([A-Za-z0-9_\-]+)(/stream)?$")
 
+# --- Cloudflare Access JWT verification (stdlib-only, no PyJWT/cryptography) ---
+# RS256 = RSA signature over SHA-256. We fetch Cloudflare's public keys (JWKS),
+# verify the signature with pure-Python PKCS#1 v1.5, then check the claims.
+# DER prefix for an RSASSA-PKCS1-v1_5 SHA-256 DigestInfo (RFC 8017, 9.2).
+_SHA256_DER_PREFIX = bytes.fromhex("3031300d060960864801650304020105000420")
+_JWKS_CACHE = {"ts": 0.0, "keys": {}}      # kid -> (n_int, e_int)
+_JWKS_TTL = 3600
+
+
+def _b64url(data):
+    return base64.urlsafe_b64decode(data + "=" * (-len(data) % 4))
+
+
+def _cf_certs_url():
+    return "https://%s.cloudflareaccess.com/cdn-cgi/access/certs" % CF_ACCESS_TEAM
+
+
+def _load_jwks(force=False):
+    """Fetch + cache Cloudflare's signing keys. Returns {kid: (n, e)}."""
+    if not force and time.time() - _JWKS_CACHE["ts"] < _JWKS_TTL and _JWKS_CACHE["keys"]:
+        return _JWKS_CACHE["keys"]
+    with urllib.request.urlopen(_cf_certs_url(), timeout=10) as r:
+        doc = json.loads(r.read().decode())
+    keys = {}
+    for k in doc.get("keys", []):
+        if k.get("kty") == "RSA" and "n" in k and "e" in k and "kid" in k:
+            n = int.from_bytes(_b64url(k["n"]), "big")
+            e = int.from_bytes(_b64url(k["e"]), "big")
+            keys[k["kid"]] = (n, e)
+    _JWKS_CACHE.update(ts=time.time(), keys=keys)
+    return keys
+
+
+def _rs256_verify(signing_input, sig, n, e):
+    """True if `sig` is a valid RSASSA-PKCS1-v1_5 SHA-256 signature of
+    `signing_input` under the public key (n, e)."""
+    k = (n.bit_length() + 7) // 8
+    if len(sig) != k:
+        return False
+    em = pow(int.from_bytes(sig, "big"), e, n).to_bytes(k, "big")
+    t = _SHA256_DER_PREFIX + hashlib.sha256(signing_input).digest()
+    ps_len = k - 3 - len(t)
+    if ps_len < 8:
+        return False
+    expected = b"\x00\x01" + b"\xff" * ps_len + b"\x00" + t
+    return hmac.compare_digest(em, expected)
+
+
+def verify_cf_access(token):
+    """Verify a Cloudflare Access JWT end-to-end. Returns the lowercased email on
+    success, or None on any failure (fail-closed). Checks signature, expiry,
+    audience and issuer — a forged header without a CF-minted token is worthless."""
+    try:
+        header_b64, payload_b64, sig_b64 = token.split(".")
+        header = json.loads(_b64url(header_b64))
+        if header.get("alg") != "RS256":
+            return None
+        kid = header.get("kid")
+        keys = _load_jwks()
+        key = keys.get(kid)
+        if key is None:                       # rotated key? force one refresh
+            key = _load_jwks(force=True).get(kid)
+        if key is None:
+            return None
+        signing_input = (header_b64 + "." + payload_b64).encode("ascii")
+        if not _rs256_verify(signing_input, _b64url(sig_b64), key[0], key[1]):
+            return None
+        claims = json.loads(_b64url(payload_b64))
+        now = time.time()
+        if claims.get("exp", 0) < now or claims.get("nbf", 0) > now + 60:
+            return None
+        aud = claims.get("aud")
+        auds = aud if isinstance(aud, list) else [aud]
+        if CF_ACCESS_AUD not in auds:
+            return None
+        if claims.get("iss") != "https://%s.cloudflareaccess.com" % CF_ACCESS_TEAM:
+            return None
+        email = (claims.get("email") or "").strip().lower()
+        return email or None
+    except (ValueError, KeyError, urllib.error.URLError, OSError):
+        return None
+
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "ForensicsDash/0.1"
@@ -451,7 +550,43 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _authorized(self):
+        """Front-door gate. In 'none' mode (local bind only) every request passes.
+        In 'cf-access' mode each request must carry a Cloudflare Access JWT whose
+        email is allow-listed, else 403. Fail-closed."""
+        if AUTH_MODE == "none":
+            return True
+        token = self.headers.get("Cf-Access-Jwt-Assertion", "")
+        if not token:                          # fall back to the CF_Authorization cookie
+            for part in self.headers.get("Cookie", "").split(";"):
+                k, _, v = part.strip().partition("=")
+                if k == "CF_Authorization":
+                    token = v
+                    break
+        email = verify_cf_access(token) if token else None
+        if email and email in ALLOWED_EMAILS:
+            return True
+        self._json({"error": "forbidden"}, 403)
+        return False
+
+    def _origin_ok(self):
+        """CSRF guard for state-changing POSTs once the panel is exposed: require a
+        same-host Origin so another site can't drive the logged-in browser. Skipped
+        in local 'none' mode."""
+        if AUTH_MODE == "none":
+            return True
+        origin = self.headers.get("Origin", "")
+        if not origin:
+            self._json({"error": "missing Origin header"}, 403)
+            return False
+        if urllib.parse.urlsplit(origin).netloc != self.headers.get("Host", ""):
+            self._json({"error": "cross-origin POST refused"}, 403)
+            return False
+        return True
+
     def do_GET(self):
+        if not self._authorized():
+            return
         path = self.path.split("?", 1)[0]
         if path == "/" or path == "/index.html":
             return self._static("index.html")
@@ -597,6 +732,10 @@ class Handler(BaseHTTPRequestHandler):
             return {}
 
     def do_POST(self):
+        if not self._authorized():
+            return
+        if not self._origin_ok():
+            return
         path = self.path.split("?", 1)[0]
         if not path.startswith("/api/"):
             return self._json({"error": "not found"}, 404)
@@ -615,13 +754,39 @@ class Handler(BaseHTTPRequestHandler):
         return self._json({"job_id": job_id, "action": action}, 202)
 
 
+def validate_auth_config():
+    """Fail-closed: never let a prod-write panel listen off-box without auth."""
+    exposed = BIND_ADDR not in LOCAL_ADDRS
+    if AUTH_MODE == "none":
+        if exposed:
+            raise SystemExit(
+                "REFUSING TO START: BIND_ADDR=%s is non-local but AUTH_MODE=none.\n"
+                "This dashboard can DROP and restore the production database. Either:\n"
+                "  - bind 127.0.0.1 (local only), or\n"
+                "  - set AUTH_MODE=cf-access with CF_ACCESS_TEAM, CF_ACCESS_AUD and\n"
+                "    ALLOWED_EMAILS, fronted by Cloudflare Access (or equivalent).\n"
+                "See forensics/dashboard/README.md > 'Exposing it safely'." % BIND_ADDR)
+    elif AUTH_MODE == "cf-access":
+        missing = [k for k, v in (("CF_ACCESS_TEAM", CF_ACCESS_TEAM),
+                                  ("CF_ACCESS_AUD", CF_ACCESS_AUD)) if not v]
+        if missing:
+            raise SystemExit("AUTH_MODE=cf-access requires: %s" % ", ".join(missing))
+        if not ALLOWED_EMAILS:
+            raise SystemExit("AUTH_MODE=cf-access requires ALLOWED_EMAILS "
+                             "(comma-separated owner emails)")
+    else:
+        raise SystemExit("unknown AUTH_MODE=%r (use 'none' or 'cf-access')" % AUTH_MODE)
+
+
 def main():
     os.makedirs(RUN_DIR, exist_ok=True)
     clear_stale_lock()
+    validate_auth_config()
     if not shutil.which("docker"):
         raise SystemExit("docker not on PATH — dashboard needs the docker CLI")
     srv = ThreadingHTTPServer((BIND_ADDR, PORT), Handler)
-    print("forensics dashboard on http://%s:%d (project=%s)" % (BIND_ADDR, PORT, PROJECT_ROOT))
+    print("forensics dashboard on http://%s:%d (project=%s, auth=%s)"
+          % (BIND_ADDR, PORT, PROJECT_ROOT, AUTH_MODE))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

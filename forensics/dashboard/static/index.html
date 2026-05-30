@@ -31,7 +31,8 @@
     <h2>Recovery actions</h2>
     <div class="panels">
       <div class="panel">
-        <h3>Restore <span class="muted">(PITR)</span></h3>
+        <h3>Restore <span class="muted">(PITR)</span><button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Loads a backup snapshot into the isolated lab DB, then replays binlogs forward. <b>Lab only — never touches prod.</b> <code>until HEAD</code> replays everything; set a timestamp to stop earlier. Skip replay = snapshot as-is.</div>
         <label>snapshot
           <select id="r-dump"><option value="latest">latest</option></select>
         </label>
@@ -43,7 +44,8 @@
       </div>
 
       <div class="panel">
-        <h3>Diff <span class="muted">(lab vs prod)</span></h3>
+        <h3>Diff <span class="muted">(lab vs prod)</span><button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Compares lab vs prod table-by-table on primary-key <code>id</code>. Reports rows the lab has that prod is missing. <b>Read-only.</b> Run a Restore first so the lab is current.</div>
         <label>tables
           <input id="d-tables" type="text" placeholder="click tables in topology →">
         </label>
@@ -51,7 +53,8 @@
       </div>
 
       <div class="panel">
-        <h3>Export <span class="muted">(lab-only rows)</span></h3>
+        <h3>Export <span class="muted">(lab-only rows)</span><button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">For one table, writes an <code>INSERT IGNORE</code> .sql of the rows prod is missing, saved to disk for you to review. <b>Never auto-applied to prod.</b></div>
         <label>table
           <input id="e-table" type="text" placeholder="click a table in topology →">
         </label>
@@ -60,7 +63,8 @@
       </div>
 
       <div class="panel">
-        <h3>Torrent validate</h3>
+        <h3>Torrent validate<button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Cross-checks one torrent: DB row ↔ its <code>.torrent</code> file ↔ recomputed <code>info_hash</code>. Confirms all three agree. <b>Read-only.</b> Enter a numeric id or 40-hex hash.</div>
         <label>id or infohash
           <input id="t-target" type="text" placeholder="numeric id or 40-hex">
         </label>
@@ -69,7 +73,8 @@
       </div>
 
       <div class="panel danger">
-        <h3>Reset lab <span class="muted">(destructive)</span></h3>
+        <h3>Reset lab <span class="muted">(destructive)</span><button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Stops the lab and deletes its datadir for a clean slate. <b>Lab only — prod is never touched.</b> Type <code>RESET</code> to arm.</div>
         <label>type RESET
           <input id="x-confirm" type="text" placeholder="RESET" autocomplete="off">
         </label>
@@ -83,25 +88,28 @@
     <h2>Apply &amp; disaster recovery <span class="muted">(writes prod — password-gated)</span></h2>
     <div class="panels">
       <div class="panel danger">
-        <h3>Apply export → prod</h3>
+        <h3>Apply export → prod<button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Applies an export .sql to <b>PROD</b> as additive <code>INSERT IGNORE</code> — adds missing rows, overwrites nothing. Needs the prod DB password. Dry-run runs in a rolled-back transaction; a backup is taken before commit.</div>
         <label>export <select id="ap-file"></select></label>
         <label>prod DB password <input id="ap-pw" type="password" autocomplete="off"></label>
+        <p class="hint">Additive INSERT IGNORE. Backup-first + dry-run run before commit.</p>
         <div class="btnrow">
           <button id="btn-apply-dry" class="go">Dry-run</button>
           <button id="btn-apply" class="go danger-btn">Apply (commit)</button>
         </div>
-        <p class="hint">Additive INSERT IGNORE. Backup-first + dry-run run before commit.</p>
       </div>
 
       <div class="panel">
-        <h3>Build apply kit <span class="muted">(read-only)</span></h3>
+        <h3>Build apply kit <span class="muted">(read-only)</span><button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Generates a combined .sql plus the exact terminal one-liner to apply it yourself. <b>The dashboard never writes prod here</b> — this is the manual fallback.</div>
         <label>export <select id="kit-file"></select></label>
-        <button id="btn-kit" class="go">Generate kit + command</button>
         <p class="hint">Combined .sql + exact terminal one-liner. Dash never writes prod. The fallback.</p>
+        <button id="btn-kit" class="go">Generate kit + command</button>
       </div>
 
       <div class="panel">
-        <h3>Maintenance</h3>
+        <h3>Maintenance<button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">MySQL table upkeep on prod. <code>check</code> = read-only scan. <code>analyze</code> = refresh row-count estimates (cheap). <code>optimize</code> = rebuild table to reclaim space (locks it, backup-first). analyze/optimize need the prod password.</div>
         <label>op
           <select id="mt-op">
             <option value="check">check (read-only)</option>
@@ -116,13 +124,14 @@
       </div>
 
       <div class="panel danger">
-        <h3>Full DR: snapshot → PROD <span class="muted">(destructive)</span></h3>
+        <h3>Full DR: snapshot → PROD <span class="muted">(destructive)</span><button class="infobtn" type="button" aria-label="what is this">i</button></h3>
+        <div class="infocard">Disaster recovery. <b>DROPs and recreates the PROD schema</b>, imports a snapshot, replays binlogs to <code>until</code> — wipes current prod data. Backup-first. Set <code>until</code> from the damage timeline to stop before the bad event. Type <code>RESTORE PROD</code> to arm.</div>
         <label>snapshot <select id="dr-dump"></select></label>
         <label>until <input id="dr-until" type="text" value="HEAD" placeholder="from timeline"></label>
         <label>prod DB password <input id="dr-pw" type="password" autocomplete="off"></label>
         <label>type RESTORE PROD <input id="dr-confirm" type="text" autocomplete="off" placeholder="RESTORE PROD"></label>
-        <button id="btn-dr" class="go danger-btn">Restore snapshot to PROD</button>
         <p class="hint">DROP+recreate prod schema → import → replay to <code>until</code>. Backup-first. Set <code>until</code> from the timeline to stop before the wipe.</p>
+        <button id="btn-dr" class="go danger-btn">Restore snapshot to PROD</button>
       </div>
     </div>
   </section>
@@ -188,7 +197,7 @@
       <option value="size">sort: size</option>
       <option value="rows">sort: rows</option>
       <option value="name">sort: name</option>
-      <option value="frag">sort: fragmentation</option>
+      <option value="frag">sort: frag</option>
     </select>
   </div>
   <div class="topo-legend muted">

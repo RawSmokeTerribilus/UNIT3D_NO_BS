@@ -580,6 +580,17 @@ $("btn-verify").onclick = () => { $("btn-verify").textContent = "verifying…"; 
 $("btn-refresh").onclick = refreshBackups;
 $("btn-refresh-exports").onclick = refreshExports;
 
+// per-panel info flashcards: click the (i) to toggle, click elsewhere/Esc to close
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".infobtn");
+  const panel = btn ? btn.closest(".panel") : null;
+  document.querySelectorAll(".panel.show-info").forEach((p) => { if (p !== panel) p.classList.remove("show-info"); });
+  if (panel) { e.stopPropagation(); panel.classList.toggle("show-info"); }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.querySelectorAll(".panel.show-info").forEach((p) => p.classList.remove("show-info"));
+});
+
 // prefill diff tables with the bench defaults
 fetch("/api/tables").then((r) => r.json()).then((d) => {
   $("d-tables").value = (d.default_tables || []).join(" ");
