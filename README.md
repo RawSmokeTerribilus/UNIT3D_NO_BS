@@ -29,7 +29,7 @@
 
 ---
 
-### 📚 La Biblia de Operaciones
+### La Biblia de Operaciones
 Todo lo que necesitas para que el tracker no explote está en nuestra Wiki oficial:
 
 👉 **[ACCEDER AL MANUAL COMPLETO](https://rawsmoke.codeberg.page/UNIT3D/)**
@@ -44,10 +44,10 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 
 ---
 
-## 🧭 Índice
+## Índice
 
 - [¿Qué es UNIT3D?](#qué-es-unit3d)
-- [¿Por qué N.O.B.S? Lo que Construimos](#por-qué-n-o-b-s-lo-que-construimos)
+- [¿Por qué NOBS? Lo que Construimos](#por-qué-nobs-lo-que-construimos)
   - [Parte 1 — Arreglamos las piezas rotas](#parte-1-arreglamos-las-piezas-rotas-de-unit3d)
   - [Parte 2 — Lo dockerizamos](#parte-2-lo-dockerizamos-no-es-una-tarea-trivial)
   - [Parte 3 — Añadimos resiliencia (Búnker)](#parte-3-añadimos-resiliencia-la-filosofía-búnker)
@@ -69,18 +69,18 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 3. [Transparencia de IPs (redes de Docker)](#3-transparencia-de-direcciones-ip-redes-de-docker)
 4. [Protección contra fuerza bruta equilibrada](#4-protección-contra-fuerza-bruta-equilibrio-entre-seguridad-y-usabilidad)
 5. [Infraestructura autónoma (el "Búnker")](#5-infraestructura-autónoma-el-búnker)
-6. [Branding de N.O.B.S (tema personalizado)](#6-branding-de-n-o-b-s-tema-personalizado)
+6. [Branding de NOBS (tema personalizado)](#6-branding-de-nobs-tema-personalizado)
 7. [Ajustes de configuración](#7-ajustes-de-configuración)
-8. [Tema Retro v2 (estética + fixes)](#8-refactorización-estética-y-funcional-tema-retro-v2)
+8. [Tema Retro v2 (estética y fixes)](#8-refactorización-estética-y-funcional-tema-retro-v2)
 9. [Integración con Telegram (bot)](#9-integración-con-telegram-bot-de-notificaciones)
-10. [Sincronización cifrada a Google Drive](#10-sincronización-con-google-drive-rclone-cifrado)
+10. [Sincronización cifrada a Google Drive](#10-sincronización-con-google-drive-rclone-y-cifrado)
 11. [Metadata multi-proveedor con consenso](#11-metadata-multi-proveedor-con-consenso-tmdb-igdb-mal-anilist-imdb-tvmaze)
 12. [Meta-Worker (cola dedicada de metadatos)](#12-meta-worker-cola-dedicada-para-refresco-de-metadatos)
-13. [Swarm Intelligence + mapa 3D](#13-swarm-intelligence-mapa-3d-del-tracker)
+13. [Swarm Intelligence y mapa 3D](#13-swarm-intelligence-y-mapa-3d-del-tracker)
 14. [RetroArch Web (26 cores libretro)](#14-retroarch-web-arcade-multi-sistema-26-cores-libretro)
-15. [Aislamiento COOP/COEP + proxy TMDB](#15-aislamiento-coop-coep-proxy-de-imágenes-tmdb-csp-compliant)
-16. [Thanks Ratio + locale español](#16-thanks-ratio-localización-al-español-por-defecto)
-17. [Endurecimiento del edge (nginx announce)](#17-endurecimiento-del-edge-nginx-announce-verificación)
+15. [Aislamiento COOP COEP y proxy TMDB](#15-aislamiento-coop-coep-y-proxy-de-imágenes-tmdb-csp-compliant)
+16. [Thanks Ratio y locale español](#16-thanks-ratio-y-localización-al-español-por-defecto)
+17. [Endurecimiento del edge (nginx announce)](#17-endurecimiento-del-edge-nginx-announce-y-verificación)
 18. [UI reactiva (trailers, flash cards, backdrops)](#18-ui-reactiva-trailers-flotantes-flash-cards-y-backdrops-de-freeleech)
 19. [Base de datos profundamente modificada](#19-base-de-datos-profundamente-modificada-ya-no-es-unit3d-community)
 20. [Super-paneles de staff (en FOSS)](#20-super-paneles-de-staff-administración-avanzada-en-foss)
@@ -91,7 +91,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 
 ---
 
-## 📚 ¿Qué es UNIT3D?
+## ¿Qué es UNIT3D?
 
 **[UNIT3D](https://github.com/HDInnovations/UNIT3D)** es un software moderno y rico en funciones para Trackers de Torrents Privados, construido sobre **Laravel 12**, **Livewire** y **AlpineJS**. Creado por el equipo de HDInnovations, impulsa comunidades de trackers privados de alto rendimiento con soporte para:
 
@@ -103,13 +103,13 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 - 🔗 **Integración IRC**: Anuncios en vivo e integración de bots
 - 🌍 **Internacionalización**: Soporte para múltiples idiomas
 
-### **Un Gran Agradecimiento a HDInnovations** ❤️
+### **Un Gran Agradecimiento a HDInnovations**
 
 Este proyecto no existiría sin UNIT3D. Los desarrolladores originales crearon una plataforma increíble para comunidades de trackers privados. [**→ Visita el GitHub de UNIT3D**](https://github.com/HDInnovations/UNIT3D)
 
 ---
 
-## 🔧 ¿Por qué N.O.B.S? Lo que Construimos
+## ¿Por qué NOBS? Lo que Construimos
 
 UNIT3D es una **plataforma brillante**, pero llega como código fuente, no como una implementación empaquetada. Tomamos la Edición Comunitaria e hicimos tres cosas: **arreglar** lo que venía roto, **dockerizar** el stack completo y **endurecerlo** para que opere solo (la filosofía "Búnker").
 
@@ -159,9 +159,10 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 
 ---
 
-## 🚀 Mejoras Clave
+## Mejoras Clave
 
-### 1. **🔍 Meilisearch: Búsqueda Instantánea y Resiliente**
+### 1. **Meilisearch: Búsqueda Instantánea y Resiliente**
+🔍 *Búsqueda en milisegundos, autoindexada y resiliente.*
 
 ![Búsqueda instantánea de Meilisearch en el tracker](repo-png/1.png)
 
@@ -195,7 +196,8 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 
 ---
 
-### 2. **📧 Lista Negra de Correos Resiliente**
+### 2. **Lista Negra de Correos Resiliente**
+📧 *Registro a prueba de caídas del CDN de dominios desechables.*
 
 ![Registro rechazado por dominio de correo desechable](repo-png/2.png)
 
@@ -229,7 +231,8 @@ PERSISTENCIA:
 
 ---
 
-### 3. **🌐 Transparencia de Direcciones IP (Redes de Docker)**
+### 3. **Transparencia de Direcciones IP (Redes de Docker)**
+🌐 *La IP real del usuario tras el proxy de Docker.*
 
 **El Problema**: En Docker, Nginx y la aplicación Laravel se ejecutan en contenedores separados. Sin las cabeceras adecuadas, todas las peticiones parecen provenir de la puerta de enlace interna de Docker (`172.21.0.1`). **Todos los usuarios muestran la misma IP en sus perfiles.**
 
@@ -255,7 +258,8 @@ RESULTADO:
 
 ---
 
-### 4. **🔒 Protección contra Fuerza Bruta: Equilibrio entre Seguridad y Usabilidad**
+### 4. **Protección contra Fuerza Bruta: Equilibrio entre Seguridad y Usabilidad**
+🔒 *Anti fuerza bruta sin bloquear a los legítimos.*
 
 **El Problema**: La configuración por defecto de Fortify en UNIT3D era **demasiado agresiva**:
 - 5 inicios de sesión fallidos → bloqueado por 24 horas
@@ -285,7 +289,8 @@ Verificación de multi-cuenta: umbral de 1 → 3           // Permite cambiar de
 
 ---
 
-### 5. **🛡️ Infraestructura Autónoma (El "Búnker")**
+### 5. **Infraestructura Autónoma (El "Búnker")**
+🛡️ *Autoreparación, backups en frío y health checks: el "Búnker".*
 
 #### **Autoreparación al Iniciar**
 
@@ -404,7 +409,8 @@ Implicaciones operativas:
 
 ---
 
-### 6. **🎨 Branding de N.O.B.S (Tema Personalizado)**
+### 6. **Branding de NOBS (Tema Personalizado)**
+🎨 *Identidad visual NOBS, sin tocar el núcleo.*
 
 UNIT3D viene con un tema por defecto. Creamos una identidad personalizada de N.O.B.S:
 
@@ -428,7 +434,8 @@ Esto **no es un cambio en el núcleo de UNIT3D** — es una piel personalizada q
 
 ---
 
-### 7. **⚙️ Ajustes de Configuración**
+### 7. **Ajustes de Configuración**
+⚙️ *Ajustes finos de invitaciones, ratios y seguridad.*
 
 <p>
   <img src="repo-png/7-a.png" width="760" alt="Ajuste de configuración 1"><br>
@@ -451,7 +458,8 @@ Optimizaciones en **config/other.php**:
 
 ---
 
-### 8. **🎨 Refactorización Estética y Funcional: Tema Retro (v2)**
+### 8. **Refactorización Estética y Funcional: Tema Retro (v2)**
+🎨 *Tema Retro v2: dark mode neón y fixes de UX.*
 
 **El Desafío**: El tema original `refined_nobs` presentaba problemas críticos de UX/UI: menús desplegables inaccesibles por conflictos de capas (z-index), botones que aparecían como bloques negros sin relieve, y una saturación de color rosa que dificultaba la lectura prolongada. Además, los ratios de torrents mostraban errores técnicos (`INF` o código HTML fugado).
 
@@ -474,7 +482,8 @@ Optimizaciones en **config/other.php**:
 
 ---
 
-### 9. **📡 Integración con Telegram (Bot de Notificaciones)**
+### 9. **Integración con Telegram (Bot de Notificaciones)**
+📡 *Notificaciones de torrents en Telegram con póster y mediainfo.*
 
 <img src="repo-png/9.png" width="820" alt="Notificación de torrent en Telegram con póster y mediainfo">
 
@@ -525,7 +534,8 @@ Optimizaciones en **config/other.php**:
 
 ---
 
-### 10. **☁️ Sincronización con Google Drive (rclone + cifrado)**
+### 10. **Sincronización con Google Drive (rclone y cifrado)**
+☁️ *Snapshots cifrados a Google Drive con rclone.*
 
 **El Desafío**: Los snapshots locales del backup en frío quedan en el mismo servidor. Un fallo de disco o pérdida del host implica pérdida total de los backups.
 
@@ -574,7 +584,8 @@ bash rclone_gdrive/scripts/restore_snapshot.sh
 
 ---
 
-### 11. **🧬 Metadata Multi-Proveedor con Consenso (TMDB · IGDB · MAL · Anilist · IMDb · TVmaze)**
+### 11. **Metadata Multi-Proveedor con Consenso (TMDB IGDB MAL Anilist IMDb TVmaze)**
+🧬 *Metadatos por consenso de seis proveedores.*
 
 ![Resolución de metadatos por consenso — fuentes votando](repo-png/11-a.png)
 ![Auditoría del proveedor ganador por torrent](repo-png/11-b.png)
@@ -614,7 +625,8 @@ bash rclone_gdrive/scripts/restore_snapshot.sh
 
 ---
 
-### 12. **🛰️ Meta-Worker (Cola Dedicada para Refresco de Metadatos)**
+### 12. **Meta-Worker (Cola Dedicada para Refresco de Metadatos)**
+🛰️ *Cola aparte para que el refresco de metadatos no ahogue la principal.*
 
 **El Desafío**: Refrescar metadatos puede colgar la cola principal: rate-limits de TMDB, scrapes lentos de MAL, timeouts de IMDb. Si comparten queue, las notificaciones de Telegram se atascan detrás de un scrape de 30 segundos.
 
@@ -646,7 +658,8 @@ meta-worker:
 
 ---
 
-### 13. **🕸️ Swarm Intelligence + Mapa 3D del Tracker**
+### 13. **Swarm Intelligence y Mapa 3D del Tracker**
+🕸️ *Inteligencia del swarm y mapa 3D del tracker.*
 
 <p>
   <img src="repo-png/13-a.png" width="780" alt="Mapa 3D del swarm — vista general"><br>
@@ -687,7 +700,8 @@ meta-worker:
 
 ---
 
-### 14. **🎮 RetroArch Web (Arcade Multi-Sistema, 26 Cores Libretro)**
+### 14. **RetroArch Web (Arcade Multi-Sistema, 26 Cores Libretro)**
+🎮 *RetroArch en el navegador: 26 cores libretro.*
 
 <p>
   <img src="repo-png/14.png" width="820" alt="RetroArch Web — catálogo multi-sistema"><br>
@@ -727,7 +741,8 @@ meta-worker:
 
 ---
 
-### 15. **🛡️ Aislamiento COOP/COEP + Proxy de Imágenes TMDB (CSP Compliant)**
+### 15. **Aislamiento COOP COEP y Proxy de Imágenes TMDB (CSP Compliant)**
+🛡️ *WASM aislado y pósters TMDB conviviendo bajo CSP.*
 
 **El Desafío**: Para que ciertos cores libretro y módulos WASM funcionen, hace falta `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`. Pero entonces el navegador bloquea pósters de `image.tmdb.org` por faltar `Cross-Origin-Resource-Policy`. Conflicto.
 
@@ -755,7 +770,8 @@ meta-worker:
 
 ---
 
-### 16. **🤝 Thanks Ratio + Localización al Español por Defecto**
+### 16. **Thanks Ratio y Localización al Español por Defecto**
+🤝 *Thanks Ratio y español por defecto.*
 
 **Thanks Ratio**:
 - Métrica de "agradecimientos recibidos / agradecimientos enviados" expuesta en perfil, top-nav, y en formularios de invitaciones/BON.
@@ -780,7 +796,8 @@ meta-worker:
 
 ---
 
-### 17. **🔒 Endurecimiento del Edge (Nginx Announce + Verificación)**
+### 17. **Endurecimiento del Edge (Nginx Announce y Verificación)**
+🔒 *Edge endurecido: nginx announce y verificación.*
 
 **Nginx Announce Hardening** (`.docker/nginx/default.conf`):
 - Límites de conexión por IP en `/announce/`
@@ -802,7 +819,8 @@ meta-worker:
 
 ---
 
-### 18. **🎞️ UI Reactiva: Trailers Flotantes, Flash Cards y Backdrops de Freeleech**
+### 18. **UI Reactiva: Trailers Flotantes, Flash Cards y Backdrops de Freeleech**
+🎞️ *Trailers flotantes, flash cards y backdrops de freeleech.*
 
 **El Desafío**: La lista de torrents de UNIT3D es texto plano: título, tamaño, ratio. El usuario tiene que abrir cada ficha para ver de qué va el contenido. Los pósters quedan escondidos. La portada de freeleech es un banner liso.
 
@@ -845,7 +863,8 @@ meta-worker:
 
 ---
 
-### 19. **🗄️ Base de Datos Profundamente Modificada (Ya No es UNIT3D Community)**
+### 19. **Base de Datos Profundamente Modificada (Ya No es UNIT3D Community)**
+🗄️ *Base de datos profundamente extendida (ya no es Community).*
 
 **El Estado**: Tras 2000+ horas, la DB de este fork ya no es reconocible para alguien que clone UNIT3D Community Edition y mire `database/migrations/`.
 
@@ -874,7 +893,8 @@ meta-worker:
 
 ---
 
-### 20. **🎛️ Super-Paneles de Staff (Administración Avanzada, en FOSS)**
+### 20. **Super-Paneles de Staff (Administración Avanzada, en FOSS)**
+🎛️ *Centro de operaciones de staff, en FOSS.*
 
 <img src="repo-png/20.png" width="820" alt="Centro de operaciones de staff — paneles temáticos">
 
@@ -1016,7 +1036,8 @@ Esto no es una curiosidad lateral. Es otra innovación de admin/owner: **un mult
 
 ---
 
-### 21. **🕹️ Arcade Integrado: ScummVM WebAssembly (Pioneros)**
+### 21. **Arcade Integrado: ScummVM WebAssembly (Pioneros)**
+🕹️ *Arcade ScummVM en WebAssembly (pioneros).*
 
 ![Arcade en acción dentro del tracker](Initial_NOBS_art/photo_2026-04-27_20-23-32.jpg)
 
@@ -1070,7 +1091,8 @@ Una sala de arcade completa integrada en el tracker, con ScummVM compilado a Web
 
 ---
 
-### 22. **🔬 Banco de Forense y Recuperación (Point-in-Time, Aislado)**
+### 22. **Banco de Forense y Recuperación (Point-in-Time, Aislado)**
+🔬 *Recuperación forense point-in-time, aislada de producción.*
 
 <img src="repo-png/22.png" width="700" alt="Panel web del banco forense — recuperación, timeline y topología">
 
@@ -1114,9 +1136,9 @@ Un laboratorio MySQL permanente, **apagado por defecto**, junto al stack de prod
 
 ---
 
-## 📦 Rutas de Instalación
+## Rutas de Instalación
 
-### **🚀 Ruta A: Instalación Fresca (Nuevo Tracker)**
+### **Ruta A: Instalación Fresca (Nuevo Tracker)**
 
 Para un tracker completamente nuevo en una máquina limpia:
 
@@ -1155,7 +1177,7 @@ docker compose exec app php artisan scout:import
 
 ---
 
-### **📀 Ruta B: Restaurar desde un Backup (Recuperación de Desastres)**
+### **Ruta B: Restaurar desde un Backup (Recuperación de Desastres)**
 
 Si tu tracker se cae o te estás mudando a un nuevo servidor:
 
@@ -1192,7 +1214,7 @@ make health
 
 ---
 
-### **🧱 Ruta C: Instalación Baremetal (Sin Docker — Solo Expertos)**
+### **Ruta C: Instalación Baremetal (Sin Docker, Solo Expertos)**
 
 > ⚠️ **No recomendada salvo que sepas exactamente lo que haces.** El stack de
 > referencia de N.O.B.S es el **dockerizado** (Rutas A/B): es el que probamos,
@@ -1241,7 +1263,7 @@ conocimiento para mantenerlo.
 
 ---
 
-## 🛠️ Gestión: El Makefile
+## Gestión: El Makefile
 
 ```bash
 make help            # Muestra todos los comandos
@@ -1260,7 +1282,7 @@ make meilisearch-fix # Reinicia Meilisearch desde cero (borra data y reindexa)
 
 ---
 
-## 📊 Arquitectura
+## Arquitectura
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -1292,7 +1314,7 @@ Announce:     binario Rust (UNIT3D-Announce) — código vendorizado en rust-ann
 
 ---
 
-## ⚙️ Mapeo de Puertos
+## Mapeo de Puertos
 
 | Servicio | Interno | Externo | Propósito |
 |---|---|---|---|
@@ -1309,7 +1331,7 @@ Announce:     binario Rust (UNIT3D-Announce) — código vendorizado en rust-ann
 
 ---
 
-## 🔐 Notas de Seguridad
+## Notas de Seguridad
 
 ### Variables de Entorno (.env)
 
@@ -1331,9 +1353,9 @@ Announce:     binario Rust (UNIT3D-Announce) — código vendorizado en rust-ann
 
 ---
 
-## 📖 Solución de Problemas
+## Solución de Problemas
 
-### **Error 500 / Permiso Denegado**
+### **Error 500 Permiso Denegado**
 
 ```bash
 # Se arregla automáticamente al reiniciar, pero para forzar:
@@ -1342,7 +1364,7 @@ docker exec unit3d-app chmod -R 775 storage bootstrap/cache
 docker exec unit3d-app chown -R www-data:www-data storage bootstrap/cache
 ```
 
-### **La búsqueda no funciona / Sin resultados**
+### **La búsqueda no funciona Sin resultados**
 
 ```bash
 # Reindexar Meilisearch
@@ -1366,7 +1388,7 @@ docker compose exec app php artisan tinker
 # >>> Mail::raw('Test', fn($m) => $m->to('test@example.com')->send());
 ```
 
-### **Base de datos bloqueada / Problemas con MySQL**
+### **Base de datos bloqueada Problemas con MySQL**
 
 ```bash
 # Revisa los logs de MySQL
@@ -1376,7 +1398,7 @@ docker compose logs db
 # Ver "Ruta B: Restaurar desde un Backup" arriba
 ```
 
-### **Telegram: El bot no responde / Las notificaciones no llegan**
+### **Telegram: El bot no responde Las notificaciones no llegan**
 
 ```bash
 # Verificar que el worker está procesando jobs de Telegram
@@ -1389,7 +1411,7 @@ docker compose exec -T app php artisan route:list | grep telegram
 curl https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo
 ```
 
-### **Metadatos no se actualizan / catálogo con pósters viejos**
+### **Metadatos no se actualizan catálogo con pósters viejos**
 
 ```bash
 # Confirmar que el meta-worker está vivo
@@ -1406,7 +1428,7 @@ docker compose exec app php artisan meta:sync --force --limit=1
 docker compose exec app php artisan meta:rotate-covers
 ```
 
-### **Mapa 3D del Swarm no carga / consola con 404 en /vendor/**
+### **Mapa 3D del Swarm no carga consola con 404 en /vendor**
 
 ```bash
 # Los assets de Swarm son gitignored. Re-descargar:
@@ -1418,7 +1440,7 @@ docker compose exec app ./install-swarm-assets.sh
 ls -lh public/vendor/{force-graph,3d-force-graph,three,d3}/*.js
 ```
 
-### **RetroArch: core no arranca / pantalla negra**
+### **RetroArch: core no arranca pantalla negra**
 
 ```bash
 # Activar modo debug en el reproductor
@@ -1432,7 +1454,7 @@ docker compose exec app php artisan retroarch:fetch-covers
 curl -I https://tu-tracker/retroarch/snes/show | grep -iE 'cross-origin'
 ```
 
-### **Tracker Rust desincronizado con Laravel (permisos / nuevo grupo)**
+### **Tracker Rust desincronizado con Laravel (permisos nuevo grupo)**
 
 ```bash
 # Sincronización en caliente con el binario Rust
@@ -1443,7 +1465,7 @@ docker compose exec app php artisan tracker:sync-groups
 
 ---
 
-## 🎯 Filosofía: "De la Scene, Para la Scene"
+## Filosofía: "De la Scene, Para la Scene"
 
 Este proyecto refleja más de 2000 horas de trabajo para reparar y ampliar UNIT3D partiendo de la edición comunitaria. Cada arreglo, cada automatización, cada redundancia existe porque **creemos en la plataforma**.
 
@@ -1457,7 +1479,7 @@ Este es un software de tracker **para gente que gestiona trackers**, no un produ
 
 ---
 
-## 📝 Contribuciones
+## Contribuciones
 
 ¿Encontraste un bug? ¿Tienes una mejora? ¡Los Issues y PRs son bienvenidos!
 
@@ -1465,7 +1487,7 @@ Este es un fork comunitario. Estamos mejorando UNIT3D en beneficio de los operad
 
 ---
 
-## 📜 Licencia
+## Licencia
 
 UNIT3D está licenciado bajo la GNU Affero General Public License v3.0. Ver [LICENSE.txt](./LICENSE.txt).
 
@@ -1473,7 +1495,7 @@ Este fork mantiene la misma licencia y espíritu: abierto, transparente e impuls
 
 ---
 
-## ❤️ Agradecimientos
+## Agradecimientos
 
 - **HDInnovations** por crear UNIT3D
 - **La escena de trackers privados** por décadas de innovación y construcción de comunidades
