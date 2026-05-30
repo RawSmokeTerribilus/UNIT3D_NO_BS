@@ -14,31 +14,31 @@
 ```
 
 
-> **⚠️ AVISO PARA NAVEGANTES:** Si vas a tocar el stack, deja el café un segundo y lee. Entrar aquí sin pasar por la wiki es como intentar desarmar una bomba con palillos chinos. Bajo tu propio riesgo.
+> **⚠️ HEADS UP, TRAVELER:** If you're going to touch the stack, put the coffee down for a second and read. Walking in here without going through the wiki is like trying to defuse a bomb with chopsticks. At your own risk.
 
 ---
 
 <p align="center">
   <a href="https://rawsmoketerribilus.github.io/UNIT3D/">
-    <img src="https://img.shields.io/badge/📖_WIKI_Y_MANUAL-ESTADO:_ONLINE-brightgreen?style=for-the-badge&logo=gitbook&logoColor=white" alt="Manual Online">
+    <img src="https://img.shields.io/badge/📖_WIKI_AND_MANUAL-STATUS:_ONLINE-brightgreen?style=for-the-badge&logo=gitbook&logoColor=white" alt="Manual Online">
   </a>
   <a href="https://github.com/rawsmoketerribilus/UNIT3D/actions">
-    <img src="https://img.shields.io/badge/BOT_DEPLOY-ESTADO:_OPERATIVO-blue?style=for-the-badge&logo=github-actions&logoColor=white" alt="Bot Status">
+    <img src="https://img.shields.io/badge/BOT_DEPLOY-STATUS:_OPERATIONAL-blue?style=for-the-badge&logo=github-actions&logoColor=white" alt="Bot Status">
   </a>
 </p>
 
 ---
 
-### La Biblia de Operaciones
-Todo lo que necesitas para que el tracker no explote está en nuestra Wiki oficial:
+### The Operations Bible
+Everything you need to keep the tracker from blowing up is in our official Wiki:
 
-👉 **[ACCEDER AL MANUAL COMPLETO](https://rawsmoketerribilus.github.io/UNIT3D/)**
+👉 **[OPEN THE FULL MANUAL](https://rawsmoketerribilus.github.io/UNIT3D/)**
 
-**¿Qué encontrarás ahí dentro?**
-* 🛠️ **Configuración del Entorno:** Cómo domar los contenedores sin morir en el intento.
-* 💾 **Backups Blindados:** El sistema de snapshots que nos salva el culo a las 06:00 AM.
-* 📑 **Guía de Desarrollo:** Para que el código nuevo no parezca escrito por el becario.
-* 🏗️ **Testing:** Cómo montar un laboratorio de pruebas que no pese 22GB.
+**What you'll find in there?**
+* 🛠️ **Environment Setup:** How to tame the containers without dying in the attempt.
+* 💾 **Bulletproof Backups:** The snapshot system that saves our asses at 06:00 AM.
+* 📑 **Development Guide:** So new code doesn't look like the intern wrote it.
+* 🏗️ **Testing:** How to spin up a test lab that doesn't weigh 22GB.
 
 ---
 
@@ -83,7 +83,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 17. [Edge Hardening (Nginx Announce and Verification)](#17-edge-hardening-nginx-announce-and-verification)
 18. [Reactive UI: Floating Trailers, Flash Cards and Freeleech Backdrops](#18-reactive-ui-floating-trailers-flash-cards-and-freeleech-backdrops)
 19. [Deeply Modified Database (No Longer UNIT3D Community)](#19-deeply-modified-database-no-longer-unit3d-community)
-20. [Staff Super-Panels (What HDInnovations Sells Separately, in FOSS)](#20-staff-super-panels-what-hdinnovations-sells-separately-in-foss)
+20. [Staff Super-Panels (Advanced Administration, in FOSS)](#20-staff-super-panels-advanced-administration-in-foss)
 21. [Integrated Arcade: ScummVM WebAssembly (Pioneers)](#21-integrated-arcade-scummvm-webassembly-pioneers)
 22. [Forensics and Recovery Bench (Point-in-Time, Isolated)](#22-forensics-and-recovery-bench-point-in-time-isolated)
 
@@ -881,12 +881,12 @@ meta-worker:
 
 ---
 
-### 20. **Staff Super-Panels (What HDInnovations Sells Separately, in FOSS)**
+### 20. **Staff Super-Panels (Advanced Administration, in FOSS)**
 🎛️ *Staff operations center, in FOSS.*
 
 <img src="repo-png/20.png" width="820" alt="Staff operations center — themed panels">
 
-**Context**: UNIT3D Community Edition ships with a Staff Dashboard that's functional but **deliberately incomplete**. The advanced admin panels — the ones an operator actually uses daily — are paid extras in HDInnovations' private edition: there are invoices in the wild for up to **one thousand euros** for a serious command panel. No public UNIT3D fork had built them. Nobody had the balls.
+**Context**: UNIT3D Community Edition ships with a functional but basic Staff Dashboard. The advanced admin panels — the ones an operator actually uses daily — were not part of the public edition. No public UNIT3D fork had built them.
 
 **The only thing we saw was a blurry photo of one**. A week of paper design later, we started. What follows has 2000+ hours of iteration on it — and the occasional accidental tracker nuke that still hurts to remember.
 
@@ -1458,7 +1458,7 @@ docker compose exec app php artisan tracker:sync-groups
 
 ## Philosophy: "From the Scene, For the Scene"
 
-This project reflects 2000+ hours of work to resurrect UNIT3D from its broken community edition state. Every fix, every automation, every redundancy exists because **we believe in the platform**.
+This project reflects 2000+ hours of work to repair and extend UNIT3D starting from its community edition. Every fix, every automation, every redundancy exists because **we believe in the platform**.
 
 - **Offline-first**: Works completely standalone (no cloud dependencies)
 - **Resilient**: Auto-heals from common failures (permissions, missing folders, network timeouts)
