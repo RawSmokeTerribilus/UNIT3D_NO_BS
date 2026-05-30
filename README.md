@@ -44,6 +44,53 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 
 ---
 
+## 🧭 Índice
+
+- [¿Qué es UNIT3D?](#-qué-es-unit3d)
+- [¿Por qué N.O.B.S? Lo que Construimos](#-por-qué-nobs-lo-que-construimos)
+  - [Parte 1 — Arreglamos las piezas rotas](#parte-1-arreglamos-las-piezas-rotas-de-unit3d)
+  - [Parte 2 — Lo dockerizamos](#parte-2-lo-dockerizamos-no-es-una-tarea-trivial)
+  - [Parte 3 — Añadimos resiliencia (Búnker)](#parte-3-añadimos-resiliencia-la-filosofía-búnker)
+- [Mejoras Clave (22)](#-mejoras-clave)
+- [Rutas de Instalación](#-rutas-de-instalación)
+- [Gestión: El Makefile](#-gestión-el-makefile)
+- [Arquitectura](#-arquitectura)
+- [Mapeo de Puertos](#-mapeo-de-puertos)
+- [Notas de Seguridad](#-notas-de-seguridad)
+- [Solución de Problemas](#-solución-de-problemas)
+- [Filosofía: De la Scene, Para la Scene](#-filosofía-de-la-scene-para-la-scene)
+- [Contribuciones](#-contribuciones) · [Licencia](#-licencia) · [Agradecimientos](#-agradecimientos)
+
+<details>
+<summary><b>📂 Las 22 Mejoras Clave, una por una</b></summary>
+
+1. [Meilisearch: búsqueda instantánea y resiliente](#1--meilisearch-búsqueda-instantánea-y-resiliente)
+2. [Lista negra de correos resiliente](#2--lista-negra-de-correos-resiliente)
+3. [Transparencia de IPs (redes de Docker)](#3--transparencia-de-direcciones-ip-redes-de-docker)
+4. [Protección contra fuerza bruta equilibrada](#4--protección-contra-fuerza-bruta-equilibrio-entre-seguridad-y-usabilidad)
+5. [Infraestructura autónoma (el "Búnker")](#5--infraestructura-autónoma-el-búnker)
+6. [Branding de N.O.B.S (tema personalizado)](#6--branding-de-nobs-tema-personalizado)
+7. [Ajustes de configuración](#7--ajustes-de-configuración)
+8. [Tema Retro v2 (estética + fixes)](#8--refactorización-estética-y-funcional-tema-retro-v2)
+9. [Integración con Telegram (bot)](#9--integración-con-telegram-bot-de-notificaciones)
+10. [Sincronización cifrada a Google Drive](#10--sincronización-con-google-drive-rclone--cifrado)
+11. [Metadata multi-proveedor con consenso](#11--metadata-multi-proveedor-con-consenso-tmdb--igdb--mal--anilist--imdb--tvmaze)
+12. [Meta-Worker (cola dedicada de metadatos)](#12--meta-worker-cola-dedicada-para-refresco-de-metadatos)
+13. [Swarm Intelligence + mapa 3D](#13--swarm-intelligence--mapa-3d-del-tracker)
+14. [RetroArch Web (26 cores libretro)](#14--retroarch-web-arcade-multi-sistema-26-cores-libretro)
+15. [Aislamiento COOP/COEP + proxy TMDB](#15--aislamiento-coopcoep--proxy-de-imágenes-tmdb-csp-compliant)
+16. [Thanks Ratio + locale español](#16--thanks-ratio--localización-al-español-por-defecto)
+17. [Endurecimiento del edge (nginx announce)](#17--endurecimiento-del-edge-nginx-announce--verificación)
+18. [UI reactiva (trailers, flash cards, backdrops)](#18--ui-reactiva-trailers-flotantes-flash-cards-y-backdrops-de-freeleech)
+19. [Base de datos profundamente modificada](#19--base-de-datos-profundamente-modificada-ya-no-es-unit3d-community)
+20. [Super-paneles de staff (en FOSS)](#20--super-paneles-de-staff-administración-avanzada-en-foss)
+21. [Arcade ScummVM WebAssembly](#21--arcade-integrado-scummvm-webassembly-pioneros)
+22. [Banco forense y de recuperación (PITR)](#22--banco-de-forense-y-recuperación-point-in-time-aislado)
+
+</details>
+
+---
+
 ## 📚 ¿Qué es UNIT3D?
 
 **[UNIT3D](https://github.com/HDInnovations/UNIT3D)** es un software moderno y rico en funciones para Trackers de Torrents Privados, construido sobre **Laravel 12**, **Livewire** y **AlpineJS**. Creado por el equipo de HDInnovations, impulsa comunidades de trackers privados de alto rendimiento con soporte para:
@@ -64,7 +111,7 @@ Este proyecto no existiría sin UNIT3D. Los desarrolladores originales crearon u
 
 ## 🔧 ¿Por qué N.O.B.S? Lo que Construimos
 
-UNIT3D es una **plataforma brillante**, pero llega como código fuente, no como una implementación empaquetada. Tomamos la Edición Comunitaria e hicimos dos cosas:
+UNIT3D es una **plataforma brillante**, pero llega como código fuente, no como una implementación empaquetada. Tomamos la Edición Comunitaria e hicimos tres cosas: **arreglar** lo que venía roto, **dockerizar** el stack completo y **endurecerlo** para que opere solo (la filosofía "Búnker").
 
 ### **Parte 1: Arreglamos las Piezas Rotas de UNIT3D**
 
@@ -72,7 +119,7 @@ La Edición Comunitaria tenía **bugs sin corregir y funciones faltantes**:
 
 | Problema | Impacto | Nuestra Solución |
 |---|---|---|
-| **Sin Instalador** | El script de instalación oficial ya no está disponible en la edición comunitaria | Reimplementamos la lógica de configuración en `entrypoint.sh` (ejecución automática de migraciones, listas negras, caché) |
+| **Instalador no incluido** | La edición comunitaria no trae instalador; la instalación oficial automatizada se ofrece como servicio de pago de HDInnovations | Cubrimos la instalación por **dos vías propias y gratuitas**: (1) el `entrypoint.sh` de Docker hace el setup completo en cada arranque (migraciones, listas negras, caché, permisos), y (2) un **instalador *baremetal* reescrito desde cero** para Debian/Ubuntu en `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` |
 | **Meilisearch sin Configurar** | El motor de búsqueda se incluía pero no se indexaba ni sincronizaba | Implementamos indexación en arranque en frío, sincronización con observadores en tiempo real y protección con Llave Maestra |
 | **Fuerza Bruta Demasiado Agresiva** | La configuración bloqueaba a usuarios legítimos (5 intentos = bloqueo de 24h) | Ajustamos FortifyServiceProvider (5→15 intentos, 24h→1h, creamos propietario de respaldo) |
 | **Fragilidad de la Lista Negra de Correos** | El sistema se rompía si el CDN externo no era accesible | Creamos una caché local persistente (`storage/app/email-blacklist.json`) con un sistema de respaldo híbrido |
@@ -1030,7 +1077,7 @@ Un laboratorio MySQL permanente, **apagado por defecto**, junto al stack de prod
 
 ---
 
-## 📦 Dos Rutas de Instalación
+## 📦 Rutas de Instalación
 
 ### **🚀 Ruta A: Instalación Fresca (Nuevo Tracker)**
 
@@ -1105,6 +1152,55 @@ make health
 - El volcado de la base de datos está incluido
 - El snapshot puede copiarse automáticamente a un disco externo configurado en `.env`
 - La reconstrucción usa el código en disco y la receta del despliegue versionada
+
+---
+
+### **🧱 Ruta C: Instalación Baremetal (Sin Docker — Solo Expertos)**
+
+> ⚠️ **No recomendada salvo que sepas exactamente lo que haces.** El stack de
+> referencia de N.O.B.S es el **dockerizado** (Rutas A/B): es el que probamos,
+> respaldamos y al que apunta el resto de features de este README. La vía baremetal
+> existe para resucitar la edición comunitaria en un host sin Docker, **no** para
+> reproducir el fork completo. Si no te sientes cómodo administrando nginx, PHP-FPM,
+> MariaDB/MySQL, Redis, Meilisearch y supervisor a mano, quédate en Docker.
+
+Instalador: `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` (Debian Trixie /
+Ubuntu 22.04 / 24.04). Instala PHP 8.4-FPM, nginx, MariaDB, Redis, Meilisearch
+(systemd), Node 20/Bun, Certbot/SSL, supervisor (cola) y el cron del scheduler;
+~20-25 min en un host limpio. Lee también `Unit3d_9.2-Installer-fixed/readme.md` y
+`SECURITY_CHANGES.md`.
+
+**Qué adaptar respecto al setup dockerizado** (el instalador NO lo cubre):
+
+- **Origen del código**: clona **este fork**, no la community vanilla — si no, no
+  tendrás ninguna feature N.O.B.S (las 10 migraciones propias, Telegram, arcade,
+  resolver multi-proveedor…).
+- **`.env` con hosts locales**: sustituye los nombres de servicio de Docker por
+  `127.0.0.1` + puertos reales — `DB_HOST`, `REDIS_HOST`, `MEILISEARCH_HOST`,
+  `MAIL_*` (sin contenedor Mailpit → SMTP real), `TRUSTED_PROXIES` según tu edge.
+- **Tracker Rust (UNIT3D-Announce)**: el instalador **no** lo monta. `/announce/`
+  necesita compilar y correr el binario Rust como servicio aparte, su proxy en nginx
+  y las vars `TRACKER_*`. Sin esto no hay tracker desacoplado de PHP.
+- **Meta-worker**: el supervisor del instalador solo levanta `queue:work` (cola
+  `default`). Añade un segundo programa para `--queue=meta-refresh` (timeout 300s) o
+  el refresco de metadatos ahogará la cola principal.
+- **Backups y forense**: `backup.sh` y el banco forense son **solo-Docker**
+  (`docker compose stop/up`, `docker exec`). En baremetal usa `mysqldump` por cron; el
+  PITR del banco forense **no aplica** (asume MySQL 8.0 con ROW binlogs, no MariaDB).
+- **Assets pesados gitignoreados**: ejecuta `install-swarm-assets.sh` (mapa 3D) y
+  coloca a mano los blobs de RetroArch/ScummVM WASM; ajusta el `chown` al `www-data`
+  nativo del host (no el uid 82 del contenedor).
+- **Cabeceras COOP/COEP + proxy TMDB**: porta a tu nginx nativo el middleware
+  `gaming.isolation` y las rutas `/tmdb-proxy` · `/authenticated-images`, o el arcade
+  WASM y los pósters bajo CSP fallarán.
+- **Telegram**: integración no incluida en baremetal — config + webhook manuales.
+- **Auto-reparación**: sin `entrypoint.sh`, corre tú las migraciones, el
+  `auto:email-blacklist-update` (cron) y los permisos `775` / `www-data` tras cada cambio.
+
+**En resumen**: la ruta baremetal te deja un UNIT3D comunitario estabilizado y
+funcionando; **reconstruir el fork N.O.B.S completo encima es trabajo manual
+considerable**. Recomendamos Docker salvo que tengas una razón fuerte y el
+conocimiento para mantenerlo.
 
 ---
 
