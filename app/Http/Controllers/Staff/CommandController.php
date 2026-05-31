@@ -291,11 +291,12 @@ class CommandController extends Controller
     public function syncMissingTrailers(): \Illuminate\Http\RedirectResponse
     {
         // Walks the whole catalog with a throttled TMDB call per title — far too
-        // long for an inline HTTP request (504). Dispatch to the queue worker.
-        Artisan::queue('tmdb:sync-trailers');
+        // long for an inline HTTP request (504). Dispatch to the dedicated
+        // metadata worker (meta-refresh queue).
+        Artisan::queue('tmdb:sync-trailers')->onQueue('meta-refresh');
 
         return to_route('staff.commands.index')
-            ->with('info', '✅ Sync de trailers encolado — corre en segundo plano (worker). Revisa el catálogo en unos minutos.');
+            ->with('info', '✅ Sync de trailers encolado en el worker de metadata. Revisa el catálogo en unos minutos.');
     }
 
     /**
@@ -303,10 +304,10 @@ class CommandController extends Controller
      */
     public function syncMissingTrailersForce(): \Illuminate\Http\RedirectResponse
     {
-        Artisan::queue('tmdb:sync-trailers', ['--force' => true]);
+        Artisan::queue('tmdb:sync-trailers', ['--force' => true])->onQueue('meta-refresh');
 
         return to_route('staff.commands.index')
-            ->with('info', '✅ Sync forzado de trailers encolado — corre en segundo plano (worker).');
+            ->with('info', '✅ Sync forzado de trailers encolado en el worker de metadata.');
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
