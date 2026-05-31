@@ -117,6 +117,10 @@ class Kernel extends ConsoleKernel
         // ~24h of scheduled runs (seen on 2026-05-23).
         $schedule->command('meta:sync', ['--limit' => 25])->everyFiveMinutes()->withoutOverlapping(10);
         $schedule->command('meta:rotate-covers')->daily()->withoutOverlapping(60);
+        // Pre-warm the art-proxy cache so users never pay the first-hit fetch+resize.
+        // Idempotent (skips cached) + time-budgeted so each run stays short; runs
+        // often to keep up with daily cover rotation and newly-added titles.
+        $schedule->command('art:warm', ['--max-seconds' => 240])->everyThirtyMinutes()->withoutOverlapping(10)->runInBackground();
         // $schedule->command(AutoBanDisposableUsers::class)->weekends();
         $schedule->command(CleanupCommand::class)->daily();
         $schedule->command(BackupCommand::class, ['--only-db'])->daily();

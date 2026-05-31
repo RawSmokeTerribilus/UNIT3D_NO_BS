@@ -123,3 +123,4 @@ forensics/dashboard/__pycache__/
 
 # deprecated/broken installer artifacts (kept locally, out of the repo)
 Unit3d_9.2-Installer-fixed/deprecated/
+/public/build.*

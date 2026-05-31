@@ -403,6 +403,33 @@ class CommandController extends Controller
         return $this->executeArtisanSafely('meta:rotate-covers');
     }
 
+    /**
+     * Pre-warm the art-proxy image cache — full backfill, detached background process.
+     *
+     * The full sweep runs far past the queue worker's 300s timeout, so it can't
+     * be queued or run synchronously here. We spawn a detached CLI process
+     * (`setsid` + `nohup`) that outlives this request. The command is idempotent
+     * (skips already-cached); the pgrep guard blocks a second concurrent run.
+     * Steady-state warming is handled automatically by the scheduled budgeted run.
+     */
+    public function warmArtCache(): \Illuminate\Http\RedirectResponse
+    {
+        exec('pgrep -f "artisan art:warm" > /dev/null 2>&1', $out, $running);
+
+        if ($running === 0) {
+            return to_route('staff.commands.index')->with('info', 'ℹ️ art:warm ya está en ejecución — progreso en storage/logs/art-warm.log');
+        }
+
+        $cmd = sprintf(
+            'cd %s && nohup setsid php artisan art:warm --rate=8 >> %s 2>&1 &',
+            escapeshellarg(base_path()),
+            escapeshellarg(storage_path('logs/art-warm.log'))
+        );
+        exec($cmd);
+
+        return to_route('staff.commands.index')->with('info', '🔥 Art cache warm iniciado en segundo plano. Progreso: storage/logs/art-warm.log');
+    }
+
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // USER & CLEANUP
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

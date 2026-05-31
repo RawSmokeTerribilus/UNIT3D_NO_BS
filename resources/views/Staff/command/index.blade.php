@@ -223,6 +223,13 @@
                     'level'  => 'safe',
                     'tip'    => 'Rota la carátula activa de cada título desde el pool multi-fuente (TMDB/OMDb/MAL/...). También se ejecuta a diario de forma automática.',
                 ])
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/warm-art-cache',
+                    'label'  => 'Precalentar caché de arte',
+                    'icon'   => 'fa-fire',
+                    'level'  => 'safe',
+                    'tip'    => 'Descarga + redimensiona + cachea todas las carátulas/fondos en segundo plano (proceso desacoplado, ~minutos). Idempotente: salta lo ya cacheado. El precalentado incremental ya corre solo cada 30 min.',
+                ])
             </div>
         </section>
 
