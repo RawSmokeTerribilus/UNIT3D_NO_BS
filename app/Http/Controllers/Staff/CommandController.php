@@ -290,7 +290,12 @@ class CommandController extends Controller
      */
     public function syncMissingTrailers(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('tmdb:sync-trailers');
+        // Walks the whole catalog with a throttled TMDB call per title — far too
+        // long for an inline HTTP request (504). Dispatch to the queue worker.
+        Artisan::queue('tmdb:sync-trailers');
+
+        return to_route('staff.commands.index')
+            ->with('info', '✅ Sync de trailers encolado — corre en segundo plano (worker). Revisa el catálogo en unos minutos.');
     }
 
     /**
@@ -298,7 +303,10 @@ class CommandController extends Controller
      */
     public function syncMissingTrailersForce(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('tmdb:sync-trailers', ['--force' => true]);
+        Artisan::queue('tmdb:sync-trailers', ['--force' => true]);
+
+        return to_route('staff.commands.index')
+            ->with('info', '✅ Sync forzado de trailers encolado — corre en segundo plano (worker).');
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
