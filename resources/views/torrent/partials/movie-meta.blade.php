@@ -100,6 +100,17 @@
                     </form>
                 </li>
             @endif
+
+            @if (!($meta?->id || ($torrent?->tmdb_movie_id ?? null)) && ($torrent?->imdb ?? 0) > 0 && (auth()->user()->group->is_modo || (auth()->id() === $torrent?->user_id && $torrent?->created_at?->gt(now()->subDay()))))
+                <li>
+                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrent->id]) }}" method="post">
+                        @csrf
+                        <button style="cursor: pointer" title="Resolver metadata desde el id IMDb del torrent">
+                            Refrescar metadata
+                        </button>
+                    </form>
+                </li>
+            @endif
         </ul>
     </div>
     <ul class="work__tags">

@@ -41,6 +41,8 @@ use App\Notifications\TorrentDeleted;
 use App\Repositories\ChatRepository;
 use App\Services\Igdb\IgdbScraper;
 use App\Services\Mal\MalScraper;
+use App\Services\Metadata\Support\Normalize;
+use App\Services\Metadata\TmdbClient;
 use App\Services\Tmdb\TMDBScraper;
 use App\Services\Unit3dAnnounce;
 use Illuminate\Http\Request;
@@ -411,20 +413,90 @@ class TorrentController extends Controller
         }
 
         // Meta
-
-        match (true) {
-            $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, true),
-            $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, true),
-            $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
-            default                          => null,
-        };
-
-        if ($torrent->mal !== null && $torrent->mal > 0) {
-            (new MalScraper())->anime((int) $torrent->mal, true);
-        }
+        $this->resolveAndScrapeMeta($torrent, true);
 
         return to_route('torrents.show', ['id' => $id])
             ->with('success', 'Successfully edited!');
+    }
+
+    /**
+     * Manually (re)resolve and scrape metadata for a single torrent.
+     *
+     * Covers the case where a torrent was uploaded with only an IMDb or MAL id
+     * (no TMDB) and therefore never got metadata. Same permission gate as edit().
+     */
+    public function refreshMeta(int $id): \Illuminate\Http\RedirectResponse
+    {
+        $user = auth()->user();
+        $torrent = Torrent::withoutGlobalScope(ApprovedScope::class)->findOrFail($id);
+
+        abort_unless($user->group->is_modo || ($user->id === $torrent->user_id && Carbon::now()->lt($torrent->created_at->addDay())), 403);
+
+        $warning = $this->resolveAndScrapeMeta($torrent, true);
+
+        return to_route('torrents.show', ['id' => $id])
+            ->with($warning ? 'warning' : 'success', $warning ?? 'Refresco de metadata encolado.');
+    }
+
+    /** Warning surfaced by the last metadata resolution attempt, if any. */
+    private ?string $metaWarning = null;
+
+    /**
+     * Resolve the best available id to a TMDB id (when needed) and dispatch the
+     * matching scrape. Reuses the existing TMDBScraper / MalScraper / IgdbScraper
+     * pipeline; the only new path is IMDb -> TMDB via TmdbClient::verifyImdb().
+     *
+     * Returns a user-facing warning string when resolution could not proceed,
+     * or null on success / silent no-op.
+     */
+    private function resolveAndScrapeMeta(Torrent $torrent, bool $force = false): ?string
+    {
+        $this->metaWarning = null;
+        $category = $torrent->category;
+
+        match (true) {
+            $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, $force),
+            $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, $force),
+            $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
+            // No tmdb/igdb on a movie/tv torrent: try resolving an IMDb id -> tmdb.
+            $category !== null && ($category->movie_meta || $category->tv_meta) && $torrent->imdb > 0
+                => $this->resolveFromImdb($torrent, $category, $force),
+            default => null,
+        };
+
+        if ($torrent->mal !== null && $torrent->mal > 0) {
+            (new MalScraper())->anime((int) $torrent->mal, $force);
+        }
+
+        return $this->metaWarning;
+    }
+
+    /**
+     * IMDb -> TMDB resolution. Respects the upload category: a result is accepted
+     * only when its media type matches the torrent's category. On a miss or a
+     * type mismatch no FK is written and a warning is recorded.
+     */
+    private function resolveFromImdb(Torrent $torrent, Category $category, bool $force): void
+    {
+        $rec = (new TmdbClient())->verifyImdb(Normalize::imdbId($torrent->imdb));
+
+        if ($rec === null || ($rec['tmdb'] ?? 0) <= 0) {
+            $this->metaWarning = 'No se encontró este id IMDb en TMDB.';
+
+            return;
+        }
+
+        if ($rec['category'] === 'MOVIE' && $category->movie_meta) {
+            $torrent->tmdb_movie_id = $rec['tmdb'];
+            $torrent->save();
+            (new TMDBScraper())->movie($rec['tmdb'], $force);
+        } elseif ($rec['category'] === 'TV' && $category->tv_meta) {
+            $torrent->tmdb_tv_id = $rec['tmdb'];
+            $torrent->save();
+            (new TMDBScraper())->tv($rec['tmdb'], $force);
+        } else {
+            $this->metaWarning = 'El id IMDb corresponde a '.($rec['category'] === 'MOVIE' ? 'una película' : 'una serie').', no coincide con la categoría del torrent.';
+        }
     }
 
     /**
@@ -615,16 +687,7 @@ class TorrentController extends Controller
         // Metadata updates come after tracker updates in case TMDB or IGDB is offline
 
         // Meta
-        match (true) {
-            $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, true),
-            $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, true),
-            $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
-            default                          => null,
-        };
-
-        if ($torrent->mal !== null && $torrent->mal > 0) {
-            (new MalScraper())->anime((int) $torrent->mal);
-        }
+        $this->resolveAndScrapeMeta($torrent);
 
         // Torrent Keywords System
         $keywords = [];

@@ -305,6 +305,7 @@ Route::middleware('language')->group(function (): void {
             Route::post('/{id}/reseed', [App\Http\Controllers\TorrentReseedController::class, 'store'])->name('reseed')->whereNumber('id');
             Route::get('/similar/{category_id}.{tmdb}', [App\Http\Controllers\SimilarTorrentController::class, 'show'])->name('torrents.similar')->whereNumber('category_id');
             Route::patch('/similar/{category}.{metaId}', [App\Http\Controllers\SimilarTorrentController::class, 'update'])->name('torrents.similar.update');
+            Route::post('/{id}/refresh-meta', [App\Http\Controllers\TorrentController::class, 'refreshMeta'])->name('torrents.refresh_meta')->whereNumber('id');
             Route::get('pending', [App\Http\Controllers\TorrentPendingController::class, 'index'])->name('torrents.pending');
         });
 
