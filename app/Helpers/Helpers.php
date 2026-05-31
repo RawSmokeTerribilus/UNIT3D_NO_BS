@@ -96,6 +96,28 @@ if (!\function_exists('href_collection')) {
 if (!\function_exists('tmdb_image')) {
     function tmdb_image(string $type, ?string $original): string
     {
+        $original = (string) $original;
+
+        // Posters y backdrops se normalizan + cachean a través del art proxy.
+        // Cubre URLs de proveedores ajenos a TMDB (Amazon/TVmaze/MAL/AniList),
+        // que no tienen segmento /original/ que reescribir y de otro modo se
+        // servirían a resolución completa directo desde CDNs de terceros lentos.
+        // Cast / logos / stills siguen yendo directo a TMDB (fuera de alcance).
+        if (
+            $original !== ''
+            && \array_key_exists($type, \App\Http\Controllers\ArtImageProxyController::SIZES)
+            && \in_array(
+                strtolower((string) parse_url($original, PHP_URL_HOST)),
+                \App\Http\Controllers\ArtImageProxyController::HOSTS,
+                true
+            )
+        ) {
+            return \Illuminate\Support\Facades\URL::signedRoute(
+                'authenticated_images.art_proxy',
+                ['size' => $type, 'u' => $original],
+            );
+        }
+
         $new = match ($type) {
             'back_big'     => 'w1280',
             'back_small'   => 'w780',
@@ -111,7 +133,7 @@ if (!\function_exists('tmdb_image')) {
             default        => 'original',
         };
 
-        return str_replace('/original/', '/'.$new.'/', (string) $original);
+        return str_replace('/original/', '/'.$new.'/', $original);
     }
 }
 

@@ -151,6 +151,14 @@ Route::middleware('language')->group(function (): void {
                 ->name('tmdb_proxy')
                 ->where('size', '^(original|[wh][0-9]{2,4})$')
                 ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
+
+            // Art proxy — normaliza (redimensiona) + cachea posters/backdrops de
+            // todos los proveedores (TMDB/Amazon/TVmaze/MAL/AniList) y los re-emite
+            // same-origin. La URL de origen viaja firmada en el query `u`.
+            Route::get('/art/{size}', [App\Http\Controllers\ArtImageProxyController::class, 'show'])
+                ->name('art_proxy')
+                ->middleware('signed')
+                ->where('size', '^(poster_big|poster_mid|poster_small|back_big|back_small)$');
         });
 
         // Donation System
