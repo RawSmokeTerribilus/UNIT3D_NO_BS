@@ -19,25 +19,30 @@ namespace App\Enums;
 
 enum UserGroup: int
 {
-    case VALIDATING = 1;
-    case GUEST = 2;
-    case USER = 3;
-    case ADMINISTRATOR = 4;
-    case BANNED = 5;
-    case MODERATOR = 6;
-    case UPLOADER = 7;
-    case TRUSTEE = 8;
-    case BOT = 9;
-    case OWNER = 10;
-    case POWERUSER = 11;
-    case SUPERUSER = 12;
-    case EXTREMEUSER = 13;
-    case INSANEUSER = 14;
-    case LEECH = 15;
-    case VETERAN = 16;
-    case SEEDER = 17;
-    case ARCHIVIST = 18;
-    case INTERNAL = 19;
-    case DISABLED = 20;
-    case PRUNED = 21;
+    // NOTE: values must match the live `groups` table ids. This install seeds
+    // Editor (1) and Torrent Moderator (2) ahead of the stock groups, shifting
+    // every other group +2 versus upstream UNIT3D's original enum ordering.
+    case EDITOR = 1;
+    case TORRENT_MODERATOR = 2;
+    case VALIDATING = 3;
+    case GUEST = 4;
+    case USER = 5;
+    case ADMINISTRATOR = 6;
+    case BANNED = 7;
+    case MODERATOR = 8;
+    case UPLOADER = 9;
+    case TRUSTEE = 10;
+    case BOT = 11;
+    case OWNER = 12;
+    case POWERUSER = 13;
+    case SUPERUSER = 14;
+    case EXTREMEUSER = 15;
+    case INSANEUSER = 16;
+    case LEECH = 17;
+    case VETERAN = 18;
+    case SEEDER = 19;
+    case ARCHIVIST = 20;
+    case INTERNAL = 21;
+    case DISABLED = 22;
+    case PRUNED = 23;
 }

@@ -3,7 +3,7 @@
         <h2 class="panel__heading">{{ __('user.bans') }}</h2>
         <div class="panel__actions">
             <div class="panel__action" x-data="dialog">
-                @if ($user->group->id === 5)
+                @if ($user->group->slug === 'banned')
                     <button class="form__button form__button--text" x-bind="showDialog">
                         {{ __('user.unban') }}
                     </button>
