@@ -295,7 +295,7 @@
                     this.insert('[img=350]', '[/img]');
                 },
                 insertYoutube() {
-                    this.insert('[video=&quot;youtube&quot;]', '[/video]');
+                    this.insert('[center][youtube]', '[/youtube][/center]');
                 },
                 insertUrl() {
                     this.insert('[url]', '[/url]');

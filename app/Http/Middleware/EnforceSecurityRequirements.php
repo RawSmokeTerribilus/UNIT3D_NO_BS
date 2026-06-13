@@ -16,6 +16,8 @@ class EnforceSecurityRequirements
         'CUNYAT',
         'garfield1969',
         'nahik99374',
+        'testcunyat',
+        'OcbSmoke',
     ];
 
     /**

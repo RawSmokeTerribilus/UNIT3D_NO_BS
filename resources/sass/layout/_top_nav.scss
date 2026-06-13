@@ -143,7 +143,10 @@
     border-radius: 5px;
     cursor: pointer;
     display: grid;
-    color: var(--top-nav-dropdown-fg);
+    /* top-nav bar is force-pinned #000000 across every theme (line 2), so the
+       theme var --top-nav-dropdown-fg goes near-black (#050505) on light themes
+       and the menu text vanishes. Pin a light fg to match the black bar. */
+    color: #e6e6e6 !important;
     font-size: 17px;
     white-space: nowrap;
     text-decoration: none;
