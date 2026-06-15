@@ -126,6 +126,48 @@ class UpdateGeneralSettingRequest extends FormRequest
                 'nullable',
                 'url',
             ],
+            'theme_accent' => [
+                'nullable',
+                'regex:/^#[0-9a-fA-F]{6}$/',
+            ],
+            'fx_scanlines' => [
+                'required',
+                'boolean',
+            ],
+            'fx_glow' => [
+                'required',
+                'boolean',
+            ],
+            'fx_grid' => [
+                'required',
+                'boolean',
+            ],
+            'fx_vignette' => [
+                'required',
+                'boolean',
+            ],
+            'lateral_fx' => [
+                'required',
+                Rule::in(['off', 'rain', 'circuit', 'racks', 'rising']),
+            ],
+            'lateral_fx_hue' => [
+                'required',
+                'integer',
+                'min:180',
+                'max:340',
+            ],
+            'lateral_fx_density' => [
+                'required',
+                'numeric',
+                'min:0.5',
+                'max:2',
+            ],
+            'lateral_fx_speed' => [
+                'required',
+                'numeric',
+                'min:0.5',
+                'max:2',
+            ],
             'torrent_layout' => [
                 'required',
                 Rule::in([0, 1, 2, 3]),

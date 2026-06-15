@@ -55,6 +55,15 @@ use AllowDynamicProperties;
  * @property bool                            $torrent_filters
  * @property ?string                         $custom_css
  * @property ?string                         $standalone_css
+ * @property ?string                         $theme_accent
+ * @property bool                            $fx_scanlines
+ * @property bool                            $fx_glow
+ * @property bool                            $fx_grid
+ * @property bool                            $fx_vignette
+ * @property string                          $lateral_fx
+ * @property int                             $lateral_fx_hue
+ * @property float                           $lateral_fx_density
+ * @property float                           $lateral_fx_speed
  * @property bool                            $show_poster
  * @property bool                            $unbookmark_torrents_on_completion
  * @property bool                            $show_adult_content
@@ -129,6 +138,13 @@ final class UserSetting extends Model
             'show_poster'                       => 'bool',
             'unbookmark_torrents_on_completion' => 'bool',
             'show_adult_content'                => 'bool',
+            'fx_scanlines'                      => 'bool',
+            'fx_glow'                           => 'bool',
+            'fx_grid'                           => 'bool',
+            'fx_vignette'                       => 'bool',
+            'lateral_fx_hue'                    => 'int',
+            'lateral_fx_density'                => 'float',
+            'lateral_fx_speed'                  => 'float',
         ];
     }
 

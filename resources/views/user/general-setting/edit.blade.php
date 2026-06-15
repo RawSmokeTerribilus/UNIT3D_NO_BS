@@ -191,6 +191,115 @@
                         </select>
                         <label class="form__label form__label--floating" for="style">Tema</label>
                     </p>
+                    @php
+                        $accentPalette = [
+                            '#fe019a' => 'Magenta',
+                            '#00e5ff' => 'Cian',
+                            '#00ffae' => 'Verde neón',
+                            '#ffb000' => 'Ámbar',
+                            '#b388ff' => 'Púrpura',
+                            '#ff3b3b' => 'Rojo',
+                        ];
+                    @endphp
+                    <p class="form__group">
+                        <span class="form__label">Color de acento</span>
+                        <span class="accent-swatches">
+                            <label class="accent-swatch accent-swatch--none" title="Predeterminado del tema">
+                                <input
+                                    type="radio"
+                                    name="theme_accent"
+                                    value=""
+                                    @checked($user->settings->theme_accent === null)
+                                />
+                                <span class="accent-swatch__chip"></span>
+                            </label>
+                            @foreach ($accentPalette as $hex => $name)
+                                <label class="accent-swatch" title="{{ $name }}">
+                                    <input
+                                        type="radio"
+                                        name="theme_accent"
+                                        value="{{ $hex }}"
+                                        @checked($user->settings->theme_accent === $hex)
+                                    />
+                                    <span class="accent-swatch__chip" style="background: {{ $hex }}; color: {{ $hex }};"></span>
+                                </label>
+                            @endforeach
+                        </span>
+                    </p>
+                    <fieldset class="form__fieldset">
+                        <legend class="form__legend">Efectos visuales</legend>
+                        {{--
+                            ARCHIVADO (reactivar más adelante): los 4 conmutadores de
+                            efectos CSS (líneas de escaneo / resplandor / rejilla / viñeta).
+                            Sustituidos por los controles de efectos laterales de abajo.
+                            El "resplandor de acento" pasa a estar SIEMPRE activo (clase
+                            fx-glow fijada en layout/default.blade.php); su color sigue
+                            saliendo del selector de acento. Los hidden de abajo conservan
+                            valores fijos para que la validación required|boolean siga
+                            pasando sin tocar el controlador ni el FormRequest.
+
+                            <p class="form__group">
+                                <label class="form__label">
+                                    <input class="form__checkbox" type="checkbox" name="fx_scanlines" value="1" @checked($user->settings->fx_scanlines) />
+                                    Líneas de escaneo (CRT)
+                                </label>
+                            </p>
+                            <p class="form__group">
+                                <label class="form__label">
+                                    <input class="form__checkbox" type="checkbox" name="fx_glow" value="1" @checked($user->settings->fx_glow) />
+                                    Resplandor de acento (neón)
+                                </label>
+                            </p>
+                            <p class="form__group">
+                                <label class="form__label">
+                                    <input class="form__checkbox" type="checkbox" name="fx_grid" value="1" @checked($user->settings->fx_grid) />
+                                    Rejilla ciber
+                                </label>
+                            </p>
+                            <p class="form__group">
+                                <label class="form__label">
+                                    <input class="form__checkbox" type="checkbox" name="fx_vignette" value="1" @checked($user->settings->fx_vignette) />
+                                    Viñeta CRT
+                                </label>
+                            </p>
+                        --}}
+                        {{-- Valores fijos mientras los conmutadores están archivados:
+                             glow siempre on, el resto off. --}}
+                        <input type="hidden" name="fx_glow" value="1" />
+                        <input type="hidden" name="fx_scanlines" value="0" />
+                        <input type="hidden" name="fx_grid" value="0" />
+                        <input type="hidden" name="fx_vignette" value="0" />
+                        <p class="form__group">
+                            <select id="lateral_fx" class="form__select" name="lateral_fx" required>
+                                <option class="form__option" value="off" @selected($user->settings->lateral_fx === 'off')>Laterales: desactivado</option>
+                                <option class="form__option" value="rain" @selected($user->settings->lateral_fx === 'rain')>Laterales: lluvia de bits</option>
+                                <option class="form__option" value="circuit" @selected($user->settings->lateral_fx === 'circuit')>Laterales: circuito</option>
+                                <option class="form__option" value="racks" @selected($user->settings->lateral_fx === 'racks')>Laterales: racks de servidor</option>
+                                <option class="form__option" value="rising" @selected($user->settings->lateral_fx === 'rising')>Laterales: bits ascendentes</option>
+                            </select>
+                        </p>
+                        <p class="form__group">
+                            <select id="lateral_fx_hue" class="form__select" name="lateral_fx_hue" required>
+                                @foreach ([195 => 'Cian', 220 => 'Azul', 270 => 'Violeta', 300 => 'Púrpura', 322 => 'Magenta', 340 => 'Rosa'] as $deg => $label)
+                                    <option class="form__option" value="{{ $deg }}" @selected((int) $user->settings->lateral_fx_hue === $deg)>Tono neón: {{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </p>
+                        <p class="form__group">
+                            <select id="lateral_fx_density" class="form__select" name="lateral_fx_density" required>
+                                @foreach (['0.6' => 'Escasa', '1' => 'Normal', '1.4' => 'Densa'] as $val => $label)
+                                    <option class="form__option" value="{{ $val }}" @selected((float) $user->settings->lateral_fx_density === (float) $val)>Densidad: {{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </p>
+                        <p class="form__group">
+                            <select id="lateral_fx_speed" class="form__select" name="lateral_fx_speed" required>
+                                @foreach (['0.6' => 'Lenta', '1' => 'Normal', '1.6' => 'Rápida'] as $val => $label)
+                                    <option class="form__option" value="{{ $val }}" @selected((float) $user->settings->lateral_fx_speed === (float) $val)>Velocidad: {{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </p>
+                    </fieldset>
                     <p class="form__group">
                         <input
                             id="custom_css"

@@ -18,8 +18,7 @@
         ]);
 @endphp
 
-@if (config('other.freeleech') == true || config('other.invite-only') == false || config('other.doubleup') == true)
-    <section class="alert special-event-alert" 
+    <section class="alert special-event-alert"
              x-data="{
                 images: @js($alertBackdropImages),
                 currentIndex: 0,
@@ -30,7 +29,7 @@
                 }
              }" 
              x-init="initBanner()" 
-             style="display: grid; grid-template-columns: 1fr auto 1fr; background: #0a0a0a; overflow: hidden; border-radius: 8px; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: 0 4px 20px rgba(0,0,0,0.7);"
+             style="display: grid; grid-template-columns: 1fr auto 1fr; align-content: stretch; min-height: 148px; background: #0a0a0a; overflow: hidden; border-radius: 8px; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: 0 4px 20px rgba(0,0,0,0.7);"
              x-cloak>
 
         <!-- Lateral Izquierdo (Enjaulado) -->
@@ -39,7 +38,8 @@
                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center left; pointer-events: none; opacity: 0.8;" />
         </div>
 
-        <!-- Centro: Instrumental del Reloj -->
+        <!-- Centro: cronómetro (sólo durante promo) o título del sitio -->
+        @if (config('other.freeleech') == true || config('other.invite-only') == false || config('other.doubleup') == true)
         <div x-data="timer()" x-init="start()" style="padding: 1.8rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; z-index: 10;">
             
             <!-- Título: Doble de tamaño y Morado/Fucsia Oscuro -->
@@ -91,6 +91,10 @@
                 </div>
             </div>
         </div>
+        @else
+            <!-- Sin promo: las dos imágenes laterales se funden en el centro (sus máscaras ya difuminan hacia dentro); espaciador transparente, sin neón -->
+            <div aria-hidden="true" style="width: 80px; align-self: stretch;"></div>
+        @endif
 
         <!-- Lateral Derecho (Enjaulado) -->
         <div style="position: relative; width: 100%; height: 100%; -webkit-mask-image: linear-gradient(to left, black 30%, transparent 100%); mask-image: linear-gradient(to left, black 30%, transparent 100%);">
@@ -99,4 +103,3 @@
         </div>
 
     </section>
-@endif

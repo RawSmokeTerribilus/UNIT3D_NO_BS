@@ -107,6 +107,16 @@
     @if (isset(auth()->user()->settings->custom_css))
         <link rel="stylesheet" href="{{ auth()->user()->settings->custom_css }}" />
     @endif
+
+    @if (auth()->user()->settings->theme_accent !== null)
+        <style>
+            :root {
+                --accent: {{ auth()->user()->settings->theme_accent }};
+                --color-blue: var(--accent);
+                --color-light-blue: color-mix(in srgb, var(--accent) 70%, white);
+            }
+        </style>
+    @endif
 @else
     <link rel="stylesheet" href="{{ auth()->user()->settings->standalone_css }}" />
 @endif

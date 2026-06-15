@@ -3,7 +3,42 @@
     <head>
         @include('partials.head')
     </head>
-    <body>
+    <body @class([
+        'fx-scanlines' => auth()->user()->settings->fx_scanlines,
+        'fx-glow' => true, // accent glow always on (baseline neon); color from theme_accent --accent
+
+        'fx-grid' => auth()->user()->settings->fx_grid,
+        'fx-vignette' => auth()->user()->settings->fx_vignette,
+    ])>
+        {{-- NOBS Lateral FX (PoC): animated canvas behind content, clipped to the empty sides of <main> --}}
+        <style>
+            #nobs-fx { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; display: block; }
+        </style>
+        @if (auth()->user()->settings->lateral_fx !== 'off')
+            <canvas
+                id="nobs-fx"
+                aria-hidden="true"
+                data-fx="{{ auth()->user()->settings->lateral_fx }}"
+                data-speed="{{ auth()->user()->settings->lateral_fx_speed }}"
+                data-density="{{ auth()->user()->settings->lateral_fx_density }}"
+                data-hue="{{ auth()->user()->settings->lateral_fx_hue }}"
+            ></canvas>
+            <script src="{{ asset('js/nobs-fx.js') }}?v=5" defer></script>
+        @endif
+
+        {{-- NOBS Perspective Grid: animated floor+ceiling neon grid, gated on the
+             fx-grid body class; hue reuses the lateral FX neon tone. Self-gates +
+             self-clears (MutationObserver) when the effect is toggled off. --}}
+        @if (auth()->user()->settings->fx_grid)
+            <canvas
+                id="nobs-grid"
+                aria-hidden="true"
+                data-hue="{{ auth()->user()->settings->lateral_fx_hue }}"
+            ></canvas>
+            <script src="{{ asset('js/nobs-grid.js') }}?v=1" defer></script>
+        @endif
+
+        <div class="fx-overlay" aria-hidden="true"></div>
         <div class="alerts">
             @include('cookie-consent::index')
             @include('partials.alerts')

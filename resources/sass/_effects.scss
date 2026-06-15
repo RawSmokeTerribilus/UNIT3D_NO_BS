@@ -1,0 +1,155 @@
+// Visual effects — opt-in theme add-ons.
+//
+// Each effect is gated by a body class set in layout/default.blade.php from the
+// user's settings (fx_scanlines / fx_glow / fx_grid / fx_vignette). All overlays
+// are fixed, pointer-events: none, and sit below modal/Swal layers so they never
+// block interaction. Accent-tinted layers read the --accent custom property
+// (Phase 1) and fall back to the site's neon pink when no accent is set.
+//
+// Overlay hosts (kept distinct so effects can stack without colliding):
+//   scanlines -> body::before
+//   vignette  -> body::after
+//   grid      -> .fx-overlay (always-present empty div)
+//   glow      -> text-shadow on chrome only (never dense body text)
+
+$fx-accent: var(--accent, #fe019a);
+
+// Shared always-present overlay host (used by the grid; inert otherwise).
+.fx-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9996;
+    pointer-events: none;
+}
+
+// --- Scanlines ------------------------------------------------------------
+body.fx-scanlines::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0.16) 3px,
+        rgba(0, 0, 0, 0) 4px
+    );
+    mix-blend-mode: multiply;
+}
+
+// --- Vignette -------------------------------------------------------------
+body.fx-vignette::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9997;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 55%,
+        rgba(0, 0, 0, 0.55) 100%
+    );
+    animation: fx-vignette-flicker 6s infinite steps(60);
+}
+
+@keyframes fx-vignette-flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    48% {
+        opacity: 0.94;
+    }
+
+    52% {
+        opacity: 0.97;
+    }
+}
+
+// --- Cyber grid -----------------------------------------------------------
+// Animated perspective grid (canvas), painted by public/js/nobs-grid.js.
+// Replaces the old static .fx-overlay grid. Sits at z-index -1 (BEHIND all
+// content, same plane as the lateral FX), so opaque banner images / cards /
+// posters occlude it by construction — the grid can never pinch an image
+// because the image is literally painted on top of it. No masks needed; the
+// page background is the only place it shows. mix-blend screen = adds light.
+#nobs-grid {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; // behind content; content occludes the grid (no image pinch)
+    display: block;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+// --- Accent glow (chrome only) -------------------------------------------
+body.fx-glow {
+    header a,
+    h1,
+    h2,
+    h3,
+    legend,
+    .nav-tab--active__link {
+        text-shadow: 0 0 6px color-mix(in srgb, #{$fx-accent} 70%, transparent);
+    }
+}
+
+// --- Settings: accent preset swatches ------------------------------------
+.accent-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.accent-swatch {
+    position: relative;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.accent-swatch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.accent-swatch__chip {
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.accent-swatch input:checked + .accent-swatch__chip {
+    border-color: #fff;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.accent-swatch--none .accent-swatch__chip {
+    background: repeating-linear-gradient(45deg, #444 0 6px, #666 6px 12px);
+    color: #888;
+}
+
+// --- Lateral blades: accent the sidebar panel headings -------------------
+// Scoped to the right-hand <aside> only (not main-column panels). Accent-tinted
+// edge bar ties sidebars to --accent without recolouring heading text.
+.sidebar2 > aside .panel__heading {
+    border-left: 3px solid var(--accent, #fe019a);
+    padding-left: 8px;
+}
+
+// Respect reduced-motion: kill the vignette flicker.
+@media (prefers-reduced-motion: reduce) {
+    body.fx-vignette::after {
+        animation: none;
+    }
+}

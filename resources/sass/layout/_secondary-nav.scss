@@ -57,9 +57,9 @@
 
 /* Resaltado Neón para la pestaña activa */
 .nav-tab--active__link {
-    border-bottom: 2px solid #fe019a !important;
-    color: #fe019a !important; 
-    text-shadow: 0 0 8px rgba(254, 1, 154, 0.6); /* Brillo a juego con el top-nav */
+    border-bottom: 2px solid var(--accent, #fe019a) !important;
+    color: var(--accent, #fe019a) !important;
+    text-shadow: 0 0 8px color-mix(in srgb, var(--accent, #fe019a) 60%, transparent); /* Brillo a juego con el top-nav */
 }
 
 .nav-tab--active__link {
