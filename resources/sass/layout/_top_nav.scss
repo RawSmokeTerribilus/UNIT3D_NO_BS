@@ -137,6 +137,18 @@
 /* Dropdowns
 ******************************************************************************/
 
+/* Full-height triggers: the dropdown menu opens at ~55px (just below the 60px
+   bar), but the trigger was only content-height (~30px, centred via margin:auto
+   on .top-nav__main-menus), leaving a dead gap between trigger and menu. Crossing
+   that gap dropped :hover and collapsed the menu mid-move. Stretching the trigger
+   to the full bar height makes the hover zone reach the menu — no gap, hover
+   stays through the move to an option. */
+.top-nav__main-menus > .top-nav__dropdown {
+    height: 60px;
+    display: flex;
+    align-items: center;
+}
+
 .top-nav__dropdown > a {
     padding: 6px 9px;
     margin: 0 5px;
@@ -299,7 +311,11 @@
     grid-auto-flow: column;
     font-size: 13px;
     list-style-type: none;
-    color: var(--top-nav-ratio-bar-fg);
+    // Top-nav is force-black (.top-nav background #000 !important on every theme),
+    // so the stat values must be light regardless of theme — the per-theme
+    // --top-nav-ratio-bar-fg is dark on light themes (#050505) => black-on-black,
+    // invisible until hover. Fixed light value fixes all themes at once.
+    color: #e8e8ea;
     align-content: center;
     justify-content: center;
     padding: 0;
@@ -329,7 +345,11 @@
 
 .top-nav__ratio-bar,
 .top-nav__ratio-bar a {
-    color: var(--top-nav-ratio-bar-fg);
+    // Top-nav is force-black (.top-nav background #000 !important on every theme),
+    // so the stat values must be light regardless of theme — the per-theme
+    // --top-nav-ratio-bar-fg is dark on light themes (#050505) => black-on-black,
+    // invisible until hover. Fixed light value fixes all themes at once.
+    color: #e8e8ea;
     text-decoration: none;
 }
 
@@ -420,6 +440,16 @@
             }
         }
     }
+}
+
+/* Avatar/user dropdown: same full-height-trigger fix as the main menus. The
+   icon-bar icons are 32px, centred in the 60px bar, so the avatar trigger left a
+   dead gap above its menu (opens ~55px) that collapsed on hover-move. Stretch the
+   avatar's dropdown li to full bar height so hover carries into the menu. */
+.top-nav__icon-bar > .top-nav__dropdown {
+    height: 60px;
+    display: flex;
+    align-items: center;
 }
 
 .top-nav__icon-bar > li > a {
