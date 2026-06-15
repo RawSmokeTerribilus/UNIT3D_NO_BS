@@ -496,11 +496,22 @@ install_unit3d() {
 	log_info "Installing Composer dependencies..."
 	sudo -u www-data composer install --no-dev --optimize-autoloader --no-interaction --working-dir=${INSTALL_PATH}
 
-	log_info "Installing NPM dependencies and building assets with Bun..."
+	log_info "Installing frontend dependencies and building assets (compiles SCSS/JS → public/build)..."
 	export BUN_INSTALL="/root/.bun"
 	export PATH="$BUN_INSTALL/bin:$PATH"
 	cd ${INSTALL_PATH}
-	bun install && bun run build
+	# Prefer Bun (fast); fall back to npm if Bun is unavailable — Node 20 + npm are
+	# installed above, so the build never silently no-ops. Without this step there
+	# is no compiled CSS/JS and the site renders unstyled.
+	if command -v bun &> /dev/null; then
+		bun install && bun run build
+	else
+		log_error "Bun not available — falling back to npm for the asset build."
+		npm install && npm run build
+	fi
+	if [ ! -f "${INSTALL_PATH}/public/build/manifest.json" ]; then
+		log_error "Asset build did not produce public/build/manifest.json — frontend will be unstyled. Check Bun/npm + 'npm run build' output."
+	fi
 	chown -R www-data:www-data ${INSTALL_PATH}
 
 	# Set secure file and directory permissions
