@@ -38,7 +38,7 @@
                             <a class="ra-system__card {{ $sys['unavailable'] ? 'ra-system__card--closed' : '' }}"
                                href="{{ route('retroarch.system', ['system' => $sys['slug']]) }}">
                                 @if (! empty($sys['icon']))
-                                    <img src="{{ $sys['icon'] }}" alt="{{ $sys['label'] }}" class="ra-system__icon" loading="lazy" onerror="this.style.display='none'" />
+                                    <img src="{{ $sys['icon'] }}" alt="{{ $sys['label'] }}" class="ra-system__icon" loading="lazy" />
                                 @endif
                                 <div class="ra-system__info">
                                     <h3 class="ra-system__title">{{ $sys['label'] }}</h3>
@@ -84,4 +84,14 @@
         .ra-freeplay { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--panel_background); border: 1px solid var(--panel_border); border-radius: 6px; color: var(--body_text); text-decoration: none; font-size: 13px; opacity: .85; }
         .ra-freeplay:hover { border-color: var(--primary); opacity: 1; }
     </style>
+
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
+        // Hide broken system icons. Inline onerror= is blocked by the gaming CSP
+        // (script-src-attr); delegate in capture phase ('error' doesn't bubble).
+        document.addEventListener('error', function (e) {
+            if (e.target.tagName === 'IMG' && e.target.classList.contains('ra-system__icon')) {
+                e.target.style.display = 'none';
+            }
+        }, true);
+    </script>
 @endsection
