@@ -20,7 +20,7 @@
         <div class="panel__body">
             <div class="ra-closed">
                 @if (! empty($meta['icon']))
-                    <img src="{{ $meta['icon'] }}" alt="{{ $meta['label'] }}" class="ra-closed__icon" onerror="this.style.display='none'" />
+                    <img src="{{ $meta['icon'] }}" alt="{{ $meta['label'] }}" class="ra-closed__icon" />
                 @endif
                 <div class="ra-closed__copy">
                     <p class="ra-closed__lead">Esta sección está cerrada temporalmente.</p>
@@ -50,4 +50,14 @@
         .ra-closed__hint { margin: 0; opacity: .7; font-size: 13px; }
         .ra-show__actions { display: flex; gap: 8px; }
     </style>
+
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
+        // Hide a broken closed-section icon. Inline onerror= is blocked by the
+        // gaming CSP (script-src-attr); delegate in capture phase.
+        document.addEventListener('error', function (e) {
+            if (e.target.tagName === 'IMG' && e.target.classList.contains('ra-closed__icon')) {
+                e.target.style.display = 'none';
+            }
+        }, true);
+    </script>
 @endsection

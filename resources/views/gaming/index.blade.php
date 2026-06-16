@@ -38,7 +38,6 @@
                                     src="{{ $juego['cover'] }}"
                                     alt="Portada de {{ $juego['titulo'] }}"
                                     loading="lazy"
-                                    onerror="this.style.display='none'"
                                 />
                             </div>
                             <div class="gaming-card__info">
@@ -227,4 +226,15 @@
             height: auto;
         }
     </style>
+
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
+        // Hide broken cover images. Inline onerror= is blocked by the gaming CSP
+        // (script-src-attr, no 'unsafe-hashes'); delegate instead. Capture phase
+        // because 'error' does not bubble.
+        document.addEventListener('error', function (e) {
+            if (e.target.tagName === 'IMG' && e.target.closest('.gaming-card__cover')) {
+                e.target.style.display = 'none';
+            }
+        }, true);
+    </script>
 @endsection
