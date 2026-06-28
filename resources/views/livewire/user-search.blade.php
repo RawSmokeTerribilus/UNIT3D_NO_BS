@@ -1,4 +1,74 @@
 <div style="display: flex; flex-direction: column; row-gap: 1rem">
+    <section
+        class="panelV2"
+        x-data="{
+            q: '',
+            res: null,
+            loading: false,
+            lookup() {
+                if (!this.q.trim()) return;
+                this.loading = true;
+                this.res = null;
+                fetch('{{ route('staff.users.telegram_lookup') }}?q=' + encodeURIComponent(this.q.trim()))
+                    .then(r => r.json())
+                    .then(d => { this.res = d; this.loading = false; })
+                    .catch(() => { this.res = { found: false, error: 'Error de red' }; this.loading = false; });
+            }
+        }"
+    >
+        <header class="panel__header">
+            <h2 class="panel__heading">Búsqueda Telegram</h2>
+        </header>
+        <div class="panel__body" style="padding: 5px">
+            <form class="form" @submit.prevent="lookup()">
+                <div class="form__group--short-horizontal">
+                    <p class="form__group">
+                        <input
+                            id="tgLookup"
+                            class="form__text"
+                            type="text"
+                            x-model="q"
+                            placeholder=" "
+                        />
+                        <label class="form__label form__label--floating" for="tgLookup">
+                            Usuario o chat_id
+                        </label>
+                    </p>
+                    <p class="form__group">
+                        <button
+                            class="form__button form__button--filled"
+                            type="submit"
+                            :disabled="loading"
+                        >
+                            <span x-show="!loading">Buscar TG</span>
+                            <span x-show="loading" style="opacity: .6">…</span>
+                        </button>
+                    </p>
+                </div>
+                <p class="form__text" style="opacity: .6; margin: .3rem 0 0">
+                    Acepta nombre de usuario del tracker o chat_id numérico de Telegram.
+                </p>
+            </form>
+            <template x-if="res && res.found">
+                <p style="margin: .5rem 0 0">
+                    <a :href="res.user.profile_url" x-text="res.user.username"></a>
+                    <span x-show="res.user.group" x-text="' (' + res.user.group + ')'" style="opacity: .6"></span>
+                    <template x-if="res.tg">
+                        <span x-text="' — ' + [res.tg.first_name, res.tg.last_name].filter(Boolean).join(' ') + (res.tg.username ? ' @' + res.tg.username : '') + ' [' + res.tg.status + ']'"></span>
+                    </template>
+                    <template x-if="res.user.telegram_chat_id && !res.tg">
+                        <span style="opacity: .6"> — sin respuesta de Telegram</span>
+                    </template>
+                    <template x-if="!res.user.telegram_chat_id">
+                        <span style="opacity: .6"> — no vinculado a Telegram</span>
+                    </template>
+                </p>
+            </template>
+            <template x-if="res && !res.found">
+                <p style="margin: .5rem 0 0; opacity: .6" x-text="res.error || 'Sin coincidencias'"></p>
+            </template>
+        </div>
+    </section>
     <section class="panelV2">
         <header class="panel__header">
             <h2 class="panel__heading">{{ __('common.search') }}</h2>

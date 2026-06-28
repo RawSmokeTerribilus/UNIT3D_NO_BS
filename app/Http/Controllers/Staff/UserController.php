@@ -130,6 +130,55 @@ class UserController extends Controller
     }
 
     /**
+     * Dual-direction Telegram lookup for staff.
+     *
+     * Accepts a query string `q` that is either a tracker username or a numeric
+     * Telegram chat_id. Resolves the matching tracker user and, when linked,
+     * returns their live Telegram profile.
+     */
+    public function telegramLookup(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        if ($q === '') {
+            return response()->json(['found' => false, 'error' => 'Introduce un usuario o chat_id'], 422);
+        }
+
+        $needle = ltrim($q, '@');
+
+        if (ctype_digit($q)) {
+            // Reverse: numeric Telegram chat_id -> tracker user.
+            $user = User::withTrashed()->where('telegram_chat_id', $q)->first();
+        } else {
+            // Forward: tracker username -> user (exact, then prefix fallback).
+            $user = User::withTrashed()->where('username', $needle)->first()
+                ?? User::withTrashed()->where('username', 'like', $needle.'%')->orderBy('username')->first();
+        }
+
+        if ($user === null) {
+            return response()->json(['found' => false, 'error' => 'Sin coincidencias'], 404);
+        }
+
+        $tg = null;
+
+        if (!empty($user->telegram_chat_id)) {
+            $tg = app(\App\Services\TelegramService::class)->getGroupMemberProfile((string) $user->telegram_chat_id);
+        }
+
+        return response()->json([
+            'found' => true,
+            'user'  => [
+                'id'             => $user->id,
+                'username'       => $user->username,
+                'group'          => $user->group->name ?? null,
+                'profile_url'    => route('users.show', ['user' => $user->username]),
+                'telegram_chat_id' => $user->telegram_chat_id,
+            ],
+            'tg' => $tg,
+        ]);
+    }
+
+    /**
      * Delete A User.
      */
     protected function destroy(Request $request, User $user): \Illuminate\Http\RedirectResponse
