@@ -1057,6 +1057,38 @@
                             @endif
                         </dd>
                     </div>
+                    @if (auth()->user()->group->is_modo && $user->telegram_chat_id)
+                        <div class="key-value__group" x-data="{ tg: null, loading: false }">
+                            <dt>Telegram</dt>
+                            <dd>
+                                <button
+                                    class="form__button form__button--text"
+                                    type="button"
+                                    x-show="!tg"
+                                    :disabled="loading"
+                                    @click="
+                                        loading = true;
+                                        fetch('{{ route('staff.users.telegram_info', ['user' => $user]) }}')
+                                            .then(r => r.json())
+                                            .then(d => { tg = d; loading = false; })
+                                            .catch(() => { tg = { error: 'Error de red' }; loading = false; })
+                                    "
+                                >
+                                    <span x-show="!loading">Consultar TG en vivo</span>
+                                    <span x-show="loading" style="opacity: .6">…</span>
+                                </button>
+                                <span
+                                    x-show="tg && !tg.error"
+                                    x-text="tg ? [tg.first_name, tg.last_name].filter(Boolean).join(' ') + (tg.username ? ' @' + tg.username : '') + ' [' + tg.status + ']' : ''"
+                                ></span>
+                                <span
+                                    x-show="tg && tg.error"
+                                    style="opacity: .6"
+                                    x-text="tg ? tg.error : ''"
+                                ></span>
+                            </dd>
+                        </div>
+                    @endif
                     <div class="key-value__group">
                         <dt>{{ __('user.last-login') }}</dt>
                         <dd>

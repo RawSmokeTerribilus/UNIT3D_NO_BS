@@ -1242,6 +1242,7 @@ Route::middleware('language')->group(function (): void {
             // User Tools TODO: Leaving since we will be refactoring users and roles
             Route::prefix('users')->name('users.')->group(function (): void {
                 Route::get('/', [App\Http\Controllers\Staff\UserController::class, 'index'])->name('index');
+                Route::get('/telegram-lookup', [App\Http\Controllers\Staff\UserController::class, 'telegramLookup'])->name('telegram_lookup');
                 Route::patch('/{user:username}', [App\Http\Controllers\Staff\UserController::class, 'update'])->name('update')->withTrashed();
                 Route::get('/{user:username}/edit', [App\Http\Controllers\Staff\UserController::class, 'edit'])->name('edit');
                 Route::get('/{user:username}/telegram-info', [App\Http\Controllers\Staff\UserController::class, 'telegramInfo'])->name('telegram_info');
