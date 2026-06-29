@@ -68,7 +68,8 @@ class EnforceSecurityRequirements
             return $next($request);
         }
 
-        if ($request->expectsJson() || $request->is('api/*')) {
+        if ($request->expectsJson() || $request->is('api/*')
+            || $request->routeIs('rss.show.rsskey', 'torrent.download.rsskey')) {
             return response()->json([
                 'error'   => 'Security Restriction',
                 'message' => 'Pendiente activar 2FA o completar la verificación de Telegram en la web del tracker.',
