@@ -82,6 +82,9 @@ class TelegramWebhookController extends Controller
         $text      = trim($message['text']);
         $isPrivate = $this->isPrivateChat($message);
 
+        // Opportunistically refresh the cached @username from the live update.
+        $this->cacheTelegramUsername($fromId, $message['from']['username'] ?? null);
+
         if (str_starts_with($text, '/start') && $isPrivate) {
             $this->handleStart($chatId, $text);
         } elseif ($this->isCommand($text, 'status')) {
@@ -415,6 +418,26 @@ class TelegramWebhookController extends Controller
         }
     }
 
+    /**
+     * Cache the live Telegram @username for a linked user. No-op for unknown
+     * chats or when the handle is unchanged; never makes an API call (the value
+     * arrives inside the webhook update itself).
+     */
+    private function cacheTelegramUsername(int|string|null $telegramChatId, ?string $username): void
+    {
+        if ($telegramChatId === null) {
+            return;
+        }
+
+        $user = User::where('telegram_chat_id', $telegramChatId)->first();
+
+        if ($user === null || (string) $user->telegram_username === (string) $username) {
+            return;
+        }
+
+        $user->forceFill(['telegram_username' => $username])->saveQuietly();
+    }
+
     private function handleMembershipUpdate(array $update): void
     {
         $groupChatId = (string) config('services.telegram.chat_id', '');
@@ -443,6 +466,8 @@ class TelegramWebhookController extends Controller
 
             return;
         }
+
+        $this->cacheTelegramUsername($telegramChatId, $member['user']['username'] ?? null);
 
         $isMember = in_array($member['status'] ?? null, ['member', 'administrator', 'creator'], true)
             || (($member['status'] ?? null) === 'restricted' && (bool) ($member['is_member'] ?? false));
