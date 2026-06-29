@@ -126,7 +126,22 @@ class UserController extends Controller
             return response()->json(['error' => 'Sin respuesta de Telegram'], 502);
         }
 
+        $this->cacheTelegramUsername($user, $profile['username'] ?? null);
+
         return response()->json($profile);
+    }
+
+    /**
+     * Persist a freshly-seen Telegram @username on a linked user. No-op when
+     * unchanged; saveQuietly to avoid touching updated_at / firing events.
+     */
+    private function cacheTelegramUsername(User $user, ?string $username): void
+    {
+        if ((string) $user->telegram_username === (string) $username) {
+            return;
+        }
+
+        $user->forceFill(['telegram_username' => $username])->saveQuietly();
     }
 
     /**
@@ -150,9 +165,12 @@ class UserController extends Controller
             // Reverse: numeric Telegram chat_id -> tracker user.
             $user = User::withTrashed()->where('telegram_chat_id', $q)->first();
         } else {
-            // Forward: tracker username -> user (exact, then prefix fallback).
+            // Forward: tracker username -> user (exact, then prefix fallback),
+            // then fall back to the cached Telegram @username so a handle copied
+            // from the group (e.g. "swiftfreakdeer") still resolves.
             $user = User::withTrashed()->where('username', $needle)->first()
-                ?? User::withTrashed()->where('username', 'like', $needle.'%')->orderBy('username')->first();
+                ?? User::withTrashed()->where('username', 'like', $needle.'%')->orderBy('username')->first()
+                ?? User::withTrashed()->where('telegram_username', $needle)->first();
         }
 
         if ($user === null) {
@@ -163,6 +181,10 @@ class UserController extends Controller
 
         if (!empty($user->telegram_chat_id)) {
             $tg = app(\App\Services\TelegramService::class)->getGroupMemberProfile((string) $user->telegram_chat_id);
+
+            if ($tg !== null) {
+                $this->cacheTelegramUsername($user, $tg['username'] ?? null);
+            }
         }
 
         return response()->json([
@@ -173,6 +195,7 @@ class UserController extends Controller
                 'group'          => $user->group->name ?? null,
                 'profile_url'    => route('users.show', ['user' => $user->username]),
                 'telegram_chat_id' => $user->telegram_chat_id,
+                'telegram_username' => $user->telegram_username,
             ],
             'tg' => $tg,
         ]);

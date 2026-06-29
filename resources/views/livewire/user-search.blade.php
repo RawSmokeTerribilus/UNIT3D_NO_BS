@@ -46,7 +46,7 @@
                     </p>
                 </div>
                 <p class="form__text" style="opacity: .6; margin: .3rem 0 0">
-                    Acepta nombre de usuario del tracker o chat_id numérico de Telegram.
+                    Acepta nombre de usuario del tracker, @handle de Telegram (si ya visto) o chat_id numérico.
                 </p>
             </form>
             <template x-if="res && res.found">
