@@ -115,7 +115,12 @@ class Kernel extends ConsoleKernel
         // Default TTL is 24h; if the 06:00 server-wide backup nukes a running
         // command mid-execution, the leaked lock would silently block the next
         // ~24h of scheduled runs (seen on 2026-05-23).
-        $schedule->command('meta:sync', ['--limit' => 25])->everyFiveMinutes()->withoutOverlapping(10);
+        // 2026-08-15: 25 cada 5 min = 300/hora, y con 680 pendientes eso son 2h20 de cola
+        // para las subidas nuevas. El cuello no es TMDB (responde en ~0.16s) sino el
+        // propio tope: el meta-worker estaba al 0% de CPU y la BD al 3%. Subido a 100
+        // (1200/hora). Medir un tick antes de subir más; si se acerca a los 10 min de
+        // withoutOverlapping, ese es el techo y hay que ampliar la ventana.
+        $schedule->command('meta:sync', ['--limit' => 100])->everyFiveMinutes()->withoutOverlapping(10);
         $schedule->command('meta:rotate-covers')->daily()->withoutOverlapping(60);
         // Pre-warm the art-proxy cache so users never pay the first-hit fetch+resize.
         // Idempotent (skips cached) + time-budgeted so each run stays short; runs

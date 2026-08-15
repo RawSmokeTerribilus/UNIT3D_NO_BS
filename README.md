@@ -620,6 +620,10 @@ bash rclone_gdrive/scripts/restore_snapshot.sh
 - `app/Services/Metadata/*Client.php` — un cliente por proveedor
 - Tablas: `metadata_resolutions`, `metadata_artwork`, `mal_anime`
 - Comandos: `meta:sync`, `meta:refresh-dispatch`, `meta:rotate-covers`, `fetch:meta`, `sync:missing-trailers`
+- 📖 **Operativa y diagnóstico**: [`docs/metadata-pipeline.md`](docs/metadata-pipeline.md) — los tres
+  carriles (resolución de ids, hidratación por cola, proxy de arte), qué está programado y qué no,
+  y las trampas que hacen que las métricas obvias mientan (SoftDeletes, progreso >100%,
+  `failed_jobs` como cementerio, `$tries` del job por encima del worker).
 
 **Resultado**: Match de metadatos mucho más robusto, especialmente en anime (donde TMDB es históricamente débil) y en títulos con colisiones de nombre.
 
