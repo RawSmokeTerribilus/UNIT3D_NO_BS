@@ -84,7 +84,12 @@ storage/app/retroarch/catalog.json
 
 # Source art originals (keep compressed versions in public/img and public/retroarch/media)
 Initial_NOBS_art/
-.docker/
+# Sólo los DATOS de los servicios: ahí viven los binlogs de MySQL y las claves
+# privadas TLS (server-key.pem, ca-key.pem…). La CONFIGURACIÓN de despliegue sí
+# va al repo: ignorar .docker/ entero dejaba fuera .docker/announce/Dockerfile,
+# al que apunta el docker-compose.yml publicado — el repo no se podía construir.
+.docker/data/
+.docker/**/*.bkp
 vendor/
 
 # Telegram implementation docs (contains sensitive data)
