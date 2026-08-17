@@ -80,8 +80,10 @@ NC='\033[0m' # No Color
 ENVIRONMENT="${1:-staging}"
 
 # Detectar si estamos ejecutando desde dentro del contenedor
+IN_CONTAINER=0
 if [ -f "/.dockerenv" ] || [ "$(pwd)" = "/var/www/html" ]; then
     # Ejecutando dentro del contenedor - usar CWD actual
+    IN_CONTAINER=1
     COMPOSE_DIR="."
     MEILISEARCH_PORT="${FORWARD_MEILISEARCH_PORT:-57700}"
     MEILISEARCH_URL="http://meilisearch:7700"
@@ -194,210 +196,46 @@ else
 fi
 
 # PASO 3: Configurar filterableAttributes y sortableAttributes
+#
+# La configuracion vive UNICAMENTE en config/scout.php, bajo la clave
+# scout.meilisearch.index-settings. Este paso solo la empuja a Meilisearch.
+#
+# Antes este script llevaba las listas escritas a fuego aqui dentro, y como el
+# entrypoint lo ejecuta en cada arranque del contenedor, cada reinicio pisaba
+# los settings del indice con una copia desactualizada. Eso borraba 'name' y
+# 'rating' de sortableAttributes y dejaba el orden por nombre y por rating
+# devolviendo un 500 hasta la siguiente reparacion manual (2026-08-17).
 echo ""
-echo -e "${YELLOW}[PASO 3]${NC} Configurando filterableAttributes y sortableAttributes..."
+echo -e "${YELLOW}[PASO 3]${NC} Sincronizando settings de indices desde config/scout.php..."
 
-SETTINGS_JSON=$(cat <<'EOF'
-{
-    "filterableAttributes": [
-        "deleted_at",
-        "status",
-        "id",
-        "user_id",
-        "category_id",
-        "type_id",
-        "resolution_id",
-        "distributor_id",
-        "region_id",
-        "seeders",
-        "leechers",
-        "times_completed",
-        "size",
-        "free",
-        "doubleup",
-        "refundable",
-        "highspeed",
-        "featured",
-        "imdb",
-        "tvdb",
-        "mal",
-        "igdb",
-        "tmdb_movie_id",
-        "tmdb_tv_id",
-        "season_number",
-        "episode_number",
-        "anon",
-        "sticky",
-        "internal",
-        "trumpable",
-        "personal_release",
-        "created_at",
-        "keywords",
-        "user.username",
-        "category.id",
-        "category.movie_meta",
-        "category.tv_meta",
-        "type.id",
-        "resolution.id",
-        "tmdb_movie.year",
-        "tmdb_tv.year",
-        "tmdb_movie.adult",
-        "tmdb_tv.adult",
-        "tmdb_movie.name",
-        "tmdb_tv.name",
-        "tmdb_movie.original_language",
-        "tmdb_tv.original_language",
-        "tmdb_movie.genres.id",
-        "tmdb_tv.genres.id",
-        "tmdb_movie.collection.id",
-        "tmdb_movie.companies.id",
-        "tmdb_tv.companies.id",
-        "tmdb_tv.networks.id",
-        "playlists.id",
-        "files.name",
-        "bookmarks.user_id",
-        "tmdb_movie.wishes.user_id",
-        "tmdb_tv.wishes.user_id",
-        "history_complete.user_id",
-        "history_incomplete.user_id",
-        "history_leechers.user_id",
-        "history_seeders.user_id",
-        "history_active.user_id",
-        "history_inactive.user_id"
-    ],
-    "sortableAttributes": [
-        "created_at",
-        "bumped_at",
-        "updated_at",
-        "seeders",
-        "leechers",
-        "times_completed",
-        "size",
-        "fl_until",
-        "du_until",
-        "sticky",
-        "internal",
-        "anon",
-        "status",
-        "imdb",
-        "tvdb"
-    ]
-}
-EOF
-)
+if [ "$IN_CONTAINER" -eq 1 ]; then
+    SYNC_OUTPUT=$(php artisan scout:sync-index-settings 2>&1)
+else
+    SYNC_OUTPUT=$(eval "$DOCKER_COMPOSE_CMD exec -T app php artisan scout:sync-index-settings" 2>&1)
+fi
 
-SETTINGS_RESPONSE=$(curl -s -X PATCH "$MEILISEARCH_URL/indexes/torrents/settings" \
-    -H 'Content-Type: application/json' \
-    -H "Authorization: Bearer $MEILISEARCH_KEY" \
-    --data-binary "$SETTINGS_JSON")
-
-# Verificar si hubo error
-if echo "$SETTINGS_RESPONSE" | grep -q '"message"'; then
-    echo -e "${RED}[ERROR]${NC} No se pudieron configurar los settings"
-    echo "$SETTINGS_RESPONSE"
+if echo "$SYNC_OUTPUT" | grep -q "synced successfully"; then
+    echo "$SYNC_OUTPUT" | sed 's/^/  /'
+    echo -e "${GREEN}[OK]${NC} Settings sincronizados (torrents + people)"
+else
+    echo -e "${RED}[ERROR]${NC} No se pudieron sincronizar los settings"
+    echo "$SYNC_OUTPUT"
     exit 1
 fi
 
-# Extraer el taskUid y esperar a que se complete
-TASK_UID=$(echo "$SETTINGS_RESPONSE" | sed -n 's/.*"taskUid":\s*\([0-9]\+\).*/\1/p' | head -1)
-if [[ -z "$TASK_UID" ]]; then
-    echo -e "${YELLOW}[INFO]${NC} Settings aplicados inmediatamente (sin taskUid)"
-else
-    echo -e "${BLUE}[INFO]${NC} Esperando a que Meilisearch procese la configuración (Task $TASK_UID)..."
-    
-    # Polling para esperar a que la tarea se complete
-    MAX_RETRIES=60
-    RETRY=0
-    while [[ $RETRY -lt $MAX_RETRIES ]]; do
-        TASK_STATUS=$(curl -s "$MEILISEARCH_URL/tasks/$TASK_UID" \
-            -H "Authorization: Bearer $MEILISEARCH_KEY" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p')
-        
-        if [[ "$TASK_STATUS" == "succeeded" ]]; then
-            echo -e "${GREEN}[OK]${NC} Configuración aplicada"
-            break
-        elif [[ "$TASK_STATUS" == "failed" ]]; then
-            echo -e "${RED}[ERROR]${NC} La tarea de configuración falló"
-            exit 1
-        fi
-        
-        RETRY=$((RETRY + 1))
-        sleep 0.5
-    done
-    
-    if [[ $RETRY -eq $MAX_RETRIES ]]; then
-        echo -e "${RED}[ERROR]${NC} Timeout esperando configuración (30 segundos)"
-        exit 1
-    fi
+# Los pasos que quedan (re-indexado y reinicio de contenedores) se apoyan en
+# "docker compose exec", que no existe dentro del contenedor. Ejecutados desde
+# el entrypoint fallaban siempre, y el reinicio final habria sido un bucle.
+# Desde dentro paramos aqui: los settings ya estan puestos, y los datos los
+# mantiene el scheduler (AutoSyncTorrentsToMeilisearch cada 15 min,
+# AutoSyncPeopleToMeilisearch a diario). Para una reconstruccion completa
+# esta el boton "Reparacion completa" del panel de staff
+# (artisan meilisearch:full-repair), que ademas garantiza el orden correcto.
+if [ "$IN_CONTAINER" -eq 1 ]; then
+    echo ""
+    echo -e "${GREEN}[OK]${NC} Arranque: settings sincronizados. Re-indexado a cargo del scheduler."
+    exit 0
 fi
-
-echo -e "${GREEN}[OK]${NC} Atributos configurados"
-
-# PASO 3B: Configurar filterableAttributes y sortableAttributes para 'people'
-echo ""
-echo -e "${YELLOW}[PASO 3B]${NC} Configurando filterableAttributes y sortableAttributes para 'people'..."
-
-PEOPLE_SETTINGS_JSON=$(cat <<'EOF'
-{
-    "filterableAttributes": [
-        "id",
-        "name",
-        "birthday",
-        "still"
-    ],
-    "sortableAttributes": [
-        "id",
-        "name",
-        "birthday"
-    ]
-}
-EOF
-)
-
-PEOPLE_SETTINGS_RESPONSE=$(curl -s -X PATCH "$MEILISEARCH_URL/indexes/people/settings" \
-    -H 'Content-Type: application/json' \
-    -H "Authorization: Bearer $MEILISEARCH_KEY" \
-    --data-binary "$PEOPLE_SETTINGS_JSON")
-
-# Verificar si hubo error
-if echo "$PEOPLE_SETTINGS_RESPONSE" | grep -q '"message"'; then
-    echo -e "${RED}[ERROR]${NC} No se pudieron configurar los settings para people"
-    echo "$PEOPLE_SETTINGS_RESPONSE"
-    exit 1
-fi
-
-# Extraer el taskUid y esperar a que se complete
-PEOPLE_TASK_UID=$(echo "$PEOPLE_SETTINGS_RESPONSE" | sed -n 's/.*"taskUid":\s*\([0-9]\+\).*/\1/p' | head -1)
-if [[ -z "$PEOPLE_TASK_UID" ]]; then
-    echo -e "${YELLOW}[INFO]${NC} Settings aplicados inmediatamente (sin taskUid)"
-else
-    echo -e "${BLUE}[INFO]${NC} Esperando a que Meilisearch procese la configuración de people (Task $PEOPLE_TASK_UID)..."
-    
-    # Polling para esperar a que la tarea se complete
-    MAX_RETRIES=60
-    RETRY=0
-    while [[ $RETRY -lt $MAX_RETRIES ]]; do
-        PEOPLE_TASK_STATUS=$(curl -s "$MEILISEARCH_URL/tasks/$PEOPLE_TASK_UID" \
-            -H "Authorization: Bearer $MEILISEARCH_KEY" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p')
-        
-        if [[ "$PEOPLE_TASK_STATUS" == "succeeded" ]]; then
-            echo -e "${GREEN}[OK]${NC} Configuración de people aplicada"
-            break
-        elif [[ "$PEOPLE_TASK_STATUS" == "failed" ]]; then
-            echo -e "${RED}[ERROR]${NC} La tarea de configuración de people falló"
-            exit 1
-        fi
-        
-        RETRY=$((RETRY + 1))
-        sleep 0.5
-    done
-    
-    if [[ $RETRY -eq $MAX_RETRIES ]]; then
-        echo -e "${RED}[ERROR]${NC} Timeout esperando configuración de people (30 segundos)"
-        exit 1
-    fi
-fi
-
-echo -e "${GREEN}[OK]${NC} Atributos de people configurados"
 
 # PASO 4: Re-indexar torrents
 echo ""
