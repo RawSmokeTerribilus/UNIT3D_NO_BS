@@ -163,10 +163,18 @@ class MeilisearchFullRepair extends Command
         $torrentsSettings = $client->getIndex($torrentsIndex)->getSettings();
         $peopleSettings = $client->getIndex($peopleIndex)->getSettings();
 
-        $tFilterable = \count($torrentsSettings['filterableAttributes'] ?? []);
-        $tSortable = \count($torrentsSettings['sortableAttributes'] ?? []);
-        $pFilterable = \count($peopleSettings['filterableAttributes'] ?? []);
-        $pSortable = \count($peopleSettings['sortableAttributes'] ?? []);
+        // Meilisearch 1.x returns filterable attributes as objects grouping many
+        // patterns under shared features, so a plain count() reports the number
+        // of groups (2) instead of the number of attributes (~60).
+        $countAttributes = static fn (array $attributes): int => array_sum(array_map(
+            static fn ($attribute): int => \is_array($attribute) ? \count($attribute['attributePatterns'] ?? []) : 1,
+            $attributes
+        ));
+
+        $tFilterable = $countAttributes($torrentsSettings['filterableAttributes'] ?? []);
+        $tSortable = $countAttributes($torrentsSettings['sortableAttributes'] ?? []);
+        $pFilterable = $countAttributes($peopleSettings['filterableAttributes'] ?? []);
+        $pSortable = $countAttributes($peopleSettings['sortableAttributes'] ?? []);
 
         $this->line("  ✓ torrents: {$tFilterable} filterable, {$tSortable} sortable");
         $this->line("  ✓ people:   {$pFilterable} filterable, {$pSortable} sortable");
