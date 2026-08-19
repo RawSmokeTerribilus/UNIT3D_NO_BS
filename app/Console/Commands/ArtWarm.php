@@ -12,7 +12,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 
 /**
  * Pre-warm the art-proxy disk cache (storage/app/art-proxy) so users never pay
@@ -175,20 +176,19 @@ final class ArtWarm extends Command
                     return 'failed';
                 }
 
-                $image = Image::make($response->body());
+                $image = Image::decode($response->body());
 
                 if ($image->width() > $width) {
-                    $image->resize($width, null, function ($constraint): void {
-                        $constraint->aspectRatio();
-                        $constraint->upsize();
-                    });
+                    $image->scaleDown(width: $width);
                 }
 
-                $image->encode('jpg', 85)->save($cachePath);
+                $image->encode(new JpegEncoder(quality: 85))->save($cachePath);
 
-                // Free the GD resource now — PHP's GC won't reclaim it fast
+                // Drop the decoded image now — PHP's GC won't reclaim it fast
                 // enough in a tight loop, which exhausts memory_limit otherwise.
-                $image->destroy();
+                // Intervention Image 4 has no destroy(); releasing the last
+                // reference is what frees the underlying GD resource.
+                unset($image);
             }
         } catch (\Throwable $e) {
             return 'failed';

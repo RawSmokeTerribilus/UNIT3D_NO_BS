@@ -22,7 +22,8 @@ use App\Http\Requests\Staff\UpdateArticleRequest;
 use App\Models\Article;
 use App\Models\UnreadArticle;
 use App\Models\User;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Exception;
 use Illuminate\Support\Facades\Storage;
 
@@ -64,7 +65,7 @@ class ArticleController extends Controller
 
             $filename = 'article-'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('article-images')->path($filename);
-            Image::make($image->getRealPath())->fit(75, 75)->encode('png', 100)->save($path);
+            Image::decode($image->getRealPath())->cover(75, 75)->encode(new PngEncoder())->save($path);
         }
 
         $article = Article::create(['user_id' => $request->user()->id, 'image' => $filename ?? null] + $request->validated());
@@ -103,7 +104,7 @@ class ArticleController extends Controller
 
             $filename = 'article-'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('article-images')->path($filename);
-            Image::make($image->getRealPath())->fit(75, 75)->encode('png', 100)->save($path);
+            Image::decode($image->getRealPath())->cover(75, 75)->encode(new PngEncoder())->save($path);
 
             if ($article->image !== null) {
                 Storage::disk('article-images')->delete($article->image);

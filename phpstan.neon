@@ -15,6 +15,10 @@ parameters:
         - resources
         - routes
     excludePaths:
+        # PHP-Parser 5 (phpstan 2.x) refuses the `<?xml` short-open-tag lookalike
+        # inside this template's @php block. Blade is bladestan's job anyway, and
+        # bladestan is disabled above.
+        - resources/views/rss/show.blade.php
         - app/Helpers/Markdown.php
         - app/Helpers/MarkdownExtra.php
         - app/Http/Livewire/TmdbPersonCredit.php
