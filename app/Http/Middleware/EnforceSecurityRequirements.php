@@ -18,6 +18,7 @@ class EnforceSecurityRequirements
         'nahik99374',
         'testcunyat',
         'OcbSmoke',
+        'Marpava',
     ];
 
     /**

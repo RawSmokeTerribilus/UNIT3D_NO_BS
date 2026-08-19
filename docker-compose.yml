@@ -74,6 +74,7 @@ services:
             - /var/www/html/storage/app/backup-temp:size=2G,mode=777
         volumes:
             - .:/var/www/html
+            - ./.docker/php/memory.ini:/usr/local/etc/php/conf.d/memory.ini:ro
         environment:
             - LD_PRELOAD=/usr/lib/libiconv.so.2
             - DB_HOST=db
