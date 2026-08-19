@@ -129,3 +129,12 @@ forensics/dashboard/__pycache__/
 # deprecated/broken installer artifacts (kept locally, out of the repo)
 Unit3d_9.2-Installer-fixed/deprecated/
 /public/build.*
+
+# Respaldos de despliegue: nunca deben entrar al repositorio.
+# vendor.pre-update-* son ~340 MB; un `git add .` distraido los commitea.
+*.bak
+*.bak-*
+*.pre-update-bak
+composer.lock.pre*
+vendor.pre*
+vendor.bak*

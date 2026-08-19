@@ -518,7 +518,7 @@ class Bbcode
             });
 
             if (!$isWhitelisted) {
-                $url = 'https://wsrv.nl/?n=-1&ll&url='.urlencode($url);
+                $url = 'https://images.weserv.nl/?n=-1&ll&url='.urlencode($url);
             }
         }
 
