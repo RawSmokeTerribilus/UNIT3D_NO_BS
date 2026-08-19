@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f6e535e95bae5b4e3841dc72a7be1789",
+    "content-hash": "319578bcb9130ed74cfcc6babb45ec5c",
     "packages": [
         {
             "name": "assada/laravel-achievements",
@@ -1459,71 +1459,6 @@
             "time": "2026-07-20T13:40:43+00:00"
         },
         {
-            "name": "hdvinnie/laravel-joypixel-emojis",
-            "version": "v3.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/HDVinnie/laravel-joypixel-emojis.git",
-                "reference": "47db4724d23e1466d6138976bbc766558a47a483"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/HDVinnie/laravel-joypixel-emojis/zipball/47db4724d23e1466d6138976bbc766558a47a483",
-                "reference": "47db4724d23e1466d6138976bbc766558a47a483",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
-                "joypixels/emoji-toolkit": "^6",
-                "php": "^7.4|^8.0"
-            },
-            "suggest": {
-                "joypixels/assets": "If you want to serve the emojione assets yourself"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "LaravelJoyPixels": "hdvinnie\\LaravelJoyPixels\\LaravelJoyPixelsFacade"
-                    },
-                    "providers": [
-                        "hdvinnie\\LaravelJoyPixels\\LaravelJoyPixelsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "hdvinnie\\LaravelJoyPixels\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "HDVinnie",
-                    "email": "hdinnovations@protonmail.com",
-                    "homepage": "https://github.com/HDVinnie",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Laravel helper for Joypixels emojis",
-            "homepage": "https://github.com/HDVinnie/laravel-joypixel-emojis",
-            "keywords": [
-                "HDVinnie",
-                "JoyPixels",
-                "emoji",
-                "emojione",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/HDVinnie/laravel-joypixel-emojis/issues",
-                "source": "https://github.com/HDVinnie/laravel-joypixel-emojis/tree/v3.0.2"
-            },
-            "time": "2026-08-06T17:11:57+00:00"
-        },
-        {
             "name": "hdvinnie/laravel-security-headers",
             "version": "v3.1.0",
             "source": {
@@ -1870,23 +1805,25 @@
         },
         {
             "name": "joypixels/emoji-toolkit",
-            "version": "6.6.0",
+            "version": "11.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/joypixels/emoji-toolkit.git",
-                "reference": "99f960c37eef1bdd0a3e30a676f8839c88e48ce3"
+                "reference": "245bb1bf82b411e1bbe51d5c2da8e62dc6c789c6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/joypixels/emoji-toolkit/zipball/99f960c37eef1bdd0a3e30a676f8839c88e48ce3",
-                "reference": "99f960c37eef1bdd0a3e30a676f8839c88e48ce3",
+                "url": "https://api.github.com/repos/joypixels/emoji-toolkit/zipball/245bb1bf82b411e1bbe51d5c2da8e62dc6c789c6",
+                "reference": "245bb1bf82b411e1bbe51d5c2da8e62dc6c789c6",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3"
+                "php": ">=7.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "~4.6 || ~5.0"
+                "ext-intl": "*",
+                "phpunit/phpunit": "^10.0",
+                "s9e/regexp-builder": "^2.1"
             },
             "type": "library",
             "autoload": {
@@ -1899,7 +1836,7 @@
                 "(CC-BY-4.0 and MIT)"
             ],
             "description": "JoyPixels is a complete set of emoji designed for the web. The emoji-toolkit includes libraries to easily convert unicode characters to shortnames (:smile:) and shortnames to JoyPixels emoji images. PNG formats provided for the emoji images.",
-            "homepage": "http://www.joypixels.com",
+            "homepage": "https://www.joypixels.com",
             "keywords": [
                 "JoyPixels",
                 "emoji",
@@ -1913,9 +1850,9 @@
             ],
             "support": {
                 "issues": "https://github.com/joypixels/emoji-toolkit/issues",
-                "source": "https://github.com/joypixels/emoji-toolkit/tree/6.6.0"
+                "source": "https://github.com/joypixels/emoji-toolkit/tree/11.0.0"
             },
-            "time": "2021-07-08T22:11:29+00:00"
+            "time": "2026-08-03T20:55:41+00:00"
         },
         {
             "name": "laminas/laminas-diactoros",
@@ -14152,12 +14089,12 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
+        "php": ">=8.4",
         "ext-dom": "*",
         "ext-json": "*",
         "ext-libxml": "*",
         "ext-zend-opcache": "*",
-        "ext-zip": "*",
-        "php": ">=8.4"
+        "ext-zip": "*"
     },
     "platform-dev": {},
     "platform-overrides": {

@@ -8,21 +8,22 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "assada/laravel-achievements": "^2.8",
-        "bjeavons/zxcvbn-php": "^1.4.2",
+        "php": ">=8.4",
         "ext-dom": "*",
         "ext-json": "*",
         "ext-libxml": "*",
         "ext-zend-opcache": "*",
         "ext-zip": "*",
+        "assada/laravel-achievements": "^2.8",
+        "bjeavons/zxcvbn-php": "^1.4.2",
         "gabrielelana/byte-units": "^0.5.0",
         "graham-campbell/markdown": "^v16.0.0",
         "guzzlehttp/guzzle": "^8.0",
-        "hdvinnie/laravel-joypixel-emojis": "^3.0.1",
         "hdvinnie/laravel-security-headers": "^3.0.3",
         "intervention/image": "^4.2",
         "intervention/image-laravel": "^4.1",
         "joypixels/assets": "^11.0",
+        "joypixels/emoji-toolkit": "^11.0",
         "laravel/fortify": "^1.30.0",
         "laravel/framework": "^13.0",
         "laravel/octane": "^2.12.1",
@@ -31,7 +32,6 @@
         "livewire/livewire": "^4.0",
         "maennchen/zipstream-php": "^3.2",
         "meilisearch/meilisearch-php": "^1.15.0",
-        "php": ">=8.4",
         "spatie/laravel-backup": "^10.0",
         "spatie/laravel-cookie-consent": "^3.3.3",
         "spatie/laravel-image-optimizer": "^1.8.2",
@@ -98,7 +98,7 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
             "@php artisan vendor:publish --force --tag=livewire:assets --ansi",
-            "@php artisan vendor:publish --tag=public --provider=\"hdvinnie\\LaravelJoyPixels\\LaravelJoyPixelsServiceProvider\""
+            "@php artisan vendor:publish --tag=joypixels-assets --ansi"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

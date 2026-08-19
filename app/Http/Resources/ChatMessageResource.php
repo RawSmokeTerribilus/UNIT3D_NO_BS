@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Helpers\Bbcode;
-use hdvinnie\LaravelJoyPixels\LaravelJoyPixels;
+use App\Services\Emoji\EmojiRenderer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -44,11 +44,9 @@ class ChatMessageResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $emojiOne = new LaravelJoyPixels();
-
         $bbcode = new Bbcode();
         $logger = $bbcode->parse($this->message);
-        $logger = $emojiOne->toImage($logger);
+        $logger = app(EmojiRenderer::class)->toImage($logger);
 
         if ($this->user_id == 1) {
             $logger = str_replace('a href="/#', 'a trigger="bot" class="chatTrigger" href="/#', $logger);
