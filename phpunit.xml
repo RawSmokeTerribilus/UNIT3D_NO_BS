@@ -13,8 +13,12 @@
     <ini name="intl.default_locale" value="C.UTF-8"/>
     <ini name="memory_limit" value="2048M"/>
     <ini name="display_errors" value="true"/>
-    <env name="DB_CONNECTION" value="mysql"/>
-    <env name="APP_ENV" value="testing"/>
+    <env name="DB_CONNECTION" value="mysql" force="true"/>
+    <!-- Sin esto los tests heredan DB_DATABASE del .env y RefreshDatabase
+         tira y re-migra la base VIVA del tracker. 26 ficheros de test usan
+         RefreshDatabase/LazilyRefreshDatabase. No quitar. -->
+    <env name="DB_DATABASE" value="unit3d_testing" force="true"/>
+    <env name="APP_ENV" value="testing" force="true"/>
     <env name="QUEUE_CONNECTION" value="sync" />
     <!--
     <env name="REDIS_HOST" value="127.0.0.1" />

@@ -21,6 +21,10 @@ test('views must be kebab case', function (string $viewPath): void {
     expect($viewPath)->toMatch('/^\/views\/(?:[0-9a-zA-Z-]|\/_?)+\.blade\.php$/');
 })
     ->with(array_map(
-        fn ($path) => mb_substr($path, mb_strlen(resource_path())),
-        glob(resource_path('views/**/*.blade.php')),
+        // No se puede usar resource_path() aqui: los datasets se evaluan en
+        // tiempo de RECOLECCION, antes de que exista la aplicacion, asi que
+        // devolvia una ruta sin resolver, el glob salia vacio y Pest abortaba
+        // la suite ENTERA con DatasetMissing. Ruta absoluta desde este fichero.
+        fn ($path) => mb_substr($path, mb_strlen(\dirname(__DIR__, 2).'/resources')),
+        glob(\dirname(__DIR__, 2).'/resources/views/**/*.blade.php'),
     ));
