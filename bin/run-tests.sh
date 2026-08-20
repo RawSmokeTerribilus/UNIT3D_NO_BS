@@ -18,6 +18,13 @@
 #
 # El cortafuegos de tests/CreatesApplication.php aborta si aun así se colara una
 # base que no termine en _testing. Este script es la comodidad; ese es el seguro.
+#
+#   3. La suite comparte el Redis de la aplicacion. Cualquier cosa que cachee
+#      durante un test lo hace leyendo unit3d_testing, que esta vacia, y el valor
+#      se queda bajo la clave de produccion hasta que expira. Visto el 2026-08-20:
+#      FooterComposer cacheo una coleccion vacia en 'cached-pages' (TTL 1-2h) y el
+#      pie del sitio se quedo sin la columna de Paginas, con las 6 filas intactas
+#      en la base viva. Por eso se purga tambien la cache de aplicacion al salir.
 
 set -uo pipefail
 
@@ -39,8 +46,11 @@ restore_config() {
     echo "--- limpiando la cache de configuracion contaminada por los tests ---"
     docker exec "$CONTAINER" php artisan config:clear >/dev/null 2>&1 || true
     docker exec "$CONTAINER" php artisan config:cache  >/dev/null 2>&1 || true
+    # cache:clear es inocuo en este stack: vacia el store de aplicacion, no la
+    # config. Lo peligroso es config:clear a secas, que deja el sitio sin APP_KEY.
+    docker exec "$CONTAINER" php artisan cache:clear   >/dev/null 2>&1 || true
     docker exec "$CONTAINER" php artisan tinker \
-        --execute='printf("scout.driver=[%s]\n", config("scout.driver"));' 2>&1 | tail -1
+        --execute='printf("scout.driver=[%s] pages=[%d]\n", config("scout.driver"), App\Models\Page::count());' 2>&1 | tail -1
     return $status
 }
 trap restore_config EXIT
