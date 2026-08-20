@@ -55,8 +55,12 @@
         <span
             class="icon-picker__status"
             x-show="status === '' && totalMatches > visibleIcons.length"
-            x-text="'Showing ' + visibleIcons.length + ' of ' + totalMatches + ' — type to narrow down.'"
-        ></span>
+        >
+            <span x-text="'Showing ' + visibleIcons.length + ' of ' + totalMatches + '.'"></span>
+            <button type="button" class="icon-picker__show-all" x-on:click="showAll = true">
+                Show all
+            </button>
+        </span>
         <span class="icon-picker__grid" x-show="status === ''">
             <template x-for="icon in visibleIcons" :key="icon[0]">
                 <button
@@ -88,6 +92,7 @@
                 styles: ['fas', 'far', 'fal', 'fat', 'fad', 'fab'],
                 indexUrl: @js(url('vendor/fontawesome/icon-index.json').'?v='.(@filemtime(public_path('vendor/fontawesome/icon-index.json')) ?: '0')),
                 totalMatches: 0,
+                showAll: false,
                 get visibleIcons() {
                     // Each entry is [name, codepoint, mask]; bit i of the mask
                     // says the font behind styles[i] really contains the glyph.
@@ -107,11 +112,12 @@
                         if (query === '' || icon[0].includes(query)) {
                             total++;
 
-                            // The grid stays light by rendering at most 120;
-                            // the counter below tells the user the rest exists
-                            // and that typing narrows it — without this, an
+                            // The grid opens with at most 120 so the panel
+                            // is instant; "show all" renders the rest on
+                            // demand (content-visibility keeps offscreen rows
+                            // cheap). Without a visible counter/button, the
                             // alphabetical wall hid everything past the As.
-                            if (matches.length < 120) {
+                            if (this.showAll || matches.length < 120) {
                                 matches.push(icon);
                             }
                         }
@@ -127,6 +133,8 @@
                     if (!this.isOpen) {
                         return;
                     }
+
+                    this.showAll = false;
 
                     // Pre-select the style already written in the field, so
                     // picking a replacement keeps e.g. an intentional `fal`.
