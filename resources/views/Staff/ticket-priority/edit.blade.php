@@ -77,19 +77,7 @@
                         {{ __('common.color') }}
                     </label>
                 </p>
-                <p class="form__group">
-                    <input
-                        id="icon"
-                        class="form__text"
-                        name="icon"
-                        type="text"
-                        value="{{ $ticketPriority->icon }}"
-                        placeholder="fa-circle"
-                    />
-                    <label class="form__label form__label--floating" for="icon">
-                        {{ __('common.icon') }}
-                    </label>
-                </p>
+                <x-icon-picker name="icon" :value="$ticketPriority->icon" :label="__('common.icon')" />
                 <p class="form__group">
                     <button class="form__button form__button--filled">
                         {{ __('common.submit') }}

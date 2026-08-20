@@ -51,12 +51,7 @@
                         {{ __('common.position') }}
                     </label>
                 </p>
-                <p class="form__group">
-                    <input id="icon" class="form__text" type="text" name="icon" placeholder=" " />
-                    <label class="form__label form__label--floating" for="icon">
-                        {{ __('common.icon') }} (FontAwesome)
-                    </label>
-                </p>
+                <x-icon-picker name="icon" :label="__('common.icon')" />
                 <p class="form__group">
                     <label for="image">
                         {{ __('common.select') }}

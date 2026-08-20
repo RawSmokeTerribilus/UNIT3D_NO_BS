@@ -60,19 +60,7 @@
                         {{ __('common.position') }}
                     </label>
                 </p>
-                <p class="form__group">
-                    <input
-                        id="icon"
-                        class="form__text"
-                        type="text"
-                        name="icon"
-                        required
-                        value="{{ $wikiCategory->icon }}"
-                    />
-                    <label class="form__label form__label--floating" for="icon">
-                        {{ __('common.icon') }} (E.g. "fas fa-rocket")
-                    </label>
-                </p>
+                <x-icon-picker name="icon" :value="$wikiCategory->icon" :label="__('common.icon')" :required="true" />
                 <p class="form__group">
                     <button class="form__button form__button--filled">
                         {{ __('common.submit') }}
