@@ -53,20 +53,7 @@
                     {{ __('common.description') }}
                 </label>
             </p>
-            <p class="form__group">
-                <input
-                    id="icon"
-                    class="form__text"
-                    type="text"
-                    autocomplete="off"
-                    name="icon"
-                    required
-                    value="{{ $event->icon }}"
-                />
-                <label class="form__label form__label--floating" for="icon">
-                    {{ __('common.icon') }}
-                </label>
-            </p>
+            <x-icon-picker name="icon" :value="$event->icon" :label="__('common.icon')" :required="true" />
             <div class="form__group--horizontal">
                 <p class="form__group">
                     <input

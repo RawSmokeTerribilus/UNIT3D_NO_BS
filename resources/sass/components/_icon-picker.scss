@@ -1,0 +1,141 @@
+// Staff icon picker. Paints its own opaque surface on purpose: none of the
+// 20 site themes defines a shared variable set (the intersection is empty),
+// so a panel built on theme variables would come out unreadable exactly in
+// the themes that omit them. To re-theme it, override the --icon-picker-*
+// variables below — do not touch the rules.
+.icon-picker {
+    position: relative;
+}
+
+.icon-picker__toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover {
+        background: rgb(128 128 128 / 20%);
+    }
+}
+
+.icon-picker__panel {
+    --icon-picker-bg: #22262a;
+    --icon-picker-fg: #e6e8ea;
+    --icon-picker-muted: #9aa3ab;
+    --icon-picker-rule: #343a40;
+    --icon-picker-hover: #2f353b;
+    --icon-picker-accent: #4fb0c6;
+
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 0;
+    display: block;
+    width: min(420px, 100%);
+    padding: 10px;
+    border: 1px solid var(--icon-picker-rule);
+    border-radius: 10px;
+    background: var(--icon-picker-bg);
+    color: var(--icon-picker-fg);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+}
+
+.icon-picker__search {
+    display: block;
+    margin: 0 0 8px;
+}
+
+.icon-picker__search-input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--icon-picker-rule);
+    border-radius: 6px;
+    background: rgb(0 0 0 / 25%);
+    color: var(--icon-picker-fg);
+    font: inherit;
+    font-size: 14px;
+
+    &::placeholder {
+        color: var(--icon-picker-muted);
+    }
+
+    &:focus {
+        outline: 2px solid var(--icon-picker-accent);
+        outline-offset: 1px;
+    }
+}
+
+.icon-picker__styles {
+    display: flex;
+    gap: 4px;
+    margin: 0 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--icon-picker-rule);
+}
+
+.icon-picker__style {
+    padding: 3px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--icon-picker-muted);
+    font-size: 13px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--icon-picker-hover);
+        color: var(--icon-picker-fg);
+    }
+
+    &--active {
+        background: var(--icon-picker-accent);
+        color: #10262b;
+    }
+}
+
+.icon-picker__status {
+    display: block;
+    margin: 4px 2px;
+    color: var(--icon-picker-muted);
+    font-size: 13px;
+}
+
+.icon-picker__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 2px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.icon-picker__button {
+    padding: 8px 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--icon-picker-fg);
+    font-size: 17px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--icon-picker-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--icon-picker-accent);
+    }
+}
+
+.icon-picker__hint {
+    display: block;
+    margin: 8px 2px 0;
+    color: var(--icon-picker-muted);
+    font-size: 12px;
+}

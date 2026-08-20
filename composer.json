@@ -99,7 +99,8 @@
             "@php artisan package:discover --ansi",
             "@php artisan vendor:publish --force --tag=livewire:assets --ansi",
             "@php artisan vendor:publish --tag=joypixels-assets --ansi",
-        "@php artisan emoji:build-index --ansi"
+        "@php artisan emoji:build-index --ansi",
+            "@php artisan icon:build-index --ansi"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

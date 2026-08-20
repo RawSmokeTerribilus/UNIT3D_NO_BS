@@ -108,19 +108,7 @@
                         Color (e.g. #ff0000)
                     </label>
                 </p>
-                <p class="form__group">
-                    <input
-                        id="icon"
-                        class="form__text"
-                        type="text"
-                        name="group[icon]"
-                        placeholder=" "
-                        value="{{ $group->icon }}"
-                    />
-                    <label class="form__label form__label--floating" for="icon">
-                        FontAwesome icon (e.g. fas fa-user)
-                    </label>
-                </p>
+                <x-icon-picker name="group[icon]" :value="$group->icon" />
                 <p class="form__group">
                     <input
                         id="effect"

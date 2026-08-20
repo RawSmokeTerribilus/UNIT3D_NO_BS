@@ -45,17 +45,7 @@
                         {{ __('common.name') }}
                     </label>
                 </p>
-                <p class="form__group">
-                    <input
-                        id="icon"
-                        class="form__text"
-                        name="icon"
-                        required
-                        type="text"
-                        value="{{ $internal->icon }}"
-                    />
-                    <label class="form__label form__label--floating" for="icon">Icon</label>
-                </p>
+                <x-icon-picker name="icon" :value="$internal->icon" :required="true" />
                 <p class="form__group">
                     <input
                         id="effect"

@@ -108,19 +108,7 @@
                         {{ __('bot.emoji-code') }}
                     </label>
                 </p>
-                <p class="form__group">
-                    <input
-                        id="icon"
-                        class="form__text"
-                        name="icon"
-                        placeholder=" "
-                        type="text"
-                        value="{{ $bot->icon }}"
-                    />
-                    <label class="form__label form__label--floating" for="icon">
-                        {{ __('bot.icon') }}
-                    </label>
-                </p>
+                <x-icon-picker name="icon" :value="$bot->icon" :label="__('bot.icon')" />
                 <p class="form__group">
                     <input
                         id="color"

@@ -59,18 +59,7 @@
                         {{ __('common.position') }}
                     </label>
                 </p>
-                <p class="form__group">
-                    <input
-                        id="position"
-                        class="form__text"
-                        type="text"
-                        name="icon"
-                        value="{{ $category->icon }}"
-                    />
-                    <label class="form__label form__label--floating" for="icon">
-                        {{ __('common.icon') }} (FontAwesome)
-                    </label>
-                </p>
+                <x-icon-picker name="icon" :value="$category->icon" :label="__('common.icon')" />
                 <p class="form__group">
                     <label for="image">
                         {{ __('common.select') }}

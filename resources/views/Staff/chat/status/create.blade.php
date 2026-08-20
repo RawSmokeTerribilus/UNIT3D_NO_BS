@@ -46,12 +46,7 @@
                         {{ __('common.color') }} (e.g. #ff0000)
                     </label>
                 </p>
-                <p class="form__group">
-                    <input id="icon" class="form__text" name="icon" required type="text" />
-                    <label class="form__label form__label--floating" for="icon">
-                        Font Awesome icon code (e.g. fas fa-comment-smile)
-                    </label>
-                </p>
+                <x-icon-picker name="icon" :required="true" />
                 <p class="form__group">
                     <button class="form__button form__button--filled">
                         {{ __('common.submit') }}
