@@ -52,6 +52,11 @@
             </template>
         </span>
         <span class="icon-picker__status" x-show="status !== ''" x-text="status"></span>
+        <span
+            class="icon-picker__status"
+            x-show="status === '' && totalMatches > visibleIcons.length"
+            x-text="'Showing ' + visibleIcons.length + ' of ' + totalMatches + ' — type to narrow down.'"
+        ></span>
         <span class="icon-picker__grid" x-show="status === ''">
             <template x-for="icon in visibleIcons" :key="icon[0]">
                 <button
@@ -81,7 +86,8 @@
                 status: '',
                 style: 'fas',
                 styles: ['fas', 'far', 'fal', 'fat', 'fad', 'fab'],
-                indexUrl: @js(url('vendor/fontawesome/icon-index.json')),
+                indexUrl: @js(url('vendor/fontawesome/icon-index.json').'?v='.(@filemtime(public_path('vendor/fontawesome/icon-index.json')) ?: '0')),
+                totalMatches: 0,
                 get visibleIcons() {
                     // Each entry is [name, codepoint, mask]; bit i of the mask
                     // says the font behind styles[i] really contains the glyph.
@@ -91,6 +97,7 @@
                     const query = this.query.trim().toLowerCase();
                     const bit = 1 << this.styles.indexOf(this.style);
                     const matches = [];
+                    let total = 0;
 
                     for (const icon of this.catalogue) {
                         if ((icon[2] & bit) === 0) {
@@ -98,13 +105,19 @@
                         }
 
                         if (query === '' || icon[0].includes(query)) {
-                            matches.push(icon);
+                            total++;
 
-                            if (matches.length >= 120) {
-                                break;
+                            // The grid stays light by rendering at most 120;
+                            // the counter below tells the user the rest exists
+                            // and that typing narrows it — without this, an
+                            // alphabetical wall hid everything past the As.
+                            if (matches.length < 120) {
+                                matches.push(icon);
                             }
                         }
                     }
+
+                    this.totalMatches = total;
 
                     return matches;
                 },
