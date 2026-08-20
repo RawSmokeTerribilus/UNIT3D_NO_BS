@@ -42,6 +42,13 @@ ANNOUNCE_STATUS="disabled"
 mkdir -p "$(dirname "$LOG_FILE")"
 cd "$PROJECT_ROOT"
 
+# Salir limpio si el stack está abajo. Sin esto, cada tick del cron intenta
+# resucitar servicios de un stack apagado a propósito y llena el log de errores.
+if [ -z "$(docker compose ps --status=running -q app 2>/dev/null)" ]; then
+    echo "[$RUN_TS] SKIP health_check: stack abajo"
+    exit 0
+fi
+
 # Obtener lista de servicios desde docker-compose
 SERVICES=$(docker compose ps --format "{{.Service}}")
 
