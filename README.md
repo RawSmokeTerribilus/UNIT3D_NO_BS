@@ -51,7 +51,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
   - [Parte 1 — Arreglamos las piezas rotas](#parte-1-arreglamos-las-piezas-rotas-de-unit3d)
   - [Parte 2 — Lo dockerizamos](#parte-2-lo-dockerizamos-no-es-una-tarea-trivial)
   - [Parte 3 — Añadimos resiliencia (Búnker)](#parte-3-añadimos-resiliencia-la-filosofía-búnker)
-- [Mejoras Clave (22)](#mejoras-clave)
+- [Mejoras Clave (23)](#mejoras-clave)
 - [Rutas de Instalación](#rutas-de-instalación)
 - [Gestión: El Makefile](#gestión-el-makefile)
 - [Arquitectura](#arquitectura)
@@ -1133,6 +1133,59 @@ Un laboratorio MySQL permanente, **apagado por defecto**, junto al stack de prod
 **Por qué importa**: La mayoría de los forks confían en backups y rezan. Nosotros tenemos un banco forense air-gapped que recupera pérdidas *recientes* fila a fila, sin tocar producción jamás. Recuperación como disciplina, no como pánico.
 
 > *"El banco nunca escribe en producción. La fusión a prod siempre la confirma un humano."*
+
+---
+
+### 23. **Divorcio del Congelador de Dependencias (Laravel 13, Livewire 4, Emoji Propio)**
+🧨 *Un paquete abandonado nos ataba a Laravel 12. Lo escribimos nosotros y saltamos tres majores en una ventana de seis minutos.*
+
+**El Desafío**: Upstream no toca su `composer.lock` desde diciembre de 2025. Heredamos ese congelador tal cual, y con él la sospecha cómoda de que había un apaño histórico que nos ataba a Laravel 12 y que desatarlo sería un proyecto de meses.
+
+No lo había. De **46 dependencias directas, exactamente UNA** bloqueaba el salto: `marcreichel/igdb-laravel`, sin commits desde junio de 2025, pidiendo `illuminate/support ^11.0|^12.0`. Su uso real en todo el código era **una línea** — un `use` en `ProcessIgdbGameJob` — más cuatro `@throws` decorativos. Alimentaba cero filas en `igdb_games`.
+
+Un minuto de `composer why-not laravel/framework 13` convirtió un "proyecto" en "quitar un paquete".
+
+**Lo que construimos**:
+
+Cliente IGDB propio contra `Http::` (`app/Services/Igdb/IgdbClient.php`), verificado contra la API real. Fuera también el envoltorio `hdvinnie/laravel-joypixel-emojis`, que no aportaba nada salvo copiar configuración sobre un `JoyPixels\Client` pero arrastraba un `^6` que congelaba el diccionario de emojis en 2020 mientras las imágenes ya iban por la v11. En su lugar, `EmojiRenderer` propio y un selector de emoji de verdad en el editor BBCode.
+
+```
+📦 EL SALTO (2026-08-20, ventana de 6 minutos):
+  • laravel/framework    12.67.0 → 13.26.1
+  • livewire/livewire     3.8.5  → 4.4.1
+  • intervention/image    2.7.2  → 4.2.1
+  • joypixels/toolkit     6.6.0  → 11.0.0   (3671 → 3991 emoji)
+  • guzzle 7→8 · symfony 7→8 · scout 10→11 · tinker 2→3 · backup 9→10
+  • FUERA: marcreichel/igdb-laravel, hdvinnie/laravel-joypixel-emojis,
+           doctrine/dbal, symfony/dom-crawler  (uso real: cero)
+
+🎯 RESULTADO EN PRODUCCIÓN:
+  • 0 migraciones · 0 advisories · 0 excepciones tras el arranque
+  • route:list normalizado: −2 rutas (webhook del paquete muerto), +4 (Livewire)
+  • Los 3 índices de Meilisearch, idénticos al baseline
+  • ~900 peticiones sin un solo 5xx desde el minuto uno
+```
+
+**Las cuatro trampas, que es lo que de verdad merece estar escrito**:
+
+1. **El JS de Livewire viaja dentro del bundle de Vite.** `resources/js/app.js` importa `livewire.esm.js` desde `vendor/`. Actualizar PHP sin reconstruir el frontend deja runtime de Livewire 3 contra HTML de Livewire 4 y **mata todo componente del sitio**: buscador, chat, paneles de staff, editor de subida. Orden obligatorio: `composer install` **antes** de `npm run build`, nunca al revés. Puerta de control: `grep -c "wire:island" public/build/assets/app-*.js` debe dar 1.
+
+2. **Laravel 13 dejó de redirigir a los invitados.** Sin `Authenticate::redirectUsing(...)` toda petición anónima responde **401** en vez de 302 a `/login`: el sitio queda invisible para quien no ha entrado, y ninguna prueba automática lo cubre. El arreglo vive en `RouteServiceProvider`.
+
+3. **Las cachés de arranque matan el instalador.** `bootstrap/cache/config.php` y `packages.php` siguen nombrando los providers de los paquetes que la actualización elimina. En cuanto `vendor/` se sustituye, cualquier arranque de artisan muere — y el primer script de `post-autoload-dump` es justo `artisan package:discover`. Se instala con `--no-scripts`, se copia el código, se purgan las tres cachés, `config:cache`, y sólo entonces `composer dump-autoload` dispara los scripts.
+
+4. **El constructor de JoyPixels v11 concatena** `/{emojiVersion}/png/unicode/{emojiSize}/` a lo que encuentre en `imagePathPNG`. La ruta local se asigna **después** de construir el cliente. Si se asigna antes, el sitio pide los emoji a `/vendor/joypixels/png/64/11.0/png/unicode/64/1f604.png` y salen todos rotos.
+
+**Detalles de la implementación**:
+- El despliegue es **manual y por fichero**, nunca por git: el manifiesto se regenera siempre con `git diff --name-status`, porque una lista escrita a mano ya se quedó obsoleta una vez y casi se pierde un commit entero por el camino.
+- Antes de copiar nada se comprueba **deriva**: cada fichero de producción debe ser byte a byte el estado previo. Si alguno no lo es, copiar encima destruiría un cambio hecho sólo en prod.
+- `php artisan view:cache` compila **todas** las plantillas de una vez: es la forma barata de cazar sin navegador cualquier directiva Blade que el salto de major se haya llevado por delante.
+- Vuelta atrás sin depender de la base, porque no hay migraciones: `vendor/` **y** `public/build` se restauran juntos. Revertir sólo PHP deja el mismo fallo al revés.
+- El runbook completo, con el as-built de la ejecución, vive fuera del repo en la wiki de operaciones.
+
+**Por qué importa**: Un fork que no puede actualizar su framework es un fork muerto con fecha. La mayoría hereda el `composer.lock` de upstream y lo trata como física. Nosotros lo tratamos como lo que es —una foto vieja de las decisiones de otro— y ahora corremos por delante del proyecto del que salimos, con la ruta de vuelta escrita por si acaso.
+
+> *"El ancla no era el framework. Era un paquete abandonado y una línea de código que no hacía nada."*
 
 ---
 
