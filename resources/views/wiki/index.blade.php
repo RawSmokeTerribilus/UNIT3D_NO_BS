@@ -18,6 +18,7 @@
     @foreach ($wiki_categories as $category)
         <section class="panelV2">
             <h2 class="panel__heading">
+                <i class="{{ $category->icon }}"></i>
                 {{ $category->name }}
             </h2>
             <div class="data-table-wrapper">
