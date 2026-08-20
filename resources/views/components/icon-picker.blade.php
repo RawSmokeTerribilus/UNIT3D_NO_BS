@@ -53,19 +53,20 @@
         </span>
         <span class="icon-picker__status" x-show="status !== ''" x-text="status"></span>
         <span class="icon-picker__grid" x-show="status === ''">
-            <template x-for="icon in visibleIcons" :key="icon">
+            <template x-for="icon in visibleIcons" :key="icon[0]">
                 <button
                     type="button"
                     class="icon-picker__button"
-                    x-bind:title="style + ' fa-' + icon"
-                    x-on:click="pick(icon)"
+                    x-bind:title="style + ' fa-' + icon[0]"
+                    x-on:click="pick(icon[0])"
                 >
-                    <i x-bind:class="style + ' fa-' + icon"></i>
+                    <i x-bind:class="style + ' fa-' + icon[0]"></i>
                 </button>
             </template>
         </span>
         <span class="icon-picker__hint">
-            Tip: a blank square means the icon has no glyph in that style — try another.
+            Tip: only icons the current style really has are listed — brands live under
+            <code>fab</code>.
         </span>
     </span>
 </p>
@@ -81,12 +82,30 @@
                 style: 'fas',
                 styles: ['fas', 'far', 'fal', 'fat', 'fad', 'fab'],
                 indexUrl: @js(url('vendor/fontawesome/icon-index.json')),
+                coverage: {},
+                // Which loaded @font-face answers for each style prefix. The
+                // fonts are the vendored FA Pro build; document.fonts.check()
+                // against them is the ground truth of which glyphs a style
+                // really covers (brands only exist in fab, and vice versa).
+                fontSpecs: {
+                    fas: '900 16px "Font Awesome 6 Pro"',
+                    far: '400 16px "Font Awesome 6 Pro"',
+                    fal: '300 16px "Font Awesome 6 Pro"',
+                    fat: '100 16px "Font Awesome 6 Pro"',
+                    fad: '900 16px "Font Awesome 6 Duotone"',
+                    fab: '400 16px "Font Awesome 6 Brands"',
+                },
                 get visibleIcons() {
                     const query = this.query.trim().toLowerCase();
+                    const known = this.coverage[this.style];
                     const matches = [];
 
                     for (const icon of this.catalogue) {
-                        if (query === '' || icon.includes(query)) {
+                        if (known && !known.has(icon[1])) {
+                            continue;
+                        }
+
+                        if (query === '' || icon[0].includes(query)) {
                             matches.push(icon);
 
                             if (matches.length >= 120) {
@@ -96,6 +115,36 @@
                     }
 
                     return matches;
+                },
+                async buildCoverage(style) {
+                    if (this.coverage[style] || !document.fonts?.check) {
+                        return;
+                    }
+
+                    const spec = this.fontSpecs[style];
+
+                    try {
+                        // check() answers false for faces not yet loaded, so
+                        // force the load first; the argument text is anything
+                        // non-empty.
+                        await document.fonts.load(spec, '\uf005');
+                    } catch (error) {
+                        return; // leave the style unfiltered rather than empty
+                    }
+
+                    const known = new Set();
+
+                    for (const icon of this.catalogue) {
+                        if (document.fonts.check(spec, String.fromCodePoint(parseInt(icon[1], 16)))) {
+                            known.add(icon[1]);
+                        }
+                    }
+
+                    // A face that failed to load answers false for everything;
+                    // an empty filter would blank the whole grid for no reason.
+                    if (known.size > 0) {
+                        this.coverage[style] = known;
+                    }
                 },
                 toggle() {
                     this.isOpen = !this.isOpen;
@@ -114,6 +163,9 @@
 
                     this.loadCatalogue();
                     this.$nextTick(() => this.$refs.search?.focus());
+                },
+                init() {
+                    this.$watch('style', (style) => this.buildCoverage(style));
                 },
                 close() {
                     this.isOpen = false;
@@ -138,6 +190,7 @@
 
                         this.catalogue = index.icons ?? [];
                         this.status = '';
+                        this.buildCoverage(this.style);
                     } catch (error) {
                         // Never a dead panel: say what to do instead.
                         this.status =

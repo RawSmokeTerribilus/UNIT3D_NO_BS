@@ -46,11 +46,25 @@ final class IconBuildIndex extends Command
         $scss = (string) file_get_contents($source);
 
         // Only :before rules carry the primary glyph; duotone :after rules
-        // repeat the same names and would only produce duplicates.
-        preg_match_all('/\.fa-([a-z0-9-]+):before\s*\{\s*content:\s*"/', $scss, $matches);
+        // repeat the same names and would only produce duplicates. The code
+        // point travels with the name so the picker can ask the loaded font,
+        // glyph by glyph via document.fonts.check(), which icons a given
+        // style really covers — brands only exist in fab, and vice versa.
+        preg_match_all('/\.fa-([a-z0-9-]+):before\s*\{\s*content:\s*"\\\\([0-9a-f]+)"/', $scss, $matches, PREG_SET_ORDER);
 
-        $icons = array_values(array_unique($matches[1]));
-        sort($icons);
+        $seen = [];
+
+        foreach ($matches as $match) {
+            $seen[$match[1]] ??= $match[2];
+        }
+
+        ksort($seen);
+
+        $icons = [];
+
+        foreach ($seen as $name => $codepoint) {
+            $icons[] = [(string) $name, $codepoint];
+        }
 
         if ($icons === []) {
             $this->error('No icon rules found — has the vendored SCSS changed format?');
