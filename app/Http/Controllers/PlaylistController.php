@@ -70,8 +70,6 @@ class PlaylistController extends Controller
         if ($request->hasFile('cover_image')) {
             abort_if(\is_array($request->file('cover_image')), 400);
 
-            abort_unless($request->file('cover_image')->getError() === UPLOAD_ERR_OK, 500);
-
             $image = $request->file('cover_image');
             $filename = 'playlist-cover_'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('playlist-images')->path($filename);
@@ -159,8 +157,6 @@ class PlaylistController extends Controller
             $image = $request->file('cover_image');
 
             abort_if(\is_array($image), 400);
-
-            abort_unless($image->getError() === UPLOAD_ERR_OK, 500);
 
             $filename = 'playlist-cover_'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('playlist-images')->path($filename);

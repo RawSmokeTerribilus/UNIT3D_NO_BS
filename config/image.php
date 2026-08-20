@@ -27,5 +27,7 @@ return [
     |
     */
 
-    'max_upload_size' => '2000000',
+    // 1 MB, matching nginx's client_max_body_size so avatar/icon uploads fail with a
+    // readable message instead of a raw 413.
+    'max_upload_size' => '1000000',
 ];

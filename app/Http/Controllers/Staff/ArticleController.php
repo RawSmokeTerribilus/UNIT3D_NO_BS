@@ -111,7 +111,10 @@ class ArticleController extends Controller
             }
         }
 
-        $article->update(['image' => $filename ?? null,] + $request->validated());
+        // $filename only exists when a new file was uploaded above. Falling back to
+        // null here wiped the existing image on every edit that did not re-upload one,
+        // leaving the file orphaned on disk and the article showing missing-image.png.
+        $article->update(['image' => $filename ?? $article->image] + $request->validated());
 
         return to_route('staff.articles.index')
             ->with('success', 'Your article changes have successfully published!');

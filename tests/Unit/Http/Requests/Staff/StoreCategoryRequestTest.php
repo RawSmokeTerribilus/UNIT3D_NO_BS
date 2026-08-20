@@ -49,7 +49,9 @@ test('rules', function (): void {
             'exclude',
         ],
         'image' => [
-            'max:10240',
+            'nullable',
+            'image',
+            'max:1024',
         ],
     ], $actual);
 });

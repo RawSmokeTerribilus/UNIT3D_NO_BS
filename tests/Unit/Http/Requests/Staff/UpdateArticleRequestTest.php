@@ -41,7 +41,9 @@ test('rules', function (): void {
             'max:65536',
         ],
         'image' => [
-            'max:10240',
+            'nullable',
+            'image',
+            'max:1024',
         ],
     ], $actual);
 });

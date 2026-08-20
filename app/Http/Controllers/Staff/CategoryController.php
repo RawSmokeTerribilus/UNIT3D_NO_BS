@@ -105,8 +105,11 @@ class CategoryController extends Controller
             }
         }
 
+        // Same as Staff\ArticleController::update(): $filename is only set when a new
+        // file was uploaded, so falling back to null wiped the existing image on any
+        // other edit.
         $category->update([
-            'image'      => $filename ?? null,
+            'image'      => $filename ?? $category->image,
             'no_meta'    => $request->meta === 'no',
             'music_meta' => $request->meta === 'music',
             'game_meta'  => $request->meta === 'game',
