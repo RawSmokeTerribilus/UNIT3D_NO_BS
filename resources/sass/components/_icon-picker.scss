@@ -115,7 +115,25 @@
     overflow-y: auto;
 }
 
+.icon-picker__show-all {
+    margin-left: 6px;
+    padding: 2px 8px;
+    border: 1px solid var(--icon-picker-rule);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--icon-picker-accent);
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--icon-picker-hover);
+    }
+}
+
 .icon-picker__button {
+    // Off-screen rows cost nothing even with the full 3206-icon grid open.
+    content-visibility: auto;
+    contain-intrinsic-size: 40px 34px;
     padding: 8px 0;
     border: 0;
     border-radius: 6px;
