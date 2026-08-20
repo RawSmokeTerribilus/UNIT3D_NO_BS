@@ -82,26 +82,18 @@
                 style: 'fas',
                 styles: ['fas', 'far', 'fal', 'fat', 'fad', 'fab'],
                 indexUrl: @js(url('vendor/fontawesome/icon-index.json')),
-                coverage: {},
-                // Which loaded @font-face answers for each style prefix. The
-                // fonts are the vendored FA Pro build; document.fonts.check()
-                // against them is the ground truth of which glyphs a style
-                // really covers (brands only exist in fab, and vice versa).
-                fontSpecs: {
-                    fas: '900 16px "Font Awesome 6 Pro"',
-                    far: '400 16px "Font Awesome 6 Pro"',
-                    fal: '300 16px "Font Awesome 6 Pro"',
-                    fat: '100 16px "Font Awesome 6 Pro"',
-                    fad: '900 16px "Font Awesome 6 Duotone"',
-                    fab: '400 16px "Font Awesome 6 Brands"',
-                },
                 get visibleIcons() {
+                    // Each entry is [name, codepoint, mask]; bit i of the mask
+                    // says the font behind styles[i] really contains the glyph.
+                    // Resolved server-side from the TTFs' cmap tables — the
+                    // browser font APIs are face-level and answer differently
+                    // per browser.
                     const query = this.query.trim().toLowerCase();
-                    const known = this.coverage[this.style];
+                    const bit = 1 << this.styles.indexOf(this.style);
                     const matches = [];
 
                     for (const icon of this.catalogue) {
-                        if (known && !known.has(icon[1])) {
+                        if ((icon[2] & bit) === 0) {
                             continue;
                         }
 
@@ -115,36 +107,6 @@
                     }
 
                     return matches;
-                },
-                async buildCoverage(style) {
-                    if (this.coverage[style] || !document.fonts?.check) {
-                        return;
-                    }
-
-                    const spec = this.fontSpecs[style];
-
-                    try {
-                        // check() answers false for faces not yet loaded, so
-                        // force the load first; the argument text is anything
-                        // non-empty.
-                        await document.fonts.load(spec, '\uf005');
-                    } catch (error) {
-                        return; // leave the style unfiltered rather than empty
-                    }
-
-                    const known = new Set();
-
-                    for (const icon of this.catalogue) {
-                        if (document.fonts.check(spec, String.fromCodePoint(parseInt(icon[1], 16)))) {
-                            known.add(icon[1]);
-                        }
-                    }
-
-                    // A face that failed to load answers false for everything;
-                    // an empty filter would blank the whole grid for no reason.
-                    if (known.size > 0) {
-                        this.coverage[style] = known;
-                    }
                 },
                 toggle() {
                     this.isOpen = !this.isOpen;
@@ -163,9 +125,6 @@
 
                     this.loadCatalogue();
                     this.$nextTick(() => this.$refs.search?.focus());
-                },
-                init() {
-                    this.$watch('style', (style) => this.buildCoverage(style));
                 },
                 close() {
                     this.isOpen = false;
@@ -189,8 +148,8 @@
                         const index = await response.json();
 
                         this.catalogue = index.icons ?? [];
+                        this.styles = index.styles ?? this.styles;
                         this.status = '';
-                        this.buildCoverage(this.style);
                     } catch (error) {
                         // Never a dead panel: say what to do instead.
                         this.status =

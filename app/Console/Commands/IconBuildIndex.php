@@ -26,6 +26,19 @@ final class IconBuildIndex extends Command
 
     protected $description = 'Build the Font Awesome icon index used by the staff icon picker';
 
+    /**
+     * Style prefixes in mask-bit order; bit i of an icon's mask says the
+     * font behind styles[i] really contains its glyph.
+     */
+    private const STYLES = [
+        'fas' => 'fa-solid-900.ttf',
+        'far' => 'fa-regular-400.ttf',
+        'fal' => 'fa-light-300.ttf',
+        'fat' => 'fa-thin-100.ttf',
+        'fad' => 'fa-duotone-900.ttf',
+        'fab' => 'fa-brands-400.ttf',
+    ];
+
     public function handle(): int
     {
         $source = resource_path('sass/vendor/_font-awesome.scss');
@@ -60,10 +73,53 @@ final class IconBuildIndex extends Command
 
         ksort($seen);
 
+        // Which styles really cover each glyph is decided by the vendored
+        // TTFs' cmap tables — document.fonts.check() in the browser is
+        // face-level, not glyph-level, and answers differently per browser,
+        // so the coverage is resolved here once, where it is deterministic.
+        $coverage = [];
+
+        foreach (self::STYLES as $style => $file) {
+            $font = resource_path('sass/vendor/webfonts/font-awesome/'.$file);
+
+            if (!is_file($font)) {
+                $this->error('Not found: '.$font);
+
+                return self::FAILURE;
+            }
+
+            $coverage[$style] = $this->cmapCodepoints($font);
+        }
+
         $icons = [];
+        $dropped = 0;
 
         foreach ($seen as $name => $codepoint) {
-            $icons[] = [(string) $name, $codepoint];
+            $value = hexdec($codepoint);
+            $mask = 0;
+            $bit = 1;
+
+            foreach (self::STYLES as $style => $file) {
+                if (isset($coverage[$style][$value])) {
+                    $mask |= $bit;
+                }
+
+                $bit <<= 1;
+            }
+
+            // A name whose glyph no shipped font contains would only ever
+            // render as an empty square; it has no business in the picker.
+            if ($mask === 0) {
+                $dropped++;
+
+                continue;
+            }
+
+            $icons[] = [(string) $name, $codepoint, $mask];
+        }
+
+        if ($dropped > 0) {
+            $this->info($dropped.' names dropped: no shipped font contains their glyph.');
         }
 
         if ($icons === []) {
@@ -81,7 +137,7 @@ final class IconBuildIndex extends Command
         }
 
         $json = json_encode(
-            ['icons' => $icons],
+            ['styles' => array_keys(self::STYLES), 'icons' => $icons],
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES
         );
 
@@ -95,5 +151,90 @@ final class IconBuildIndex extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The set of code points a TrueType font's cmap covers, as a lookup
+     * table (codepoint => true). Reads a format 12 subtable when present,
+     * falling back to format 4 — the same tables every browser consults.
+     *
+     * @return array<int, true>
+     */
+    private function cmapCodepoints(string $path): array
+    {
+        $data = (string) file_get_contents($path);
+
+        $tableCount = unpack('n', substr($data, 4, 2))[1];
+        $cmapOffset = null;
+
+        for ($i = 0; $i < $tableCount; $i++) {
+            $entry = substr($data, 12 + 16 * $i, 16);
+
+            if (substr($entry, 0, 4) === 'cmap') {
+                $cmapOffset = unpack('N', substr($entry, 8, 4))[1];
+            }
+        }
+
+        if ($cmapOffset === null) {
+            return [];
+        }
+
+        $subtableCount = unpack('n', substr($data, $cmapOffset + 2, 2))[1];
+        $best = null;
+
+        for ($i = 0; $i < $subtableCount; $i++) {
+            $record = unpack('nplatform/nencoding/Noffset', substr($data, $cmapOffset + 4 + 8 * $i, 8));
+            $subtable = $cmapOffset + $record['offset'];
+            $format = unpack('n', substr($data, $subtable, 2))[1];
+            $pair = [$record['platform'], $record['encoding']];
+
+            if ($format === 12 && \in_array($pair, [[3, 10], [0, 4]], true)) {
+                $best = [12, $subtable];
+
+                break;
+            }
+
+            if ($format === 4 && $best === null && \in_array($pair, [[3, 1], [0, 3]], true)) {
+                $best = [4, $subtable];
+            }
+        }
+
+        if ($best === null) {
+            return [];
+        }
+
+        [$format, $subtable] = $best;
+        $codepoints = [];
+
+        if ($format === 12) {
+            $groupCount = unpack('N', substr($data, $subtable + 12, 4))[1];
+
+            for ($g = 0; $g < $groupCount; $g++) {
+                $group = unpack('Nstart/Nend', substr($data, $subtable + 16 + 12 * $g, 8));
+
+                for ($cp = $group['start']; $cp <= $group['end']; $cp++) {
+                    $codepoints[$cp] = true;
+                }
+            }
+
+            return $codepoints;
+        }
+
+        $segCountX2 = unpack('n', substr($data, $subtable + 6, 2))[1];
+        $segCount = intdiv($segCountX2, 2);
+        $ends = array_values(unpack('n*', substr($data, $subtable + 14, $segCountX2)));
+        $starts = array_values(unpack('n*', substr($data, $subtable + 16 + $segCountX2, $segCountX2)));
+
+        for ($i = 0; $i < $segCount; $i++) {
+            if ($starts[$i] === 0xFFFF) {
+                continue;
+            }
+
+            for ($cp = $starts[$i]; $cp <= $ends[$i]; $cp++) {
+                $codepoints[$cp] = true;
+            }
+        }
+
+        return $codepoints;
     }
 }
