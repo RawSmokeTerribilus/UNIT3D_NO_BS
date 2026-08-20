@@ -202,15 +202,79 @@
             </button>
         </li>
         <li>
-            <button type="button" class="form__standard-icon-button" x-on:click="insertEmoji">
-                <abbr
-                    title="If using MacOS, press Ctrl + Cmd + Space bar&NewLine;If using Windows or Linux, press Windows logo key + ."
-                >
+            <button
+                type="button"
+                class="form__standard-icon-button"
+                x-on:click="toggleEmojiPicker"
+                x-bind:aria-expanded="isEmojiPickerOpen"
+                aria-haspopup="dialog"
+            >
+                <abbr title="Emoji">
                     <i class="{{ config('other.font-awesome') }} fa-face-smile"></i>
                 </abbr>
             </button>
         </li>
     </menu>
+    <div
+        class="bbcode-input__emoji-picker"
+        x-cloak
+        x-show="isEmojiPickerOpen"
+        x-on:click.outside="closeEmojiPicker"
+        x-on:keydown.escape.window="closeEmojiPicker"
+        role="dialog"
+        aria-label="Emoji"
+    >
+        <p class="bbcode-input__emoji-search">
+            <input
+                type="text"
+                class="bbcode-input__emoji-search-input"
+                placeholder="Search emoji"
+                autocomplete="off"
+                x-ref="emojiSearch"
+                x-model="emojiQuery"
+            />
+        </p>
+        <menu class="bbcode-input__emoji-categories" x-show="emojiQuery === ''">
+            <template x-for="category in emojiCategories" :key="category.id">
+                <li>
+                    <button
+                        type="button"
+                        class="bbcode-input__emoji-category"
+                        x-bind:class="
+                            category.id === emojiCategory &&
+                                'bbcode-input__emoji-category--active'
+                        "
+                        x-on:click="emojiCategory = category.id"
+                        x-text="category.label"
+                    ></button>
+                </li>
+            </template>
+        </menu>
+        <p class="bbcode-input__emoji-status" x-show="emojiStatus !== ''" x-text="emojiStatus"></p>
+        <div class="bbcode-input__emoji-grid" x-show="emojiStatus === ''">
+            <template x-for="emoji in visibleEmoji" :key="emoji[0]">
+                <button
+                    type="button"
+                    class="bbcode-input__emoji-button"
+                    x-on:click="insertEmoji(emoji[1])"
+                    x-bind:title="':' + emoji[1] + ':'"
+                >
+                    <img
+                        class="bbcode-input__emoji-image"
+                        loading="lazy"
+                        decoding="async"
+                        width="28"
+                        height="28"
+                        x-bind:src="emojiImagePath + emoji[0] + '.png'"
+                        x-bind:alt="emoji[1]"
+                    />
+                </button>
+            </template>
+        </div>
+        <p class="bbcode-input__emoji-hint">
+            Tip: you can also type the name directly, like <code>:smile:</code>
+        </p>
+    </div>
     <div class="bbcode-input__tab-pane">
         <div class="bbcode-input__preview bbcode-rendered" x-show="isPreviewEnabled">
             @bbcode($contentBbcode)
@@ -235,6 +299,14 @@
             Alpine.data('{{ $name }}BbcodeInput', () => ({
                 showButtons: false,
                 bbcodePreviewHeight: null,
+                isEmojiPickerOpen: false,
+                emojiCatalogue: [],
+                emojiCategories: [],
+                emojiCategory: 'people',
+                emojiQuery: '',
+                emojiStatus: '',
+                emojiImagePath: @js(rtrim(url((string) config('joypixels.imagePathPNG')), '/').'/'),
+                emojiIndexUrl: @js(url('vendor/joypixels/emoji-index.json')),
                 isPreviewEnabled: @entangle('isPreviewEnabled').live,
                 isOverInput: false,
                 previousActiveElement: document.activeElement,
@@ -342,13 +414,96 @@
                 insertTable() {
                     this.insert('[table]\n[tr]\n[td]', '[/td]\n[/tr]\n[/table]');
                 },
-                insertEmoji() {
-                    Swal.fire({
-                        title: 'Emoji picker',
-                        html: 'If using macOS, press Ctrl + Cmd + Space bar<br>If using Windows or Linux, press Windows logo key + .',
-                        icon: 'info',
-                        showConfirmButton: true,
-                    });
+                get visibleEmoji() {
+                    const query = this.emojiQuery.trim().toLowerCase();
+
+                    if (query === '') {
+                        return this.emojiCatalogue.filter(
+                            (emoji) => emoji[2] === this.emojiCategory,
+                        );
+                    }
+
+                    // Shortname first so an exact-ish name outranks a keyword
+                    // match, then keywords. Capped: rendering hundreds of
+                    // thumbnails on every keystroke is what makes other
+                    // pickers feel sluggish.
+                    const byName = [];
+                    const byKeyword = [];
+
+                    for (const emoji of this.emojiCatalogue) {
+                        if (emoji[1].includes(query)) {
+                            byName.push(emoji);
+                        } else if (emoji[4].some((keyword) => keyword.includes(query))) {
+                            byKeyword.push(emoji);
+                        }
+
+                        if (byName.length >= 120) {
+                            break;
+                        }
+                    }
+
+                    return byName.concat(byKeyword).slice(0, 120);
+                },
+                toggleEmojiPicker() {
+                    this.isEmojiPickerOpen = !this.isEmojiPickerOpen;
+
+                    if (!this.isEmojiPickerOpen) {
+                        return;
+                    }
+
+                    this.loadEmojiCatalogue();
+                    this.$nextTick(() => this.$refs.emojiSearch?.focus());
+                },
+                closeEmojiPicker() {
+                    this.isEmojiPickerOpen = false;
+                },
+                async loadEmojiCatalogue() {
+                    if (this.emojiCatalogue.length > 0 || this.emojiStatus === 'Loading emoji...') {
+                        return;
+                    }
+
+                    this.emojiStatus = 'Loading emoji...';
+
+                    try {
+                        const response = await fetch(this.emojiIndexUrl, {
+                            headers: { Accept: 'application/json' },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status);
+                        }
+
+                        const index = await response.json();
+
+                        this.emojiCategories = index.categories ?? [];
+                        this.emojiCatalogue = index.emoji ?? [];
+                        this.emojiCategory = this.emojiCategories[0]?.id ?? 'people';
+                        this.emojiStatus = '';
+                    } catch (error) {
+                        // Never a dead panel: say what to do instead.
+                        this.emojiStatus =
+                            'Emoji list unavailable. You can still type names like :smile: by hand.';
+                        console.error('emoji index: ' + error.message);
+                    }
+                },
+                insertEmoji(shortname) {
+                    this.insertText(':' + shortname + ':');
+                    this.closeEmojiPicker();
+                },
+                insertText(text) {
+                    // insert() wraps a selection in a tag pair and can toggle it
+                    // back off. An emoji is neither: it replaces the selection
+                    // and leaves the caret after it.
+                    const input = this.$refs.bbcode;
+                    const start = input.selectionStart;
+                    const end = input.selectionEnd;
+
+                    input.value =
+                        input.value.substring(0, start) + text + input.value.substring(end);
+
+                    input.dispatchEvent(new Event('input'));
+                    input.focus();
+                    input.setSelectionRange(start + text.length, start + text.length);
                 },
                 insert(openTag, closeTag) {
                     input = this.$refs.bbcode;

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
+use App\Services\Igdb\IgdbClient;
 use App\Models\IgdbCompany;
 use App\Models\IgdbGame;
 use App\Models\IgdbGenre;
@@ -30,7 +31,7 @@ use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\Middleware\Skip;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
-use MarcReichel\IGDBLaravel\Models\Game;
+use RuntimeException;
 
 class ProcessIgdbGameJob implements ShouldQueue
 {
@@ -68,28 +69,13 @@ class ProcessIgdbGameJob implements ShouldQueue
         return now()->addDay();
     }
 
-    public function handle(): void
+    public function handle(IgdbClient $igdb): void
     {
-        $fetchedGame = Game::select([
-            'id',
-            'name',
-            'summary',
-            'first_release_date',
-            'url',
-            'rating',
-            'rating_count',
-        ])
-            ->with([
-                'cover'                           => ['image_id'],
-                'artworks'                        => ['image_id'],
-                'genres'                          => ['id', 'name'],
-                'videos'                          => ['video_id', 'name'],
-                'involved_companies.company'      => ['id', 'name', 'url'],
-                'involved_companies.company.logo' => ['image_id'],
-                'platforms'                       => ['id', 'name'],
-                'platforms.platform_logo'         => ['image_id']
-            ])
-            ->findOrFail($this->id);
+        $fetchedGame = $igdb->game($this->id);
+
+        if ($fetchedGame === null) {
+            throw new RuntimeException('IGDB returned no game for id '.$this->id);
+        }
 
         IgdbGame::query()->upsert([[
             'id'                     => $this->id,
@@ -108,7 +94,7 @@ class ProcessIgdbGameJob implements ShouldQueue
 
         $genres = [];
 
-        foreach ($fetchedGame->genres ?? [] as $genre) {
+        foreach ($fetchedGame['genres'] ?? [] as $genre) {
             if ($genre['id'] === null || $genre['name'] === null) {
                 continue;
             }
@@ -124,7 +110,7 @@ class ProcessIgdbGameJob implements ShouldQueue
 
         $platforms = [];
 
-        foreach ($fetchedGame->platforms ?? [] as $platform) {
+        foreach ($fetchedGame['platforms'] ?? [] as $platform) {
             if ($platform['id'] === null || $platform['name'] === null) {
                 continue;
             }
@@ -141,7 +127,7 @@ class ProcessIgdbGameJob implements ShouldQueue
 
         $companies = [];
 
-        foreach ($fetchedGame->involved_companies ?? [] as $company) {
+        foreach ($fetchedGame['involved_companies'] ?? [] as $company) {
             if ($company['company']['id'] === null || $company['company']['name'] === null) {
                 continue;
             }

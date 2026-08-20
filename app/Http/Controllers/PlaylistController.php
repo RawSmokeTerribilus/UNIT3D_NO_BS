@@ -25,7 +25,8 @@ use App\Models\TmdbTv;
 use App\Repositories\ChatRepository;
 use App\Traits\TorrentMeta;
 use Illuminate\Http\Request;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Exception;
 use Illuminate\Support\Facades\Storage;
 
@@ -69,12 +70,10 @@ class PlaylistController extends Controller
         if ($request->hasFile('cover_image')) {
             abort_if(\is_array($request->file('cover_image')), 400);
 
-            abort_unless($request->file('cover_image')->getError() === UPLOAD_ERR_OK, 500);
-
             $image = $request->file('cover_image');
             $filename = 'playlist-cover_'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('playlist-images')->path($filename);
-            Image::make($image->getRealPath())->fit(400, 225)->encode('png', 100)->save($path);
+            Image::decode($image->getRealPath())->cover(400, 225)->encode(new PngEncoder())->save($path);
         }
 
         $playlist = Playlist::create([
@@ -159,11 +158,9 @@ class PlaylistController extends Controller
 
             abort_if(\is_array($image), 400);
 
-            abort_unless($image->getError() === UPLOAD_ERR_OK, 500);
-
             $filename = 'playlist-cover_'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('playlist-images')->path($filename);
-            Image::make($image->getRealPath())->fit(400, 225)->encode('png', 100)->save($path);
+            Image::decode($image->getRealPath())->cover(400, 225)->encode(new PngEncoder())->save($path);
 
             if ($playlist->cover_image !== null) {
                 Storage::disk('playlist-images')->delete($playlist->cover_image);

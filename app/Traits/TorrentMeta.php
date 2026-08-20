@@ -28,8 +28,6 @@ trait TorrentMeta
     /**
      * @param \Illuminate\Database\Eloquent\Collection<int, Torrent>|\Illuminate\Pagination\CursorPaginator<int, Torrent>|\Illuminate\Pagination\LengthAwarePaginator<int, Torrent>|\Illuminate\Contracts\Pagination\LengthAwarePaginator<int, Torrent> $torrents
      *
-     * @throws \MarcReichel\IGDBLaravel\Exceptions\MissingEndpointException
-     * @throws \MarcReichel\IGDBLaravel\Exceptions\InvalidParamsException
      * @throws ReflectionException
      * @throws JsonException
      * @return (

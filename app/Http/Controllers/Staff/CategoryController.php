@@ -20,7 +20,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Staff\StoreCategoryRequest;
 use App\Http\Requests\Staff\UpdateCategoryRequest;
 use App\Models\Category;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Exception;
 use Illuminate\Support\Facades\Storage;
 
@@ -59,7 +60,7 @@ class CategoryController extends Controller
 
             $filename = 'category-'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('category-images')->path($filename);
-            Image::make($image->getRealPath())->fit(50, 50)->encode('png', 100)->save($path);
+            Image::decode($image->getRealPath())->cover(50, 50)->encode(new PngEncoder())->save($path);
         }
 
         Category::create([
@@ -97,15 +98,18 @@ class CategoryController extends Controller
 
             $filename = 'category-'.uniqid('', true).'.'.$image->getClientOriginalExtension();
             $path = Storage::disk('category-images')->path($filename);
-            Image::make($image->getRealPath())->fit(50, 50)->encode('png', 100)->save($path);
+            Image::decode($image->getRealPath())->cover(50, 50)->encode(new PngEncoder())->save($path);
 
             if ($category->image !== null) {
                 Storage::disk('category-images')->delete($category->image);
             }
         }
 
+        // Same as Staff\ArticleController::update(): $filename is only set when a new
+        // file was uploaded, so falling back to null wiped the existing image on any
+        // other edit.
         $category->update([
-            'image'      => $filename ?? null,
+            'image'      => $filename ?? $category->image,
             'no_meta'    => $request->meta === 'no',
             'music_meta' => $request->meta === 'music',
             'game_meta'  => $request->meta === 'game',

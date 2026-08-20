@@ -16,27 +16,18 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
-    | Image Driver
-    |--------------------------------------------------------------------------
-    |
-    | Intervention Image supports "GD Library" and "Imagick" to process images
-    | internally. You may choose one of them according to your PHP
-    | configuration. By default PHP's "GD Library" implementation is used.
-    |
-    | Supported: "gd", "imagick"
-    |
-    */
-
-    'driver' => 'gd',
-
-    /*
-    |--------------------------------------------------------------------------
     | Avatar Settings
     |--------------------------------------------------------------------------
     |
-    | GIF Avatar Settings
-    | Size: "bytes"
+    | Maximum accepted upload size, in bytes, for user avatars and icons.
+    |
+    | The image driver itself is no longer configured here: Intervention Image 4
+    | is wired by intervention/image-laravel, which publishes its own
+    | `config/intervention-image.php` and reads the IMAGE_DRIVER env var.
+    |
     */
 
-    'max_upload_size' => '2000000',
+    // 1 MB, matching nginx's client_max_body_size so avatar/icon uploads fail with a
+    // readable message instead of a raw 413.
+    'max_upload_size' => '1000000',
 ];

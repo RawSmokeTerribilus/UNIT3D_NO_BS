@@ -55,7 +55,9 @@ class UpdateCategoryRequest extends FormRequest
                 'exclude',
             ],
             'image' => [
-                'max:10240',
+                'nullable',
+                'image',
+                'max:1024',
             ],
         ];
     }

@@ -18,6 +18,7 @@ namespace App\Providers;
 
 use App\Enums\GlobalRateLimit;
 use App\Enums\MiddlewareGroup;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
@@ -64,6 +65,11 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware(MiddlewareGroup::RSS->value)
                 ->group(base_path('routes/rss.php'));
         });
+
+        // Laravel 13 dropped the implicit `?? route('login')` fallback that its
+        // exception handler used to apply to unauthenticated requests; without an
+        // explicit callback every guest hit answers 401 instead of redirecting.
+        Authenticate::redirectUsing(fn (): string => route('login'));
 
         RedirectIfAuthenticated::redirectUsing(fn () => self::HOME);
     }

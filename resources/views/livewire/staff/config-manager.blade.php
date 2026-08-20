@@ -49,21 +49,21 @@
                                         @switch($meta['type'])
 
                                             @case('boolean')
-                                                <select class="form__input" wire:model.defer="settingsData.{{ $id }}" style="max-width: 220px;">
+                                                <select class="form__input" wire:model="settingsData.{{ $id }}" style="max-width: 220px;">
                                                     <option value="true">✅ Activado</option>
                                                     <option value="false">❌ Desactivado</option>
                                                 </select>
                                                 @break
 
                                             @case('bool01')
-                                                <select class="form__input" wire:model.defer="settingsData.{{ $id }}" style="max-width: 220px;">
+                                                <select class="form__input" wire:model="settingsData.{{ $id }}" style="max-width: 220px;">
                                                     <option value="1">✅ Activado</option>
                                                     <option value="0">❌ Desactivado</option>
                                                 </select>
                                                 @break
 
                                             @case('theme')
-                                                <select class="form__input" wire:model.defer="settingsData.{{ $id }}" style="max-width: 320px;">
+                                                <select class="form__input" wire:model="settingsData.{{ $id }}" style="max-width: 320px;">
                                                     <option value="0">Classic Light</option>
                                                     <option value="1">Galactic</option>
                                                     <option value="2">Dark Blue</option>
@@ -92,7 +92,7 @@
                                                     step="0.01"
                                                     min="0"
                                                     class="form__input"
-                                                    wire:model.defer="settingsData.{{ $id }}"
+                                                    wire:model="settingsData.{{ $id }}"
                                                     style="max-width: 120px;"
                                                 />
                                                 @break
@@ -103,7 +103,7 @@
                                                     step="1"
                                                     min="0"
                                                     class="form__input"
-                                                    wire:model.defer="settingsData.{{ $id }}"
+                                                    wire:model="settingsData.{{ $id }}"
                                                     style="max-width: 120px;"
                                                 />
                                                 @break
@@ -119,7 +119,7 @@
                                                         step="1"
                                                         min="0"
                                                         class="form__input"
-                                                        wire:model.defer="settingsData.{{ $id }}"
+                                                        wire:model="settingsData.{{ $id }}"
                                                         style="max-width: 200px;"
                                                     />
                                                     <small style="color: var(--color-text-muted, #888);">≈ {{ $gb }} GB</small>
@@ -138,7 +138,7 @@
                                                         step="1"
                                                         min="0"
                                                         class="form__input"
-                                                        wire:model.defer="settingsData.{{ $id }}"
+                                                        wire:model="settingsData.{{ $id }}"
                                                         style="max-width: 160px;"
                                                     />
                                                     <small style="color: var(--color-text-muted, #888);">≈ {{ $hours }}h / {{ $days }} días</small>
@@ -149,7 +149,7 @@
                                                 <input
                                                     type="text"
                                                     class="form__input"
-                                                    wire:model.defer="settingsData.{{ $id }}"
+                                                    wire:model="settingsData.{{ $id }}"
                                                     style="max-width: 380px;"
                                                 />
                                                 @break

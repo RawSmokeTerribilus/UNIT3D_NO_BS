@@ -55,6 +55,11 @@ class UpdatePlaylistRequest extends FormRequest
                 'required',
                 'boolean',
             ],
+            'cover_image' => [
+                'nullable',
+                'image',
+                'max:1024',
+            ],
         ];
     }
 }

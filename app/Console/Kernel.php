@@ -130,6 +130,16 @@ class Kernel extends ConsoleKernel
         $schedule->command(CleanupCommand::class)->daily();
         $schedule->command(BackupCommand::class, ['--only-db'])->daily();
         $schedule->command(BackupCommand::class, ['--only-files'])->daily();
+
+        // The scheduler and queue workers run as root, so anything they create --
+        // most damagingly the daily storage/logs/laravel-*.log -- ends up root-owned
+        // and php-fpm's www-data workers can no longer append to it (Monolog fails on
+        // chmod with "Operation not permitted"). entrypoint.sh does this same chown at
+        // container start; this repeats it while the stack is up. Runs as root, which
+        // is exactly what makes the chown possible.
+        $schedule->exec('chown -R www-data:www-data storage bootstrap/cache')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping(10);
     }
 
     /**

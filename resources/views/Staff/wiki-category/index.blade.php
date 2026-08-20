@@ -15,7 +15,10 @@
     @foreach ($wikiCategories as $category)
         <section class="panelV2">
             <header class="panel__header">
-                <h2 class="panel__heading">{{ $category->name }}</h2>
+                <h2 class="panel__heading">
+                    <i class="{{ $category->icon }}"></i>
+                    {{ $category->name }}
+                </h2>
                 <div class="panel__actions">
                     <div class="panel__action">
                         <a

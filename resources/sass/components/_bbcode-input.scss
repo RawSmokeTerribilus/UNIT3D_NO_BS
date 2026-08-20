@@ -82,3 +82,146 @@
         background-color: var(--bbcode-input-body-bg);
     }
 }
+
+/*
+ * Emoji picker.
+ *
+ * Deliberately self-contained: no theme defines a variable that all twenty
+ * themes share (the dark-* family and refined-nobs-v2 never declare the
+ * --bbcode-input-* set), so a picker built on those tokens would render
+ * unreadable on whichever theme happens to omit them. It paints its own
+ * opaque surface instead, which is also what every emoji picker users have
+ * seen elsewhere looks like.
+ */
+.bbcode-input__emoji-picker {
+    --emoji-picker-bg: #22262a;
+    --emoji-picker-fg: #e6e8ea;
+    --emoji-picker-muted: #9aa3ab;
+    --emoji-picker-rule: #343a40;
+    --emoji-picker-hover: #2f353b;
+    --emoji-picker-accent: #4fb0c6;
+
+    grid-area: content;
+    z-index: 20;
+    margin: 0 12px;
+    padding: 10px;
+    border: 1px solid var(--emoji-picker-rule);
+    border-radius: 10px;
+    background: var(--emoji-picker-bg);
+    color: var(--emoji-picker-fg);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+}
+
+.bbcode-input__emoji-search {
+    margin: 0 0 8px;
+}
+
+.bbcode-input__emoji-search-input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--emoji-picker-rule);
+    border-radius: 6px;
+    background: rgb(0 0 0 / 25%);
+    color: var(--emoji-picker-fg);
+    font: inherit;
+    font-size: 14px;
+
+    &::placeholder {
+        color: var(--emoji-picker-muted);
+    }
+
+    &:focus {
+        outline: 2px solid var(--emoji-picker-accent);
+        outline-offset: 1px;
+    }
+}
+
+.bbcode-input__emoji-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--emoji-picker-rule);
+    list-style-type: none;
+}
+
+.bbcode-input__emoji-category {
+    padding: 4px 9px;
+    border: 0;
+    border-radius: 99px;
+    background: transparent;
+    color: var(--emoji-picker-muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--emoji-picker-hover);
+        color: var(--emoji-picker-fg);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--emoji-picker-accent);
+        outline-offset: 1px;
+    }
+}
+
+.bbcode-input__emoji-category--active {
+    background: var(--emoji-picker-accent);
+    color: #10161a;
+}
+
+.bbcode-input__emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.bbcode-input__emoji-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--emoji-picker-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--emoji-picker-accent);
+        outline-offset: -2px;
+    }
+}
+
+.bbcode-input__emoji-image {
+    width: 28px;
+    height: 28px;
+    display: block;
+}
+
+.bbcode-input__emoji-status,
+.bbcode-input__emoji-hint {
+    margin: 8px 0 0;
+    color: var(--emoji-picker-muted);
+    font-size: 12px;
+}
+
+.bbcode-input__emoji-status {
+    margin: 16px 0;
+    text-align: center;
+}
+
+.bbcode-input__emoji-hint code {
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgb(0 0 0 / 30%);
+    color: var(--emoji-picker-fg);
+}

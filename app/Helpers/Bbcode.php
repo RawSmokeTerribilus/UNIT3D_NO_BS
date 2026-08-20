@@ -484,6 +484,11 @@ class Bbcode
 
     private static function sanitizeUrl(string $url, ?bool $isImage = null): string
     {
+        // Trim first: FILTER_VALIDATE_URL rejects any surrounding whitespace, so a URL
+        // pasted with a trailing space inside an [img] tag rendered as the literal
+        // string 'Broken link', which the browser then requested as a relative path.
+        $url = trim($url);
+
         // Do NOT add `javascript`, `data` or `vbscript` here
         // or else you will allow an XSS vulnerability!
         $protocolWhitelist = [

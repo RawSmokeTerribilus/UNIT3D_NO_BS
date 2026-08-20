@@ -20,6 +20,7 @@ use App\Helpers\ByteUnits;
 use App\Helpers\HiddenCaptcha;
 use App\Interfaces\ByteUnitsInterface;
 use App\Models\User;
+use App\Services\Emoji\EmojiRenderer;
 use App\Observers\UserObserver;
 use App\View\Composers\FooterComposer;
 use App\View\Composers\TopNavComposer;
@@ -49,6 +50,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Gabrielelana byte-units
         $this->app->bind(ByteUnitsInterface::class, ByteUnits::class);
+
+        // JoyPixels. Singleton because building the client compiles a ~40 KB
+        // unicode regexp, and @bbcode runs on every rendered post and comment.
+        $this->app->singleton(EmojiRenderer::class);
     }
 
     /**
@@ -72,7 +77,22 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('hiddencaptcha', fn ($mustBeEmptyField = "'_url'") => \sprintf('<?= App\Helpers\HiddenCaptcha::render(%s); ?>', $mustBeEmptyField));
 
         // BBcode
-        Blade::directive('bbcode', fn (?string $bbcodeString) => "<?php echo (new \hdvinnie\LaravelJoyPixels\LaravelJoyPixels())->toImage((new \App\Helpers\Linkify())->linky((new \App\Helpers\Bbcode())->parse({$bbcodeString}))); ?>");
+        Blade::directive('bbcode', fn (?string $bbcodeString) => "<?php echo app(\App\Services\Emoji\EmojiRenderer::class)->toImage((string) (new \App\Helpers\Linkify())->linky((new \App\Helpers\Bbcode())->parse({$bbcodeString}))); ?>");
+
+        // Emoji. Replaces the directive hdvinnie/laravel-joypixel-emojis used
+        // to register from its own service provider; still used by the wiki,
+        // pages, articles and the news block.
+        Blade::directive('joypixels', fn (?string $emojiString) => "<?php echo app(\App\Services\Emoji\EmojiRenderer::class)->toImage((string) ({$emojiString})); ?>");
+
+        // The emoji artwork lives in the joypixels/assets package and has to be
+        // copied into public/. hdvinnie/laravel-joypixel-emojis used to declare
+        // this; keeping it here means `vendor:publish --tag=joypixels-assets`
+        // still works and the deploy routine has something to call.
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                base_path('vendor/joypixels/assets/png') => public_path('vendor/joypixels/png'),
+            ], 'joypixels-assets');
+        }
 
         // Linkify
         Blade::directive('linkify', fn (?string $contentString) => "<?php echo (new \App\Helpers\Linkify)->linky(e({$contentString})); ?>");

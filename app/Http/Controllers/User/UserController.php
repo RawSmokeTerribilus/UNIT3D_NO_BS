@@ -30,7 +30,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 
 /**
  * @see \Tests\Todo\Feature\Http\Controllers\UserControllerTest
@@ -168,7 +169,7 @@ class UserController extends Controller
             $path = Storage::disk('user-avatars')->path($filename);
 
             if ($image->getClientOriginalExtension() !== 'gif') {
-                Image::make($image->getRealPath())->fit(150, 150)->encode('png', 100)->save($path);
+                Image::decode($image->getRealPath())->cover(150, 150)->encode(new PngEncoder())->save($path);
             } else {
                 Validator::make($request->all(), [
                     'image' => 'required|dimensions:ratio=1/1',
@@ -213,7 +214,7 @@ class UserController extends Controller
             $path = Storage::disk('user-icons')->path($filename);
 
             if ($image->getClientOriginalExtension() !== 'gif') {
-                Image::make($image->getRealPath())->fit(30, 30)->encode('png', 100)->save($path);
+                Image::decode($image->getRealPath())->cover(30, 30)->encode(new PngEncoder())->save($path);
             } else {
                 $request->validate([
                     'image' => 'dimensions:ratio=1/1',

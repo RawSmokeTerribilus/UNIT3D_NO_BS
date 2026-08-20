@@ -135,6 +135,11 @@ Unit3d_9.2-Installer-fixed/deprecated/
 *.bak
 *.bak-*
 *.pre-update-bak
+composer.json.pre*
 composer.lock.pre*
+phpstan-baseline.neon.pre*
 vendor.pre*
 vendor.bak*
+
+# Cache de PHPStan (tmpDir en phpstan.neon)
+/.phpstan.cache

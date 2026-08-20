@@ -6,7 +6,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -100,17 +101,14 @@ class ArtImageProxyController extends Controller
                 $response = Http::timeout(10)->get($url);
                 abort_unless($response->successful(), 404);
 
-                $image = Image::make($response->body());
+                $image = Image::decode($response->body());
 
                 // Sólo reducir, nunca ampliar imágenes ya pequeñas.
                 if ($image->width() > $width) {
-                    $image->resize($width, null, function ($constraint): void {
-                        $constraint->aspectRatio();
-                        $constraint->upsize();
-                    });
+                    $image->scaleDown(width: $width);
                 }
 
-                $image->encode('jpg', 85)->save($cachePath);
+                $image->encode(new JpegEncoder(quality: 85))->save($cachePath);
             }
         }
 
