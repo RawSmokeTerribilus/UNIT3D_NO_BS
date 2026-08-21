@@ -40,4 +40,12 @@ return [
     'tv-credits'      => 'TV credits:',
     'view-collection' => 'View the collection',
     'wiki-read'       => 'Read full bio on wikipedia:',
+    'authors' => 'Authors',
+    'narrators' => 'Narrators',
+    'publishers' => 'Publishers',
+    'book-series' => 'Series',
+    'book-genres' => 'Book genres',
+    'books' => 'E-Books',
+    'audiobooks' => 'Audiobooks',
+    'no-books' => 'Nothing in the catalogue yet.',
 ];

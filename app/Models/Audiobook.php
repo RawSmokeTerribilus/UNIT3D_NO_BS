@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?int                        $runtime_length_min
  * @property ?\Illuminate\Support\Carbon $release_date
  * @property ?string                     $publisher
+ * @property ?int                        $book_publisher_id
+ * @property ?int                        $book_series_id
  * @property ?string                     $language
  * @property ?array<int, string>         $genres
  * @property ?string                     $isbn13
@@ -91,6 +93,59 @@ final class Audiobook extends Model
     public function book(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Book::class, 'isbn13', 'isbn13');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<BookPublisher, $this>
+     */
+    public function bookPublisher(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(BookPublisher::class, 'book_publisher_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<BookSeries, $this>
+     */
+    public function bookSeries(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(BookSeries::class, 'book_series_id', 'id');
+    }
+
+    /**
+     * The resolved author records, shared with e-books on purpose: an author
+     * is the same person whoever reads them out loud. The `authors` json
+     * column is still the plain list Audnexus reports.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<BookAuthor, $this>
+     */
+    public function bookAuthors(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(BookAuthor::class, 'audiobook_author', 'asin', 'author_olid', 'asin', 'olid')
+            ->withPivot('position')
+            ->orderBy('audiobook_author.position');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<BookNarrator, $this>
+     */
+    public function bookNarrators(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(BookNarrator::class, 'audiobook_narrator', 'asin', 'book_narrator_id', 'asin', 'id')
+            ->withPivot('position')
+            ->orderBy('audiobook_narrator.position');
+    }
+
+    /**
+     * Same catalogue as e-books: a genre is the same whether it is printed or
+     * narrated, and splitting it would give two hubs with half the catalogue
+     * each. Audnexus is the provider with the better genres here — Spanish and
+     * specific, against Google Books' "Fiction".
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<BookGenre, $this>
+     */
+    public function bookGenres(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(BookGenre::class, 'audiobook_genre', 'asin', 'book_genre_id', 'asin', 'id');
     }
 
     /**

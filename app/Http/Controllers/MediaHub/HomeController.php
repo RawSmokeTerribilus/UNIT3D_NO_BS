@@ -17,6 +17,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\MediaHub;
 
 use App\Http\Controllers\Controller;
+use App\Models\Audiobook;
+use App\Models\Book;
+use App\Models\BookAuthor;
+use App\Models\BookGenre;
+use App\Models\BookNarrator;
+use App\Models\BookPublisher;
+use App\Models\BookSeries;
 use App\Models\Category;
 use App\Models\TmdbCollection;
 use App\Models\TmdbCompany;
@@ -43,6 +50,18 @@ class HomeController extends Controller
             'genres'           => TmdbGenre::count(),
             'networks'         => TmdbNetwork::count(),
             'companies'        => TmdbCompany::count(),
+            // Catalogo de libros. Los cuatro catalogos compartidos cuentan
+            // ebooks y audiolibros juntos, asi que no se desglosan aqui: el
+            // desglose por formato lo hace cada tarjeta de su hub.
+            'books'                => Book::count(),
+            'audiobooks'           => Audiobook::count(),
+            'bookCategoryIds'      => Category::where('book_meta', '=', 1)->pluck('id')->toArray(),
+            'audiobookCategoryIds' => Category::where('audiobook_meta', '=', 1)->pluck('id')->toArray(),
+            'authors'              => BookAuthor::count(),
+            'narrators'            => BookNarrator::count(),
+            'bookGenres'           => BookGenre::count(),
+            'publishers'           => BookPublisher::count(),
+            'bookSeries'           => BookSeries::count(),
         ]);
     }
 }

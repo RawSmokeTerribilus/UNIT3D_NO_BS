@@ -227,6 +227,19 @@ return [
                             'category.audiobook_meta',
                             'isbn13',
                             'asin',
+                            // Los ids del catalogo de libros. Sin ellos, los
+                            // enlaces del MediaHub solo funcionarian con el
+                            // driver SQL, que esta reservado a staff: un
+                            // miembro normal busca por Meilisearch.
+                            'book.genres.id',
+                            'book.people.olid',
+                            'book.publisher_id',
+                            'book.series_id',
+                            'audiobook.genres_resolved.id',
+                            'audiobook.people.olid',
+                            'audiobook.voices.id',
+                            'audiobook.publisher_id',
+                            'audiobook.series_id',
                             'type.id',
                             'resolution.id',
                             'tmdb_movie.id',

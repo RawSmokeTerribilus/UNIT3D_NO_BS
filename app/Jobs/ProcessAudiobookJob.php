@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Enums\GlobalRateLimit;
 use App\Models\Audiobook;
 use App\Services\Audiobooks\AudnexusClient;
+use App\Services\Books\TaxonomyNormalizer;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -79,7 +80,17 @@ class ProcessAudiobookJob implements ShouldQueue
 
         unset($record['asin']);
 
-        Audiobook::query()->updateOrCreate(['asin' => $asin], $record);
+        $audiobook = Audiobook::query()->updateOrCreate(['asin' => $asin], $record);
+
+        // Audnexus entrega narradores, generos, editorial y saga como texto o
+        // json. Aqui pasan a sus tablas, que es lo unico navegable. Los
+        // autores solo se ENLAZAN con fichas ya resueltas: la clave de
+        // `book_authors` es el olid de OpenLibrary y Audnexus no lo da.
+        $taxonomia = app(TaxonomyNormalizer::class);
+        $taxonomia->enlazarEditorialYSaga($audiobook);
+        $taxonomia->sincronizarNarradores($audiobook, $audiobook->narrators ?? []);
+        $taxonomia->sincronizarGeneros($audiobook, $audiobook->genres ?? []);
+        $taxonomia->enlazarAutores($audiobook, $audiobook->authors ?? []);
 
         cache()->put("audiobook-scraper:{$asin}", now(), 8 * 3600);
     }

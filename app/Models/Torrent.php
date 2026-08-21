@@ -391,7 +391,33 @@ final class Torrent extends Model
                     'authors', books.authors,
                     'year', books.first_publish_year,
                     'publisher', books.publisher,
-                    'cover', books.cover_url
+                    'publisher_id', books.book_publisher_id,
+                    'series_id', books.book_series_id,
+                    'cover', books.cover_url,
+                    'genres', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', book_genres.id,
+                            'name', book_genres.name
+                        )), JSON_ARRAY())
+                        FROM book_genres
+                        WHERE book_genres.id IN (
+                            SELECT book_genre_id
+                            FROM book_genre
+                            WHERE book_genre.isbn13 = torrents.isbn13
+                        )
+                    ),
+                    'people', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'olid', book_authors.olid,
+                            'name', book_authors.name
+                        )), JSON_ARRAY())
+                        FROM book_authors
+                        WHERE book_authors.olid IN (
+                            SELECT author_olid
+                            FROM book_author
+                            WHERE book_author.isbn13 = torrents.isbn13
+                        )
+                    )
                 )
                 FROM books
                 WHERE torrents.isbn13 = books.isbn13
@@ -411,8 +437,46 @@ final class Torrent extends Model
                     'narrators', audiobooks.narrators,
                     'year', YEAR(audiobooks.release_date),
                     'publisher', audiobooks.publisher,
+                    'publisher_id', audiobooks.book_publisher_id,
+                    'series_id', audiobooks.book_series_id,
                     'runtime_length_min', audiobooks.runtime_length_min,
-                    'cover', audiobooks.cover_url
+                    'cover', audiobooks.cover_url,
+                    'genres_resolved', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', book_genres.id,
+                            'name', book_genres.name
+                        )), JSON_ARRAY())
+                        FROM book_genres
+                        WHERE book_genres.id IN (
+                            SELECT book_genre_id
+                            FROM audiobook_genre
+                            WHERE audiobook_genre.asin = torrents.asin
+                        )
+                    ),
+                    'people', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'olid', book_authors.olid,
+                            'name', book_authors.name
+                        )), JSON_ARRAY())
+                        FROM book_authors
+                        WHERE book_authors.olid IN (
+                            SELECT author_olid
+                            FROM audiobook_author
+                            WHERE audiobook_author.asin = torrents.asin
+                        )
+                    ),
+                    'voices', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', book_narrators.id,
+                            'name', book_narrators.name
+                        )), JSON_ARRAY())
+                        FROM book_narrators
+                        WHERE book_narrators.id IN (
+                            SELECT book_narrator_id
+                            FROM audiobook_narrator
+                            WHERE audiobook_narrator.asin = torrents.asin
+                        )
+                    )
                 )
                 FROM audiobooks
                 WHERE torrents.asin = audiobooks.asin

@@ -10,6 +10,7 @@ use App\Models\BookGenre;
 use App\Services\Books\GoogleBooksClient;
 use App\Services\Books\OpenLibraryClient;
 use App\Services\Books\Support\Isbn;
+use App\Services\Books\TaxonomyNormalizer;
 use App\Services\Translation\LibreTranslateClient;
 use DateTime;
 use Illuminate\Bus\Queueable;
@@ -141,32 +142,37 @@ class ProcessBookJob implements ShouldQueue
         }
 
         $book = Book::query()->updateOrCreate(['isbn13' => $isbn13], [
-            'isbn10'             => $candidate->isbn10 ?: null,
-            'olid'               => $extra['olid'] ?? null,
-            'google_volume_id'   => $candidate->googleVolumeId ?: null,
-            'title'              => $candidate->title,
-            'subtitle'           => $candidate->subtitle ?: null,
-            'authors'            => $candidate->authors,
-            'subjects'           => $extra['subjects'] ?? null,
-            'languages'          => $candidate->language === '' ? null : [$candidate->language],
-            'first_publish_year' => $candidate->year,
-            'page_count'         => $extra['page_count'] ?? $candidate->pageCount,
-            'publisher'          => $candidate->publisher ?: null,
+            'isbn10'                      => $candidate->isbn10 ?: null,
+            'olid'                        => $extra['olid'] ?? null,
+            'google_volume_id'            => $candidate->googleVolumeId ?: null,
+            'title'                       => $candidate->title,
+            'subtitle'                    => $candidate->subtitle ?: null,
+            'authors'                     => $candidate->authors,
+            'subjects'                    => $extra['subjects'] ?? null,
+            'languages'                   => $candidate->language === '' ? null : [$candidate->language],
+            'first_publish_year'          => $candidate->year,
+            'page_count'                  => $extra['page_count'] ?? $candidate->pageCount,
+            'publisher'                   => $candidate->publisher ?: null,
             'description'                 => $sinopsis ?: null,
             'description_original'        => $original,
             'description_source_language' => $idiomaOriginal,
-            'cover_url'          => $covers[0] ?? null,
-            'cover_urls'         => array_values(array_unique($covers)),
-            'average_rating'     => $candidate->averageRating,
-            'ratings_count'      => $candidate->ratingsCount,
-            'maturity_rating'    => $candidate->maturityRating ?: null,
-            'print_type'         => $candidate->printType ?: null,
-            'preview_link'       => $candidate->previewLink ?: null,
-            'info_link'          => $candidate->infoLink ?: null,
-            'provenance'         => $provenance,
+            'cover_url'                   => $covers[0] ?? null,
+            'cover_urls'                  => array_values(array_unique($covers)),
+            'average_rating'              => $candidate->averageRating,
+            'ratings_count'               => $candidate->ratingsCount,
+            'maturity_rating'             => $candidate->maturityRating ?: null,
+            'print_type'                  => $candidate->printType ?: null,
+            'preview_link'                => $candidate->previewLink ?: null,
+            'info_link'                   => $candidate->infoLink ?: null,
+            'provenance'                  => $provenance,
         ]);
 
         $this->syncGenres($book, $candidate->categories);
+
+        // Editorial y saga se guardan como texto arriba, que es lo que da el
+        // proveedor, y aquí se enlazan con su tabla. Sin esto quedan invisibles
+        // para el MediaHub y para cualquier listado.
+        app(TaxonomyNormalizer::class)->enlazarEditorialYSaga($book);
 
         // Same window TMDB and IGDB use, so a burst of uploads of the same
         // edition does not re-ask the provider.

@@ -9,10 +9,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
- * App\Models\BookGenre.
+ * App\Models\BookNarrator.
  *
- * Género de libro, en tabla y no en json, para que se pueda navegar y contar.
- * El espejo de IgdbGenre.
+ * Narrador de audiolibro. Es lo que distingue dos grabaciones del mismo texto
+ * y por lo que la gente busca, así que va en tabla.
+ *
+ * No se reutiliza BookAuthor: aquella tiene el olid de OpenLibrary como clave
+ * primaria y los narradores no están en OpenLibrary.
  *
  * @property int                         $id
  * @property string                      $name
@@ -21,24 +24,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property ?\Illuminate\Support\Carbon $updated_at
  */
 #[AllowDynamicProperties]
-final class BookGenre extends Model
+final class BookNarrator extends Model
 {
     /** @var string[] */
     protected $guarded = [];
-
-    /**
-     * @return BelongsToMany<Book, $this>
-     */
-    public function books(): BelongsToMany
-    {
-        return $this->belongsToMany(Book::class, 'book_genre', 'book_genre_id', 'isbn13', 'id', 'isbn13');
-    }
 
     /**
      * @return BelongsToMany<Audiobook, $this>
      */
     public function audiobooks(): BelongsToMany
     {
-        return $this->belongsToMany(Audiobook::class, 'audiobook_genre', 'book_genre_id', 'asin', 'id', 'asin');
+        return $this->belongsToMany(Audiobook::class, 'audiobook_narrator', 'book_narrator_id', 'asin', 'id', 'asin')
+            ->withPivot('position');
     }
 }

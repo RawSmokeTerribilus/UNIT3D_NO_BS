@@ -453,6 +453,13 @@ Route::middleware('language')->group(function (): void {
             Route::get('/persons/{id}', [App\Http\Controllers\MediaHub\TmdbPersonController::class, 'show'])->name('mediahub.persons.show')->whereNumber('id');
             Route::get('/collections', [App\Http\Controllers\MediaHub\TmdbCollectionController::class, 'index'])->name('mediahub.collections.index');
             Route::get('/collections/{id}', [App\Http\Controllers\MediaHub\TmdbCollectionController::class, 'show'])->name('mediahub.collections.show')->whereNumber('id');
+            // Catalogo de libros. Autores, generos, editoriales y sagas
+            // cuentan ebooks Y audiolibros juntos; narradores solo audio.
+            Route::get('/authors', [App\Http\Controllers\MediaHub\BookController::class, 'authors'])->name('mediahub.authors.index');
+            Route::get('/narrators', [App\Http\Controllers\MediaHub\BookController::class, 'narrators'])->name('mediahub.narrators.index');
+            Route::get('/book-genres', [App\Http\Controllers\MediaHub\BookController::class, 'genres'])->name('mediahub.book-genres.index');
+            Route::get('/publishers', [App\Http\Controllers\MediaHub\BookController::class, 'publishers'])->name('mediahub.publishers.index');
+            Route::get('/book-series', [App\Http\Controllers\MediaHub\BookController::class, 'series'])->name('mediahub.book-series.index');
         });
 
         // Forums

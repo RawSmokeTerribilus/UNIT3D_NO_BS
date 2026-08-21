@@ -6,6 +6,7 @@ namespace App\Models;
 
 use AllowDynamicProperties;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -28,10 +29,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?int                        $first_publish_year
  * @property ?int                        $page_count
  * @property ?string                     $publisher
+ * @property ?int                        $book_publisher_id
+ * @property ?int                        $book_series_id
  * @property ?string                     $description
  * @property ?string                     $cover_url
  * @property ?array<int, string>         $cover_urls
- * @property ?float                     $average_rating
+ * @property ?float                      $average_rating
  * @property ?int                        $ratings_count
  * @property ?string                     $maturity_rating
  * @property ?string                     $print_type
@@ -116,6 +119,25 @@ final class Book extends Model
     public function genres(): BelongsToMany
     {
         return $this->belongsToMany(BookGenre::class, 'book_genre', 'isbn13', 'book_genre_id', 'isbn13', 'id');
+    }
+
+    /**
+     * The normalized publisher. The `publisher` column keeps whatever string
+     * the provider sent; this is the one that can be navigated and counted.
+     *
+     * @return BelongsTo<BookPublisher, $this>
+     */
+    public function bookPublisher(): BelongsTo
+    {
+        return $this->belongsTo(BookPublisher::class, 'book_publisher_id', 'id');
+    }
+
+    /**
+     * @return BelongsTo<BookSeries, $this>
+     */
+    public function bookSeries(): BelongsTo
+    {
+        return $this->belongsTo(BookSeries::class, 'book_series_id', 'id');
     }
 
     /**

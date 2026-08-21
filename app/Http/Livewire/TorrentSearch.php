@@ -149,6 +149,22 @@ class TorrentSearch extends Component
     #[Url(history: true)]
     public ?int $companyId = null;
 
+    // Catalogo de libros. Ids propios, no del espacio de TMDB.
+    #[Url(history: true)]
+    public ?int $bookGenreId = null;
+
+    #[Url(history: true)]
+    public ?string $bookAuthorOlid = null;
+
+    #[Url(history: true)]
+    public ?int $bookNarratorId = null;
+
+    #[Url(history: true)]
+    public ?int $bookPublisherId = null;
+
+    #[Url(history: true)]
+    public ?int $bookSeriesId = null;
+
     /**
      * @var string[]
      */
@@ -393,6 +409,11 @@ class TorrentSearch extends Component
             collectionId: $this->collectionId,
             networkId: $this->networkId,
             companyId: $this->companyId,
+            bookGenreId: $this->bookGenreId,
+            bookAuthorOlid: $this->bookAuthorOlid,
+            bookNarratorId: $this->bookNarratorId,
+            bookPublisherId: $this->bookPublisherId,
+            bookSeriesId: $this->bookSeriesId,
             primaryLanguageNames: $this->primaryLanguageNames,
             free: $this->free,
             doubleup: $this->doubleup,
@@ -414,9 +435,9 @@ class TorrentSearch extends Component
                 default              => null,
             },
             userSeeder: match (true) {
-                $this->seeding => true,
+                $this->seeding                     => true,
                 $this->leeching, $this->incomplete => false,
-                default => null,
+                default                            => null,
             },
             userActive: match (true) {
                 $this->seeding    => true,

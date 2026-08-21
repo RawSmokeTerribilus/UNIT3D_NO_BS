@@ -37,4 +37,12 @@ return [
     'view-collection' => 'Ver la colección',
     'wiki-read' => 'Leer biografía completa en Wikipedia:',
     'collection' => 'Colección',
+    'authors' => 'Autores',
+    'narrators' => 'Narradores',
+    'publishers' => 'Editoriales',
+    'book-series' => 'Sagas',
+    'book-genres' => 'Géneros literarios',
+    'books' => 'E-Books',
+    'audiobooks' => 'Audiolibros',
+    'no-books' => 'Sin nada en el catálogo todavía.',
 ];

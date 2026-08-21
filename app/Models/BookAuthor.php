@@ -69,6 +69,20 @@ final class BookAuthor extends Model
      * URL pública de la ficha, derivada del id. No se guarda porque no aporta
      * nada que no esté ya en la clave.
      */
+    /**
+     * The audiobooks this author wrote. Separate pivot from books() because
+     * that one is keyed by isbn13 and an audiobook is keyed by asin — its own
+     * isbn13, when it has one, belongs to the audio edition and does not match
+     * the e-book's.
+     *
+     * @return BelongsToMany<Audiobook, $this>
+     */
+    public function audiobooks(): BelongsToMany
+    {
+        return $this->belongsToMany(Audiobook::class, 'audiobook_author', 'author_olid', 'asin', 'olid', 'asin')
+            ->withPivot('position');
+    }
+
     public function openLibraryUrl(): string
     {
         return 'https://openlibrary.org/authors/'.$this->olid;
