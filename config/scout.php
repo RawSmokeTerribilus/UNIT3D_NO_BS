@@ -171,6 +171,7 @@ return [
                     // Sin esto, un libro solo se encuentra por lo que ponga en
                     // el nombre del torrent: buscar un autor que no aparezca
                     // ahi no devuelve nada.
+                    'igdb_game.name',
                     'book.title',
                     'book.authors',
                     'book.subtitle',
@@ -227,6 +228,13 @@ return [
                             'category.audiobook_meta',
                             'isbn13',
                             'asin',
+                            // Catalogo de juegos. El indice solo llevaba el id
+                            // numerico `igdb`, sin titulo ni portada, asi que
+                            // Meilisearch no sabia nada de un juego.
+                            'igdb_game.id',
+                            'igdb_game.genres.id',
+                            'igdb_game.platforms.id',
+                            'igdb_game.companies.id',
                             // Los ids del catalogo de libros. Sin ellos, los
                             // enlaces del MediaHub solo funcionarian con el
                             // driver SQL, que esta reservado a staff: un

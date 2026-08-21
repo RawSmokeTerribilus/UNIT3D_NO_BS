@@ -62,6 +62,11 @@ readonly class TorrentSearchFiltersDTO
         private ?int $collectionId = null,
         private ?int $networkId = null,
         private ?int $companyId = null,
+        // Catalogo de juegos. Ids propios de IGDB, igual que los de libros:
+        // no se mezclan con $genreIds, que es el espacio de TMDB.
+        private ?int $igdbGenreId = null,
+        private ?int $igdbPlatformId = null,
+        private ?int $igdbCompanyId = null,
         // Catalogo de libros. Ids propios, no del espacio de TMDB: un
         // book_genre.id 3 y un tmdb_genre.id 3 no son lo mismo, asi que
         // reutilizar $genreIds mezclaria dos catalogos distintos.
@@ -320,6 +325,24 @@ readonly class TorrentSearchFiltersDTO
                 fn ($query) => $query
                     ->whereRelation('category', 'tv_meta', '=', true)
                     ->whereIn('tmdb_tv_id', DB::table('tmdb_network_tmdb_tv')->select('tmdb_tv_id')->where('tmdb_network_id', '=', $this->networkId))
+            )
+            ->when(
+                $this->igdbGenreId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'game_meta', '=', true)
+                    ->whereIn('igdb', DB::table('igdb_game_igdb_genre')->select('igdb_game_id')->where('igdb_genre_id', '=', $this->igdbGenreId))
+            )
+            ->when(
+                $this->igdbPlatformId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'game_meta', '=', true)
+                    ->whereIn('igdb', DB::table('igdb_game_igdb_platform')->select('igdb_game_id')->where('igdb_platform_id', '=', $this->igdbPlatformId))
+            )
+            ->when(
+                $this->igdbCompanyId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'game_meta', '=', true)
+                    ->whereIn('igdb', DB::table('igdb_company_igdb_game')->select('igdb_game_id')->where('igdb_company_id', '=', $this->igdbCompanyId))
             )
             // Libros y audiolibros comparten catalogo de autores y generos a
             // proposito —un autor es el mismo lo lea quien lo lea— pero los
@@ -729,6 +752,18 @@ readonly class TorrentSearchFiltersDTO
 
         if ($this->networkId !== null) {
             $filters[] = 'tmdb_tv.networks.id = '.$this->networkId;
+        }
+
+        if ($this->igdbGenreId !== null) {
+            $filters[] = 'igdb_game.genres.id = '.$this->igdbGenreId;
+        }
+
+        if ($this->igdbPlatformId !== null) {
+            $filters[] = 'igdb_game.platforms.id = '.$this->igdbPlatformId;
+        }
+
+        if ($this->igdbCompanyId !== null) {
+            $filters[] = 'igdb_game.companies.id = '.$this->igdbCompanyId;
         }
 
         if ($this->bookGenreId !== null) {

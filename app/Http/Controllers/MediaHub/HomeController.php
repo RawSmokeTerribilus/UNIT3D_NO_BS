@@ -25,6 +25,10 @@ use App\Models\BookNarrator;
 use App\Models\BookPublisher;
 use App\Models\BookSeries;
 use App\Models\Category;
+use App\Models\IgdbCompany;
+use App\Models\IgdbGame;
+use App\Models\IgdbGenre;
+use App\Models\IgdbPlatform;
 use App\Models\TmdbCollection;
 use App\Models\TmdbCompany;
 use App\Models\TmdbGenre;
@@ -62,6 +66,13 @@ class HomeController extends Controller
             'bookGenres'           => BookGenre::count(),
             'publishers'           => BookPublisher::count(),
             'bookSeries'           => BookSeries::count(),
+            // Catalogo de juegos. Lleva en la base desde 2025 sin una sola
+            // vista que lo enseñara.
+            'games'           => IgdbGame::count(),
+            'gameCategoryIds' => Category::where('game_meta', '=', 1)->pluck('id')->toArray(),
+            'gameGenres'      => IgdbGenre::count(),
+            'platforms'       => IgdbPlatform::count(),
+            'gameCompanies'   => IgdbCompany::count(),
         ]);
     }
 }

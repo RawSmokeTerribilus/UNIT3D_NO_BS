@@ -149,6 +149,16 @@ class TorrentSearch extends Component
     #[Url(history: true)]
     public ?int $companyId = null;
 
+    // Catalogo de juegos. Ids propios de IGDB.
+    #[Url(history: true)]
+    public ?int $igdbGenreId = null;
+
+    #[Url(history: true)]
+    public ?int $igdbPlatformId = null;
+
+    #[Url(history: true)]
+    public ?int $igdbCompanyId = null;
+
     // Catalogo de libros. Ids propios, no del espacio de TMDB.
     #[Url(history: true)]
     public ?int $bookGenreId = null;
@@ -409,6 +419,9 @@ class TorrentSearch extends Component
             collectionId: $this->collectionId,
             networkId: $this->networkId,
             companyId: $this->companyId,
+            igdbGenreId: $this->igdbGenreId,
+            igdbPlatformId: $this->igdbPlatformId,
+            igdbCompanyId: $this->igdbCompanyId,
             bookGenreId: $this->bookGenreId,
             bookAuthorOlid: $this->bookAuthorOlid,
             bookNarratorId: $this->bookNarratorId,

@@ -156,6 +156,49 @@
             </ul>
         </div>
     </section>
+
+    {{-- Los juegos tenian el mismo agujero que los libros: esquema completo en
+         la base desde 2025 y ninguna vista que lo enseñara. Aqui no hizo falta
+         migrar nada, solo pintar lo que ya estaba. --}}
+    <section class="panelV2">
+        <h2 class="panel__heading">{{ __('mediahub.games') }}</h2>
+        <div class="panel__body">
+            <ul class="mediahub-card__list">
+                <li class="mediahub-card__list-item">
+                    <a href="{{ route('torrents.index', ['view' => 'list', 'categoryIds' => $gameCategoryIds]) }}" class="mediahub-card">
+                        <h2 class="mediahub-card__heading">{{ __('mediahub.games') }} hub</h2>
+                        <h3 class="mediahub-card__subheading">
+                            {{ $games }} {{ __('mediahub.games') }}
+                        </h3>
+                    </a>
+                </li>
+                <li class="mediahub-card__list-item">
+                    <a href="{{ route('mediahub.platforms.index') }}" class="mediahub-card">
+                        <h2 class="mediahub-card__heading">{{ __('mediahub.platforms') }} hub</h2>
+                        <h3 class="mediahub-card__subheading">
+                            {{ $platforms }} {{ __('mediahub.platforms') }}
+                        </h3>
+                    </a>
+                </li>
+                <li class="mediahub-card__list-item">
+                    <a href="{{ route('mediahub.game-genres.index') }}" class="mediahub-card">
+                        <h2 class="mediahub-card__heading">{{ __('mediahub.game-genres') }} hub</h2>
+                        <h3 class="mediahub-card__subheading">
+                            {{ $gameGenres }} {{ __('mediahub.game-genres') }}
+                        </h3>
+                    </a>
+                </li>
+                <li class="mediahub-card__list-item">
+                    <a href="{{ route('mediahub.game-companies.index') }}" class="mediahub-card">
+                        <h2 class="mediahub-card__heading">{{ __('mediahub.game-companies') }} hub</h2>
+                        <h3 class="mediahub-card__subheading">
+                            {{ $gameCompanies }} {{ __('mediahub.game-companies') }}
+                        </h3>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </section>
 @endsection
 
 @section('sidebar')

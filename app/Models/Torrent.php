@@ -385,6 +385,60 @@ final class Torrent extends Model
             ) AS json_tmdb_movie,
             (
                 SELECT JSON_OBJECT(
+                    'id', igdb_games.id,
+                    'name', igdb_games.name,
+                    'year', YEAR(igdb_games.first_release_date),
+                    'cover', igdb_games.cover_image_id,
+                    'artwork', igdb_games.first_artwork_image_id,
+                    'rating', igdb_games.rating,
+                    'genres', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', igdb_genres.id,
+                            'name', igdb_genres.name
+                        )), JSON_ARRAY())
+                        FROM igdb_genres
+                        WHERE igdb_genres.id IN (
+                            SELECT igdb_genre_id
+                            FROM igdb_game_igdb_genre
+                            WHERE igdb_game_igdb_genre.igdb_game_id = torrents.igdb
+                        )
+                    ),
+                    'platforms', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', igdb_platforms.id,
+                            'name', igdb_platforms.name
+                        )), JSON_ARRAY())
+                        FROM igdb_platforms
+                        WHERE igdb_platforms.id IN (
+                            SELECT igdb_platform_id
+                            FROM igdb_game_igdb_platform
+                            WHERE igdb_game_igdb_platform.igdb_game_id = torrents.igdb
+                        )
+                    ),
+                    'companies', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', igdb_companies.id,
+                            'name', igdb_companies.name
+                        )), JSON_ARRAY())
+                        FROM igdb_companies
+                        WHERE igdb_companies.id IN (
+                            SELECT igdb_company_id
+                            FROM igdb_company_igdb_game
+                            WHERE igdb_company_igdb_game.igdb_game_id = torrents.igdb
+                        )
+                    )
+                )
+                FROM igdb_games
+                WHERE torrents.igdb = igdb_games.id
+                    AND torrents.category_id in (
+                        SELECT id
+                        FROM categories
+                        WHERE game_meta = 1
+                    )
+                LIMIT 1
+            ) AS json_igdb_game,
+            (
+                SELECT JSON_OBJECT(
                     'isbn13', books.isbn13,
                     'title', books.title,
                     'subtitle', books.subtitle,
@@ -999,6 +1053,7 @@ final class Torrent extends Model
             'json_resolution',
             'json_tmdb_movie',
             'json_tmdb_tv',
+            'json_igdb_game',
             'json_book',
             'json_audiobook',
             'json_playlists',
@@ -1074,6 +1129,7 @@ final class Torrent extends Model
             'resolution'         => json_decode($torrent->json_resolution ?? 'null'),
             'tmdb_movie'         => json_decode($torrent->json_tmdb_movie ?? 'null'),
             'tmdb_tv'            => json_decode($torrent->json_tmdb_tv ?? 'null'),
+            'igdb_game'          => json_decode($torrent->json_igdb_game ?? 'null'),
             'book'               => json_decode($torrent->json_book ?? 'null'),
             'audiobook'          => json_decode($torrent->json_audiobook ?? 'null'),
             'playlists'          => json_decode($torrent->json_playlists ?? '[]'),

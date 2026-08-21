@@ -5,7 +5,10 @@
 ])
 
 @php
-    $trailerKey = $meta?->trailer;
+    // IGDB llama al suyo `first_video_video_id` pero es el mismo id de YouTube
+    // que TMDB guarda en `trailer`, asi que el hover del nombre lo reproduce
+    // igual: un juego SI tiene trailer, solo que en otra columna.
+    $trailerKey = $meta?->trailer ?? $meta?->first_video_video_id;
 
     if (!$trailerKey && !empty($torrent->description)) {
         if (preg_match('/\[(?:youtube|video(?:="youtube")?)\]([a-zA-Z0-9_-]{11})\[\/(?:youtube|video)\]/i', $torrent->description, $m)) {
@@ -78,6 +81,9 @@
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"
                     />
+                    @if ($meta instanceof \App\Models\IgdbGame)
+                        @include('torrent.partials.game-meta-popup', ['meta' => $meta])
+                    @endif
                 @endif
 
                 @if ($torrent->category->book_meta || $torrent->category->audiobook_meta)

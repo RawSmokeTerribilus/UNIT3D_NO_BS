@@ -460,6 +460,11 @@ Route::middleware('language')->group(function (): void {
             Route::get('/book-genres', [App\Http\Controllers\MediaHub\BookController::class, 'genres'])->name('mediahub.book-genres.index');
             Route::get('/publishers', [App\Http\Controllers\MediaHub\BookController::class, 'publishers'])->name('mediahub.publishers.index');
             Route::get('/book-series', [App\Http\Controllers\MediaHub\BookController::class, 'series'])->name('mediahub.book-series.index');
+            // Catalogo de juegos. El esquema de IGDB llevaba en la base desde
+            // 2025 sin una sola vista que lo enseñara.
+            Route::get('/game-genres', [App\Http\Controllers\MediaHub\IgdbController::class, 'genres'])->name('mediahub.game-genres.index');
+            Route::get('/platforms', [App\Http\Controllers\MediaHub\IgdbController::class, 'platforms'])->name('mediahub.platforms.index');
+            Route::get('/game-companies', [App\Http\Controllers\MediaHub\IgdbController::class, 'companies'])->name('mediahub.game-companies.index');
         });
 
         // Forums

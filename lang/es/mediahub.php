@@ -45,4 +45,9 @@ return [
     'books' => 'E-Books',
     'audiobooks' => 'Audiolibros',
     'no-books' => 'Sin nada en el catálogo todavía.',
+    'games' => 'Juegos',
+    'game-genres' => 'Géneros de juego',
+    'platforms' => 'Plataformas',
+    'game-companies' => 'Estudios',
+    'no-games' => 'Sin nada en el catálogo todavía.',
 ];
