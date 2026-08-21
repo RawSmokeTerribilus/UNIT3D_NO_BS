@@ -535,6 +535,29 @@
     }
 }
 
+/*
+ * Variante para portadas verticales (libro / audiolibro). El hueco del
+ * backdrop es una banda de 180px pensada para arte apaisado; una cubierta
+ * recortada a esa proporción se queda sin cabecera ni título. Aquí la misma
+ * imagen se difumina de fondo y la portada va contenida encima.
+ */
+.meta__poster-popup-backdrop--cover {
+    background: #000;
+
+    .meta__poster-popup-backdrop-blur {
+        position: absolute;
+        inset: -20px;
+        background-position: center;
+        background-size: cover;
+        filter: blur(18px) brightness(0.55);
+    }
+
+    img {
+        position: relative;
+        object-fit: contain;
+    }
+}
+
 .meta__poster-popup-backdrop-overlay {
     position: absolute;
     bottom: 0;

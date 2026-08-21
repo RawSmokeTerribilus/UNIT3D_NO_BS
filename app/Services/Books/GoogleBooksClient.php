@@ -6,6 +6,7 @@ namespace App\Services\Books;
 
 use App\Services\Books\Support\BookCandidate;
 use App\Services\Books\Support\Isbn;
+use App\Services\Metadata\Support\Normalize;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -44,6 +45,18 @@ final class GoogleBooksClient
      * try loses real results; three with a growing pause absorbs it.
      */
     private const ATTEMPTS = 3;
+
+    /**
+     * Cuanto tiene que parecerse el titulo de otra edicion para aceptar su
+     * sinopsis. Alto a proposito: es texto que se muestra como si fuera del
+     * libro, y equivocarse es peor que no tener sinopsis.
+     */
+    private const MIN_SIBLING_SCORE = 0.90;
+
+    /**
+     * Y cuanto el autor. Es el filtro que descarta el spam de titulo parecido.
+     */
+    private const MIN_AUTHOR_MATCH = 0.85;
 
     private int $failures = 0;
 
@@ -116,6 +129,73 @@ final class GoogleBooksClient
     }
 
     /**
+     * Una sinopsis en el idioma del sitio para un libro ya identificado.
+     *
+     * Por que existe: el volumen que casa con un ISBN espanol puede no tener
+     * descripcion ninguna, o tenerla en ingles. Medido el 2026-08-21 con el
+     * Tanenbaum: su volumen declara `language: es` y devuelve la sinopsis en
+     * ingles desde la busqueda y ninguna desde el endpoint de volumen.
+     *
+     * Otras ediciones de la misma obra SI la tienen en castellano, asi que se
+     * buscan y se toma prestada. Con un cuidado importante: entre las
+     * "hermanas" aparecen libros distintos que comparten palabras del titulo
+     * ("3 manuscritos en 1 libro", "55% off bookstores"). Copiar la sinopsis
+     * de una de esas pegaria el texto equivocado, asi que se exige que la
+     * edicion puntue muy alto en titulo Y autor antes de aceptarla.
+     *
+     * @param list<string> $authors
+     */
+    public function descriptionFor(string $title, array $authors, string $language = 'es'): string
+    {
+        if (!$this->isEnabled() || trim($title) === '') {
+            return '';
+        }
+
+        $author = $authors[0] ?? null;
+        $items = $this->get([
+            'q'            => 'intitle:'.$title.($author !== null ? ' inauthor:'.$author : ''),
+            'maxResults'   => 10,
+            'langRestrict' => $language,
+            'country'      => 'ES',
+        ]);
+
+        $mejor = '';
+        $mejorPuntuacion = 0.0;
+
+        foreach ($items as $item) {
+            $v = $item['volumeInfo'] ?? [];
+            $descripcion = trim((string) ($v['description'] ?? ''));
+
+            if ($descripcion === '' || ($v['language'] ?? '') !== $language) {
+                continue;
+            }
+
+            $puntuacion = Normalize::titleScore($title, (string) ($v['title'] ?? ''));
+
+            // El titulo por si solo no basta: hay libros distintos que
+            // comparten palabras. El autor es el que descarta el spam.
+            if ($author !== null && $v['authors'] ?? false) {
+                $autorMax = 0.0;
+
+                foreach ($v['authors'] as $candidato) {
+                    $autorMax = max($autorMax, Normalize::titleScore($author, (string) $candidato));
+                }
+
+                if ($autorMax < self::MIN_AUTHOR_MATCH) {
+                    continue;
+                }
+            }
+
+            if ($puntuacion > $mejorPuntuacion) {
+                $mejorPuntuacion = $puntuacion;
+                $mejor = $descripcion;
+            }
+        }
+
+        return $mejorPuntuacion >= self::MIN_SIBLING_SCORE ? $mejor : '';
+    }
+
+    /**
      * @param array<string, mixed> $item
      */
     private function toCandidate(array $item): ?BookCandidate
@@ -148,7 +228,23 @@ final class GoogleBooksClient
         }
 
         $covers = [];
+        $volumeId = (string) ($item['id'] ?? '');
 
+        // imageLinks devuelve miniaturas de 128 px, que en una ficha se ven
+        // lamentables. El parametro `zoom` de books.google.com no esta
+        // documentado pero funciona, y da esto (medido el 2026-08-21):
+        //   zoom=1  128x170     zoom=3  575x750
+        //   zoom=4  800x1018    zoom=6  2177x2771 (segun el volumen)
+        // El parametro se AUTOLIMITA a lo que el editor subio, asi que pedir
+        // zoom=6 devuelve siempre la mejor disponible y nunca falla por pedir
+        // de mas. El art proxy la reduce al servirla y cachea el resultado.
+        if ($volumeId !== '') {
+            $covers[] = 'https://books.google.com/books/content?id='.$volumeId
+                .'&printsec=frontcover&img=1&zoom=6';
+        }
+
+        // Las de imageLinks quedan detras como respaldo, por si el volumen no
+        // tiene portada servida por el endpoint de contenido.
         foreach (['extraLarge', 'large', 'medium', 'thumbnail', 'smallThumbnail'] as $size) {
             $url = $v['imageLinks'][$size] ?? null;
 

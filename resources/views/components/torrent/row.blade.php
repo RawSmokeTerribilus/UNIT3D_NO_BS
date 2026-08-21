@@ -13,8 +13,17 @@
         }
     }
 
-    $quickMI      = $torrent->mediainfo ? (new App\Helpers\MediaInfo)->parse($torrent->mediainfo) : null;
-    $hasQuickView = $trailerKey || $quickMI !== null;
+    $quickMI = $torrent->mediainfo ? (new App\Helpers\MediaInfo)->parse($torrent->mediainfo) : null;
+
+    // Un libro no tiene mediainfo ni trailer, así que el hover del nombre —
+    // que en vídeo es la vista rápida del FICHERO, no de la obra — se llena
+    // con lo que sí describe la edición concreta. La obra sigue en el hover
+    // de la portada. Cuando bookinfo entre por la descripción, este bloque
+    // es donde se cuelga.
+    $isBookRow = $torrent->category->book_meta || $torrent->category->audiobook_meta;
+    $quickBook = $isBookRow && $meta !== null ? $meta : null;
+
+    $hasQuickView = $trailerKey || $quickMI !== null || $quickBook !== null;
 @endphp
 
 <tr
@@ -71,25 +80,16 @@
                     />
                 @endif
 
-                {{--
-                    The cover is read off the torrent's own relation rather
-                    than $meta: in the flat listing $meta is the string that
-                    the CASE in the query produces ('movie', 'book', ...), not
-                    a model, so property access on it silently yields null.
-                --}}
                 @if ($torrent->category->book_meta || $torrent->category->audiobook_meta)
-                    @php
-                        $bookCover = $torrent->category->book_meta
-                            ? $torrent->book?->cover_url
-                            : $torrent->audiobook?->cover_url;
-                    @endphp
-
                     <img
-                        src="{{ $bookCover ? tmdb_image('poster_small', $bookCover) : 'https://via.placeholder.com/90x135' }}"
+                        src="{{ $meta?->cover_url ? tmdb_image('poster_small', $meta->cover_url) : 'https://via.placeholder.com/90x135' }}"
                         class="torrent-search--list__poster-img"
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"
                     />
+                    @if ($meta !== null)
+                        @include('torrent.partials.book-meta-popup', ['meta' => $meta])
+                    @endif
                 @endif
 
                 @if ($torrent->category->music_meta)
@@ -224,6 +224,15 @@
                             @endif
                             <div class="meta__poster-popup-backdrop-overlay" style="z-index:2;"></div>
                         </div>
+                    @elseif ($quickBook?->cover_url)
+                        <div class="meta__poster-popup-backdrop meta__poster-popup-backdrop--cover">
+                            <span
+                                class="meta__poster-popup-backdrop-blur"
+                                style="background-image: url('{{ tmdb_image('poster_mid', $quickBook->cover_url) }}')"
+                            ></span>
+                            <img src="{{ tmdb_image('poster_big', $quickBook->cover_url) }}" alt="{{ $quickBook->title }}" />
+                            <div class="meta__poster-popup-backdrop-overlay"></div>
+                        </div>
                     @elseif (isset($meta->backdrop) || isset($meta->poster))
                         <div class="meta__poster-popup-backdrop">
                             <img
@@ -292,6 +301,57 @@
                                     <dt style="color: #bbb; text-align: right; white-space: nowrap;">Size</dt>
                                     <dd style="margin: 0;">{{ App\Helpers\StringHelper::formatBytes($quickMI['general']['file_size'], 2) }}</dd>
                                 @endif
+                            </dl>
+                        </div>
+                    @endif
+
+                    {{-- Mismas rejilla, cuerpo y tipografía que el bloque de
+                         mediainfo de arriba: lo que cambia son las filas, no
+                         la forma. --}}
+                    @if ($quickBook !== null)
+                        <div class="meta__poster-popup-content" style="padding: 12px 20px;">
+                            <dl style="display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 5px; font-size: 13px; margin: 0;">
+                                <dt style="color: #bbb; text-align: right; white-space: nowrap;">{{ __('torrent.author') }}</dt>
+                                <dd style="margin: 0;">{{ $quickBook->authorLine() ?: '—' }}</dd>
+
+                                @if ($quickBook instanceof \App\Models\Audiobook && $quickBook->narrators)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">{{ __('torrent.narrator') }}</dt>
+                                    <dd style="margin: 0;">{{ $quickBook->narratorLine() }}</dd>
+                                @endif
+
+                                <dt style="color: #bbb; text-align: right; white-space: nowrap;">Formato</dt>
+                                <dd style="margin: 0;">{{ $torrent->type->name }}</dd>
+
+                                @if ($quickBook instanceof \App\Models\Audiobook)
+                                    @if ($quickBook->runtimeForHumans())
+                                        <dt style="color: #bbb; text-align: right; white-space: nowrap;">{{ __('torrent.runtime') }}</dt>
+                                        <dd style="margin: 0;">{{ $quickBook->runtimeForHumans() }}</dd>
+                                    @endif
+                                @elseif ($quickBook->page_count)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">{{ ucfirst(__('torrent.pages')) }}</dt>
+                                    <dd style="margin: 0;">{{ $quickBook->page_count }}</dd>
+                                @endif
+
+                                @php
+                                    $quickLang = $quickBook instanceof \App\Models\Audiobook
+                                        ? $quickBook->language
+                                        : implode(', ', $quickBook->languages ?? []);
+                                @endphp
+                                @if ($quickLang)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">Idioma</dt>
+                                    <dd style="margin: 0;">{{ strtoupper($quickLang) }}</dd>
+                                @endif
+
+                                @if ($quickBook instanceof \App\Models\Audiobook)
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">ASIN</dt>
+                                    <dd style="margin: 0;">{{ $quickBook->asin }}</dd>
+                                @else
+                                    <dt style="color: #bbb; text-align: right; white-space: nowrap;">ISBN-13</dt>
+                                    <dd style="margin: 0;">{{ $quickBook->isbn13 }}</dd>
+                                @endif
+
+                                <dt style="color: #bbb; text-align: right; white-space: nowrap;">Tamaño</dt>
+                                <dd style="margin: 0;">{{ App\Helpers\StringHelper::formatBytes($torrent->size, 2) }}</dd>
                             </dl>
                         </div>
                     @endif

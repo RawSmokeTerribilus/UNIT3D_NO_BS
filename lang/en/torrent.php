@@ -243,6 +243,7 @@ return [
     'video'                    => 'Video',
     'view-more'                => 'View more',
     'narrator'                 => 'Narrator',
+    'auto-translated' => 'Synopsis machine-translated from :idioma',
     'author' => 'Author',
     'authorship' => 'Authorship',
     'book-number' => 'Book :n',

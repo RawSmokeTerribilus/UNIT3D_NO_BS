@@ -10,6 +10,7 @@ use App\Models\BookGenre;
 use App\Services\Books\GoogleBooksClient;
 use App\Services\Books\OpenLibraryClient;
 use App\Services\Books\Support\Isbn;
+use App\Services\Translation\LibreTranslateClient;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -62,7 +63,7 @@ class ProcessBookJob implements ShouldQueue
         return now()->addHour();
     }
 
-    public function handle(GoogleBooksClient $google, OpenLibraryClient $openLibrary): void
+    public function handle(GoogleBooksClient $google, OpenLibraryClient $openLibrary, LibreTranslateClient $translator): void
     {
         $isbn13 = Isbn::toIsbn13($this->isbn13);
 
@@ -81,11 +82,58 @@ class ProcessBookJob implements ShouldQueue
 
         $extra = $openLibrary->enrich($isbn13);
 
-        // OpenLibrary covers are the better image when they exist, so they go
-        // to the front of the pool that meta:rotate-covers draws from.
+        // La sinopsis del propio volumen puede venir en ingles o no venir. Se
+        // prefiere una en el idioma del sitio tomada de otra edicion de la
+        // misma obra; ver GoogleBooksClient::descriptionFor().
+        $idioma = substr((string) config('app.meta_locale', 'es_ES'), 0, 2);
+        $sinopsis = $candidate->description;
+
+        $original = null;
+        $idiomaOriginal = null;
+
+        // OpenLibrary entra por el MISMO embudo, no por detras. Antes se
+        // aplicaba como respaldo al final, asi que su texto en ingles se
+        // guardaba sin pasar por la comprobacion de idioma ni por la
+        // traduccion, y la ficha acababa en ingles sin marcar.
+        if ($sinopsis === '' && ($extra['description'] ?? '') !== '') {
+            $sinopsis = $extra['description'];
+            $provenance['description'] = 'openlibrary';
+        }
+
+        if ($sinopsis === '' || !self::pareceIdioma($sinopsis, $idioma)) {
+            // Primero se busca una sinopsis nativa en otra edicion: siempre es
+            // mejor la del editor que una traduccion automatica.
+            $prestada = $google->descriptionFor($candidate->title, $candidate->authors, $idioma);
+
+            if ($prestada !== '') {
+                $sinopsis = $prestada;
+                $provenance['description'] = 'google:otra-edicion';
+            } elseif ($sinopsis !== '') {
+                // No hay ninguna nativa. Se traduce, se marca como traducida y
+                // se conserva el original para poder rehacerlo si cambia el
+                // motor.
+                $traducida = $translator->translate($sinopsis, 'en', $idioma);
+
+                if ($traducida !== '') {
+                    $original = $sinopsis;
+                    $idiomaOriginal = 'en';
+                    $sinopsis = $traducida;
+                    $provenance['description'] = 'libretranslate:en-'.$idioma;
+                }
+            }
+        }
+
+        // OpenLibrary va DETRAS, no delante. Medido el 2026-08-21 con el
+        // Tanenbaum: su portada -L son 128x164 px, mientras que Google con
+        // zoom devuelve 575x750 del mismo libro. La suposicion inicial de que
+        // OpenLibrary tenia mejores portadas era falsa; sirve de respaldo
+        // para volumenes que Google no ilustra.
         if (isset($extra['cover_url'])) {
-            array_unshift($covers, $extra['cover_url']);
-            $provenance['cover'] = 'openlibrary';
+            $covers[] = $extra['cover_url'];
+
+            if ($covers === [] || $covers[0] === $extra['cover_url']) {
+                $provenance['cover'] = 'openlibrary';
+            }
         }
 
         if ($extra !== []) {
@@ -104,7 +152,9 @@ class ProcessBookJob implements ShouldQueue
             'first_publish_year' => $candidate->year,
             'page_count'         => $extra['page_count'] ?? $candidate->pageCount,
             'publisher'          => $candidate->publisher ?: null,
-            'description'        => $extra['description'] ?? ($candidate->description ?: null),
+            'description'                 => $sinopsis ?: null,
+            'description_original'        => $original,
+            'description_source_language' => $idiomaOriginal,
             'cover_url'          => $covers[0] ?? null,
             'cover_urls'         => array_values(array_unique($covers)),
             'average_rating'     => $candidate->averageRating,
@@ -121,6 +171,33 @@ class ProcessBookJob implements ShouldQueue
         // Same window TMDB and IGDB use, so a burst of uploads of the same
         // edition does not re-ask the provider.
         cache()->put("book-scraper:{$isbn13}", now(), 8 * 3600);
+    }
+
+    /**
+     * Heuristica barata de idioma: cuenta palabras vacias del idioma buscado
+     * frente a las inglesas. No hace falta mas precision -- se aplica a un
+     * parrafo entero, no a una frase suelta, y el coste de fallar es pedir
+     * una sinopsis alternativa que quiza no exista.
+     */
+    private static function pareceIdioma(string $texto, string $idioma): bool
+    {
+        if ($idioma !== 'es') {
+            return true;   // solo se sabe distinguir castellano de ingles
+        }
+
+        $t = ' '.mb_strtolower($texto).' ';
+        $es = 0;
+        $en = 0;
+
+        foreach ([' de ', ' la ', ' el ', ' que ', ' los ', ' las ', ' una ', ' con ', ' por ', ' para '] as $w) {
+            $es += substr_count($t, $w);
+        }
+
+        foreach ([' the ', ' of ', ' and ', ' to ', ' in ', ' is ', ' for ', ' with ', ' this ', ' that '] as $w) {
+            $en += substr_count($t, $w);
+        }
+
+        return $es >= $en;
     }
 
     /**

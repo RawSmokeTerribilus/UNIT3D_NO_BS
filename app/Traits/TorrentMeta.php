@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace App\Traits;
 
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\IgdbGame;
 use App\Models\TmdbMovie;
 use App\Models\TmdbTv;
@@ -43,10 +45,14 @@ trait TorrentMeta
             $movieIds = collect($torrents->items())->where('meta', '=', 'movie')->pluck('tmdb_movie_id');
             $tvIds = collect($torrents->items())->where('meta', '=', 'tv')->pluck('tmdb_tv_id');
             $gameIds = collect($torrents->items())->where('meta', '=', 'game')->pluck('igdb');
+            $isbn13s = collect($torrents->items())->where('meta', '=', 'book')->pluck('isbn13');
+            $asins = collect($torrents->items())->where('meta', '=', 'audiobook')->pluck('asin');
         } else {
             $movieIds = $torrents->where('meta', '=', 'movie')->pluck('tmdb_movie_id');
             $tvIds = $torrents->where('meta', '=', 'tv')->pluck('tmdb_tv_id');
             $gameIds = $torrents->where('meta', '=', 'game')->pluck('igdb');
+            $isbn13s = $torrents->where('meta', '=', 'book')->pluck('isbn13');
+            $asins = $torrents->where('meta', '=', 'audiobook')->pluck('asin');
         }
 
         $movies = TmdbMovie::query()
@@ -73,14 +79,31 @@ trait TorrentMeta
             ->get()
             ->keyBy('id');
 
-        $setRelation = function ($torrent) use ($movies, $tv, $games) {
+        // Libros y audiolibros se hidratan igual que el resto: sin esto,
+        // `meta` se queda con la cadena que produjo el CASE ('book') y
+        // cualquier acceso a propiedad en el blade devuelve null en silencio.
+        // Las claves son de texto, así que van por whereIn y no por
+        // whereIntegerInRaw.
+        $books = Book::query()
+            ->with(['genres', 'bookAuthors'])
+            ->whereIn('isbn13', $isbn13s->filter()->all())
+            ->get()
+            ->keyBy('isbn13');
+        $audiobooks = Audiobook::query()
+            ->whereIn('asin', $asins->filter()->all())
+            ->get()
+            ->keyBy('asin');
+
+        $setRelation = function ($torrent) use ($movies, $tv, $games, $books, $audiobooks) {
             $torrent->setAttribute(
                 'meta',
                 match ($torrent->meta) {
-                    'movie' => $movies[$torrent->tmdb_movie_id] ?? null,
-                    'tv'    => $tv[$torrent->tmdb_tv_id] ?? null,
-                    'game'  => $games[$torrent->igdb] ?? null,
-                    default => null,
+                    'movie'     => $movies[$torrent->tmdb_movie_id] ?? null,
+                    'tv'        => $tv[$torrent->tmdb_tv_id] ?? null,
+                    'game'      => $games[$torrent->igdb] ?? null,
+                    'book'      => $books[$torrent->isbn13] ?? null,
+                    'audiobook' => $audiobooks[$torrent->asin] ?? null,
+                    default     => null,
                 },
             );
 

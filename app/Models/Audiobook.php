@@ -94,6 +94,15 @@ final class Audiobook extends Model
     }
 
     /**
+     * A single display line for the authors, the twin of Book::authorLine()
+     * so both models render the same in shared blades.
+     */
+    public function authorLine(): string
+    {
+        return implode(', ', $this->authors ?? []);
+    }
+
+    /**
      * A single display line for the narrators — the field that makes two
      * recordings of the same title different releases.
      */

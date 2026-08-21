@@ -238,6 +238,7 @@ return [
     'use-fl-token' => 'Usa un cupón de freeleech',
     'video' => 'Vídeo',
     'view-more' => 'Ver más',
+    'auto-translated' => 'Sinopsis traducida automáticamente del :idioma',
     'author' => 'Autor',
     'authorship' => 'Autoría',
     'book-number' => 'Libro :n',
