@@ -35,6 +35,8 @@ use AllowDynamicProperties;
  * @property bool        $game_meta
  * @property bool        $tv_meta
  * @property bool        $movie_meta
+ * @property bool        $book_meta
+ * @property bool        $audiobook_meta
  */
 #[AllowDynamicProperties]
 final class Category extends Model
@@ -54,15 +56,17 @@ final class Category extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{music_meta: 'bool', game_meta: 'bool', tv_meta: 'bool', movie_meta: 'bool'}
+     * @return array{music_meta: 'bool', game_meta: 'bool', tv_meta: 'bool', movie_meta: 'bool', book_meta: 'bool', audiobook_meta: 'bool'}
      */
     protected function casts(): array
     {
         return [
-            'music_meta' => 'bool',
-            'game_meta'  => 'bool',
-            'tv_meta'    => 'bool',
-            'movie_meta' => 'bool',
+            'music_meta'     => 'bool',
+            'game_meta'      => 'bool',
+            'tv_meta'        => 'bool',
+            'movie_meta'     => 'bool',
+            'book_meta'      => 'bool',
+            'audiobook_meta' => 'bool',
         ];
     }
 

@@ -143,6 +143,7 @@ return [
     'next' => 'Next',
     'no' => 'No',
     'no-comments' => 'No comments yet',
+    'no-meta-found' => 'No meta found',
     'no-result' => 'There is no result in database for query',
     'notifications' => 'Notifications',
     'older-than' => 'Older than',

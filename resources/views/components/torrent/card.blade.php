@@ -65,6 +65,14 @@
                             src="https://images.igdb.com/igdb/image/upload/t_cover_big/{{ $torrent->meta->cover_image_id }}.jpg"
                     
                             @break
+                        @case($torrent->category->book_meta && $torrent->book?->cover_url)
+                            src="{{ tmdb_image('poster_mid', $torrent->book->cover_url) }}"
+                    
+                            @break
+                        @case($torrent->category->audiobook_meta && $torrent->audiobook?->cover_url)
+                            src="{{ tmdb_image('poster_mid', $torrent->audiobook->cover_url) }}"
+                    
+                            @break
                         @case($torrent->category->music_meta)
                             src="https://via.placeholder.com/160x240"
                     

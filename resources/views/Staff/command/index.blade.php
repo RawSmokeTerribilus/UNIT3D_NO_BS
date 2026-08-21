@@ -224,6 +224,27 @@
                     'tip'    => 'Rota la carátula activa de cada título desde el pool multi-fuente (TMDB/OMDb/MAL/...). También se ejecuta a diario de forma automática.',
                 ])
                 @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/books-sync',
+                    'label'  => 'Metadata de libros pendiente',
+                    'icon'   => 'fa-book',
+                    'level'  => 'safe',
+                    'tip'    => 'Rellena la ficha de los torrents de ebook y audiolibro que ya llevan ISBN o ASIN pero aún no tienen metadatos. Sólo procesa lo que falta; también corre solo cada 15 minutos.',
+                ])
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/books-sync-force',
+                    'label'  => 'Refrescar fichas de libros',
+                    'icon'   => 'fa-rotate',
+                    'level'  => 'safe',
+                    'tip'    => 'Vuelve a pedir a Google Books y Audnexus la ficha de un lote de libros que ya la tienen, por si el proveedor la ha corregido. Ojo: Google Books sólo da 1000 peticiones al día.',
+                ])
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/books-sync-authors',
+                    'label'  => 'Fichas de autor pendientes',
+                    'icon'   => 'fa-user-pen',
+                    'level'  => 'safe',
+                    'tip'    => 'Cachea foto, biografía y fechas de los autores desde OpenLibrary, para que las fichas de libro tengan la columna de autoría con imagen. Va despacio a propósito; también corre solo cada hora.',
+                ])
+                @include('Staff.command._btn', [
                     'action' => '/dashboard/commands/warm-art-cache',
                     'label'  => 'Precalentar caché de arte',
                     'icon'   => 'fa-fire',

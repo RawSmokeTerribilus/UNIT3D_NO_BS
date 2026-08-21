@@ -23,8 +23,11 @@ enum GlobalRateLimit: string
     case AUTHENTICATED_IMAGES = 'authenticated-images';
     case CHAT = 'chat';
     case FORGOT_PASSWORD = 'forgot-password';
+    case AUDNEX = 'audnex';
+    case GOOGLE_BOOKS = 'google-books';
     case IGDB = 'igdb';
     case MAL = 'mal';
+    case OPENLIBRARY = 'openlibrary';
     case RESET_PASSWORD = 'reset-password';
     case RSS = 'rss';
     case GAMING_SAVES = 'gaming-saves';

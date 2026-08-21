@@ -122,6 +122,14 @@ class Kernel extends ConsoleKernel
         // withoutOverlapping, ese es el techo y hay que ampliar la ventana.
         $schedule->command('meta:sync', ['--limit' => 100])->everyFiveMinutes()->withoutOverlapping(10);
         $schedule->command('meta:rotate-covers')->daily()->withoutOverlapping(60);
+        // Books and audiobooks: missing-only, so a quiet catalogue costs one
+        // cheap query. The limit is deliberately small — Google Books allows
+        // 1000 requests a day on the free tier and this must not eat the
+        // budget an uploader needs for the upload form's own lookups.
+        $schedule->command('books:sync', ['--limit' => 25])->everyFifteenMinutes()->withoutOverlapping(10);
+        // Los autores van aparte y mas despacio: OpenLibrary deja de responder
+        // si se le llama en bucle, y ademas cada libro son dos peticiones.
+        $schedule->command('books:sync-authors', ['--limit' => 15])->hourly()->withoutOverlapping(30);
         // Pre-warm the art-proxy cache so users never pay the first-hit fetch+resize.
         // Idempotent (skips cached) + time-budgeted so each run stays short; runs
         // often to keep up with daily cover rotation and newly-added titles.

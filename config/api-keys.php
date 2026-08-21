@@ -37,4 +37,21 @@ return [
     */
 
     'omdb' => env('OMDB_API_KEY', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google Books (E-Books)
+    |--------------------------------------------------------------------------
+    |
+    | Google Books API Key — second voter of the book consensus resolver,
+    | alongside OpenLibrary (which needs no key). Free tier is 1000 requests
+    | per day, so a full backfill must be rate limited. Requests also need
+    | country=ES or the API answers 403 from a European address.
+    |
+    | The resolver degrades gracefully when this is empty: Google Books is
+    | simply skipped and OpenLibrary answers alone.
+    |
+    */
+
+    'google_books' => env('GOOGLE_BOOKS_API_KEY', ''),
 ];

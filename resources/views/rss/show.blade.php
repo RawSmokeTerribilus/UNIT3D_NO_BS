@@ -61,6 +61,19 @@
                                 MAL link:<a href="https://anon.to?https://myanimelist.net/anime/{{ $torrent['mal'] }}"
                                              target="_blank">{{ $torrent['mal'] }}</a><br>
                             @endif
+                            @if ($torrent['category']['book_meta'] && !empty($torrent['isbn13']))
+                                ISBN-13: <a href="https://anon.to?https://books.google.com/books?vid=ISBN{{ $torrent['isbn13'] }}"
+                                            target="_blank">{{ $torrent['isbn13'] }}</a><br>
+                                @if (!empty($torrent['book']['authors']))
+                                    {{ __('common.author') }}: {{ implode(', ', (array) $torrent['book']['authors']) }}<br>
+                                @endif
+                            @endif
+                            @if ($torrent['category']['audiobook_meta'] && !empty($torrent['asin']))
+                                Audible ASIN: {{ $torrent['asin'] }}<br>
+                                @if (!empty($torrent['audiobook']['narrators']))
+                                    {{ __('torrent.narrator') }}: {{ implode(', ', (array) $torrent['audiobook']['narrators']) }}<br>
+                                @endif
+                            @endif
                             @if ($torrent['internal'] == 1)
                                 <comments>This is a high quality internal release!</comments>
                             @endif

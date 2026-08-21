@@ -212,6 +212,28 @@ final class TorrentRequest extends Model
     }
 
     /**
+     * Get the e-book edition being requested.
+     *
+     * Both sides key on the ISBN-13, so the keys are named explicitly.
+     *
+     * @return BelongsTo<Book, $this>
+     */
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class, 'isbn13', 'isbn13');
+    }
+
+    /**
+     * Get the audiobook recording being requested.
+     *
+     * @return BelongsTo<Audiobook, $this>
+     */
+    public function audiobook(): BelongsTo
+    {
+        return $this->belongsTo(Audiobook::class, 'asin', 'asin');
+    }
+
+    /**
      * Get the comments for the request.
      *
      * @return MorphMany<Comment, $this>

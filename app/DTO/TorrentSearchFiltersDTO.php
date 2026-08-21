@@ -167,6 +167,18 @@ readonly class TorrentSearchFiltersDTO
                                     ->whereRelation('tv', 'first_air_date', '>=', $this->startYear.'-01-01 00:00:00')
                                     ->whereRelation('category', 'tv_meta', '=', true)
                             )
+                            // Los libros guardan el anio como entero, no como
+                            // fecha, asi que se compara tal cual.
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('book', 'first_publish_year', '>=', $this->startYear)
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('audiobook', 'release_date', '>=', $this->startYear.'-01-01')
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                            )
                     )
             )
             ->when(
@@ -183,6 +195,16 @@ readonly class TorrentSearchFiltersDTO
                                 fn ($query) => $query
                                     ->orWhereRelation('tv', 'first_air_date', '<=', $this->endYear.'-12-31 23:59:59')
                                     ->whereRelation('category', 'tv_meta', '=', true)
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('book', 'first_publish_year', '<=', $this->endYear)
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('audiobook', 'release_date', '<=', $this->endYear.'-12-31')
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
                             )
                     )
             )

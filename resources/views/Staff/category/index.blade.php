@@ -36,6 +36,8 @@
                         <th>Movie meta</th>
                         <th>TV meta</th>
                         <th>Game meta</th>
+                        <th>E-book meta</th>
+                        <th>Audiobook meta</th>
                         <th>Music meta</th>
                         <th>No meta</th>
                         <th>{{ __('common.action') }}</th>
@@ -89,6 +91,26 @@
                             </td>
                             <td>
                                 @if ($category->game_meta)
+                                    <i
+                                        class="{{ config('other.font-awesome') }} fa-check text-green"
+                                    ></i>
+                                @else
+                                    <i
+                                        class="{{ config('other.font-awesome') }} fa-times text-red"
+                                    ></i>
+                                @endif
+                            </td>                            <td>
+                                @if ($category->book_meta)
+                                    <i
+                                        class="{{ config('other.font-awesome') }} fa-check text-green"
+                                    ></i>
+                                @else
+                                    <i
+                                        class="{{ config('other.font-awesome') }} fa-times text-red"
+                                    ></i>
+                                @endif
+                            </td>                            <td>
+                                @if ($category->audiobook_meta)
                                     <i
                                         class="{{ config('other.font-awesome') }} fa-check text-green"
                                     ></i>

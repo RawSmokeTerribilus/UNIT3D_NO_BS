@@ -168,6 +168,15 @@ return [
                     'tmdb_tv.name',
                     'tmdb_movie.year',
                     'tmdb_tv.year',
+                    // Sin esto, un libro solo se encuentra por lo que ponga en
+                    // el nombre del torrent: buscar un autor que no aparezca
+                    // ahi no devuelve nada.
+                    'book.title',
+                    'book.authors',
+                    'book.subtitle',
+                    'audiobook.title',
+                    'audiobook.authors',
+                    'audiobook.narrators',
                     'type.name',
                     'resolution.name',
                 ],
@@ -214,6 +223,10 @@ return [
                             'category.id',
                             'category.movie_meta',
                             'category.tv_meta',
+                            'category.book_meta',
+                            'category.audiobook_meta',
+                            'isbn13',
+                            'asin',
                             'type.id',
                             'resolution.id',
                             'tmdb_movie.id',

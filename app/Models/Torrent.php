@@ -172,6 +172,8 @@ final class Torrent extends Model
             torrents.tmdb_tv_id,
             torrents.mal,
             torrents.igdb,
+            torrents.isbn13,
+            torrents.asin,
             torrents.season_number,
             torrents.episode_number,
             torrents.free,
@@ -265,7 +267,9 @@ final class Torrent extends Model
                     'music_meta', categories.music_meta != 0,
                     'game_meta', categories.game_meta != 0,
                     'tv_meta', categories.tv_meta != 0,
-                    'movie_meta', categories.movie_meta != 0
+                    'movie_meta', categories.movie_meta != 0,
+                    'book_meta', categories.book_meta != 0,
+                    'audiobook_meta', categories.audiobook_meta != 0
                 )
                 FROM categories
                 WHERE torrents.category_id = categories.id
@@ -379,6 +383,46 @@ final class Torrent extends Model
                     )
                 LIMIT 1
             ) AS json_tmdb_movie,
+            (
+                SELECT JSON_OBJECT(
+                    'isbn13', books.isbn13,
+                    'title', books.title,
+                    'subtitle', books.subtitle,
+                    'authors', books.authors,
+                    'year', books.first_publish_year,
+                    'publisher', books.publisher,
+                    'cover', books.cover_url
+                )
+                FROM books
+                WHERE torrents.isbn13 = books.isbn13
+                    AND torrents.category_id in (
+                        SELECT id
+                        FROM categories
+                        WHERE book_meta = 1
+                    )
+                LIMIT 1
+            ) AS json_book,
+            (
+                SELECT JSON_OBJECT(
+                    'asin', audiobooks.asin,
+                    'title', audiobooks.title,
+                    'subtitle', audiobooks.subtitle,
+                    'authors', audiobooks.authors,
+                    'narrators', audiobooks.narrators,
+                    'year', YEAR(audiobooks.release_date),
+                    'publisher', audiobooks.publisher,
+                    'runtime_length_min', audiobooks.runtime_length_min,
+                    'cover', audiobooks.cover_url
+                )
+                FROM audiobooks
+                WHERE torrents.asin = audiobooks.asin
+                    AND torrents.category_id in (
+                        SELECT id
+                        FROM categories
+                        WHERE audiobook_meta = 1
+                    )
+                LIMIT 1
+            ) AS json_audiobook,
             (
                 SELECT JSON_OBJECT(
                     'id', tmdb_tv.id,
@@ -579,6 +623,29 @@ final class Torrent extends Model
     public function malAnime(): BelongsTo
     {
         return $this->belongsTo(\App\Models\MalAnime::class, 'mal');
+    }
+
+    /**
+     * Get the e-book edition associated with the torrent.
+     *
+     * Both sides are keyed by the ISBN-13, so the local and foreign key have
+     * to be named explicitly — Eloquent would otherwise look for books.id.
+     *
+     * @return BelongsTo<Book, $this>
+     */
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class, 'isbn13', 'isbn13');
+    }
+
+    /**
+     * Get the audiobook recording associated with the torrent.
+     *
+     * @return BelongsTo<Audiobook, $this>
+     */
+    public function audiobook(): BelongsTo
+    {
+        return $this->belongsTo(Audiobook::class, 'asin', 'asin');
     }
 
     /**
@@ -842,6 +909,8 @@ final class Torrent extends Model
             'tmdb_tv_id',
             'mal',
             'igdb',
+            'isbn13',
+            'asin',
             'season_number',
             'episode_number',
             'free',
@@ -866,6 +935,8 @@ final class Torrent extends Model
             'json_resolution',
             'json_tmdb_movie',
             'json_tmdb_tv',
+            'json_book',
+            'json_audiobook',
             'json_playlists',
             'json_freeleech_tokens',
             'json_bookmarks',
@@ -913,6 +984,8 @@ final class Torrent extends Model
             'tmdb_tv_id'         => $torrent->tmdb_tv_id,
             'mal'                => $torrent->mal,
             'igdb'               => $torrent->igdb,
+            'isbn13'             => $torrent->isbn13,
+            'asin'               => $torrent->asin,
             'season_number'      => $torrent->season_number,
             'episode_number'     => $torrent->episode_number,
             'free'               => $torrent->free,
@@ -937,6 +1010,8 @@ final class Torrent extends Model
             'resolution'         => json_decode($torrent->json_resolution ?? 'null'),
             'tmdb_movie'         => json_decode($torrent->json_tmdb_movie ?? 'null'),
             'tmdb_tv'            => json_decode($torrent->json_tmdb_tv ?? 'null'),
+            'book'               => json_decode($torrent->json_book ?? 'null'),
+            'audiobook'          => json_decode($torrent->json_audiobook ?? 'null'),
             'playlists'          => json_decode($torrent->json_playlists ?? '[]'),
             'freeleech_tokens'   => json_decode($torrent->json_freeleech_tokens ?? '[]'),
             'bookmarks'          => json_decode($torrent->json_bookmarks ?? '[]'),

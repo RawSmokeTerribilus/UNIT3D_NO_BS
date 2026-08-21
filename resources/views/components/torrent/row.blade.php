@@ -71,6 +71,27 @@
                     />
                 @endif
 
+                {{--
+                    The cover is read off the torrent's own relation rather
+                    than $meta: in the flat listing $meta is the string that
+                    the CASE in the query produces ('movie', 'book', ...), not
+                    a model, so property access on it silently yields null.
+                --}}
+                @if ($torrent->category->book_meta || $torrent->category->audiobook_meta)
+                    @php
+                        $bookCover = $torrent->category->book_meta
+                            ? $torrent->book?->cover_url
+                            : $torrent->audiobook?->cover_url;
+                    @endphp
+
+                    <img
+                        src="{{ $bookCover ? tmdb_image('poster_small', $bookCover) : 'https://via.placeholder.com/90x135' }}"
+                        class="torrent-search--list__poster-img"
+                        loading="lazy"
+                        alt="{{ __('torrent.similar') }}"
+                    />
+                @endif
+
                 @if ($torrent->category->music_meta)
                     <img
                         src="https://via.placeholder.com/90x135"

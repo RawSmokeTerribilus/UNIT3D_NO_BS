@@ -960,6 +960,10 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/meta-sync', [App\Http\Controllers\Staff\CommandController::class, 'metaSync']);
                 Route::post('/meta-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'metaSyncForce']);
                 Route::post('/meta-rotate-covers', [App\Http\Controllers\Staff\CommandController::class, 'metaRotateCovers']);
+                // Books
+                Route::post('/books-sync', [App\Http\Controllers\Staff\CommandController::class, 'booksSync']);
+                Route::post('/books-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'booksSyncForce']);
+                Route::post('/books-sync-authors', [App\Http\Controllers\Staff\CommandController::class, 'booksSyncAuthors']);
                 Route::post('/warm-art-cache', [App\Http\Controllers\Staff\CommandController::class, 'warmArtCache']);
 
                 // User & Cleanup

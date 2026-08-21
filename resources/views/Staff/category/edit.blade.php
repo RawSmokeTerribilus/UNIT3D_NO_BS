@@ -84,6 +84,16 @@
                         <option class="form__option" value="game" @selected($category->game_meta)>
                             Game metadata
                         </option>
+                        <option class="form__option" value="book" @selected($category->book_meta)>
+                            E-book metadata
+                        </option>
+                        <option
+                            class="form__option"
+                            value="audiobook"
+                            @selected($category->audiobook_meta)
+                        >
+                            Audiobook metadata
+                        </option>
                         <option
                             class="form__option"
                             value="music"

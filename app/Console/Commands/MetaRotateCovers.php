@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\MetadataArtwork;
 use App\Models\TmdbMovie;
 use App\Models\TmdbTv;
@@ -93,6 +95,11 @@ class MetaRotateCovers extends Command
 
         $this->info("Advanced covers for {$rotated} titles (eligible={$eligible}, single-source skipped={$skipped}).");
 
+        // Books keep their pool in a json column rather than in
+        // metadata_artwork: that table is keyed (category, tmdb_id) and a book
+        // has no TMDB id, so a second pass handles them on their own terms.
+        $rotated += $this->rotateBookCovers();
+
         $cacheDeleted = 0;
         if ($rotated > 0) {
             $cacheDeleted = $this->forgetTorrentCaches();
@@ -108,6 +115,56 @@ class MetaRotateCovers extends Command
         ]);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Advance the active cover of every book and audiobook that has more than
+     * one candidate image.
+     *
+     * Worth doing for the same reason as the video pass: a provider silently
+     * dropping an image leaves a permanently broken cover, and rotating means
+     * the next run picks a different one instead of showing the gap forever.
+     */
+    private function rotateBookCovers(): int
+    {
+        $rotated = 0;
+
+        /** @var array<class-string<Book|Audiobook>, string> $sets */
+        $sets = [
+            Book::class      => 'isbn13',
+            Audiobook::class => 'asin',
+        ];
+
+        foreach ($sets as $model => $torrentColumn) {
+            foreach ($model::query()->whereNotNull('cover_urls')->cursor() as $row) {
+                $urls = array_values(array_unique(array_filter($row->cover_urls ?? [])));
+
+                if (\count($urls) < 2) {
+                    continue;   // nothing to rotate between
+                }
+
+                $index = array_search($row->cover_url, $urls, true);
+                $pick = $urls[($index === false ? 0 : (int) $index + 1) % \count($urls)];
+
+                if ($pick === $row->cover_url) {
+                    continue;
+                }
+
+                $row->forceFill(['cover_url' => $pick])->saveQuietly();
+                $rotated++;
+
+                // Same reindex reason as above: the cover lives on the meta
+                // row, so touching it never bumps torrents.updated_at and the
+                // periodic Meilisearch sync would not notice.
+                Torrent::query()->where($torrentColumn, $row->getKey())->searchable();
+            }
+        }
+
+        if ($rotated > 0) {
+            $this->info("Advanced covers for {$rotated} book/audiobook edition(s).");
+        }
+
+        return $rotated;
     }
 
     /**

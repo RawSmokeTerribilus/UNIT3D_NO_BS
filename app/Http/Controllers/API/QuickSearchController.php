@@ -91,6 +91,40 @@ class QuickSearchController extends Controller
                 ->setDistinct('imdb')
         ];
 
+        // Los libros necesitan su propia consulta, no una rama mas en la de
+        // arriba: aquella deduplica por `imdb`, y como ningun libro tiene uno,
+        // todos colapsarian en un unico resultado.
+        if (!$searchById) {
+            $searchQueries[] = (new SearchQuery())
+                ->setIndexUid(config('scout.prefix').'torrents')
+                ->setQuery($query)
+                ->setFilter([
+                    'deleted_at IS NULL',
+                    'status = '.ModerationStatus::APPROVED->value,
+                    [
+                        'category.book_meta = true',
+                        'category.audiobook_meta = true',
+                    ],
+                ])
+                ->setAttributesToRetrieve([
+                    'id',
+                    'name',
+                    'category.id',
+                    'category.name',
+                    'category.book_meta',
+                    'category.audiobook_meta',
+                    'book.title',
+                    'book.authors',
+                    'book.year',
+                    'book.cover',
+                    'audiobook.title',
+                    'audiobook.authors',
+                    'audiobook.narrators',
+                    'audiobook.year',
+                    'audiobook.cover',
+                ]);
+        }
+
         // Add the people search query only if it's not an ID search
         if (!$searchById) {
             $searchQueries[] = (new SearchQuery())
@@ -118,7 +152,29 @@ class QuickSearchController extends Controller
 
         // Process the hits from the multiSearchResults
         foreach ($multiSearchResults['hits'] as $hit) {
-            if ($hit['_federation']['indexUid'] === config('scout.prefix').'torrents') {
+            if (
+                $hit['_federation']['indexUid'] === config('scout.prefix').'torrents'
+                && (($hit['category']['book_meta'] ?? false) || ($hit['category']['audiobook_meta'] ?? false))
+            ) {
+                $isBook = (bool) ($hit['category']['book_meta'] ?? false);
+                $meta = ($isBook ? $hit['book'] : $hit['audiobook']) ?? null;
+                $authors = implode(', ', $meta['authors'] ?? []);
+
+                $results[] = [
+                    'id'   => $hit['id'],
+                    'name' => $meta['title'] ?? $hit['name'],
+                    // El autor ocupa aqui el hueco del anio: identifica una
+                    // edicion mucho mejor que la fecha.
+                    'year' => $authors !== '' ? $authors : ($meta['year'] ?? null),
+                    'image' => ($meta['cover'] ?? null)
+                        ? tmdb_image('poster_small', $meta['cover'])
+                        : mb_substr($meta['title'] ?? $hit['name'], 0, 2),
+                    // No hay ruta de "similares" para libros: se enlaza el
+                    // torrent directamente.
+                    'url'  => route('torrents.show', ['id' => $hit['id']]),
+                    'type' => $hit['category']['name'],
+                ];
+            } elseif ($hit['_federation']['indexUid'] === config('scout.prefix').'torrents') {
                 $type = $hit['category']['movie_meta'] === true ? 'tmdb_movie' : 'tmdb_tv';
 
                 $results[] = [
