@@ -51,7 +51,22 @@
 
             @break
         @case($torrent->category->audiobook_meta)
-            @include('torrent.partials.audiobook-meta', ['category' => $torrent->category, 'meta' => $torrent->audiobook, 'asin' => $torrent->asin])
+            {{-- Mismo patrón que tv_meta cuatro líneas más arriba: si la ficha
+                 propia no existe, se prueba la otra antes de rendirse.
+
+                 Una lectura libre no tiene ASIN, porque la grabación no existe
+                 en ningún catálogo comercial, así que $torrent->audiobook es
+                 null. Pero el libro que se lee sí tiene ISBN y su ficha está
+                 cargada: la portada, la sinopsis y el autor son de la OBRA y no
+                 cambian porque los lea otra voz. Sin esto salía "NO META"
+                 teniendo el dato delante. --}}
+            @if ($torrent->audiobook !== null)
+                @include('torrent.partials.audiobook-meta', ['category' => $torrent->category, 'meta' => $torrent->audiobook, 'asin' => $torrent->asin])
+            @elseif ($torrent->book !== null)
+                @include('torrent.partials.book-meta', ['category' => $torrent->category, 'meta' => $torrent->book, 'isbn13' => $torrent->isbn13])
+            @else
+                @include('torrent.partials.no-meta', ['category' => $torrent->category])
+            @endif
 
             @break
         @default

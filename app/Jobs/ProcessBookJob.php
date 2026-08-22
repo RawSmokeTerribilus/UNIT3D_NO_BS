@@ -153,9 +153,14 @@ class ProcessBookJob implements ShouldQueue
         // duplicada que hacia que la rotacion ensenara dos veces la
         // miniatura-- y un `edge=curl` que le pinta a la portada una esquina
         // doblada falsa.
+        // OpenLibrary sólo entra si de verdad conoce el libro, y eso se sabe
+        // por el `olid`: sin él no ha contestado. Medido sobre cuatro ISBN
+        // españoles reales, los CUATRO dan 404 en la portada y tres de ellos
+        // también en la página. Meterla siempre llenaba el pool de entradas
+        // muertas, y la rotación acababa enseñando una imagen rota.
         $pool = CoverLadder::merge(
             CoverLadder::googleBooks((string) ($candidate->googleVolumeId ?: '')),
-            CoverLadder::openLibrary($isbn13),
+            isset($extra['olid']) ? CoverLadder::openLibrary($isbn13) : [],
         );
 
         // Si ningun proveedor da escalera, al menos que no se pierda lo que
