@@ -71,9 +71,15 @@
                  Refrescar metadata sólo tiene sentido en la primera: en una
                  petición, $torrent->id es de la tabla `requests` y la ruta
                  apuntaría a otro torrent. --}}
-            @if ($isbn13 && $torrent instanceof \App\Models\Torrent && (auth()->user()->group->is_modo || (auth()->id() === $torrent?->user_id && $torrent?->created_at?->gt(now()->subDay()))))
+            {{-- `$torrent ?? null`: este parcial lo incluye también la vista de
+                 similares, que encabeza un GRUPO y no tiene un torrent concreto.
+                 La guarda `instanceof` no salvaba de eso -- una variable
+                 indefinida revienta antes de llegar a comprobarla-- y la página
+                 daba 500. --}}
+            @php($torrentActual = $torrent ?? null)
+            @if ($isbn13 && $torrentActual instanceof \App\Models\Torrent && (auth()->user()->group->is_modo || (auth()->id() === $torrentActual->user_id && $torrentActual->created_at?->gt(now()->subDay()))))
                 <li>
-                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrent->id]) }}" method="post">
+                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrentActual->id]) }}" method="post">
                         @csrf
 
                         <button

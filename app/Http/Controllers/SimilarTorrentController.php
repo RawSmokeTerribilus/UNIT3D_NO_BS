@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Audiobook;
 use App\Models\Book;
 use App\Models\IgdbGame;
 use App\Models\TmdbMovie;
@@ -102,9 +103,22 @@ class SimilarTorrentController extends Controller
 
                 abort_unless($hasTorrents, 404, 'No Similar Torrents Found');
 
-                $meta = Book::with(['genres', 'bookAuthors'])
+                // La ficha de un audiolibro vive en `audiobooks`, no en
+                // `books`: buscarla siempre en la de libros daba 404 en los
+                // que vienen de Audible, que tienen ISBN de obra pero ninguna
+                // fila de libro. Se prueba la propia y se cae a la de la obra,
+                // que es lo mismo que hacen la vista del torrent y el listado.
+                $meta = null;
+
+                if ($category->audiobook_meta) {
+                    $meta = Audiobook::where('isbn13', '=', $isbn13)->first();
+                }
+
+                $meta ??= Book::with(['genres', 'bookAuthors'])
                     ->where('isbn13', '=', $isbn13)
-                    ->firstOrFail();
+                    ->first();
+
+                abort_unless($meta !== null, 404, 'No Similar Torrents Found');
 
                 $isbn = $isbn13;
 

@@ -20,6 +20,7 @@ use App\DTO\TorrentSearchFiltersDTO;
 use App\Models\Category;
 use App\Models\Distributor;
 use App\Models\History;
+use App\Models\Audiobook;
 use App\Models\Book;
 use App\Models\IgdbGame;
 use App\Models\PlaylistCategory;
@@ -48,7 +49,7 @@ class SimilarTorrent extends Component
 
     public Category $category;
 
-    public TmdbMovie|TmdbTv|IgdbGame|Book $work;
+    public TmdbMovie|TmdbTv|IgdbGame|Book|Audiobook $work;
 
     public ?int $tmdbId;
 
@@ -359,6 +360,7 @@ class SimilarTorrent extends Component
                 TmdbTv::class    => self::groupTorrents($torrents)['tv'][$this->tmdbId] ?? [],
                 IgdbGame::class  => self::groupTorrents($torrents)['game'][$this->igdbId]['Game'] ?? [],
                 Book::class      => self::groupTorrents($torrents)['book'][$this->isbn13] ?? [],
+                Audiobook::class => self::groupTorrents($torrents)['book'][$this->isbn13] ?? [],
             };
         }
     }

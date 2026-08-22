@@ -43,8 +43,14 @@
             @include('torrent.partials.game-meta')
 
             @break
-        @case($category->book_meta)
         @case($category->audiobook_meta)
+            {{-- La ficha del grupo puede ser la grabación o la obra, según qué
+                 haya: los de Audible traen Audiobook y una lectura libre, Book. --}}
+            @include($meta instanceof \App\Models\Audiobook ? 'torrent.partials.audiobook-meta' : 'torrent.partials.book-meta',
+                     ['meta' => $meta, 'isbn13' => $isbn13 ?? null, 'asin' => $meta->asin ?? null])
+
+            @break
+        @case($category->book_meta)
             {{-- Un audiolibro también cae aquí: se agrupa por el ISBN de la
                  OBRA, así que la ficha que encabeza el grupo es la del libro y
                  sale junto a su e-book, que es lo que uno espera de
