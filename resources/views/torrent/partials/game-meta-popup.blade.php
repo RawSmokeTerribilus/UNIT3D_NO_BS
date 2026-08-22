@@ -55,7 +55,7 @@
                     <div class="meta__poster-popup-detail">
                         <span class="detail-label">{{ __('torrent.rating') }}</span>
                         <span class="detail-value">
-                            {{ round((float) $meta->rating) }}%
+                            {{ $meta->ratingPercent() }}%
                             ({{ $meta->rating_count ?? 0 }} {{ strtolower(__('torrent.votes')) }})
                         </span>
                     </div>

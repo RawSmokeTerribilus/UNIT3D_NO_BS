@@ -157,8 +157,8 @@
                 <i class="{{ config('other.font-awesome') }} fa-star meta-chip__icon"></i>
                 <h2 class="meta-chip__name">{{ __('torrent.rating') }}</h2>
                 <h3 class="meta-chip__value">
-                    {{ $meta->rating ?? 0 }}% ({{ $meta->rating_count ?? 0 }}
-                    {{ __('torrent.votes') }})
+                    {{ $meta?->ratingPercent() ?? 0 }}% ({{ $meta->rating_count ?? 0 }}
+                    {{ strtolower(__('torrent.votes')) }})
                 </h3>
             </article>
             @isset($meta?->first_video_video_id)
