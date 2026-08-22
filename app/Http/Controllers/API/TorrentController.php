@@ -88,6 +88,8 @@ class TorrentController extends BaseController
                     WHEN category_id IN (SELECT `id` from `categories` where `movie_meta` = 1) THEN 'movie'
                     WHEN category_id IN (SELECT `id` from `categories` where `tv_meta` = 1) THEN 'tv'
                     WHEN category_id IN (SELECT `id` from `categories` where `game_meta` = 1) THEN 'game'
+                    WHEN category_id IN (SELECT `id` from `categories` where `book_meta` = 1) THEN 'book'
+                    WHEN category_id IN (SELECT `id` from `categories` where `audiobook_meta` = 1) THEN 'audiobook'
                     WHEN category_id IN (SELECT `id` from `categories` where `music_meta` = 1) THEN 'music'
                     WHEN category_id IN (SELECT `id` from `categories` where `no_meta` = 1) THEN 'no'
                 END as meta
@@ -552,6 +554,8 @@ class TorrentController extends BaseController
                     WHEN category_id IN (SELECT `id` from `categories` where `movie_meta` = 1) THEN 'movie'
                     WHEN category_id IN (SELECT `id` from `categories` where `tv_meta` = 1) THEN 'tv'
                     WHEN category_id IN (SELECT `id` from `categories` where `game_meta` = 1) THEN 'game'
+                    WHEN category_id IN (SELECT `id` from `categories` where `book_meta` = 1) THEN 'book'
+                    WHEN category_id IN (SELECT `id` from `categories` where `audiobook_meta` = 1) THEN 'audiobook'
                     WHEN category_id IN (SELECT `id` from `categories` where `music_meta` = 1) THEN 'music'
                     WHEN category_id IN (SELECT `id` from `categories` where `no_meta` = 1) THEN 'no'
                 END as meta
@@ -625,6 +629,8 @@ class TorrentController extends BaseController
                         WHEN category_id IN (SELECT `id` from `categories` where `movie_meta` = 1) THEN 'movie'
                         WHEN category_id IN (SELECT `id` from `categories` where `tv_meta` = 1) THEN 'tv'
                         WHEN category_id IN (SELECT `id` from `categories` where `game_meta` = 1) THEN 'game'
+                    WHEN category_id IN (SELECT `id` from `categories` where `book_meta` = 1) THEN 'book'
+                    WHEN category_id IN (SELECT `id` from `categories` where `audiobook_meta` = 1) THEN 'audiobook'
                         WHEN category_id IN (SELECT `id` from `categories` where `music_meta` = 1) THEN 'music'
                         WHEN category_id IN (SELECT `id` from `categories` where `no_meta` = 1) THEN 'no'
                     END as meta

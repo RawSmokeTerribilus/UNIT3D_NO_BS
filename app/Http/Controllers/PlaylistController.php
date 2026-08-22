@@ -108,6 +108,8 @@ class PlaylistController extends Controller
                     WHEN category_id IN (SELECT id from categories where movie_meta = TRUE) THEN 'movie'
                     WHEN category_id IN (SELECT id from categories where tv_meta = TRUE) THEN 'tv'
                     WHEN category_id IN (SELECT id from categories where game_meta = TRUE) THEN 'game'
+                    WHEN category_id IN (SELECT id from categories where book_meta = TRUE) THEN 'book'
+                    WHEN category_id IN (SELECT id from categories where audiobook_meta = TRUE) THEN 'audiobook'
                     WHEN category_id IN (SELECT id from categories where music_meta = TRUE) THEN 'music'
                     WHEN category_id IN (SELECT id from categories where no_meta = TRUE) THEN 'no'
                 END as meta

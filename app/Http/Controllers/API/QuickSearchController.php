@@ -184,7 +184,13 @@ class QuickSearchController extends Controller
                 && (($hit['category']['book_meta'] ?? false) || ($hit['category']['audiobook_meta'] ?? false))
             ) {
                 $isBook = (bool) ($hit['category']['book_meta'] ?? false);
-                $meta = ($isBook ? $hit['book'] : $hit['audiobook']) ?? null;
+
+                // Una lectura libre no tiene grabacion en ningun catalogo
+                // comercial, asi que `audiobook` viene nulo, pero la OBRA que
+                // lee si esta resuelta. Sin esta caida el resultado salia sin
+                // titulo, sin autor y sin portada: el PDF del mismo libro
+                // aparecia y el audiolibro no.
+                $meta = ($isBook ? $hit['book'] : ($hit['audiobook'] ?? $hit['book'])) ?? null;
                 $authors = implode(', ', $meta['authors'] ?? []);
 
                 $results[] = [
