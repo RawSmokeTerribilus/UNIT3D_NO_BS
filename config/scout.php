@@ -172,6 +172,12 @@ return [
                     // el nombre del torrent: buscar un autor que no aparezca
                     // ahi no devuelve nada.
                     'igdb_game.name',
+                    // Estudio, plataforma y genero tambien se buscan por texto:
+                    // «LucasArts» o «Amiga» son formas legitimas de buscar un
+                    // juego y hasta ahora no devolvian nada.
+                    'igdb_game.companies.name',
+                    'igdb_game.platforms.name',
+                    'igdb_game.genres.name',
                     'book.title',
                     'book.authors',
                     'book.subtitle',
@@ -224,6 +230,7 @@ return [
                             'category.id',
                             'category.movie_meta',
                             'category.tv_meta',
+                            'category.game_meta',
                             'category.book_meta',
                             'category.audiobook_meta',
                             'isbn13',
