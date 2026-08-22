@@ -88,7 +88,10 @@
 
                 @if ($torrent->category->book_meta || $torrent->category->audiobook_meta)
                     <img
-                        src="{{ $meta?->cover_url ? tmdb_image('poster_small', $meta->cover_url) : 'https://via.placeholder.com/90x135' }}"
+                        {{-- Se pide un tamaño, no "la portada": esto pinta 90x135
+                             y estaba trayendo la de 2177 px. `coverAtLeast` elige
+                             la más pequeña que llegue al ancho pedido. --}}
+                        src="{{ $meta?->cover_url ? tmdb_image('poster_small', method_exists($meta, 'coverAtLeast') ? ($meta->coverAtLeast(300) ?? $meta->cover_url) : $meta->cover_url) : 'https://via.placeholder.com/90x135' }}"
                         class="torrent-search--list__poster-img"
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"

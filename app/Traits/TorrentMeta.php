@@ -45,13 +45,20 @@ trait TorrentMeta
             $movieIds = collect($torrents->items())->where('meta', '=', 'movie')->pluck('tmdb_movie_id');
             $tvIds = collect($torrents->items())->where('meta', '=', 'tv')->pluck('tmdb_tv_id');
             $gameIds = collect($torrents->items())->where('meta', '=', 'game')->pluck('igdb');
-            $isbn13s = collect($torrents->items())->where('meta', '=', 'book')->pluck('isbn13');
+            // El ISBN se recoge también de los audiolibros, no sólo de los
+            // libros: una lectura libre no tiene ASIN --no existe en ningún
+            // catálogo comercial-- pero sí el ISBN de la obra que lee, y sin
+            // esto su fila no entraba en la consulta y el listado le pintaba
+            // el marcador de "sin imagen".
+            $isbn13s = collect($torrents->items())
+                ->whereIn('meta', ['book', 'audiobook'])
+                ->pluck('isbn13');
             $asins = collect($torrents->items())->where('meta', '=', 'audiobook')->pluck('asin');
         } else {
             $movieIds = $torrents->where('meta', '=', 'movie')->pluck('tmdb_movie_id');
             $tvIds = $torrents->where('meta', '=', 'tv')->pluck('tmdb_tv_id');
             $gameIds = $torrents->where('meta', '=', 'game')->pluck('igdb');
-            $isbn13s = $torrents->where('meta', '=', 'book')->pluck('isbn13');
+            $isbn13s = $torrents->whereIn('meta', ['book', 'audiobook'])->pluck('isbn13');
             $asins = $torrents->where('meta', '=', 'audiobook')->pluck('asin');
         }
 
@@ -102,7 +109,11 @@ trait TorrentMeta
                     'tv'        => $tv[$torrent->tmdb_tv_id] ?? null,
                     'game'      => $games[$torrent->igdb] ?? null,
                     'book'      => $books[$torrent->isbn13] ?? null,
-                    'audiobook' => $audiobooks[$torrent->asin] ?? null,
+                    // Si la grabación no está, se cae a la obra. Mismo criterio
+                    // que la ficha y que la vista del torrent: la portada es
+                    // del LIBRO y no cambia porque la lea otra voz.
+                    'audiobook' => $audiobooks[$torrent->asin]
+                        ?? ($books[$torrent->isbn13] ?? null),
                     default     => null,
                 },
             );
