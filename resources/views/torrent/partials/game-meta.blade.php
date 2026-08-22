@@ -1,5 +1,10 @@
 <section class="meta">
-    @if (isset($meta) && $meta->artworks)
+    {{-- Comprobaba $meta->artworks, que no existe en IgdbGame: la columna es
+         first_artwork_image_id y no hay ninguna relacion `artworks`. Eloquent
+         devuelve null en silencio para un atributo inexistente, asi que la
+         condicion era siempre falsa y el banner NUNCA se pintaba, aunque el
+         scraper lleve la imagen guardada desde el primer dia. --}}
+    @if ($meta?->first_artwork_image_id)
         <img
             class="meta__backdrop"
             src="https://images.igdb.com/igdb/image/upload/t_screenshot_big/{{ $meta->first_artwork_image_id }}.jpg"
