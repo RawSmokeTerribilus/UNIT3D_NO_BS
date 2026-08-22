@@ -46,4 +46,20 @@ return [
         'reply_cooldown_seconds' => env('TELEGRAM_REPLY_COOLDOWN_SECONDS', 120),
         'news_bot_id'           => env('TELEGRAM_NEWS_BOT_ID'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | LibreTranslate
+    |--------------------------------------------------------------------------
+    |
+    | Traductor local para las sinopsis que los proveedores sólo sirven en
+    | inglés. Escucha únicamente en el loopback y no tiene autenticación, así
+    | que la URL nunca debe apuntar fuera de esta máquina.
+    |
+    */
+
+    'libretranslate' => [
+        'url' => env('LIBRETRANSLATE_URL', ''),
+    ],
+
 ];

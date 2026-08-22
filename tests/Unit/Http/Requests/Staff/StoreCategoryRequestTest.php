@@ -45,7 +45,7 @@ test('rules', function (): void {
         'meta' => [
             'required',
             'string',
-            'in:movie,tv,game,music,no',
+            'in:movie,tv,game,book,audiobook,music,no',
             'exclude',
         ],
         'image' => [

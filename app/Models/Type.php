@@ -38,6 +38,18 @@ final class Type extends Model
     use HasFactory;
 
     /**
+     * La lista se cachea 1 h fresca / 2 h rancia en los buscadores
+     * (TorrentSearch, TorrentRequestSearch, SimilarTorrent) y nada la
+     * invalidaba: crear una tipo por el panel no aparecia en la busqueda
+     * avanzada hasta dos horas despues, que parece que esta rota.
+     */
+    protected static function booted(): void
+    {
+        static::saved(static fn () => cache()->forget('types'));
+        static::deleted(static fn () => cache()->forget('types'));
+    }
+
+    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool

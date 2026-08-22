@@ -404,6 +404,32 @@ class CommandController extends Controller
     }
 
     /**
+     * Backfill book and audiobook metadata for torrents that carry an ISBN or
+     * an ASIN but have no metadata row yet.
+     */
+    public function booksSync(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('books:sync', ['--limit' => 15]);
+    }
+
+    /**
+     * Re-fetch the metadata of a bounded batch of book ids that already have a
+     * row, so a provider correction upstream reaches this catalogue.
+     */
+    public function booksSyncForce(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('books:sync', ['--force' => true, '--limit' => 15]);
+    }
+
+    /**
+     * Cachea las fichas de autor (foto, biografia, fechas) que faltan.
+     */
+    public function booksSyncAuthors(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('books:sync-authors', ['--limit' => 10]);
+    }
+
+    /**
      * Pre-warm the art-proxy image cache — full backfill, detached background process.
      *
      * The full sweep runs far past the queue worker's 300s timeout, so it can't

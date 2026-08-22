@@ -17,7 +17,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers\MediaHub;
 
 use App\Http\Controllers\Controller;
+use App\Models\Audiobook;
+use App\Models\Book;
+use App\Models\BookAuthor;
+use App\Models\BookGenre;
+use App\Models\BookNarrator;
+use App\Models\BookPublisher;
+use App\Models\BookSeries;
 use App\Models\Category;
+use App\Models\IgdbCompany;
+use App\Models\IgdbGame;
+use App\Models\IgdbGenre;
+use App\Models\IgdbPlatform;
 use App\Models\TmdbCollection;
 use App\Models\TmdbCompany;
 use App\Models\TmdbGenre;
@@ -43,6 +54,25 @@ class HomeController extends Controller
             'genres'           => TmdbGenre::count(),
             'networks'         => TmdbNetwork::count(),
             'companies'        => TmdbCompany::count(),
+            // Catalogo de libros. Los cuatro catalogos compartidos cuentan
+            // ebooks y audiolibros juntos, asi que no se desglosan aqui: el
+            // desglose por formato lo hace cada tarjeta de su hub.
+            'books'                => Book::count(),
+            'audiobooks'           => Audiobook::count(),
+            'bookCategoryIds'      => Category::where('book_meta', '=', 1)->pluck('id')->toArray(),
+            'audiobookCategoryIds' => Category::where('audiobook_meta', '=', 1)->pluck('id')->toArray(),
+            'authors'              => BookAuthor::count(),
+            'narrators'            => BookNarrator::count(),
+            'bookGenres'           => BookGenre::count(),
+            'publishers'           => BookPublisher::count(),
+            'bookSeries'           => BookSeries::count(),
+            // Catalogo de juegos. Lleva en la base desde 2025 sin una sola
+            // vista que lo enseñara.
+            'games'           => IgdbGame::count(),
+            'gameCategoryIds' => Category::where('game_meta', '=', 1)->pluck('id')->toArray(),
+            'gameGenres'      => IgdbGenre::count(),
+            'platforms'       => IgdbPlatform::count(),
+            'gameCompanies'   => IgdbCompany::count(),
         ]);
     }
 }

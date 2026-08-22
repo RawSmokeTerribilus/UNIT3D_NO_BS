@@ -19,6 +19,10 @@ class EnforceSecurityRequirements
         'testcunyat',
         'OcbSmoke',
         'Marpava',
+        // Invitada el 2026-08-21. Ya tiene 2FA; el bloqueo era el requisito
+        // de Telegram, y su cuenta de TG ya esta en el grupo de NOBS, no en
+        // el de staging.
+        'NoSoyAni',
     ];
 
     /**

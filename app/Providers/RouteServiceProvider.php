@@ -96,6 +96,13 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for(GlobalRateLimit::TMDB, fn (): Limit => Limit::perSecond(2));
         RateLimiter::for(GlobalRateLimit::IGDB, fn (): Limit => Limit::perSecond(2));
         RateLimiter::for(GlobalRateLimit::MAL, fn (): Limit => Limit::perSecond(1));
+        // Google Books allows 1000 requests a day on the free tier, so a
+        // backfill is paced by the day's budget rather than by the second.
+        RateLimiter::for(GlobalRateLimit::GOOGLE_BOOKS, fn (): Limit => Limit::perSecond(1));
+        // Audnexus documents roughly 100 requests a minute per origin.
+        RateLimiter::for(GlobalRateLimit::AUDNEX, fn (): Limit => Limit::perMinute(90));
+        // OpenLibrary publishes no limit and only ever runs as enrichment.
+        RateLimiter::for(GlobalRateLimit::OPENLIBRARY, fn (): Limit => Limit::perSecond(1));
         RateLimiter::for(GlobalRateLimit::FORGOT_PASSWORD, fn (Request $request) => Limit::perMinute(5)->by('forgot-password'.$request->ip()));
         RateLimiter::for(GlobalRateLimit::RESET_PASSWORD, fn (Request $request) => Limit::perMinute(5)->by('reset-password'.$request->ip()));
     }

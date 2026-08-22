@@ -172,6 +172,8 @@ final class Torrent extends Model
             torrents.tmdb_tv_id,
             torrents.mal,
             torrents.igdb,
+            torrents.isbn13,
+            torrents.asin,
             torrents.season_number,
             torrents.episode_number,
             torrents.free,
@@ -265,7 +267,9 @@ final class Torrent extends Model
                     'music_meta', categories.music_meta != 0,
                     'game_meta', categories.game_meta != 0,
                     'tv_meta', categories.tv_meta != 0,
-                    'movie_meta', categories.movie_meta != 0
+                    'movie_meta', categories.movie_meta != 0,
+                    'book_meta', categories.book_meta != 0,
+                    'audiobook_meta', categories.audiobook_meta != 0
                 )
                 FROM categories
                 WHERE torrents.category_id = categories.id
@@ -379,6 +383,164 @@ final class Torrent extends Model
                     )
                 LIMIT 1
             ) AS json_tmdb_movie,
+            (
+                SELECT JSON_OBJECT(
+                    'id', igdb_games.id,
+                    'name', igdb_games.name,
+                    'year', YEAR(igdb_games.first_release_date),
+                    'cover', igdb_games.cover_image_id,
+                    'artwork', igdb_games.first_artwork_image_id,
+                    'rating', igdb_games.rating,
+                    'genres', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', igdb_genres.id,
+                            'name', igdb_genres.name
+                        )), JSON_ARRAY())
+                        FROM igdb_genres
+                        WHERE igdb_genres.id IN (
+                            SELECT igdb_genre_id
+                            FROM igdb_game_igdb_genre
+                            WHERE igdb_game_igdb_genre.igdb_game_id = torrents.igdb
+                        )
+                    ),
+                    'platforms', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', igdb_platforms.id,
+                            'name', igdb_platforms.name
+                        )), JSON_ARRAY())
+                        FROM igdb_platforms
+                        WHERE igdb_platforms.id IN (
+                            SELECT igdb_platform_id
+                            FROM igdb_game_igdb_platform
+                            WHERE igdb_game_igdb_platform.igdb_game_id = torrents.igdb
+                        )
+                    ),
+                    'companies', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', igdb_companies.id,
+                            'name', igdb_companies.name
+                        )), JSON_ARRAY())
+                        FROM igdb_companies
+                        WHERE igdb_companies.id IN (
+                            SELECT igdb_company_id
+                            FROM igdb_company_igdb_game
+                            WHERE igdb_company_igdb_game.igdb_game_id = torrents.igdb
+                        )
+                    )
+                )
+                FROM igdb_games
+                WHERE torrents.igdb = igdb_games.id
+                    AND torrents.category_id in (
+                        SELECT id
+                        FROM categories
+                        WHERE game_meta = 1
+                    )
+                LIMIT 1
+            ) AS json_igdb_game,
+            (
+                SELECT JSON_OBJECT(
+                    'isbn13', books.isbn13,
+                    'title', books.title,
+                    'subtitle', books.subtitle,
+                    'authors', books.authors,
+                    'year', books.first_publish_year,
+                    'publisher', books.publisher,
+                    'publisher_id', books.book_publisher_id,
+                    'series_id', books.book_series_id,
+                    'cover', books.cover_url,
+                    'genres', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', book_genres.id,
+                            'name', book_genres.name
+                        )), JSON_ARRAY())
+                        FROM book_genres
+                        WHERE book_genres.id IN (
+                            SELECT book_genre_id
+                            FROM book_genre
+                            WHERE book_genre.isbn13 = torrents.isbn13
+                        )
+                    ),
+                    'people', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'olid', book_authors.olid,
+                            'name', book_authors.name
+                        )), JSON_ARRAY())
+                        FROM book_authors
+                        WHERE book_authors.olid IN (
+                            SELECT author_olid
+                            FROM book_author
+                            WHERE book_author.isbn13 = torrents.isbn13
+                        )
+                    )
+                )
+                FROM books
+                WHERE torrents.isbn13 = books.isbn13
+                    AND torrents.category_id in (
+                        SELECT id
+                        FROM categories
+                        WHERE book_meta = 1
+                    )
+                LIMIT 1
+            ) AS json_book,
+            (
+                SELECT JSON_OBJECT(
+                    'asin', audiobooks.asin,
+                    'title', audiobooks.title,
+                    'subtitle', audiobooks.subtitle,
+                    'authors', audiobooks.authors,
+                    'narrators', audiobooks.narrators,
+                    'year', YEAR(audiobooks.release_date),
+                    'publisher', audiobooks.publisher,
+                    'publisher_id', audiobooks.book_publisher_id,
+                    'series_id', audiobooks.book_series_id,
+                    'runtime_length_min', audiobooks.runtime_length_min,
+                    'cover', audiobooks.cover_url,
+                    'genres_resolved', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', book_genres.id,
+                            'name', book_genres.name
+                        )), JSON_ARRAY())
+                        FROM book_genres
+                        WHERE book_genres.id IN (
+                            SELECT book_genre_id
+                            FROM audiobook_genre
+                            WHERE audiobook_genre.asin = torrents.asin
+                        )
+                    ),
+                    'people', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'olid', book_authors.olid,
+                            'name', book_authors.name
+                        )), JSON_ARRAY())
+                        FROM book_authors
+                        WHERE book_authors.olid IN (
+                            SELECT author_olid
+                            FROM audiobook_author
+                            WHERE audiobook_author.asin = torrents.asin
+                        )
+                    ),
+                    'voices', (
+                        SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
+                            'id', book_narrators.id,
+                            'name', book_narrators.name
+                        )), JSON_ARRAY())
+                        FROM book_narrators
+                        WHERE book_narrators.id IN (
+                            SELECT book_narrator_id
+                            FROM audiobook_narrator
+                            WHERE audiobook_narrator.asin = torrents.asin
+                        )
+                    )
+                )
+                FROM audiobooks
+                WHERE torrents.asin = audiobooks.asin
+                    AND torrents.category_id in (
+                        SELECT id
+                        FROM categories
+                        WHERE audiobook_meta = 1
+                    )
+                LIMIT 1
+            ) AS json_audiobook,
             (
                 SELECT JSON_OBJECT(
                     'id', tmdb_tv.id,
@@ -579,6 +741,29 @@ final class Torrent extends Model
     public function malAnime(): BelongsTo
     {
         return $this->belongsTo(\App\Models\MalAnime::class, 'mal');
+    }
+
+    /**
+     * Get the e-book edition associated with the torrent.
+     *
+     * Both sides are keyed by the ISBN-13, so the local and foreign key have
+     * to be named explicitly — Eloquent would otherwise look for books.id.
+     *
+     * @return BelongsTo<Book, $this>
+     */
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class, 'isbn13', 'isbn13');
+    }
+
+    /**
+     * Get the audiobook recording associated with the torrent.
+     *
+     * @return BelongsTo<Audiobook, $this>
+     */
+    public function audiobook(): BelongsTo
+    {
+        return $this->belongsTo(Audiobook::class, 'asin', 'asin');
     }
 
     /**
@@ -842,6 +1027,8 @@ final class Torrent extends Model
             'tmdb_tv_id',
             'mal',
             'igdb',
+            'isbn13',
+            'asin',
             'season_number',
             'episode_number',
             'free',
@@ -866,6 +1053,9 @@ final class Torrent extends Model
             'json_resolution',
             'json_tmdb_movie',
             'json_tmdb_tv',
+            'json_igdb_game',
+            'json_book',
+            'json_audiobook',
             'json_playlists',
             'json_freeleech_tokens',
             'json_bookmarks',
@@ -913,6 +1103,8 @@ final class Torrent extends Model
             'tmdb_tv_id'         => $torrent->tmdb_tv_id,
             'mal'                => $torrent->mal,
             'igdb'               => $torrent->igdb,
+            'isbn13'             => $torrent->isbn13,
+            'asin'               => $torrent->asin,
             'season_number'      => $torrent->season_number,
             'episode_number'     => $torrent->episode_number,
             'free'               => $torrent->free,
@@ -937,6 +1129,9 @@ final class Torrent extends Model
             'resolution'         => json_decode($torrent->json_resolution ?? 'null'),
             'tmdb_movie'         => json_decode($torrent->json_tmdb_movie ?? 'null'),
             'tmdb_tv'            => json_decode($torrent->json_tmdb_tv ?? 'null'),
+            'igdb_game'          => json_decode($torrent->json_igdb_game ?? 'null'),
+            'book'               => json_decode($torrent->json_book ?? 'null'),
+            'audiobook'          => json_decode($torrent->json_audiobook ?? 'null'),
             'playlists'          => json_decode($torrent->json_playlists ?? '[]'),
             'freeleech_tokens'   => json_decode($torrent->json_freeleech_tokens ?? '[]'),
             'bookmarks'          => json_decode($torrent->json_bookmarks ?? '[]'),

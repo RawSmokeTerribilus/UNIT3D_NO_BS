@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 82" role="img" aria-label="Open Library">
+  <rect width="190" height="82" rx="14" fill="#e1dcc5"/>
+  <path d="M20 58V26c10-5 22-5 30 1v32c-8-6-20-6-30-1z" fill="#1f1f1f"/>
+  <path d="M80 58V27c-10-6-22-6-30 0v32c8-6 20-6 30-1z" fill="#1f1f1f" opacity=".72"/>
+  <text x="92" y="46" font-family="Georgia,serif" font-size="20" font-weight="700" fill="#1f1f1f">Open</text>
+  <text x="92" y="66" font-family="Georgia,serif" font-size="20" fill="#1f1f1f" opacity=".85">Library</text>
+</svg>

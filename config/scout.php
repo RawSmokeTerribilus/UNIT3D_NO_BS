@@ -168,6 +168,22 @@ return [
                     'tmdb_tv.name',
                     'tmdb_movie.year',
                     'tmdb_tv.year',
+                    // Sin esto, un libro solo se encuentra por lo que ponga en
+                    // el nombre del torrent: buscar un autor que no aparezca
+                    // ahi no devuelve nada.
+                    'igdb_game.name',
+                    // Estudio, plataforma y genero tambien se buscan por texto:
+                    // «LucasArts» o «Amiga» son formas legitimas de buscar un
+                    // juego y hasta ahora no devolvian nada.
+                    'igdb_game.companies.name',
+                    'igdb_game.platforms.name',
+                    'igdb_game.genres.name',
+                    'book.title',
+                    'book.authors',
+                    'book.subtitle',
+                    'audiobook.title',
+                    'audiobook.authors',
+                    'audiobook.narrators',
                     'type.name',
                     'resolution.name',
                 ],
@@ -214,6 +230,31 @@ return [
                             'category.id',
                             'category.movie_meta',
                             'category.tv_meta',
+                            'category.game_meta',
+                            'category.book_meta',
+                            'category.audiobook_meta',
+                            'isbn13',
+                            'asin',
+                            // Catalogo de juegos. El indice solo llevaba el id
+                            // numerico `igdb`, sin titulo ni portada, asi que
+                            // Meilisearch no sabia nada de un juego.
+                            'igdb_game.id',
+                            'igdb_game.genres.id',
+                            'igdb_game.platforms.id',
+                            'igdb_game.companies.id',
+                            // Los ids del catalogo de libros. Sin ellos, los
+                            // enlaces del MediaHub solo funcionarian con el
+                            // driver SQL, que esta reservado a staff: un
+                            // miembro normal busca por Meilisearch.
+                            'book.genres.id',
+                            'book.people.olid',
+                            'book.publisher_id',
+                            'book.series_id',
+                            'audiobook.genres_resolved.id',
+                            'audiobook.people.olid',
+                            'audiobook.voices.id',
+                            'audiobook.publisher_id',
+                            'audiobook.series_id',
                             'type.id',
                             'resolution.id',
                             'tmdb_movie.id',

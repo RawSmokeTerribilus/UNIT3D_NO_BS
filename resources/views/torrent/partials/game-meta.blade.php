@@ -1,5 +1,10 @@
 <section class="meta">
-    @if (isset($meta) && $meta->artworks)
+    {{-- Comprobaba $meta->artworks, que no existe en IgdbGame: la columna es
+         first_artwork_image_id y no hay ninguna relacion `artworks`. Eloquent
+         devuelve null en silencio para un atributo inexistente, asi que la
+         condicion era siempre falsa y el banner NUNCA se pintaba, aunque el
+         scraper lleve la imagen guardada desde el primer dia. --}}
+    @if ($meta?->first_artwork_image_id)
         <img
             class="meta__backdrop"
             src="https://images.igdb.com/igdb/image/upload/t_screenshot_big/{{ $meta->first_artwork_image_id }}.jpg"
@@ -152,8 +157,8 @@
                 <i class="{{ config('other.font-awesome') }} fa-star meta-chip__icon"></i>
                 <h2 class="meta-chip__name">{{ __('torrent.rating') }}</h2>
                 <h3 class="meta-chip__value">
-                    {{ $meta->rating ?? 0 }}% ({{ $meta->rating_count ?? 0 }}
-                    {{ __('torrent.votes') }})
+                    {{ $meta?->ratingPercent() ?? 0 }}% ({{ $meta->rating_count ?? 0 }}
+                    {{ strtolower(__('torrent.votes')) }})
                 </h3>
             </article>
             @isset($meta?->first_video_video_id)

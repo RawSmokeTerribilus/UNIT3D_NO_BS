@@ -47,10 +47,13 @@ class ArtImageProxyController extends Controller
      */
     public const array HOSTS = [
         'image.tmdb.org',
-        'm.media-amazon.com',
+        'm.media-amazon.com',      // TMDB/OMDb stills, and every Audnexus audiobook cover
         'static.tvmaze.com',
         'cdn.myanimelist.net',
         's4.anilist.co',
+        'covers.openlibrary.org',  // e-book covers, when OpenLibrary has the edition
+        'books.google.com',        // e-book covers, the usual source for Spanish editions
+        'books.googleusercontent.com',
     ];
 
     /**

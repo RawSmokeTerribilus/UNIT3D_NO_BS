@@ -27,7 +27,14 @@
         title="Pick an icon"
         x-on:click="toggle()"
     >
-        <i x-bind:class="$refs.field.value.trim() === '' ? 'fas fa-icons' : $refs.field.value"></i>
+        {{--
+            Solo se usa el valor del campo si PARECE una clase de FontAwesome.
+            Comprobar unicamente la cadena vacia no bastaba: el valor por
+            defecto de una categoria nueva es literalmente "none", que produce
+            <i class="none"> y no dibuja ningun glifo. El boton seguia ahi pero
+            vacio, o sea invisible justo cuando mas falta hace el selector.
+        --}}
+        <i x-bind:class="$refs.field.value.includes('fa-') ? $refs.field.value.trim() : 'fas fa-icons'"></i>
     </button>
     <span class="icon-picker__panel" x-cloak x-show="isOpen">
         <span class="icon-picker__search">

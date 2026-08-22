@@ -140,6 +140,7 @@ return [
     'next' => 'Siguiente',
     'no' => 'No',
     'no-comments' => 'Aún no hay comentarios',
+    'no-meta-found' => 'Sin metadatos',
     'no-result' => 'No hay resultados en la base de datos para la consulta',
     'notifications' => 'Notificaciones',
     'older-than' => 'Más antiguo que',

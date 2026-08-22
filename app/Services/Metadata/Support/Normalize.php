@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Metadata\Support;
 
+use Normalizer;
+
 /**
  * Text and id normalisation helpers for the metadata consensus resolver.
  *
@@ -14,7 +16,18 @@ namespace App\Services\Metadata\Support;
 final class Normalize
 {
     /**
-     * Lowercase, drop punctuation, collapse whitespace.
+     * Lowercase, fold diacritics, drop punctuation, collapse whitespace.
+     *
+     * The diacritic fold has to happen before the ascii-only character class,
+     * or every accented letter becomes a word break: "limites" came out of
+     * "l\u{ed}mites" as "l mites", and "ca\u{f1}\u{f3}n" collapsed to "ca n",
+     * losing two characters outright. That systematically penalised the
+     * correct match in a Spanish-language catalogue, which is most of what
+     * this resolver sees. Same defect, and same fix, as _norm() in
+     * RawLoadrr's id_resolver.py.
+     *
+     * iconv's //TRANSLIT is not usable here: it renders "l\u{ed}mites
+     * ca\u{f1}\u{f3}n" as "l'imites ca~n'on", inventing punctuation.
      */
     public static function text(?string $s): string
     {
@@ -22,9 +35,25 @@ final class Normalize
             return '';
         }
 
-        $s = preg_replace('/[^0-9a-z]+/', ' ', mb_strtolower($s)) ?? '';
+        $s = mb_strtolower($s);
 
-        return trim(preg_replace('/\s+/', ' ', $s) ?? '');
+        if (class_exists(Normalizer::class)) {
+            $decomposed = Normalizer::normalize($s, Normalizer::FORM_KD);
+
+            if (\is_string($decomposed)) {
+                // Drop the combining marks left behind by the decomposition.
+                $stripped = preg_replace('/\p{Mn}+/u', '', $decomposed);
+
+                if (\is_string($stripped)) {
+                    $s = $stripped;
+                }
+            }
+        }
+
+        $ascii = preg_replace('/[^0-9a-z]+/', ' ', $s);
+        $collapsed = preg_replace('/\s+/', ' ', \is_string($ascii) ? $ascii : '');
+
+        return trim(\is_string($collapsed) ? $collapsed : '');
     }
 
     /**

@@ -91,6 +91,67 @@ class QuickSearchController extends Controller
                 ->setDistinct('imdb')
         ];
 
+        // Los libros necesitan su propia consulta, no una rama mas en la de
+        // arriba: aquella deduplica por `imdb`, y como ningun libro tiene uno,
+        // todos colapsarian en un unico resultado.
+        if (!$searchById) {
+            $searchQueries[] = (new SearchQuery())
+                ->setIndexUid(config('scout.prefix').'torrents')
+                ->setQuery($query)
+                ->setFilter([
+                    'deleted_at IS NULL',
+                    'status = '.ModerationStatus::APPROVED->value,
+                    [
+                        'category.book_meta = true',
+                        'category.audiobook_meta = true',
+                    ],
+                ])
+                ->setAttributesToRetrieve([
+                    'id',
+                    'name',
+                    'category.id',
+                    'category.name',
+                    'category.book_meta',
+                    'category.audiobook_meta',
+                    'book.title',
+                    'book.authors',
+                    'book.year',
+                    'book.cover',
+                    'audiobook.title',
+                    'audiobook.authors',
+                    'audiobook.narrators',
+                    'audiobook.year',
+                    'audiobook.cover',
+                ]);
+        }
+
+        // Los juegos, como los libros, necesitan su propia consulta: la
+        // principal deduplica por `imdb` y ningun juego tiene uno, asi que
+        // todos colapsarian en un unico resultado. Hasta ahora no tenian
+        // ninguna, o sea que la busqueda rapida JAMAS devolvia un juego.
+        if (!$searchById) {
+            $searchQueries[] = (new SearchQuery())
+                ->setIndexUid(config('scout.prefix').'torrents')
+                ->setQuery($query)
+                ->setFilter([
+                    'deleted_at IS NULL',
+                    'status = '.ModerationStatus::APPROVED->value,
+                    'category.game_meta = true',
+                ])
+                ->setAttributesToRetrieve([
+                    'id',
+                    'name',
+                    'igdb',
+                    'category.id',
+                    'category.name',
+                    'category.game_meta',
+                    'igdb_game.name',
+                    'igdb_game.year',
+                    'igdb_game.cover',
+                    'igdb_game.platforms',
+                ]);
+        }
+
         // Add the people search query only if it's not an ID search
         if (!$searchById) {
             $searchQueries[] = (new SearchQuery())
@@ -118,7 +179,51 @@ class QuickSearchController extends Controller
 
         // Process the hits from the multiSearchResults
         foreach ($multiSearchResults['hits'] as $hit) {
-            if ($hit['_federation']['indexUid'] === config('scout.prefix').'torrents') {
+            if (
+                $hit['_federation']['indexUid'] === config('scout.prefix').'torrents'
+                && (($hit['category']['book_meta'] ?? false) || ($hit['category']['audiobook_meta'] ?? false))
+            ) {
+                $isBook = (bool) ($hit['category']['book_meta'] ?? false);
+                $meta = ($isBook ? $hit['book'] : $hit['audiobook']) ?? null;
+                $authors = implode(', ', $meta['authors'] ?? []);
+
+                $results[] = [
+                    'id'   => $hit['id'],
+                    'name' => $meta['title'] ?? $hit['name'],
+                    // El autor ocupa aqui el hueco del anio: identifica una
+                    // edicion mucho mejor que la fecha.
+                    'year'  => $authors !== '' ? $authors : ($meta['year'] ?? null),
+                    'image' => ($meta['cover'] ?? null)
+                        ? tmdb_image('poster_small', $meta['cover'])
+                        : mb_substr($meta['title'] ?? $hit['name'], 0, 2),
+                    // No hay ruta de "similares" para libros: se enlaza el
+                    // torrent directamente.
+                    'url'  => route('torrents.show', ['id' => $hit['id']]),
+                    'type' => $hit['category']['name'],
+                ];
+            } elseif (
+                $hit['_federation']['indexUid'] === config('scout.prefix').'torrents'
+                && ($hit['category']['game_meta'] ?? false)
+            ) {
+                $juego = $hit['igdb_game'] ?? null;
+                $plataformas = implode(', ', array_column($juego['platforms'] ?? [], 'name'));
+
+                $results[] = [
+                    'id'   => $hit['id'],
+                    'name' => $juego['name'] ?? $hit['name'],
+                    // La plataforma identifica una copia mejor que el anio, que
+                    // es el mismo para todas las ediciones de un juego.
+                    'year'  => $plataformas !== '' ? $plataformas : ($juego['year'] ?? null),
+                    'image' => ($juego['cover'] ?? null)
+                        ? 'https://images.igdb.com/igdb/image/upload/t_cover_small/'.$juego['cover'].'.jpg'
+                        : mb_substr($juego['name'] ?? $hit['name'], 0, 2),
+                    // Los juegos SI tienen ruta de similares, por id de IGDB.
+                    'url' => $hit['igdb']
+                        ? route('torrents.similar', ['category_id' => $hit['category']['id'], 'tmdb' => $hit['igdb']])
+                        : route('torrents.show', ['id' => $hit['id']]),
+                    'type' => $hit['category']['name'],
+                ];
+            } elseif ($hit['_federation']['indexUid'] === config('scout.prefix').'torrents') {
                 $type = $hit['category']['movie_meta'] === true ? 'tmdb_movie' : 'tmdb_tv';
 
                 $results[] = [

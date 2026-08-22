@@ -18,6 +18,7 @@ namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
 use App\Services\Igdb\IgdbClient;
+use Carbon\Carbon;
 use App\Models\IgdbCompany;
 use App\Models\IgdbGame;
 use App\Models\IgdbGenre;
@@ -77,12 +78,20 @@ class ProcessIgdbGameJob implements ShouldQueue
             throw new RuntimeException('IGDB returned no game for id '.$this->id);
         }
 
+        // IGDB entrega la fecha como epoch Unix y upsert() NO pasa por los casts
+        // de Eloquent: es un insert de query builder. MySQL recibia el entero
+        // para una columna `timestamp` y lo colapsaba a 0000-00-00 00:00:00,
+        // asi que TODOS los juegos scrapeados salian sin anio.
+        $releaseDate = isset($fetchedGame['first_release_date'])
+            ? Carbon::createFromTimestamp($fetchedGame['first_release_date'])
+            : null;
+
         IgdbGame::query()->upsert([[
             'id'                     => $this->id,
             'name'                   => $fetchedGame['name'] ?? null,
             'summary'                => $fetchedGame['summary'] ?? '',
             'first_artwork_image_id' => $fetchedGame['artworks'][0]['image_id'] ?? null,
-            'first_release_date'     => $fetchedGame['first_release_date'] ?? null,
+            'first_release_date'     => $releaseDate,
             'cover_image_id'         => $fetchedGame['cover']['image_id'] ?? null,
             'url'                    => $fetchedGame['url'] ?? null,
             'rating'                 => $fetchedGame['rating'] ?? null,

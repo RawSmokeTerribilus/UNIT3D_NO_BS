@@ -65,11 +65,13 @@ class CategoryController extends Controller
 
         Category::create([
             'image'      => $filename ?? null,
-            'no_meta'    => $request->meta === 'no',
-            'music_meta' => $request->meta === 'music',
-            'game_meta'  => $request->meta === 'game',
-            'tv_meta'    => $request->meta === 'tv',
-            'movie_meta' => $request->meta === 'movie',
+            'no_meta'        => $request->meta === 'no',
+            'music_meta'     => $request->meta === 'music',
+            'game_meta'      => $request->meta === 'game',
+            'tv_meta'        => $request->meta === 'tv',
+            'movie_meta'     => $request->meta === 'movie',
+            'book_meta'      => $request->meta === 'book',
+            'audiobook_meta' => $request->meta === 'audiobook',
         ] + $request->validated());
 
         return to_route('staff.categories.index')
@@ -110,11 +112,13 @@ class CategoryController extends Controller
         // other edit.
         $category->update([
             'image'      => $filename ?? $category->image,
-            'no_meta'    => $request->meta === 'no',
-            'music_meta' => $request->meta === 'music',
-            'game_meta'  => $request->meta === 'game',
-            'tv_meta'    => $request->meta === 'tv',
-            'movie_meta' => $request->meta === 'movie',
+            'no_meta'        => $request->meta === 'no',
+            'music_meta'     => $request->meta === 'music',
+            'game_meta'      => $request->meta === 'game',
+            'tv_meta'        => $request->meta === 'tv',
+            'movie_meta'     => $request->meta === 'movie',
+            'book_meta'      => $request->meta === 'book',
+            'audiobook_meta' => $request->meta === 'audiobook',
         ] + $request->validated());
 
         return to_route('staff.categories.index')

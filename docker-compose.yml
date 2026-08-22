@@ -193,14 +193,27 @@ services:
             - MYSQL_DATABASE=${DB_DATABASE:-unit3d}
             - MYSQL_USER=${DB_USERNAME:-unit3d}
             - MYSQL_PASSWORD=${DB_PASSWORD:-unit3d}
+            # Cuenta del healthcheck: USAGE, cero privilegios. Su credencial es
+            # visible en `docker inspect` a proposito, porque no abre nada.
+            - DB_HEALTHCHECK_PASSWORD=${DB_HEALTHCHECK_PASSWORD}
         volumes:
             - ./.docker/data/mysql:/var/lib/mysql
         networks:
             - unit3d
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD:-unit3d}"]
+            # Antes: `mysqladmin ping -p<DB_PASSWORD>`. Dos problemas. Ponia la
+            # contrasena de la aplicacion en la linea de comandos, legible con
+            # `docker inspect`; y `ping` devuelve exit 0 aunque la autenticacion
+            # falle, asi que un `healthy` no probaba nada mas que el puerto.
+            #
+            # Ahora ejecuta una consulta real con una cuenta sin privilegios.
+            test: ["CMD-SHELL", "MYSQL_PWD=\"$$DB_HEALTHCHECK_PASSWORD\" mysql -h127.0.0.1 --protocol=TCP -uhealthchecker -e 'SELECT 1' >/dev/null 2>&1"]
+            interval: 15s
             retries: 3
             timeout: 5s
+            # mysqld tarda ~20s en aceptar conexiones. Sin esto el arranque
+            # contaria como fallo y bloquearia a quien depende de la base.
+            start_period: 90s
 
     redis:
         image: redis:alpine
@@ -249,5 +262,12 @@ services:
 networks:
     unit3d:
         driver: bridge
+        # La WAN de Vodafone va a 1492 y descarta los 1500 con DF sin devolver
+        # ICMP, asi que el descubrimiento de MTU no se entera: fallos de red
+        # intermitentes y silenciosos en todo lo dockerizado. El arreglo de
+        # 2026-06 llego solo al host (enp5s0). Medido aqui el 2026-08-22:
+        # con 1500 declarados, un paquete de 1472+28 se perdia al 100%.
+        driver_opts:
+            com.docker.network.driver.mtu: '1492'
     irc_net:
         external: true

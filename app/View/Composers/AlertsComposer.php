@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\View\Composers;
 
 use App\Models\Torrent;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 
 class AlertsComposer
@@ -14,6 +15,17 @@ class AlertsComposer
      */
     public function compose(View $view): void
     {
+        // Las URLs de abajo van firmadas contra el host de la peticion en
+        // curso, y el resultado se guarda en una cache GLOBAL de 15/30 min.
+        // Basta con que una sola peticion llegue con otro Host -- un
+        // healthcheck, un cron, una consola -- para que todos los usuarios se
+        // coman durante media hora un banner que apunta a un dominio que no es
+        // el suyo: cross-site, sin cookie de sesion, 401.
+        //
+        // Ocurrio el 2026-08-21 en staging. Anclar la raiz al APP_URL hace que
+        // la cache sea correcta la genere quien la genere.
+        URL::forceRootUrl(config('app.url'));
+
         $backdrops = cache()->flexible(
             'cached-alert-backdrops',
             [900, 1800],

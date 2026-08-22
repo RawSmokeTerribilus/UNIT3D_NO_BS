@@ -32,6 +32,14 @@
                 @include('torrent.partials.game-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'meta' => $torrentRequest->game, 'igdb' => $torrentRequest->igdb])
 
                 @break
+            @case($torrentRequest->category->book_meta)
+                @include('torrent.partials.book-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'meta' => $torrentRequest->book, 'isbn13' => $torrentRequest->isbn13])
+
+                @break
+            @case($torrentRequest->category->audiobook_meta)
+                @include('torrent.partials.audiobook-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'meta' => $torrentRequest->audiobook, 'asin' => $torrentRequest->asin])
+
+                @break
             @default
                 @include('torrent.partials.no-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'meta' => null])
 

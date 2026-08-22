@@ -149,6 +149,32 @@ class TorrentSearch extends Component
     #[Url(history: true)]
     public ?int $companyId = null;
 
+    // Catalogo de juegos. Ids propios de IGDB.
+    #[Url(history: true)]
+    public ?int $igdbGenreId = null;
+
+    #[Url(history: true)]
+    public ?int $igdbPlatformId = null;
+
+    #[Url(history: true)]
+    public ?int $igdbCompanyId = null;
+
+    // Catalogo de libros. Ids propios, no del espacio de TMDB.
+    #[Url(history: true)]
+    public ?int $bookGenreId = null;
+
+    #[Url(history: true)]
+    public ?string $bookAuthorOlid = null;
+
+    #[Url(history: true)]
+    public ?int $bookNarratorId = null;
+
+    #[Url(history: true)]
+    public ?int $bookPublisherId = null;
+
+    #[Url(history: true)]
+    public ?int $bookSeriesId = null;
+
     /**
      * @var string[]
      */
@@ -393,6 +419,14 @@ class TorrentSearch extends Component
             collectionId: $this->collectionId,
             networkId: $this->networkId,
             companyId: $this->companyId,
+            igdbGenreId: $this->igdbGenreId,
+            igdbPlatformId: $this->igdbPlatformId,
+            igdbCompanyId: $this->igdbCompanyId,
+            bookGenreId: $this->bookGenreId,
+            bookAuthorOlid: $this->bookAuthorOlid,
+            bookNarratorId: $this->bookNarratorId,
+            bookPublisherId: $this->bookPublisherId,
+            bookSeriesId: $this->bookSeriesId,
             primaryLanguageNames: $this->primaryLanguageNames,
             free: $this->free,
             doubleup: $this->doubleup,
@@ -414,9 +448,9 @@ class TorrentSearch extends Component
                 default              => null,
             },
             userSeeder: match (true) {
-                $this->seeding => true,
+                $this->seeding                     => true,
                 $this->leeching, $this->incomplete => false,
-                default => null,
+                default                            => null,
             },
             userActive: match (true) {
                 $this->seeding    => true,
@@ -477,6 +511,8 @@ class TorrentSearch extends Component
                     WHEN category_id IN (SELECT id FROM categories WHERE movie_meta = 1) THEN 'movie'
                     WHEN category_id IN (SELECT id FROM categories WHERE tv_meta = 1) THEN 'tv'
                     WHEN category_id IN (SELECT id FROM categories WHERE game_meta = 1) THEN 'game'
+                    WHEN category_id IN (SELECT id FROM categories WHERE book_meta = 1) THEN 'book'
+                    WHEN category_id IN (SELECT id FROM categories WHERE audiobook_meta = 1) THEN 'audiobook'
                     WHEN category_id IN (SELECT id FROM categories WHERE music_meta = 1) THEN 'music'
                     WHEN category_id IN (SELECT id FROM categories WHERE no_meta = 1) THEN 'no'
                 END AS meta

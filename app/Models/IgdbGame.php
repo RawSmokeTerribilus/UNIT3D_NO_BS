@@ -63,6 +63,16 @@ final class IgdbGame extends Model
      *
      * @return BelongsToMany<IgdbPlatform, $this>
      */
+    /**
+     * La valoración redondeada a entero. IGDB la entrega como double con toda
+     * la precisión del cálculo interno («86.737434604785»), que en una ficha
+     * no significa nada. Gemelo de Book::ratingPercent().
+     */
+    public function ratingPercent(): ?int
+    {
+        return $this->rating === null ? null : (int) round((float) $this->rating);
+    }
+
     public function platforms(): BelongsToMany
     {
         return $this->belongsToMany(IgdbPlatform::class);

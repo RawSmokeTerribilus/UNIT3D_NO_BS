@@ -39,6 +39,9 @@ use App\Models\Type;
 use App\Models\User;
 use App\Notifications\TorrentDeleted;
 use App\Repositories\ChatRepository;
+use App\Services\Audiobooks\AudibleClient;
+use App\Services\Audiobooks\AudiobookScraper;
+use App\Services\Books\BookScraper;
 use App\Services\Igdb\IgdbScraper;
 use App\Services\Mal\MalScraper;
 use App\Services\Metadata\Support\Normalize;
@@ -456,6 +459,8 @@ class TorrentController extends Controller
             $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, $force),
             $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, $force),
             $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
+            $torrent->isbn13 !== null        => (new BookScraper())->book($torrent->isbn13, $force),
+            $torrent->asin !== null          => (new AudiobookScraper())->audiobook($torrent->asin, AudibleClient::defaultRegion(), $force),
             // No tmdb/igdb on a movie/tv torrent: try resolving an IMDb id -> tmdb.
             $category !== null && ($category->movie_meta || $category->tv_meta) && $torrent->imdb > 0
                 => $this->resolveFromImdb($torrent, $category, $force),
@@ -581,12 +586,14 @@ class TorrentController extends Controller
                 ->mapWithKeys(fn ($category) => [$category->id => [
                     'name' => $category->name,
                     'type' => match (true) {
-                        $category->movie_meta => 'movie',
-                        $category->tv_meta    => 'tv',
-                        $category->game_meta  => 'game',
-                        $category->music_meta => 'music',
-                        $category->no_meta    => 'no',
-                        default               => 'no',
+                        $category->movie_meta     => 'movie',
+                        $category->tv_meta        => 'tv',
+                        $category->game_meta      => 'game',
+                        $category->book_meta      => 'book',
+                        $category->audiobook_meta => 'audiobook',
+                        $category->music_meta     => 'music',
+                        $category->no_meta        => 'no',
+                        default                   => 'no',
                     },
                 ]])
                 ->toArray(),
@@ -603,6 +610,8 @@ class TorrentController extends Controller
             'mal'          => $request->mal,
             'tvdb'         => $request->tvdb,
             'igdb'         => $request->igdb,
+            'isbn13'       => $request->isbn13,
+            'asin'         => $request->asin,
         ]);
     }
 

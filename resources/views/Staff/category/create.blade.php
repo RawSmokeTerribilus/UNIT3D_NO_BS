@@ -67,6 +67,8 @@
                         <option class="form__option" value="movie">Movie metadata</option>
                         <option class="form__option" value="tv">TV metadata</option>
                         <option class="form__option" value="game">Game metadata</option>
+                        <option class="form__option" value="book">E-book metadata</option>
+                        <option class="form__option" value="audiobook">Audiobook metadata</option>
                         <option class="form__option" value="music">Music metadata</option>
                         <option class="form__option" value="no">No metadata</option>
                     </select>

@@ -59,9 +59,17 @@
                             $feature->torrent->category->movie_meta => App\Models\TmdbMovie::query()
                                 ->with('genres', 'companies')
                                 ->find($feature->torrent->tmdb_movie_id ?? 0),
-                            $feature->torrent->category->game_meta => App\Models\Game::query()
+                            // App\Models\Game no existe: el modelo es IgdbGame.
+                            // Destacar un torrent de juego tumbaba la portada con
+                            // "Class not found". Preexistente, corregido aqui
+                            // porque este match ya se estaba tocando.
+                            $feature->torrent->category->game_meta => App\Models\IgdbGame::query()
                                 ->with('genres')
                                 ->find((int) $feature->torrent->igdb),
+                            $feature->torrent->category->book_meta => App\Models\Book::query()
+                                ->find($feature->torrent->isbn13),
+                            $feature->torrent->category->audiobook_meta => App\Models\Audiobook::query()
+                                ->find($feature->torrent->asin),
                             default => null,
                         };
                     @endphp

@@ -30,6 +30,8 @@
                 tvdb_tv_exists: true,
                 mal_anime_exists: true,
                 igdb_game_exists: true,
+                book_isbn_exists: true,
+                audiobook_asin_exists: true,
             }"
         >
             <h2 class="panel__heading">{{ __('request.add-request') }}</h2>
@@ -332,6 +334,69 @@
                                     MAL ID ({{ __('torrent.required-anime') }})
                                 </label>
                                 <span class="form__hint">Numeric digits only.</span>
+                            </p>
+                        </div>
+                        <div class="form__group--vertical" x-show="cats[cat].type === 'book'">
+                            <p class="form__group">
+                                <input
+                                    type="checkbox"
+                                    class="form__checkbox"
+                                    id="book_exists_on_google"
+                                    name="book_exists_on_google"
+                                    value="1"
+                                    @checked(old('book_exists_on_google', true))
+                                    x-model="book_isbn_exists"
+                                />
+                                <label class="form__label" for="book_exists_on_google">
+                                    Conozco el ISBN de esta edición
+                                </label>
+                            </p>
+                            <p class="form__group" x-show="book_isbn_exists">
+                                <input type="hidden" name="isbn13" value="" />
+                                <input
+                                    id="isbn13"
+                                    name="isbn13"
+                                    type="text"
+                                    class="form__text"
+                                    inputmode="numeric"
+                                    pattern="[0-9]{13}"
+                                    placeholder=" "
+                                    x-bind:value="cats[cat].type === 'book' && book_isbn_exists ? '{{ old('isbn13') }}' : ''"
+                                    x-bind:required="cats[cat].type === 'book' && book_isbn_exists"
+                                />
+                                <label class="form__label form__label--floating" for="isbn13">ISBN-13</label>
+                                <span class="form__hint">13 dígitos, sin guiones.</span>
+                            </p>
+                        </div>
+                        <div class="form__group--vertical" x-show="cats[cat].type === 'audiobook'">
+                            <p class="form__group">
+                                <input
+                                    type="checkbox"
+                                    class="form__checkbox"
+                                    id="audiobook_exists_on_audible"
+                                    name="audiobook_exists_on_audible"
+                                    value="1"
+                                    @checked(old('audiobook_exists_on_audible', true))
+                                    x-model="audiobook_asin_exists"
+                                />
+                                <label class="form__label" for="audiobook_exists_on_audible">
+                                    Esta grabación está en Audible
+                                </label>
+                            </p>
+                            <p class="form__group" x-show="audiobook_asin_exists">
+                                <input type="hidden" name="asin" value="" />
+                                <input
+                                    id="asin"
+                                    name="asin"
+                                    type="text"
+                                    class="form__text"
+                                    pattern="[A-Za-z0-9]{10}"
+                                    placeholder=" "
+                                    x-bind:value="cats[cat].type === 'audiobook' && audiobook_asin_exists ? '{{ old('asin') }}' : ''"
+                                    x-bind:required="cats[cat].type === 'audiobook' && audiobook_asin_exists"
+                                />
+                                <label class="form__label form__label--floating" for="asin">ASIN de Audible</label>
+                                <span class="form__hint">10 caracteres.</span>
                             </p>
                         </div>
                         <div class="form__group--vertical" x-show="cats[cat].type === 'game'">

@@ -453,6 +453,18 @@ Route::middleware('language')->group(function (): void {
             Route::get('/persons/{id}', [App\Http\Controllers\MediaHub\TmdbPersonController::class, 'show'])->name('mediahub.persons.show')->whereNumber('id');
             Route::get('/collections', [App\Http\Controllers\MediaHub\TmdbCollectionController::class, 'index'])->name('mediahub.collections.index');
             Route::get('/collections/{id}', [App\Http\Controllers\MediaHub\TmdbCollectionController::class, 'show'])->name('mediahub.collections.show')->whereNumber('id');
+            // Catalogo de libros. Autores, generos, editoriales y sagas
+            // cuentan ebooks Y audiolibros juntos; narradores solo audio.
+            Route::get('/authors', [App\Http\Controllers\MediaHub\BookController::class, 'authors'])->name('mediahub.authors.index');
+            Route::get('/narrators', [App\Http\Controllers\MediaHub\BookController::class, 'narrators'])->name('mediahub.narrators.index');
+            Route::get('/book-genres', [App\Http\Controllers\MediaHub\BookController::class, 'genres'])->name('mediahub.book-genres.index');
+            Route::get('/publishers', [App\Http\Controllers\MediaHub\BookController::class, 'publishers'])->name('mediahub.publishers.index');
+            Route::get('/book-series', [App\Http\Controllers\MediaHub\BookController::class, 'series'])->name('mediahub.book-series.index');
+            // Catalogo de juegos. El esquema de IGDB llevaba en la base desde
+            // 2025 sin una sola vista que lo enseñara.
+            Route::get('/game-genres', [App\Http\Controllers\MediaHub\IgdbController::class, 'genres'])->name('mediahub.game-genres.index');
+            Route::get('/platforms', [App\Http\Controllers\MediaHub\IgdbController::class, 'platforms'])->name('mediahub.platforms.index');
+            Route::get('/game-companies', [App\Http\Controllers\MediaHub\IgdbController::class, 'companies'])->name('mediahub.game-companies.index');
         });
 
         // Forums
@@ -960,6 +972,10 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/meta-sync', [App\Http\Controllers\Staff\CommandController::class, 'metaSync']);
                 Route::post('/meta-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'metaSyncForce']);
                 Route::post('/meta-rotate-covers', [App\Http\Controllers\Staff\CommandController::class, 'metaRotateCovers']);
+                // Books
+                Route::post('/books-sync', [App\Http\Controllers\Staff\CommandController::class, 'booksSync']);
+                Route::post('/books-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'booksSyncForce']);
+                Route::post('/books-sync-authors', [App\Http\Controllers\Staff\CommandController::class, 'booksSyncAuthors']);
                 Route::post('/warm-art-cache', [App\Http\Controllers\Staff\CommandController::class, 'warmArtCache']);
 
                 // User & Cleanup

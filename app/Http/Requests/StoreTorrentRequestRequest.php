@@ -43,6 +43,8 @@ class StoreTorrentRequestRequest extends FormRequest
             'tvdb'          => $this->has('tv_exists_on_tvdb') ? ($this->input('tvdb') ?: null) : null,
             'mal'           => $this->has('anime_exists_on_mal') ? ($this->input('mal') ?: null) : null,
             'igdb'          => $this->has('game_exists_on_igdb') ? ($this->input('igdb') ?: null) : null,
+            'isbn13'        => $this->has('book_exists_on_google') ? ($this->input('isbn13') ?: null) : null,
+            'asin'          => $this->has('audiobook_exists_on_audible') ? ($this->input('asin') ?: null) : null,
         ]);
     }
 
@@ -149,6 +151,30 @@ class StoreTorrentRequestRequest extends FormRequest
                     'min:0',
                 ]),
                 Rule::when(!$category->game_meta, [
+                    $mustBeNull,
+                ]),
+            ],
+            'isbn13' => [
+                Rule::when($category->book_meta, [
+                    'required_with:book_exists_on_google',
+                    'nullable',
+                    'string',
+                    'size:13',
+                    'regex:/^\d{13}$/',
+                ]),
+                Rule::when(!$category->book_meta, [
+                    $mustBeNull,
+                ]),
+            ],
+            'asin' => [
+                Rule::when($category->audiobook_meta, [
+                    'required_with:audiobook_exists_on_audible',
+                    'nullable',
+                    'string',
+                    'size:10',
+                    'regex:/^[A-Za-z0-9]{10}$/',
+                ]),
+                Rule::when(!$category->audiobook_meta, [
                     $mustBeNull,
                 ]),
             ],

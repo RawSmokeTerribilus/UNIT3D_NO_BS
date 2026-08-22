@@ -33,6 +33,9 @@ use App\Models\TorrentFile;
 use App\Models\TmdbTv;
 use App\Models\User;
 use App\Repositories\ChatRepository;
+use App\Services\Audiobooks\AudibleClient;
+use App\Services\Audiobooks\AudiobookScraper;
+use App\Services\Books\BookScraper;
 use App\Services\Igdb\IgdbScraper;
 use App\Services\Mal\MalScraper;
 use App\Services\Tmdb\TMDBScraper;
@@ -167,6 +170,9 @@ class TorrentController extends BaseController
         $torrent->tmdb_tv_id = $category->tv_meta ? ($request->integer('tmdb') ?: null) : null;
         $torrent->mal = ($category->movie_meta || $category->tv_meta) ? ($request->integer('mal') ?: null) : null;
         $torrent->igdb = $category->game_meta ? ($request->integer('igdb') ?: null) : null;
+        // Books carry a string id, so integer() would flatten an ISBN to 0.
+        $torrent->isbn13 = $category->book_meta ? ($request->string('isbn13')->trim()->value() ?: null) : null;
+        $torrent->asin = $category->audiobook_meta ? (strtoupper($request->string('asin')->trim()->value()) ?: null) : null;
         $torrent->season_number = $request->input('season_number');
         $torrent->episode_number = $request->input('episode_number');
         $torrent->anon = $request->input('anonymous');
@@ -316,6 +322,28 @@ class TorrentController extends BaseController
                     $mustBeNull,
                 ]),
             ],
+            'isbn13' => [
+                Rule::when($category->book_meta, [
+                    'nullable',
+                    'string',
+                    'size:13',
+                    'regex:/^\d{13}$/',
+                ]),
+                Rule::when(!$category->book_meta, [
+                    $mustBeNull,
+                ]),
+            ],
+            'asin' => [
+                Rule::when($category->audiobook_meta, [
+                    'nullable',
+                    'string',
+                    'size:10',
+                    'regex:/^[A-Za-z0-9]{10}$/',
+                ]),
+                Rule::when(!$category->audiobook_meta, [
+                    $mustBeNull,
+                ]),
+            ],
             'season_number' => [
                 Rule::when($category->tv_meta, [
                     'required',
@@ -405,6 +433,8 @@ class TorrentController extends BaseController
             $category->tv_meta && $torrent->tmdb_tv_id > 0       => new TMDBScraper()->tv($torrent->tmdb_tv_id),
             $category->movie_meta && $torrent->tmdb_movie_id > 0 => new TMDBScraper()->movie($torrent->tmdb_movie_id),
             $category->game_meta && $torrent->igdb > 0           => new IgdbScraper()->game($torrent->igdb),
+            $category->book_meta && $torrent->isbn13 !== null    => new BookScraper()->book($torrent->isbn13),
+            $category->audiobook_meta && $torrent->asin !== null => new AudiobookScraper()->audiobook($torrent->asin, AudibleClient::defaultRegion()),
             default                                              => null,
         };
 

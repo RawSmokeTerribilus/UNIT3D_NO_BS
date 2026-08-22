@@ -62,6 +62,19 @@ readonly class TorrentSearchFiltersDTO
         private ?int $collectionId = null,
         private ?int $networkId = null,
         private ?int $companyId = null,
+        // Catalogo de juegos. Ids propios de IGDB, igual que los de libros:
+        // no se mezclan con $genreIds, que es el espacio de TMDB.
+        private ?int $igdbGenreId = null,
+        private ?int $igdbPlatformId = null,
+        private ?int $igdbCompanyId = null,
+        // Catalogo de libros. Ids propios, no del espacio de TMDB: un
+        // book_genre.id 3 y un tmdb_genre.id 3 no son lo mismo, asi que
+        // reutilizar $genreIds mezclaria dos catalogos distintos.
+        private ?int $bookGenreId = null,
+        private ?string $bookAuthorOlid = null,
+        private ?int $bookNarratorId = null,
+        private ?int $bookPublisherId = null,
+        private ?int $bookSeriesId = null,
         /** @var array<mixed> */
         private array $primaryLanguageNames = [],
         /** @var array<mixed> */
@@ -167,6 +180,18 @@ readonly class TorrentSearchFiltersDTO
                                     ->whereRelation('tv', 'first_air_date', '>=', $this->startYear.'-01-01 00:00:00')
                                     ->whereRelation('category', 'tv_meta', '=', true)
                             )
+                            // Los libros guardan el anio como entero, no como
+                            // fecha, asi que se compara tal cual.
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('book', 'first_publish_year', '>=', $this->startYear)
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('audiobook', 'release_date', '>=', $this->startYear.'-01-01')
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                            )
                     )
             )
             ->when(
@@ -183,6 +208,16 @@ readonly class TorrentSearchFiltersDTO
                                 fn ($query) => $query
                                     ->orWhereRelation('tv', 'first_air_date', '<=', $this->endYear.'-12-31 23:59:59')
                                     ->whereRelation('category', 'tv_meta', '=', true)
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('book', 'first_publish_year', '<=', $this->endYear)
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('audiobook', 'release_date', '<=', $this->endYear.'-12-31')
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
                             )
                     )
             )
@@ -290,6 +325,102 @@ readonly class TorrentSearchFiltersDTO
                 fn ($query) => $query
                     ->whereRelation('category', 'tv_meta', '=', true)
                     ->whereIn('tmdb_tv_id', DB::table('tmdb_network_tmdb_tv')->select('tmdb_tv_id')->where('tmdb_network_id', '=', $this->networkId))
+            )
+            ->when(
+                $this->igdbGenreId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'game_meta', '=', true)
+                    ->whereIn('igdb', DB::table('igdb_game_igdb_genre')->select('igdb_game_id')->where('igdb_genre_id', '=', $this->igdbGenreId))
+            )
+            ->when(
+                $this->igdbPlatformId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'game_meta', '=', true)
+                    ->whereIn('igdb', DB::table('igdb_game_igdb_platform')->select('igdb_game_id')->where('igdb_platform_id', '=', $this->igdbPlatformId))
+            )
+            ->when(
+                $this->igdbCompanyId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'game_meta', '=', true)
+                    ->whereIn('igdb', DB::table('igdb_company_igdb_game')->select('igdb_game_id')->where('igdb_company_id', '=', $this->igdbCompanyId))
+            )
+            // Libros y audiolibros comparten catalogo de autores y generos a
+            // proposito —un autor es el mismo lo lea quien lo lea— pero los
+            // pivotes son distintos porque uno va por isbn13 y el otro por
+            // asin. De ahi el par de ramas en cada filtro.
+            ->when(
+                $this->bookGenreId !== null,
+                fn ($query) => $query
+                    ->where(
+                        fn ($query) => $query
+                            ->where(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                                    ->whereIn('isbn13', DB::table('book_genre')->select('isbn13')->where('book_genre_id', '=', $this->bookGenreId))
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                                    ->whereIn('asin', DB::table('audiobook_genre')->select('asin')->where('book_genre_id', '=', $this->bookGenreId))
+                            )
+                    )
+            )
+            ->when(
+                $this->bookAuthorOlid !== null,
+                fn ($query) => $query
+                    ->where(
+                        fn ($query) => $query
+                            ->where(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                                    ->whereIn('isbn13', DB::table('book_author')->select('isbn13')->where('author_olid', '=', $this->bookAuthorOlid))
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                                    ->whereIn('asin', DB::table('audiobook_author')->select('asin')->where('author_olid', '=', $this->bookAuthorOlid))
+                            )
+                    )
+            )
+            ->when(
+                $this->bookNarratorId !== null,
+                fn ($query) => $query
+                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                    ->whereIn('asin', DB::table('audiobook_narrator')->select('asin')->where('book_narrator_id', '=', $this->bookNarratorId))
+            )
+            ->when(
+                $this->bookPublisherId !== null,
+                fn ($query) => $query
+                    ->where(
+                        fn ($query) => $query
+                            ->where(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                                    ->whereIn('isbn13', DB::table('books')->select('isbn13')->where('book_publisher_id', '=', $this->bookPublisherId))
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                                    ->whereIn('asin', DB::table('audiobooks')->select('asin')->where('book_publisher_id', '=', $this->bookPublisherId))
+                            )
+                    )
+            )
+            ->when(
+                $this->bookSeriesId !== null,
+                fn ($query) => $query
+                    ->where(
+                        fn ($query) => $query
+                            ->where(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'book_meta', '=', true)
+                                    ->whereIn('isbn13', DB::table('books')->select('isbn13')->where('book_series_id', '=', $this->bookSeriesId))
+                            )
+                            ->orWhere(
+                                fn ($query) => $query
+                                    ->whereRelation('category', 'audiobook_meta', '=', true)
+                                    ->whereIn('asin', DB::table('audiobooks')->select('asin')->where('book_series_id', '=', $this->bookSeriesId))
+                            )
+                    )
             )
             ->when(
                 $this->primaryLanguageNames !== [],
@@ -621,6 +752,50 @@ readonly class TorrentSearchFiltersDTO
 
         if ($this->networkId !== null) {
             $filters[] = 'tmdb_tv.networks.id = '.$this->networkId;
+        }
+
+        if ($this->igdbGenreId !== null) {
+            $filters[] = 'igdb_game.genres.id = '.$this->igdbGenreId;
+        }
+
+        if ($this->igdbPlatformId !== null) {
+            $filters[] = 'igdb_game.platforms.id = '.$this->igdbPlatformId;
+        }
+
+        if ($this->igdbCompanyId !== null) {
+            $filters[] = 'igdb_game.companies.id = '.$this->igdbCompanyId;
+        }
+
+        if ($this->bookGenreId !== null) {
+            $filters[] = [
+                'book.genres.id = '.$this->bookGenreId,
+                'audiobook.genres_resolved.id = '.$this->bookGenreId,
+            ];
+        }
+
+        if ($this->bookAuthorOlid !== null) {
+            $filters[] = [
+                'book.people.olid = "'.$this->bookAuthorOlid.'"',
+                'audiobook.people.olid = "'.$this->bookAuthorOlid.'"',
+            ];
+        }
+
+        if ($this->bookNarratorId !== null) {
+            $filters[] = 'audiobook.voices.id = '.$this->bookNarratorId;
+        }
+
+        if ($this->bookPublisherId !== null) {
+            $filters[] = [
+                'book.publisher_id = '.$this->bookPublisherId,
+                'audiobook.publisher_id = '.$this->bookPublisherId,
+            ];
+        }
+
+        if ($this->bookSeriesId !== null) {
+            $filters[] = [
+                'book.series_id = '.$this->bookSeriesId,
+                'audiobook.series_id = '.$this->bookSeriesId,
+            ];
         }
 
         if ($this->primaryLanguageNames !== []) {
