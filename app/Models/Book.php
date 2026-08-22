@@ -33,7 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?int                        $book_series_id
  * @property ?string                     $description
  * @property ?string                     $cover_url
- * @property ?array<int, string>         $cover_urls
+ * @property ?array<int, array{url: string, source: string, tier: string, w: ?int, h: ?int}> $cover_urls
  * @property ?float                      $average_rating
  * @property ?int                        $ratings_count
  * @property ?string                     $maturity_rating
@@ -155,5 +155,23 @@ final class Book extends Model
     public function ratingPercent(): ?int
     {
         return $this->average_rating === null ? null : (int) round(((float) $this->average_rating) * 20);
+    }
+
+    /**
+     * La portada mas pequena que llegue a `$minAncho`, o la mayor que haya.
+     *
+     * Lo que pide un consumidor de verdad: el hook de Telegram quiere ~1280 px
+     * porque manda la imagen por la red, el listado ~300 porque pinta una
+     * miniatura, y la ficha la mayor. Ninguno de los tres deberia tener que
+     * razonar sobre el parametro `zoom` de Google ni sobre los sufijos de
+     * Amazon.
+     *
+     * Devuelve `cover_url` cuando no hay pool, para que nada dependa de que
+     * la escalera se haya generado.
+     */
+    public function coverAtLeast(int $minAncho = 0): ?string
+    {
+        return \App\Services\Metadata\CoverLadder::pick($this->cover_urls ?? [], $minAncho)
+            ?? $this->cover_url;
     }
 }

@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
 use App\Models\Book;
+use App\Services\Metadata\CoverLadder;
 use App\Models\BookGenre;
 use App\Services\Books\GoogleBooksClient;
 use App\Services\Books\OpenLibraryClient;
@@ -141,6 +142,33 @@ class ProcessBookJob implements ShouldQueue
             $provenance['enrichment'] = 'openlibrary';
         }
 
+        // La misma portada en cuatro tamaños, sin una peticion mas: Google la
+        // sirve por su parametro `zoom` y OpenLibrary por la letra final. Se
+        // guardan todas porque quien la consume no quiere "la caratula", quiere
+        // una de un tamano: el hook de Telegram manda ~1280 px, el listado
+        // pinta ~300 y la ficha quiere la mayor que haya.
+        //
+        // Lo que devolvia la API se guardaba tal cual, y traia dos defectos:
+        // un `zoom=5` que da los MISMOS 128 px que `zoom=1` --una entrada
+        // duplicada que hacia que la rotacion ensenara dos veces la
+        // miniatura-- y un `edge=curl` que le pinta a la portada una esquina
+        // doblada falsa.
+        $pool = CoverLadder::merge(
+            CoverLadder::googleBooks((string) ($candidate->googleVolumeId ?: '')),
+            CoverLadder::openLibrary($isbn13),
+        );
+
+        // Si ningun proveedor da escalera, al menos que no se pierda lo que
+        // hubiera: se conserva como una entrada suelta de tamano desconocido.
+        if ($pool === [] && $covers !== []) {
+            $pool = array_map(
+                static fn (string $u): array => [
+                    'url' => $u, 'source' => 'google', 'tier' => 'xl', 'w' => null, 'h' => null,
+                ],
+                array_values(array_unique(array_filter($covers))),
+            );
+        }
+
         $book = Book::query()->updateOrCreate(['isbn13' => $isbn13], [
             'isbn10'                      => $candidate->isbn10 ?: null,
             'olid'                        => $extra['olid'] ?? null,
@@ -156,8 +184,8 @@ class ProcessBookJob implements ShouldQueue
             'description'                 => $sinopsis ?: null,
             'description_original'        => $original,
             'description_source_language' => $idiomaOriginal,
-            'cover_url'                   => $covers[0] ?? null,
-            'cover_urls'                  => array_values(array_unique($covers)),
+            'cover_url'                   => CoverLadder::pick($pool, 800) ?? ($covers[0] ?? null),
+            'cover_urls'                  => $pool,
             'average_rating'              => $candidate->averageRating,
             'ratings_count'               => $candidate->ratingsCount,
             'maturity_rating'             => $candidate->maturityRating ?: null,
