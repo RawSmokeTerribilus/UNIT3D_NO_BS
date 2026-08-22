@@ -33,6 +33,9 @@
             tvdb_tv_exists: {{ Js::from(old('tv_exists_on_tvdb', $torrent->tvdb) !== null) }},
             mal_anime_exists: {{ Js::from(old('anime_exists_on_mal', $torrent->mal) !== null) }},
             igdb_game_exists: {{ Js::from(old('game_exists_on_igdb', $torrent->igdb) !== null) }},
+            google_book_exists: {{ Js::from(old('book_exists_on_google', $torrent->isbn13) !== null) }},
+            audible_audiobook_exists:
+                {{ Js::from(old('audiobook_exists_on_audible', $torrent->asin) !== null) }},
         }"
     >
         <h2 class="panel__heading">{{ __('common.edit') }}: {{ $torrent->name }}</h2>
@@ -508,6 +511,116 @@
                             <label class="form__label form__label--floating" for="igdb">
                                 IGDB ID
                             </label>
+                        </p>
+                    </div>
+                    {{-- Libros y audiolibros: el formulario conocía movie, tv, game
+                         y no, pero no estos dos, así que no había forma de corregir
+                         un id a mano. El backend ya los aceptaba: UpdateTorrentRequest
+                         lee isbn13 y asin desde estas mismas casillas. --}}
+                    <div class="form__group--vertical" x-show="cats[cat].type === 'book'">
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="book_exists_on_google"
+                                name="book_exists_on_google"
+                                value="1"
+                                @checked(old('book_exists_on_google', true))
+                                x-model="google_book_exists"
+                            />
+                            <label class="form__label" for="book_exists_on_google">
+                                Este libro existe en Google Books
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="google_book_exists">
+                            <input
+                                id="isbn13"
+                                class="form__text"
+                                name="isbn13"
+                                type="text"
+                                value="{{ old('isbn13', $torrent->isbn13) }}"
+                                inputmode="numeric"
+                                pattern="[0-9]{13}"
+                                maxlength="13"
+                                placeholder=" "
+                                x-bind:required="cats[cat].type === 'book' && google_book_exists"
+                            />
+                            <label class="form__label form__label--floating" for="isbn13">
+                                ISBN-13
+                            </label>
+                            <span class="form__hint">13 dígitos, sin guiones.</span>
+                        </p>
+                    </div>
+                    <div class="form__group--vertical" x-show="cats[cat].type === 'audiobook'">
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="audiobook_exists_on_audible"
+                                name="audiobook_exists_on_audible"
+                                value="1"
+                                @checked(old('audiobook_exists_on_audible', true))
+                                x-model="audible_audiobook_exists"
+                            />
+                            <label class="form__label" for="audiobook_exists_on_audible">
+                                Esta grabación existe en Audible
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="audible_audiobook_exists">
+                            <input
+                                id="asin"
+                                class="form__text"
+                                name="asin"
+                                type="text"
+                                value="{{ old('asin', $torrent->asin) }}"
+                                pattern="[A-Za-z0-9]{10}"
+                                maxlength="10"
+                                placeholder=" "
+                                x-bind:required="cats[cat].type === 'audiobook' && audible_audiobook_exists"
+                            />
+                            <label class="form__label form__label--floating" for="asin">
+                                ASIN de Audible
+                            </label>
+                            <span class="form__hint">10 caracteres alfanuméricos.</span>
+                        </p>
+                        {{-- El ISBN va SIN casilla propia aquí, y es a propósito:
+                             una lectura libre no tiene ASIN porque no existe en
+                             ningún catálogo comercial, pero el libro que se lee sí
+                             tiene ISBN, y con él la ficha sale con portada, sinopsis
+                             y autor. Lo único que no se puede afirmar es quién narra. --}}
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="book_exists_on_google_audio"
+                                name="book_exists_on_google"
+                                value="1"
+                                @checked(old('book_exists_on_google', $torrent->isbn13 !== null))
+                                x-model="google_book_exists"
+                            />
+                            <label class="form__label" for="book_exists_on_google_audio">
+                                La obra existe en Google Books (para lecturas libres sin ASIN)
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="google_book_exists">
+                            <input
+                                id="isbn13_audio"
+                                class="form__text"
+                                name="isbn13"
+                                type="text"
+                                value="{{ old('isbn13', $torrent->isbn13) }}"
+                                inputmode="numeric"
+                                pattern="[0-9]{13}"
+                                maxlength="13"
+                                placeholder=" "
+                            />
+                            <label class="form__label form__label--floating" for="isbn13_audio">
+                                ISBN-13 de la obra
+                            </label>
+                            <span class="form__hint">
+                                Identifica el LIBRO, no la grabación. Rellénalo cuando la
+                                lectura no esté en Audible.
+                            </span>
                         </p>
                     </div>
                 </div>

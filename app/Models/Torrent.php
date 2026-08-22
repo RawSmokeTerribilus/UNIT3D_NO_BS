@@ -478,7 +478,14 @@ final class Torrent extends Model
                     AND torrents.category_id in (
                         SELECT id
                         FROM categories
-                        WHERE book_meta = 1
+                        -- Los audiolibros también: una lectura libre no tiene
+                        -- ASIN porque no existe en ningún catálogo comercial,
+                        -- pero el libro que se lee sí tiene ISBN. Sin esto la
+                        -- ficha no engancha por ningún lado -- ni por asin, que
+                        -- es nulo, ni por isbn, que quedaba fuera de la
+                        -- categoría -- y la página sale con los titulares
+                        -- "ESTA GRABACIÓN" y "OBRA" vacíos debajo.
+                        WHERE book_meta = 1 OR audiobook_meta = 1
                     )
                 LIMIT 1
             ) AS json_book,

@@ -93,7 +93,13 @@ final class AudnexusClient
             'isbn13'             => Isbn::toIsbn13((string) ($json['isbn'] ?? '')) ?: null,
             'description'        => trim(strip_tags((string) ($json['summary'] ?? $json['description'] ?? ''))),
             'cover_url'          => $cover,
-            'cover_urls'         => $cover === '' ? [] : [$cover],
+            // Amazon sirve la misma imagen en cualquier tamano con un sufijo
+            // en la URL. Comprobado contra la real: 200x200, 500x500,
+            // 1200x1200 y 2400x2400, sin una peticion de mas. Guardar solo la
+            // original obligaba a Telegram a mandar 526 KiB para una miniatura.
+            'cover_urls'         => \App\Services\Metadata\CoverLadder::merge(
+                \App\Services\Metadata\CoverLadder::amazon($cover)
+            ),
         ];
     }
 

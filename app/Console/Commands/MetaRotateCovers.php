@@ -137,7 +137,15 @@ class MetaRotateCovers extends Command
 
         foreach ($sets as $model => $torrentColumn) {
             foreach ($model::query()->whereNotNull('cover_urls')->cursor() as $row) {
-                $urls = array_values(array_unique(array_filter($row->cover_urls ?? [])));
+                // El pool paso de ser una lista de cadenas a una de entradas
+                // con tamano, para que cada consumidor elija la calidad que
+                // necesita. Se aceptan las dos formas: las filas guardadas
+                // antes del cambio siguen rotando sin tocar la base.
+                $pool = $row->cover_urls ?? [];
+                $urls = array_values(array_unique(array_filter(array_map(
+                    static fn ($e) => \is_array($e) ? ($e['url'] ?? null) : $e,
+                    $pool,
+                ))));
 
                 if (\count($urls) < 2) {
                     continue;   // nothing to rotate between
