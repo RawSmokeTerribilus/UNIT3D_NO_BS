@@ -218,6 +218,11 @@ class SimilarTorrent extends Component
             TmdbMovie::class => 'movie',
             TmdbTv::class    => 'tv',
             IgdbGame::class  => 'game',
+            // Los dos comparten etiqueta: se agrupan por el ISBN de la obra,
+            // así que el e-book y el audiolibro del mismo libro caen en el
+            // mismo cajón, que es justo lo que se quiere.
+            Book::class      => 'book',
+            Audiobook::class => 'book',
         });
     }
 
