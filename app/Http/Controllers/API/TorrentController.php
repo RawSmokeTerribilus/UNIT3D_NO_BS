@@ -171,7 +171,12 @@ class TorrentController extends BaseController
         $torrent->mal = ($category->movie_meta || $category->tv_meta) ? ($request->integer('mal') ?: null) : null;
         $torrent->igdb = $category->game_meta ? ($request->integer('igdb') ?: null) : null;
         // Books carry a string id, so integer() would flatten an ISBN to 0.
-        $torrent->isbn13 = $category->book_meta ? ($request->string('isbn13')->trim()->value() ?: null) : null;
+        // Los audiolibros también lo aceptan: identifica la OBRA, no la
+        // grabación. Una lectura libre no existe en ningún catálogo comercial
+        // y por tanto no tiene ASIN, pero el libro que se lee sí tiene ISBN.
+        $torrent->isbn13 = ($category->book_meta || $category->audiobook_meta)
+            ? ($request->string('isbn13')->trim()->value() ?: null)
+            : null;
         $torrent->asin = $category->audiobook_meta ? (strtoupper($request->string('asin')->trim()->value()) ?: null) : null;
         $torrent->season_number = $request->input('season_number');
         $torrent->episode_number = $request->input('episode_number');
@@ -323,13 +328,13 @@ class TorrentController extends BaseController
                 ]),
             ],
             'isbn13' => [
-                Rule::when($category->book_meta, [
+                Rule::when($category->book_meta || $category->audiobook_meta, [
                     'nullable',
                     'string',
                     'size:13',
                     'regex:/^\d{13}$/',
                 ]),
-                Rule::when(!$category->book_meta, [
+                Rule::when(!($category->book_meta || $category->audiobook_meta), [
                     $mustBeNull,
                 ]),
             ],
@@ -435,6 +440,11 @@ class TorrentController extends BaseController
             $category->game_meta && $torrent->igdb > 0           => new IgdbScraper()->game($torrent->igdb),
             $category->book_meta && $torrent->isbn13 !== null    => new BookScraper()->book($torrent->isbn13),
             $category->audiobook_meta && $torrent->asin !== null => new AudiobookScraper()->audiobook($torrent->asin, AudibleClient::defaultRegion()),
+            // Respaldo para las lecturas libres: sin ASIN no hay grabación que
+            // buscar, pero con el ISBN de la obra sí hay libro. La ficha sale
+            // con portada, sinopsis y autor; lo único que no se afirma es
+            // quién narra, que es justo lo que no se sabe.
+            $category->audiobook_meta && $torrent->isbn13 !== null => new BookScraper()->book($torrent->isbn13),
             default                                              => null,
         };
 
