@@ -2,8 +2,18 @@
 // 20 site themes defines a shared variable set (the intersection is empty),
 // so a panel built on theme variables would come out unreadable exactly in
 // the themes that omit them. To re-theme it, override the --icon-picker-*
-// variables below — do not touch the rules.
+// variables on .icon-picker — do not touch the rules.
 .icon-picker {
+    // Las variables se declaran AQUI, en el contenedor, y no en el panel: el
+    // boton es hermano del panel, no hijo, asi que desde alli no las veia y se
+    // quedaba en `color: inherit` — invisible sobre los fondos oscuros.
+    --icon-picker-bg: #22262a;
+    --icon-picker-fg: #e6e8ea;
+    --icon-picker-muted: #9aa3ab;
+    --icon-picker-rule: #343a40;
+    --icon-picker-hover: #2f353b;
+    --icon-picker-accent: #4fb0c6;
+
     position: relative;
 }
 
@@ -16,7 +26,7 @@
     border: 0;
     border-radius: 6px;
     background: transparent;
-    color: inherit;
+    color: var(--icon-picker-fg);
     font-size: 16px;
     cursor: pointer;
 
@@ -26,13 +36,6 @@
 }
 
 .icon-picker__panel {
-    --icon-picker-bg: #22262a;
-    --icon-picker-fg: #e6e8ea;
-    --icon-picker-muted: #9aa3ab;
-    --icon-picker-rule: #343a40;
-    --icon-picker-hover: #2f353b;
-    --icon-picker-accent: #4fb0c6;
-
     position: absolute;
     z-index: 20;
     top: calc(100% + 6px);
