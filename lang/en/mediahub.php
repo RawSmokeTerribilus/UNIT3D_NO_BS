@@ -53,4 +53,10 @@ return [
     'platforms' => 'Platforms',
     'game-companies' => 'Studios',
     'no-games' => 'Nothing in the catalogue yet.',
+    'providers-heading' => 'Metadata sources',
+    'providers-movies-tv' => 'Movies & TV',
+    'providers-anime' => 'Anime',
+    'providers-games' => 'Games',
+    'providers-books' => 'E-Books',
+    'providers-audiobooks' => 'Audiobooks',
 ];

@@ -202,11 +202,43 @@
 @endsection
 
 @section('sidebar')
+    {{-- El disclaimer original sólo nombraba a TMDB porque el hub sólo sabía de
+         cine. Con libros, audiolibros y juegos dentro son diez proveedores, y
+         cada uno pide su atribución. Se listan por categoría para que se vea
+         de dónde sale cada ficha. --}}
     <section class="panelV2">
-        <h2 class="panel__heading">Disclaimer</h2>
-        <div class="panel__body" style="text-align: center">
-            {{ __('mediahub.disclaimer') }}
-            <img class="" src="{{ url('/img/tmdb_long.svg') }}" style="width: 200px" />
+        <h2 class="panel__heading">{{ __('mediahub.providers-heading') }}</h2>
+        <div class="panel__body">
+            <dl class="key-value">
+                <div class="key-value__group">
+                    <dt>{{ __('mediahub.providers-movies-tv') }}</dt>
+                    <dd>TMDB · IMDb · TVmaze</dd>
+                </div>
+                <div class="key-value__group">
+                    <dt>{{ __('mediahub.providers-anime') }}</dt>
+                    <dd>MyAnimeList · AniList</dd>
+                </div>
+                <div class="key-value__group">
+                    <dt>{{ __('mediahub.providers-games') }}</dt>
+                    <dd>IGDB</dd>
+                </div>
+                <div class="key-value__group">
+                    <dt>{{ __('mediahub.providers-books') }}</dt>
+                    <dd>Google Books · OpenLibrary</dd>
+                </div>
+                <div class="key-value__group">
+                    <dt>{{ __('mediahub.providers-audiobooks') }}</dt>
+                    <dd>Audible · Audnexus</dd>
+                </div>
+            </dl>
+
+            <p style="margin-top: 1rem; font-size: 13px">
+                {{ __('mediahub.disclaimer') }}
+            </p>
+
+            <div style="text-align: center; margin-top: 1rem">
+                <img src="{{ url('/img/tmdb_long.svg') }}" alt="TMDB" style="width: 200px" />
+            </div>
         </div>
     </section>
 @endsection
