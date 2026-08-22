@@ -43,10 +43,19 @@
             @include('torrent.partials.game-meta')
 
             @break
+        @case($category->book_meta)
+        @case($category->audiobook_meta)
+            {{-- Un audiolibro también cae aquí: se agrupa por el ISBN de la
+                 OBRA, así que la ficha que encabeza el grupo es la del libro y
+                 sale junto a su e-book, que es lo que uno espera de
+                 "similares". --}}
+            @include('torrent.partials.book-meta', ['meta' => $meta, 'isbn13' => $isbn13 ?? null])
+
+            @break
         @default
             @include('torrent.partials.no-meta')
 
             @break
     @endswitch
-    @livewire('similar-torrent', ['category' => $category, 'tmdbId' => $tmdb, 'igdbId' => $igdb, 'work' => $meta])
+    @livewire('similar-torrent', ['category' => $category, 'tmdbId' => $tmdb, 'igdbId' => $igdb, 'isbn13' => $isbn13 ?? null, 'work' => $meta])
 @endsection

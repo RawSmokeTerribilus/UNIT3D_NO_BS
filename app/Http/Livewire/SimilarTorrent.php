@@ -20,6 +20,7 @@ use App\DTO\TorrentSearchFiltersDTO;
 use App\Models\Category;
 use App\Models\Distributor;
 use App\Models\History;
+use App\Models\Book;
 use App\Models\IgdbGame;
 use App\Models\PlaylistCategory;
 use App\Models\TmdbMovie;
@@ -47,11 +48,19 @@ class SimilarTorrent extends Component
 
     public Category $category;
 
-    public TmdbMovie|TmdbTv|IgdbGame $work;
+    public TmdbMovie|TmdbTv|IgdbGame|Book $work;
 
     public ?int $tmdbId;
 
     public ?int $igdbId;
+
+    /**
+     * El ISBN-13 de la obra, para agrupar libros y audiolibros.
+     *
+     * Va como cadena y no como entero a propósito: son trece dígitos con
+     * ceros que importan, y un `int` se comería un ISBN que empiece por cero.
+     */
+    public ?string $isbn13 = null;
 
     public string $reason;
 
@@ -290,6 +299,15 @@ class SimilarTorrent extends Component
                         ->where('igdb', '=', $this->igdbId)
                         ->selectRaw("'game' as meta"),
                 )
+                // Libros y audiolibros se agrupan por el ISBN de la OBRA, así
+                // que un audiolibro que lo lleve sale junto al e-book del
+                // mismo libro. Es lo que uno espera de "similares".
+                ->when(
+                    $this->category->book_meta || $this->category->audiobook_meta,
+                    fn ($query) => $query
+                        ->where('isbn13', '=', $this->isbn13)
+                        ->selectRaw("'book' as meta"),
+                )
                 ->where((new TorrentSearchFiltersDTO(
                     name: $this->name,
                     description: $this->description,
@@ -340,6 +358,7 @@ class SimilarTorrent extends Component
                 TmdbMovie::class => self::groupTorrents($torrents)['movie'][$this->tmdbId]['Movie'] ?? [],
                 TmdbTv::class    => self::groupTorrents($torrents)['tv'][$this->tmdbId] ?? [],
                 IgdbGame::class  => self::groupTorrents($torrents)['game'][$this->igdbId]['Game'] ?? [],
+                Book::class      => self::groupTorrents($torrents)['book'][$this->isbn13] ?? [],
             };
         }
     }
@@ -354,6 +373,10 @@ class SimilarTorrent extends Component
             ->when($this->category->movie_meta, fn ($query) => $query->where('tmdb_movie_id', '=', $this->tmdbId))
             ->when($this->category->tv_meta, fn ($query) => $query->where('tmdb_tv_id', '=', $this->tmdbId))
             ->when($this->category->game_meta, fn ($query) => $query->where('igdb', '=', $this->igdbId))
+            ->when(
+                $this->category->book_meta || $this->category->audiobook_meta,
+                fn ($query) => $query->where('isbn13', '=', $this->isbn13)
+            )
             ->where('category_id', '=', $this->category->id)
             ->when(
                 $this->hideFilledRequests,

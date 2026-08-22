@@ -59,6 +59,11 @@
                         $torrent->tmdb_movie_id !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb_movie_id]),
                         $torrent->tmdb_tv_id !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb_tv_id]),
                         $torrent->igdb !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->igdb]),
+                        // Los libros se agrupan por su ISBN-13, que es lo más
+                        // parecido a un id de obra que hay. Un audiolibro entra
+                        // por aquí cuando lleva el de la obra, y así sale junto
+                        // al e-book del mismo libro.
+                        $torrent->isbn13 !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->isbn13]),
                         default => '#',
                     }
                 }}"

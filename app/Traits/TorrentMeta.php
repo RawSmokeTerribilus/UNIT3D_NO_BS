@@ -178,6 +178,23 @@ trait TorrentMeta
                     $groupedTorrents['game'][$tmdb]['category_id'] = $categoryId;
 
                     break;
+                case 'book':
+                case 'audiobook':
+                    // Se agrupa por el ISBN de la OBRA, no por el id numérico
+                    // de arriba: un libro no tiene tmdb ni igdb, y el ISBN es
+                    // lo que hace que el e-book y el audiolibro del mismo
+                    // título salgan juntos.
+                    //
+                    // El tipo (EPUB, PDF, M4B...) hace de subgrupo, igual que
+                    // la resolución en vídeo: es lo que distingue una copia de
+                    // otra dentro de la misma obra.
+                    $isbn13 = (string) $torrent->getAttributeValue('isbn13');
+
+                    if ($isbn13 !== '') {
+                        $groupedTorrents['book'][$isbn13][$type][] = $torrent;
+                    }
+
+                    break;
                 case 'movie':
                     $groupedTorrents['movie'][$tmdb]['Movie'][$type][] = $torrent;
                     $groupedTorrents['movie'][$tmdb]['category_id'] = $categoryId;
