@@ -94,7 +94,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 28. [Anuncios de Telegram por tipo de obra](#28-anuncios-de-telegram-que-entienden-qué-están-anunciando)
 29. [Selector de iconos y build sin ventana](#29-selector-de-iconos-font-awesome-y-un-build-sin-ventana-de-servicio)
 30. [Meilisearch: los settings dejan de pisarse](#30-meilisearch-los-settings-dejan-de-pisarse-solos)
-31. [Proxy de imágenes propio para descripciones](#31-proxy-de-imágenes-propio-para-las-descripciones)
+31. [Las capturas de descripción, pendientes](#31-las-capturas-de-una-descripción-siguen-saliendo-de-casa-ajena)
 
 </details>
 
@@ -208,7 +208,7 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 - [25 · La misma portada en cuatro tamaños](#25-la-misma-portada-en-cuatro-tamaños)
 - [26 · Traducción local, y decir que es automática](#26-traducción-local-y-decir-que-es-automática)
 - [27 · Similares y colecciones para libros](#27-similares-y-colecciones-para-libros)
-- [31 · Proxy de imágenes para descripciones](#31-proxy-de-imágenes-propio-para-las-descripciones)
+- [31 · Las capturas de descripción, pendientes](#31-las-capturas-de-una-descripción-siguen-saliendo-de-casa-ajena)
 
 **🎨 Interfaz y branding**
 - [6 · Branding de NOBS (tema propio)](#6-branding-de-nobs-tema-personalizado)
@@ -1491,20 +1491,33 @@ Arranque idempotente que **respeta lo que ya está configurado**, sincronizació
 
 ---
 
-### 31. **Proxy de Imágenes Propio para las Descripciones**
-🛡️ *Las capturas de una descripción salen de hosts de terceros. Cuando uno cierra, se lleva las galerías por delante.*
+### 31. **Las Capturas de una Descripción Siguen Saliendo de Casa Ajena**
+🧯 *No confundir con el proxy de arte, que sirve medio tracker. Éste es el hueco que queda: las imágenes que escribe el uploader.*
 
-**El Desafío**: Las descripciones de torrent enlazan capturas alojadas en hosts gratuitos. Imgbox cerró y se llevó **más de 3.000 galerías** del tracker por delante. Además, cada imagen enlazada en caliente filtra la IP del visitante al host y rompe la política de contenido de la página.
+**El Desafío**: Conviene separar dos cosas que suenan igual.
+
+**El proxy de arte está muy vivo** (mejora 15) y es de lo más usado del tracker: sirve pósters, backdrops, portadas de libro, avatares, iconos de usuario, imágenes de categoría, banners y carátulas de torrent, imágenes de artículo y de playlist — nueve rutas bajo `authenticated-images/`, con caché, redimensionado y un comando de staff para precalentarla. Es lo que alimenta el carrusel de la portada. **Ese no es el problema.**
+
+El hueco está en otro sitio: **las capturas que el uploader escribe dentro de la descripción**. Ésas siguen saliendo del host donde él las subió. Imgbox cerró y se llevó **más de 3.000 galerías** del tracker por delante. Y mientras el enlace está vivo, cada visita filtra la IP del que mira al host de terceros.
 
 **Lo que construimos**:
 
-Un proxy propio, con lista blanca de orígenes, que sirve las imágenes de descripción desde el mismo dominio. Ya existía uno para las portadas de TMDB (mejora 15); éste extiende la idea a las capturas que escribe el uploader.
+`DescriptionImageProxyController` — 128 líneas, escrito y probado, para reemitir también esas imágenes desde el propio origen.
+
+```
+🔌 ESTADO REAL, MEDIDO:
+  • el controlador existe .................... sí
+  • rutas que lo apuntan ..................... 0
+  • Bbcode.php emite la URL del host ......... sí, saneada pero directa
+  • una descripción de hoy apunta a .......... i.ibb.co
+```
 
 **Detalles de la implementación**:
-- **Está construido y aún sin cablear.** Se documenta porque existe en el código y porque el orden importa: primero la campaña de regeneración de galerías, que repone lo que imgbox se llevó, y luego el cambio de ruta.
-- La lista blanca de orígenes es la misma que la del proxy de arte, ampliada con los hosts de portada de libro: `books.google.com`, `books.googleusercontent.com`, `covers.openlibrary.org` y `m.media-amazon.com`.
+- **No está cableado a propósito, y el orden importa.** Primero va la campaña de regeneración de galerías —que repone lo que imgbox se llevó y mueve las capturas a hosts vivos— y sólo después el cambio de ruta. Enrutarlo antes significaría cachear en casa miles de enlaces que van a cambiar igualmente.
+- Cuando entre, `Bbcode.php` es el único punto a tocar: hoy hace `sanitizeUrl(..., isImage: true)` y devuelve la URL original.
+- La lista blanca de orígenes se comparte con el proxy de arte, ya ampliada con los hosts de portada de libro: `books.google.com`, `books.googleusercontent.com`, `covers.openlibrary.org` y `m.media-amazon.com`.
 
-**Por qué importa**: Es la lección de imgbox convertida en infraestructura. Un tracker no debería perder tres mil galerías porque un tercero decidió cerrar.
+**Por qué importa**: Está aquí porque un README que sólo cuenta lo terminado miente por omisión. Es la lección de imgbox a medio aplicar: el arte del tracker ya no depende de nadie, las capturas de las descripciones todavía sí.
 
 > *"Saltarse el visualizador del host es saltarse la publicidad que paga el alojamiento gratuito. Es, en parte, por lo que estos hosts van cerrando."*
 
