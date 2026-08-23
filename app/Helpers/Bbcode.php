@@ -523,7 +523,19 @@ class Bbcode
             });
 
             if (!$isWhitelisted) {
-                $url = 'https://images.weserv.nl/?n=-1&ll&url='.urlencode($url);
+                // Un host que no esta en la lista blanca no se enlaza en
+                // caliente: se sirve desde nuestro propio origen. Antes esto
+                // iba a images.weserv.nl, o sea que la visibilidad de las
+                // imagenes de TODA la web dependia de un tercero gratuito --y
+                // fallaba con 404 en origenes concretos (books.google con
+                // `zoom`, el favicon de igdb) dejando el hueco en blanco sin
+                // decir por que.
+                $url = config('unit3d.description_image_proxy')
+                    ? \Illuminate\Support\Facades\URL::signedRoute(
+                        'authenticated_images.description_image_proxy',
+                        ['url' => $url],
+                    )
+                    : 'https://images.weserv.nl/?n=-1&ll&url='.urlencode($url);
             }
         }
 

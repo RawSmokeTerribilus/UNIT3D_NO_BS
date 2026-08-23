@@ -34,6 +34,25 @@ final class DescriptionImageProxyController extends Controller
     /** Tope de descarga (bytes). Una captura de 1080p con holgura. */
     private const int MAX_BYTES = 12_582_912;
 
+    /**
+     * Un origen lento no puede secuestrar un worker de PHP-FPM.
+     *
+     * Una descripción con veinte capturas dispara veinte peticiones en
+     * paralelo; con el timeout alto, un host que no responde deja veinte
+     * workers ocupados por visita. Seis segundos es de sobra para una
+     * imagen y acota el daño.
+     */
+    private const int TIMEOUT = 6;
+
+    /**
+     * Cuánto se recuerda que un origen falló, en segundos.
+     *
+     * Sin esto, una descripción que apunta a un host caído reintenta la
+     * descarga COMPLETA en cada visita, para siempre. Es el escenario real:
+     * imgbox cerró y dejó cientos de descripciones apuntando al vacío.
+     */
+    private const int TTL_FALLO = 21_600;
+
     private const array TIPOS = [
         'image/jpeg' => 'jpg',
         'image/png'  => 'png',
@@ -57,24 +76,53 @@ final class DescriptionImageProxyController extends Controller
         $cachePath = $cacheDir.'/'.sha1($url);
 
         if (!file_exists($cachePath)) {
+            // Si ya se supo que este origen falla, se responde 404 sin salir a
+            // la red. Es lo que evita que una galería muerta cueste una
+            // descarga por imagen y por visita.
+            abort_if($this->falloReciente($cachePath), 404);
+
             if (!is_dir($cacheDir)) {
                 mkdir($cacheDir, 0o755, true);
             }
 
-            $response = Http::timeout(12)
-                ->withOptions(['stream' => false, 'allow_redirects' => ['max' => 3]])
-                ->get($url);
+            try {
+                $response = Http::timeout(self::TIMEOUT)
+                    ->withOptions(['stream' => false, 'allow_redirects' => ['max' => 3]])
+                    ->get($url);
+            } catch (\Throwable) {
+                // Un timeout o un DNS que no resuelve llegan como excepción, no
+                // como respuesta fallida, y sin capturarlos el 500 se lo comía
+                // la página entera en vez de este único <img>.
+                $this->anotarFallo($cachePath);
 
-            abort_unless($response->successful(), 404);
+                abort(404);
+            }
+
+            if (!$response->successful()) {
+                $this->anotarFallo($cachePath);
+
+                abort(404);
+            }
 
             $tipo = strtolower(trim(explode(';', (string) $response->header('Content-Type'))[0]));
-            abort_unless(isset(self::TIPOS[$tipo]), 404);
+
+            if (!isset(self::TIPOS[$tipo])) {
+                $this->anotarFallo($cachePath);
+
+                abort(404);
+            }
 
             $cuerpo = $response->body();
-            abort_if($cuerpo === '' || \strlen($cuerpo) > self::MAX_BYTES, 404);
+
+            if ($cuerpo === '' || \strlen($cuerpo) > self::MAX_BYTES) {
+                $this->anotarFallo($cachePath);
+
+                abort(404);
+            }
 
             file_put_contents($cachePath, $cuerpo);
             file_put_contents($cachePath.'.type', $tipo);
+            @unlink($cachePath.'.fail');
         }
 
         $tipo = is_file($cachePath.'.type')
@@ -86,6 +134,36 @@ final class DescriptionImageProxyController extends Controller
             'Cache-Control'                => 'public, max-age=2592000, immutable',
             'Cross-Origin-Resource-Policy' => 'same-origin',
         ]);
+    }
+
+    private function falloReciente(string $cachePath): bool
+    {
+        $marca = $cachePath.'.fail';
+
+        if (!is_file($marca)) {
+            return false;
+        }
+
+        if (time() - (int) filemtime($marca) < self::TTL_FALLO) {
+            return true;
+        }
+
+        // Caducó: se borra para que este intento vuelva a probar de verdad. Un
+        // host puede volver, y si no vuelve se anota otra vez.
+        @unlink($marca);
+
+        return false;
+    }
+
+    private function anotarFallo(string $cachePath): void
+    {
+        $dir = \dirname($cachePath);
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0o755, true);
+        }
+
+        @file_put_contents($cachePath.'.fail', (string) time());
     }
 
     /**

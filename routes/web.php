@@ -152,6 +152,15 @@ Route::middleware('language')->group(function (): void {
                 ->where('size', '^(original|[wh][0-9]{2,4})$')
                 ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
 
+            // Proxy de imagenes de DESCRIPCION — re-emite same-origin las que el
+            // uploader escribe en su BBCode y cuyo host no esta en la lista
+            // blanca. Sustituye a images.weserv.nl. Va FIRMADA: la URL de
+            // origen la elige un usuario, asi que solo valen las que genero el
+            // propio servidor al renderizar un BBCode.
+            Route::get('/description-image', [App\Http\Controllers\DescriptionImageProxyController::class, 'show'])
+                ->name('description_image_proxy')
+                ->middleware('signed');
+
             // Art proxy — normaliza (redimensiona) + cachea posters/backdrops de
             // todos los proveedores (TMDB/Amazon/TVmaze/MAL/AniList) y los re-emite
             // same-origin. La URL de origen viaja firmada en el query `u`.
