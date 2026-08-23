@@ -1110,10 +1110,21 @@
             </section>
         @endif
 
-        <livewire:also-downloaded-works
-            :work="$work->withoutRelations()"
-            :categoryId="$category->id"
-        />
+        {{-- "Tambien descargaron" sólo sabe de pelis, series y juegos: su
+             propiedad `$work` está tipada a esos tres y no tiene consulta para
+             libros. Pasarle un Book reventaba con "Cannot assign" y tumbaba la
+             página ENTERA de similares, no sólo este bloque.
+
+             Se omite hasta que el componente aprenda a cruzar libros. Es la
+             pieza que hace útil esta página --en una peli suelta te saca la
+             serie y las demás pelis-- así que en libros deberia cruzar por
+             saga y por autor, que son datos que ya estan en la base. --}}
+        @if ($work instanceof \App\Models\TmdbMovie || $work instanceof \App\Models\TmdbTv || $work instanceof \App\Models\IgdbGame)
+            <livewire:also-downloaded-works
+                :work="$work->withoutRelations()"
+                :categoryId="$category->id"
+            />
+        @endif
 
         @if ($playlistCategories->isNotEmpty())
             <section class="panelV2">
