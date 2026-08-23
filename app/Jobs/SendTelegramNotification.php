@@ -60,7 +60,15 @@ class SendTelegramNotification implements ShouldQueue
             $audioFlags = '';
             $subFlags = '';
 
-            if (!empty($torrent->mediainfo)) {
+            // El anuncio nació para vídeo y da por hecho que todo torrent
+            // tiene mediainfo. Un libro no lo tiene, así que sin esta rama
+            // salían fichas con «Codec: N/A» y «Audio: N/A» y ningún dato
+            // real. La categoría manda, no la presencia de la ficha: un
+            // audiolibro de lectura libre no tiene fila en `audiobooks` y
+            // sigue siendo un audiolibro.
+            $kind = $this->resolveKind($torrent);
+
+            if ($kind === 'video' && !empty($torrent->mediainfo)) {
                 $mi = $torrent->mediainfo;
 
                 // Video codec
@@ -107,42 +115,25 @@ class SendTelegramNotification implements ShouldQueue
             $poster     = $this->resolvePosterUrl($torrent);
 
             // --- Caption (max 1024 for sendPhoto) ---
-            $caption = "🎬 <b>{$this->esc($torrent->name)}</b>\n\n"
-                     . "📂 <b>Categoría:</b> {$this->esc($category)}\n"
-                     . "💾 <b>Tamaño:</b> {$size}\n"
-                     . "⭐ <b>Calidad:</b> {$this->esc($type)}\n"
-                     . "🎞 <b>Codec:</b> {$codec}\n";
-
-            if ($resolution) {
-                $caption .= "📐 <b>Resolución:</b> {$resolution}\n";
-            }
-            if ($aspectRatio) {
-                $caption .= "🖼 <b>Aspecto:</b> {$aspectRatio}\n";
-            }
-            if ($duration) {
-                $caption .= "⏱ <b>Duración:</b> {$duration}\n";
-            }
-            if ($bitrate) {
-                $caption .= "📊 <b>Bitrate:</b> {$bitrate}\n";
-            }
-            if ($framerate) {
-                $caption .= "🎯 <b>Framerate:</b> {$framerate}\n";
-            }
-
-            $caption .= "🔊 <b>Audio:</b> {$audioFormat}";
-            if ($audioFlags) {
-                $caption .= "  {$audioFlags}";
-            }
-            $caption .= "\n";
-
-            if ($subFlags) {
-                $caption .= "💬 <b>Subs:</b> {$subFlags}\n";
-            }
-
-            $caption .= "👤 <b>Subido por:</b> {$this->esc($uploader)}\n";
+            $caption = match ($kind) {
+                'book'      => $this->captionBook($torrent, $category, $type, $size, $uploader),
+                'audiobook' => $this->captionAudiobook($torrent, $category, $type, $size, $uploader),
+                'game'      => $this->captionGame($torrent, $category, $type, $size, $uploader),
+                default     => $this->captionVideo($torrent, $category, $type, $size, $uploader, [
+                    'codec'       => $codec,
+                    'audioFormat' => $audioFormat,
+                    'resolution'  => $resolution,
+                    'duration'    => $duration,
+                    'bitrate'     => $bitrate,
+                    'framerate'   => $framerate,
+                    'aspectRatio' => $aspectRatio,
+                    'audioFlags'  => $audioFlags,
+                    'subFlags'    => $subFlags,
+                ]),
+            };
 
             if (mb_strlen($caption) > 1024) {
-                $caption = mb_substr($caption, 0, 1020) . '...';
+                $caption = mb_substr($caption, 0, 1020).'...';
             }
 
             // --- Inline Keyboard ---
@@ -157,6 +148,23 @@ class SendTelegramNotification implements ShouldQueue
                 $row2[] = ['text' => '🎞 TMDb', 'url' => "https://www.themoviedb.org/movie/{$torrent->tmdb_movie_id}"];
             } elseif (!empty($torrent->tmdb_tv_id)) {
                 $row2[] = ['text' => '📺 TMDb', 'url' => "https://www.themoviedb.org/tv/{$torrent->tmdb_tv_id}"];
+            }
+
+            // Enlaces del proveedor que identificó la obra. Google Books
+            // acepta el ISBN como consulta y Audible construye la ficha con
+            // el ASIN, así que ninguno de los dos necesita un id extra.
+            if ($kind === 'book' && $torrent->isbn13) {
+                $row2[] = ['text' => '📚 Google Books', 'url' => 'https://books.google.com/books?vid=ISBN'.$torrent->isbn13];
+            }
+
+            if ($kind === 'audiobook' && $torrent->asin) {
+                $row2[] = ['text' => '🎧 Audible', 'url' => 'https://www.audible.es/pd/'.$torrent->asin];
+            } elseif ($kind === 'audiobook' && $torrent->isbn13) {
+                $row2[] = ['text' => '📚 Google Books', 'url' => 'https://books.google.com/books?vid=ISBN'.$torrent->isbn13];
+            }
+
+            if ($kind === 'game' && $torrent->game?->url) {
+                $row2[] = ['text' => '🎮 IGDB', 'url' => $torrent->game->url];
             }
 
             $trailerUrl = $this->resolveTrailerUrl($torrent);
@@ -218,6 +226,164 @@ class SendTelegramNotification implements ShouldQueue
         return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
+    /**
+     * Qué clase de obra anuncia este torrent.
+     *
+     * Manda la CATEGORÍA y no la ficha: un audiolibro de lectura libre no
+     * tiene fila en `audiobooks` --no tiene ASIN-- y aun así hay que
+     * anunciarlo como audiolibro. El orden importa porque un audiolibro
+     * puede llevar además el ISBN de la obra y caería en la rama de libro.
+     *
+     * @return 'video'|'book'|'audiobook'|'game'
+     */
+    private function resolveKind(Torrent $torrent): string
+    {
+        $category = $torrent->category;
+
+        return match (true) {
+            (bool) $category?->audiobook_meta => 'audiobook',
+            (bool) $category?->book_meta      => 'book',
+            (bool) $category?->game_meta      => 'game',
+            default                           => 'video',
+        };
+    }
+
+    /**
+     * La cabecera común: título, categoría, tamaño y tipo. Los cuatro campos
+     * que cualquier torrent tiene, sea lo que sea.
+     */
+    private function captionHeader(string $emoji, string $name, string $category, string $size, string $type, string $tipoEtiqueta = 'Calidad'): string
+    {
+        return $emoji.' <b>'.$this->esc($name)."</b>\n\n"
+            .'📂 <b>Categoría:</b> '.$this->esc($category)."\n"
+            .'💾 <b>Tamaño:</b> '.$size."\n"
+            .'⭐ <b>'.$tipoEtiqueta.':</b> '.$this->esc($type)."\n";
+    }
+
+    /**
+     * @param array<string, string> $f Campos ya extraídos del mediainfo
+     */
+    private function captionVideo(Torrent $torrent, string $category, string $type, string $size, string $uploader, array $f): string
+    {
+        $caption = $this->captionHeader('🎬', (string) $torrent->name, $category, $size, $type)
+            .'🎞 <b>Codec:</b> '.$f['codec']."\n";
+
+        if ($f['resolution']) {
+            $caption .= '📐 <b>Resolución:</b> '.$f['resolution']."\n";
+        }
+
+        if ($f['aspectRatio']) {
+            $caption .= '🖼 <b>Aspecto:</b> '.$f['aspectRatio']."\n";
+        }
+
+        if ($f['duration']) {
+            $caption .= '⏱ <b>Duración:</b> '.$f['duration']."\n";
+        }
+
+        if ($f['bitrate']) {
+            $caption .= '📊 <b>Bitrate:</b> '.$f['bitrate']."\n";
+        }
+
+        if ($f['framerate']) {
+            $caption .= '🎯 <b>Framerate:</b> '.$f['framerate']."\n";
+        }
+
+        $caption .= '🔊 <b>Audio:</b> '.$f['audioFormat'];
+
+        if ($f['audioFlags']) {
+            $caption .= '  '.$f['audioFlags'];
+        }
+
+        $caption .= "\n";
+
+        if ($f['subFlags']) {
+            $caption .= '💬 <b>Subs:</b> '.$f['subFlags']."\n";
+        }
+
+        return $caption.'👤 <b>Subido por:</b> '.$this->esc($uploader)."\n";
+    }
+
+    private function captionBook(Torrent $torrent, string $category, string $type, string $size, string $uploader): string
+    {
+        $book = $torrent->book;
+
+        $caption = $this->captionHeader('📚', (string) $torrent->name, $category, $size, $type, 'Formato');
+
+        if ($book !== null) {
+            $caption .= $this->linea('✍️', 'Autor', $book->authorLine());
+            $caption .= $this->linea('🏢', 'Editorial', (string) $book->publisher);
+            $caption .= $this->linea('📅', 'Año', (string) $book->first_publish_year);
+            $caption .= $this->linea('📄', 'Páginas', $book->page_count ? $book->page_count.' págs.' : '');
+            $caption .= $this->linea('🌐', 'Idioma', mb_strtoupper(implode(', ', $book->languages ?? [])));
+        }
+
+        return $caption.'👤 <b>Subido por:</b> '.$this->esc($uploader)."\n";
+    }
+
+    private function captionAudiobook(Torrent $torrent, string $category, string $type, string $size, string $uploader): string
+    {
+        // Se cae al libro cuando no hay audiolibro, igual que la ficha del
+        // torrent: una lectura libre trae ISBN de la obra y ningún ASIN.
+        $obra = $torrent->audiobook ?? $torrent->book;
+
+        $caption = $this->captionHeader('🎧', (string) $torrent->name, $category, $size, $type, 'Formato');
+
+        if ($obra !== null) {
+            $caption .= $this->linea('✍️', 'Autor', $obra->authorLine());
+
+            if (method_exists($obra, 'narratorLine')) {
+                $caption .= $this->linea('🎙', 'Narrador', $obra->narratorLine());
+            }
+
+            if (method_exists($obra, 'runtimeForHumans')) {
+                $caption .= $this->linea('⏱', 'Duración', (string) $obra->runtimeForHumans());
+            }
+
+            $caption .= $this->linea('🏢', 'Editorial', (string) $obra->publisher);
+            $caption .= $this->linea(
+                '📅',
+                'Año',
+                (string) ($obra->first_publish_year ?? substr((string) ($obra->release_date ?? ''), 0, 4)),
+            );
+        }
+
+        return $caption.'👤 <b>Subido por:</b> '.$this->esc($uploader)."\n";
+    }
+
+    private function captionGame(Torrent $torrent, string $category, string $type, string $size, string $uploader): string
+    {
+        $game = $torrent->game;
+
+        $caption = $this->captionHeader('🎮', (string) $torrent->name, $category, $size, $type, 'Plataforma');
+
+        if ($game !== null) {
+            $caption .= $this->linea('📅', 'Año', substr((string) ($game->first_release_date ?? ''), 0, 4));
+
+            if ($game->rating) {
+                $caption .= $this->linea('⭐', 'Nota', round((float) $game->rating).'/100');
+            }
+
+            // El resumen va al final y recortado: el caption de sendPhoto
+            // sólo admite 1024 caracteres y los datos duros importan más.
+            if ($game->summary) {
+                $caption .= "\n".$this->esc(mb_strimwidth((string) $game->summary, 0, 320, '...'))."\n";
+            }
+        }
+
+        return $caption.'👤 <b>Subido por:</b> '.$this->esc($uploader)."\n";
+    }
+
+    /**
+     * Una línea del caption, o nada si el campo viene vacío. Evita las
+     * etiquetas huérfanas del tipo «Editorial:» sin editorial.
+     */
+    private function linea(string $emoji, string $etiqueta, string $valor): string
+    {
+        $valor = trim($valor);
+
+        return $valor === '' ? '' : $emoji.' <b>'.$etiqueta.':</b> '.$this->esc($valor)."\n";
+    }
+
     private function languageToFlag(string $language): string
     {
         $language = strtolower(trim(preg_replace('/\s*\(.*\)/', '', $language)));
@@ -273,7 +439,20 @@ class SendTelegramNotification implements ShouldQueue
 
     private function resolvePosterUrl(Torrent $torrent): string
     {
-        $poster = $torrent->movie?->poster ?? $torrent->tv?->poster;
+        // 1280 px porque Telegram REDESCARGA la imagen desde el origen y la
+        // reescala él: mandar la miniatura de 128 px de Google Books daba un
+        // anuncio borroso. `coverAtLeast` devuelve el peldaño más pequeño que
+        // llegue a esa anchura, o el mayor que haya, así que nunca falla por
+        // pedir de más. Telegram rechaza por encima de ~10 MB y esa escalera
+        // no pasa de ~540 KiB.
+        $obra = $torrent->audiobook ?? $torrent->book;
+
+        $poster = match (true) {
+            $obra !== null                     => $obra->coverAtLeast(1280),
+            $torrent->game?->cover_image_id !== null && $torrent->game?->cover_image_id !== ''
+                => 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/'.$torrent->game->cover_image_id.'.png',
+            default                            => $torrent->movie?->poster ?? $torrent->tv?->poster,
+        };
 
         if ($poster && (str_starts_with($poster, 'http://') || str_starts_with($poster, 'https://'))) {
             return $poster;
@@ -284,6 +463,11 @@ class SendTelegramNotification implements ShouldQueue
 
     private function resolveTrailerUrl(Torrent $torrent): ?string
     {
+        // 0. IGDB guarda el id de YouTube del tráiler del juego.
+        if ($torrent->game?->first_video_video_id) {
+            return 'https://www.youtube.com/watch?v='.$torrent->game->first_video_video_id;
+        }
+
         // 1. From TMDB movie trailer field
         $trailerId = $torrent->movie?->trailer;
 

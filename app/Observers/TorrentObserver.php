@@ -16,8 +16,11 @@ class TorrentObserver
             && $torrent->getOriginal('status') !== ModerationStatus::APPROVED->value
         ) {
             if ($torrent->user) {
+                // Libro, audiolibro y juego van en la carga porque el
+                // anuncio los lee: sin ellos el job los ve a `null` y manda
+                // una ficha vacía con la carátula de relleno.
                 SendTelegramNotification::dispatch(
-                    $torrent->load(['category', 'type', 'movie', 'tv']),
+                    $torrent->load(['category', 'type', 'movie', 'tv', 'game', 'book', 'audiobook']),
                     $torrent->user,
                 );
             }
