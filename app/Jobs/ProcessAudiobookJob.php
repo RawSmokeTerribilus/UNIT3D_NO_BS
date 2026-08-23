@@ -8,6 +8,7 @@ use App\Enums\GlobalRateLimit;
 use App\Models\Audiobook;
 use App\Services\Audiobooks\AudnexusClient;
 use App\Services\Books\TaxonomyNormalizer;
+use App\Services\Translation\LibreTranslateClient;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -57,7 +58,7 @@ class ProcessAudiobookJob implements ShouldQueue
         return now()->addHour();
     }
 
-    public function handle(AudnexusClient $audnexus): void
+    public function handle(AudnexusClient $audnexus, LibreTranslateClient $translator): void
     {
         $record = $audnexus->book($this->asin, $this->region);
 
@@ -75,6 +76,27 @@ class ProcessAudiobookJob implements ShouldQueue
         foreach (['subtitle', 'series', 'series_position', 'publisher', 'language', 'description', 'cover_url'] as $field) {
             if (($record[$field] ?? '') === '') {
                 $record[$field] = null;
+            }
+        }
+
+        // Audnexus devuelve lo que Audible publique en esa region, y no
+        // siempre es castellano: los titulos importados traen la sinopsis en
+        // ingles. Mismo trato que en `books` y en `igdb_games`: se marca lo
+        // traducido y se guarda el original, para poder rehacerlo si cambia
+        // el motor sin volver a pedir nada al proveedor.
+        $idioma = substr((string) config('app.meta_locale', 'es_ES'), 0, 2);
+        $sinopsis = (string) ($record['description'] ?? '');
+
+        $record['description_original'] = null;
+        $record['description_source_language'] = null;
+
+        if ($sinopsis !== '' && $idioma !== 'en' && !LibreTranslateClient::pareceCastellano($sinopsis)) {
+            $traducida = $translator->translate($sinopsis, 'en', $idioma);
+
+            if ($traducida !== '') {
+                $record['description'] = $traducida;
+                $record['description_original'] = $sinopsis;
+                $record['description_source_language'] = 'en';
             }
         }
 

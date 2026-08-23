@@ -83,6 +83,60 @@ final class LibreTranslateClient
     }
 
     /**
+     * Traduce protegiendo nombres propios.
+     *
+     * El motor traduce los títulos como si fueran frases: «The Curse of Monkey
+     * Island» salía como «La curva de la isla Monkey», y el nombre del juego
+     * aparece en casi todas las sinopsis de IGDB, así que el error se veía
+     * siempre.
+     *
+     * Cada término se sustituye por un marcador antes de enviar y se repone
+     * después. El marcador es `ZQX<n>`: medido el 2026-08-23 contra el
+     * LibreTranslate local, sobrevive intacto a la traducción. `__0__` NO
+     * sobrevive (queda en ` 0 `) y `[[0]]` sólo a veces, así que no valen.
+     *
+     * Los términos se sustituyen del más largo al más corto, para que un
+     * título que contenga a otro no se rompa por la mitad.
+     *
+     * @param array<int, string> $terminos
+     */
+    public function translateKeeping(string $text, array $terminos, string $from, string $to): string
+    {
+        $terminos = array_values(array_filter(array_unique(array_map('trim', $terminos)), fn ($t) => mb_strlen($t) >= 3));
+        usort($terminos, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        $mapa = [];
+        $protegido = $text;
+
+        foreach ($terminos as $i => $termino) {
+            $marca = 'ZQX'.$i;
+            $sustituido = str_ireplace($termino, $marca, $protegido);
+
+            // Sólo se protege lo que de verdad aparece: un marcador suelto que
+            // no se repone se quedaría en el texto final a la vista.
+            if ($sustituido !== $protegido) {
+                $mapa[$marca] = $termino;
+                $protegido = $sustituido;
+            }
+        }
+
+        $traducido = $this->translate($protegido, $from, $to);
+
+        if ($traducido === '') {
+            return '';
+        }
+
+        foreach ($mapa as $marca => $termino) {
+            $traducido = str_replace($marca, $termino, $traducido);
+        }
+
+        // Si el motor se comió algún marcador, el texto queda con un hueco
+        // raro; es preferible eso a devolver «ZQX0» a un lector, así que se
+        // limpian los que hayan quedado sin reponer.
+        return trim((string) preg_replace('/\bZQX\d+\b/', '', $traducido));
+    }
+
+    /**
      * Detección barata de castellano frente a inglés, contando palabras
      * vacías. Suficiente para un párrafo entero, que es lo que se traduce.
      */

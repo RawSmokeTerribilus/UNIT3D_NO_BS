@@ -18,6 +18,7 @@ namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
 use App\Services\Igdb\IgdbClient;
+use App\Services\Translation\LibreTranslateClient;
 use Carbon\Carbon;
 use App\Models\IgdbCompany;
 use App\Models\IgdbGame;
@@ -70,12 +71,44 @@ class ProcessIgdbGameJob implements ShouldQueue
         return now()->addDay();
     }
 
-    public function handle(IgdbClient $igdb): void
+    public function handle(IgdbClient $igdb, LibreTranslateClient $translator): void
     {
         $fetchedGame = $igdb->game($this->id);
 
         if ($fetchedGame === null) {
             throw new RuntimeException('IGDB returned no game for id '.$this->id);
+        }
+
+        // IGDB indexa SOLO en ingles y no acepta un parametro de idioma, asi
+        // que el resumen llega en ingles aunque el juego sea espanol. La
+        // ficha acababa en ingles entera y los miembros no la leian.
+        //
+        // Se traduce ANTES del upsert para escribir la fila una sola vez, y
+        // se comprueba el idioma primero: algun resumen corto ya viene en
+        // castellano y retraducirlo solo lo estropea.
+        $summary = (string) ($fetchedGame['summary'] ?? '');
+        $summaryOriginal = null;
+        $summaryLanguage = null;
+        $idioma = substr((string) config('app.meta_locale', 'es_ES'), 0, 2);
+
+        if ($summary !== '' && $idioma !== 'en' && !LibreTranslateClient::pareceCastellano($summary)) {
+            // El nombre del juego va protegido: aparece en casi todas las
+            // sinopsis de IGDB y el motor lo traducia como una frase.
+            $traducido = $translator->translateKeeping(
+                $summary,
+                array_filter([$fetchedGame['name'] ?? null]),
+                'en',
+                $idioma,
+            );
+
+            // Si el traductor no responde se deja el ingles: una sinopsis en
+            // ingles es peor que una en castellano, pero mucho mejor que
+            // ninguna.
+            if ($traducido !== '') {
+                $summaryOriginal = $summary;
+                $summaryLanguage = 'en';
+                $summary = $traducido;
+            }
         }
 
         // IGDB entrega la fecha como epoch Unix y upsert() NO pasa por los casts
@@ -89,7 +122,9 @@ class ProcessIgdbGameJob implements ShouldQueue
         IgdbGame::query()->upsert([[
             'id'                     => $this->id,
             'name'                   => $fetchedGame['name'] ?? null,
-            'summary'                => $fetchedGame['summary'] ?? '',
+            'summary'                => $summary,
+            'summary_original'       => $summaryOriginal,
+            'summary_source_language' => $summaryLanguage,
             'first_artwork_image_id' => $fetchedGame['artworks'][0]['image_id'] ?? null,
             'first_release_date'     => $releaseDate,
             'cover_image_id'         => $fetchedGame['cover']['image_id'] ?? null,

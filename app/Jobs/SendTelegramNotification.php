@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Helpers\StringHelper;
 use App\Models\Torrent;
 use App\Models\User;
+use App\Services\Metadata\CoverLadder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -178,19 +179,44 @@ class SendTelegramNotification implements ShouldQueue
             }
 
             // --- Send ---
-            $payload = [
-                'chat_id'           => $chatId,
-                'photo'             => $poster,
-                'caption'           => $caption,
-                'parse_mode'        => 'HTML',
-                'reply_markup'      => ['inline_keyboard' => $rows],
+            $base = [
+                'chat_id'      => $chatId,
+                'parse_mode'   => 'HTML',
+                'reply_markup' => ['inline_keyboard' => $rows],
             ];
 
             if ($topicId) {
-                $payload['message_thread_id'] = (int) $topicId;
+                $base['message_thread_id'] = (int) $topicId;
             }
 
-            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$token}/sendPhoto", $payload);
+            $response = null;
+
+            if ($poster !== null) {
+                $response = Http::timeout(10)->post(
+                    "https://api.telegram.org/bot{$token}/sendPhoto",
+                    $base + ['photo' => $poster, 'caption' => $caption],
+                );
+            }
+
+            // Telegram descarga la imagen el mismo, asi que un origen lento,
+            // caido o que le devuelva algo raro tumba el anuncio con un 400 y
+            // el texto se pierde con el. El texto importa mas que la portada:
+            // si la foto no entra, se manda igual sin ella.
+            if ($response === null || !$response->successful()) {
+                if ($response !== null) {
+                    Log::warning('Telegram: sendPhoto falló, se reintenta como texto', [
+                        'status'     => $response->status(),
+                        'body'       => $response->body(),
+                        'poster'     => $poster,
+                        'torrent_id' => $torrent->id,
+                    ]);
+                }
+
+                $response = Http::timeout(10)->post(
+                    "https://api.telegram.org/bot{$token}/sendMessage",
+                    $base + ['text' => $caption, 'disable_web_page_preview' => false],
+                );
+            }
 
             if (!$response->successful()) {
                 Log::error('Telegram: API error', [
@@ -437,7 +463,7 @@ class SendTelegramNotification implements ShouldQueue
         return $flags[$language] ?? "\u{1F3F3}\u{FE0F}"; // 🏳️
     }
 
-    private function resolvePosterUrl(Torrent $torrent): string
+    private function resolvePosterUrl(Torrent $torrent): ?string
     {
         // 1280 px porque Telegram REDESCARGA la imagen desde el origen y la
         // reescala él: mandar la miniatura de 128 px de Google Books daba un
@@ -447,18 +473,30 @@ class SendTelegramNotification implements ShouldQueue
         // no pasa de ~540 KiB.
         $obra = $torrent->audiobook ?? $torrent->book;
 
+        // Los juegos pasan por la MISMA escalera que libros y audiolibros en
+        // vez de armar la URL a mano. Aparte de no duplicar la convencion,
+        // `CoverLadder` sirve `.jpg` y no `.png`: medido, el png de
+        // `co30yr` pesa 277 KB y el jpg 89 KB, y Telegram devolvia
+        // «failed to get HTTP URL content» con el png de forma reproducible
+        // mientras `curl` se lo bajaba sin problema.
         $poster = match (true) {
-            $obra !== null                     => $obra->coverAtLeast(1280),
-            $torrent->game?->cover_image_id !== null && $torrent->game?->cover_image_id !== ''
-                => 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/'.$torrent->game->cover_image_id.'.png',
-            default                            => $torrent->movie?->poster ?? $torrent->tv?->poster,
+            $obra !== null => $obra->coverAtLeast(1280),
+            (string) ($torrent->game?->cover_image_id ?? '') !== ''
+                => CoverLadder::pick(CoverLadder::igdb((string) $torrent->game->cover_image_id), 1280),
+            default => $torrent->movie?->poster ?? $torrent->tv?->poster,
         };
 
         if ($poster && (str_starts_with($poster, 'http://') || str_starts_with($poster, 'https://'))) {
             return $poster;
         }
 
-        return 'https://via.placeholder.com/600x900?text=No+Poster';
+        // Antes se devolvia un placeholder de `via.placeholder.com`. Ese
+        // servicio esta MUERTO (no resuelve), y como Telegram descarga la
+        // imagen el mismo, `sendPhoto` respondia
+        // «400 Bad Request: failed to get HTTP URL content» y se perdia el
+        // anuncio ENTERO, caption incluido. Fue lo que dejo sin anunciar los
+        // 13 libros y juegos del 2026-08-22. Sin caratula se manda texto.
+        return null;
     }
 
     private function resolveTrailerUrl(Torrent $torrent): ?string
