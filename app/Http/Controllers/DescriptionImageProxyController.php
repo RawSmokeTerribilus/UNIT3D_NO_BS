@@ -125,6 +125,8 @@ final class DescriptionImageProxyController extends Controller
             @unlink($cachePath.'.fail');
         }
 
+        $this->marcarUso($cachePath);
+
         $tipo = is_file($cachePath.'.type')
             ? (string) file_get_contents($cachePath.'.type')
             : 'image/jpeg';
@@ -134,6 +136,25 @@ final class DescriptionImageProxyController extends Controller
             'Cache-Control'                => 'public, max-age=2592000, immutable',
             'Cross-Origin-Resource-Policy' => 'same-origin',
         ]);
+    }
+
+    /**
+     * Deja constancia de que esta imagen se ha usado, para que la poda borre
+     * lo MENOS pedido y no lo más antiguo.
+     *
+     * Hace falta porque el volumen está montado con `noatime`: el sistema no
+     * actualiza la fecha de acceso al leer, así que ordenar por atime daría un
+     * orden inventado. Se usa la fecha de modificación como «último uso».
+     *
+     * Se marca como mucho una vez por hora. Un `touch` por petición sería una
+     * escritura de inodo por imagen servida y no aporta nada: para decidir qué
+     * sobra basta con la resolución de horas.
+     */
+    private function marcarUso(string $cachePath): void
+    {
+        if (time() - (int) filemtime($cachePath) > 3600) {
+            @touch($cachePath);
+        }
     }
 
     private function falloReciente(string $cachePath): bool

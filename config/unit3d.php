@@ -75,6 +75,14 @@ return [
      * cambio de .env y `config:cache`, sin desplegar codigo.
      */
     'description_image_proxy' => env('DESCRIPTION_IMAGE_PROXY', false),
+
+    /*
+     * Tope en GB de la cache en disco de ese proxy. Al pasarse, la tarea
+     * `images:prune-description-cache` borra lo MENOS usado hasta volver por
+     * debajo. Medido: solo las capturas de ptscreens que hay en descripciones
+     * son ~19.900 imagenes de ~2 MB, o sea ~40 GB si se vieran todas.
+     */
+    'description_cache_cap_gb' => env('DESCRIPTION_CACHE_CAP_GB', 10),
     'root_url_override' => env('FORCE_ROOT_URL', false),
 
     // Global Rate Limit for Comments - X Per Minute

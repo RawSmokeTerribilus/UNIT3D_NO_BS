@@ -54,6 +54,7 @@ use App\Console\Commands\DeleteUnparticipatedConversations;
 use App\Console\Commands\DispatchMetaRefresh;
 use App\Console\Commands\EmailBlacklistUpdate;
 use App\Console\Commands\SyncDisposableEmailDomains;
+use App\Console\Commands\PruneDescriptionImageCache;
 use App\Console\Commands\SyncPeers;
 use Illuminate\Auth\Console\ClearResetsCommand;
 use Illuminate\Console\Scheduling\Schedule;
@@ -111,6 +112,10 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoSyncPeopleToMeilisearch::class)->daily();
         $schedule->command(AutoRemoveExpiredDonors::class)->daily();
         $schedule->command(AutoRemoveReseeds::class)->daily();
+        // La caché del proxy de imágenes de descripción crece con cada imagen
+        // servida y no se borraba nunca. Poda diaria hasta el tope, tirando
+        // primero de lo menos pedido.
+        $schedule->command(PruneDescriptionImageCache::class)->dailyAt('05:00')->withoutOverlapping(30);
         // withoutOverlapping(10) — auto-release the lock after 10 minutes.
         // Default TTL is 24h; if the 06:00 server-wide backup nukes a running
         // command mid-execution, the leaked lock would silently block the next

@@ -94,7 +94,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 28. [Anuncios de Telegram por tipo de obra](#28-anuncios-de-telegram-que-entienden-qué-están-anunciando)
 29. [Selector de iconos y build sin ventana](#29-selector-de-iconos-font-awesome-y-un-build-sin-ventana-de-servicio)
 30. [Meilisearch: los settings dejan de pisarse](#30-meilisearch-los-settings-dejan-de-pisarse-solos)
-31. [Las capturas de descripción, pendientes](#31-las-capturas-de-una-descripción-siguen-saliendo-de-casa-ajena)
+31. [Las descripciones dejan de depender de un tercero](#31-las-descripciones-dejan-de-depender-de-un-tercero-gratuito)
 
 </details>
 
@@ -208,7 +208,7 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 - [25 · La misma portada en cuatro tamaños](#25-la-misma-portada-en-cuatro-tamaños)
 - [26 · Traducción local, y decir que es automática](#26-traducción-local-y-decir-que-es-automática)
 - [27 · Similares y colecciones para libros](#27-similares-y-colecciones-para-libros)
-- [31 · Las capturas de descripción, pendientes](#31-las-capturas-de-una-descripción-siguen-saliendo-de-casa-ajena)
+- [31 · Las descripciones dejan de depender de un tercero](#31-las-descripciones-dejan-de-depender-de-un-tercero-gratuito)
 
 **🎨 Interfaz y branding**
 - [6 · Branding de NOBS (tema propio)](#6-branding-de-nobs-tema-personalizado)
@@ -1491,35 +1491,56 @@ Arranque idempotente que **respeta lo que ya está configurado**, sincronizació
 
 ---
 
-### 31. **Las Capturas de una Descripción Siguen Saliendo de Casa Ajena**
-🧯 *No confundir con el proxy de arte, que sirve medio tracker. Éste es el hueco que queda: las imágenes que escribe el uploader.*
+### 31. **Las Descripciones Dejan de Depender de un Tercero Gratuito**
+🧯 *Había un proxy de imágenes en el código. Era de otros.*
 
-**El Desafío**: Conviene separar dos cosas que suenan igual.
+**El Desafío**: Conviene separar dos cosas que suenan igual. **El proxy de arte** (mejora 15) sirve pósters, backdrops, portadas de libro, avatares, iconos, banners y carátulas de torrent: nueve rutas bajo `authenticated-images/`, con caché, redimensionado y precalentado desde el panel. Ése nunca fue el problema.
 
-**El proxy de arte está muy vivo** (mejora 15) y es de lo más usado del tracker: sirve pósters, backdrops, portadas de libro, avatares, iconos de usuario, imágenes de categoría, banners y carátulas de torrent, imágenes de artículo y de playlist — nueve rutas bajo `authenticated-images/`, con caché, redimensionado y un comando de staff para precalentarla. Es lo que alimenta el carrusel de la portada. **Ese no es el problema.**
+El problema estaba en las capturas que el uploader escribe **dentro de su descripción**. Al ir a cablear un proxy propio para ellas apareció que ya había uno… de terceros:
 
-El hueco está en otro sitio: **las capturas que el uploader escribe dentro de la descripción**. Ésas siguen saliendo del host donde él las subió. Imgbox cerró y se llevó **más de 3.000 galerías** del tracker por delante. Y mientras el enlace está vivo, cada visita filtra la IP del que mira al host de terceros.
+```php
+if (!$isWhitelisted) {
+    $url = 'https://images.weserv.nl/?n=-1&ll&url='.urlencode($url);
+}
+```
+
+La visibilidad de las imágenes de **toda la web** dependía de un servicio gratuito ajeno. Y con algunos orígenes devuelve 404 y deja el hueco en blanco sin decir por qué: fue lo que pasó con las portadas de Google Books y con el favicon de IGDB.
 
 **Lo que construimos**:
 
-`DescriptionImageProxyController` — 128 líneas, escrito y probado, para reemitir también esas imágenes desde el propio origen.
+Un proxy propio con ruta **firmada** —la URL de origen la elige un usuario, así que sólo valen las que generó el servidor al renderizar un BBCode—, caché en disco con tope, y defensa contra SSRF sobre la **IP resuelta**, no sobre el texto del host.
 
 ```
-🔌 ESTADO REAL, MEDIDO:
-  • el controlador existe .................... sí
-  • rutas que lo apuntan ..................... 0
-  • Bbcode.php emite la URL del host ......... sí, saneada pero directa
-  • una descripción de hoy apunta a .......... i.ibb.co
+📊 MEDIDO ANTES DE TOCAR NADA:
+  • 46.436 etiquetas [img] en 7.822 torrents
+  • la lista blanca YA cubre imgbox, ibb.co, pixhost, ptpimg…
+    → siguen yendo directas; los 1.019 torrents con hosts muertos
+      ni se acercan al proxy
+  • los que sí cambian: 3.275 de ptscreens (19.862 imágenes)
+    + los hosts de portada de libro y juego
+  • weserv NO estaba optimizando: 1.328.649 bytes frente a
+    1.328.128 del origen → cambiar no pesa más
+
+🛡️ LO QUE SE ENDURECIÓ ANTES DE ENCENDERLO:
+  • timeout 12s → 6s   veinte capturas son veinte peticiones en
+                       paralelo; un origen lento no puede secuestrar
+                       veinte workers por visita
+  • caché negativa 6h  sin ella, una imagen que ya no está reintenta
+                       la descarga COMPLETA en cada visita, para siempre
+  • try/catch          un timeout o un DNS muerto llegan como excepción,
+                       no como respuesta fallida: sin capturarlos el 500
+                       se comía la página en vez de ese único <img>
+  • tope de 10 GB      poda diaria que borra lo MENOS usado
 ```
 
 **Detalles de la implementación**:
-- **No está cableado a propósito, y el orden importa.** Primero va la campaña de regeneración de galerías —que repone lo que imgbox se llevó y mueve las capturas a hosts vivos— y sólo después el cambio de ruta. Enrutarlo antes significaría cachear en casa miles de enlaces que van a cambiar igualmente.
-- Cuando entre, `Bbcode.php` es el único punto a tocar: hoy hace `sanitizeUrl(..., isImage: true)` y devuelve la URL original.
-- La lista blanca de orígenes se comparte con el proxy de arte, ya ampliada con los hosts de portada de libro: `books.google.com`, `books.googleusercontent.com`, `covers.openlibrary.org` y `m.media-amazon.com`.
+- **Se borra lo menos pedido, no lo más antiguo.** Una captura de un torrent de 2019 que la gente sigue abriendo sobrevive a una de ayer que nadie volvió a mirar. Y como el volumen está montado con `noatime` —el sistema no apunta las lecturas— el proxy marca el fichero al servirlo, como mucho una vez por hora.
+- Todo va detrás de un interruptor (`DESCRIPTION_IMAGE_PROXY`): volver a weserv es cambiar una línea del `.env` y `config:cache`, sin desplegar código.
+- Verificado en producción: descarga y cachea (0,2s → 0,0s), sirve la portada de Google Books que antes daba 404, rechaza loopback y red interna, rechaza lo que no es una imagen, y la caché negativa baja un fallo de 0,208s a 0,019s. Un torrent real con 15 capturas sale con las 15 por el proxy propio.
 
-**Por qué importa**: Está aquí porque un README que sólo cuenta lo terminado miente por omisión. Es la lección de imgbox a medio aplicar: el arte del tracker ya no depende de nadie, las capturas de las descripciones todavía sí.
+**Por qué importa**: Es la lección de imgbox aplicada del todo. Un tracker que perdió 3.000 galerías porque un tercero cerró no puede dejar que **otro** tercero decida si sus imágenes se ven.
 
-> *"Saltarse el visualizador del host es saltarse la publicidad que paga el alojamiento gratuito. Es, en parte, por lo que estos hosts van cerrando."*
+> *"Había un proxy de imágenes en el código desde siempre. Nadie lo había leído: era de otros."*
 
 ---
 
