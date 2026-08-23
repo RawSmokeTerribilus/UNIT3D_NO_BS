@@ -51,7 +51,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
   - [Parte 1 — Arreglamos las piezas rotas](#parte-1-arreglamos-las-piezas-rotas-de-unit3d)
   - [Parte 2 — Lo dockerizamos](#parte-2-lo-dockerizamos-no-es-una-tarea-trivial)
   - [Parte 3 — Añadimos resiliencia (Búnker)](#parte-3-añadimos-resiliencia-la-filosofía-búnker)
-- [Mejoras Clave (22)](#mejoras-clave)
+- [Mejoras Clave (31)](#mejoras-clave)
 - [Rutas de Instalación](#rutas-de-instalación)
 - [Gestión: El Makefile](#gestión-el-makefile)
 - [Arquitectura](#arquitectura)
@@ -62,7 +62,7 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 - [Contribuciones](#contribuciones) · [Licencia](#licencia) · [Agradecimientos](#agradecimientos)
 
 <details>
-<summary><b>📂 Las 22 Mejoras Clave, una por una</b></summary>
+<summary><b>📂 Las 31 Mejoras Clave, una por una</b></summary>
 
 1. [Meilisearch: búsqueda instantánea y resiliente](#1-meilisearch-búsqueda-instantánea-y-resiliente)
 2. [Lista negra de correos resiliente](#2-lista-negra-de-correos-resiliente)
@@ -86,6 +86,15 @@ Todo lo que necesitas para que el tracker no explote está en nuestra Wiki ofici
 20. [Super-paneles de staff (en FOSS)](#20-super-paneles-de-staff-administración-avanzada-en-foss)
 21. [Arcade ScummVM WebAssembly](#21-arcade-integrado-scummvm-webassembly-pioneros)
 22. [Banco forense y de recuperación (PITR)](#22-banco-de-forense-y-recuperación-point-in-time-aislado)
+23. [Divorcio del congelador de dependencias (Laravel 13)](#23-divorcio-del-congelador-de-dependencias-laravel-13-livewire-4-emoji-propio)
+24. [E-Books, audiolibros y juegos](#24-tres-tipos-de-obra-nuevos-e-books-audiolibros-y-juegos)
+25. [La misma portada en cuatro tamaños](#25-la-misma-portada-en-cuatro-tamaños)
+26. [Traducción local, y decir que es automática](#26-traducción-local-y-decir-que-es-automática)
+27. [Similares y colecciones para libros](#27-similares-y-colecciones-para-libros)
+28. [Anuncios de Telegram por tipo de obra](#28-anuncios-de-telegram-que-entienden-qué-están-anunciando)
+29. [Selector de iconos y build sin ventana](#29-selector-de-iconos-font-awesome-y-un-build-sin-ventana-de-servicio)
+30. [Meilisearch: los settings dejan de pisarse](#30-meilisearch-los-settings-dejan-de-pisarse-solos)
+31. [Proxy de imágenes propio para descripciones](#31-proxy-de-imágenes-propio-para-las-descripciones)
 
 </details>
 
@@ -160,6 +169,65 @@ Más allá de arreglar y dockerizar, añadimos **características autónomas y o
 ---
 
 ## Mejoras Clave
+
+> **31 mejoras** sobre UNIT3D Community. No son parches sueltos: son las siete
+> áreas donde este fork dejó de parecerse a su origen. Cada una cuenta el
+> problema real que la motivó, con las medidas que se tomaron para resolverlo.
+
+<table>
+<tr><td valign="top" width="50%">
+
+**🔍 Búsqueda y base de datos**
+- [1 · Meilisearch instantáneo y resiliente](#1-meilisearch-búsqueda-instantánea-y-resiliente)
+- [19 · Base de datos profundamente modificada](#19-base-de-datos-profundamente-modificada-ya-no-es-unit3d-community)
+- [30 · Los settings del índice dejan de pisarse](#30-meilisearch-los-settings-dejan-de-pisarse-solos)
+
+**🏗️ Infraestructura y resiliencia**
+- [5 · Infraestructura autónoma (el «Búnker»)](#5-infraestructura-autónoma-el-búnker)
+- [10 · Sincronización cifrada a Google Drive](#10-sincronización-con-google-drive-rclone-y-cifrado)
+- [22 · Banco forense y de recuperación (PITR)](#22-banco-de-forense-y-recuperación-point-in-time-aislado)
+- [23 · Divorcio del congelador de dependencias](#23-divorcio-del-congelador-de-dependencias-laravel-13-livewire-4-emoji-propio)
+
+**🔒 Seguridad y red**
+- [2 · Lista negra de correos resiliente](#2-lista-negra-de-correos-resiliente)
+- [3 · Transparencia de IPs tras Docker](#3-transparencia-de-direcciones-ip-redes-de-docker)
+- [4 · Fuerza bruta, sin castigar al legítimo](#4-protección-contra-fuerza-bruta-equilibrio-entre-seguridad-y-usabilidad)
+- [15 · Aislamiento COOP/COEP y proxy de arte](#15-aislamiento-coop-coep-y-proxy-de-imágenes-tmdb-csp-compliant)
+- [17 · Endurecimiento del edge (announce)](#17-endurecimiento-del-edge-nginx-announce-y-verificación)
+
+**🕹️ Contenido jugable**
+- [14 · RetroArch Web, 26 cores libretro](#14-retroarch-web-arcade-multi-sistema-26-cores-libretro)
+- [21 · Arcade ScummVM en WebAssembly](#21-arcade-integrado-scummvm-webassembly-pioneros)
+
+</td><td valign="top" width="50%">
+
+**📚 Catálogo y metadatos**
+- [11 · Metadata multi-proveedor con consenso](#11-metadata-multi-proveedor-con-consenso-tmdb-igdb-mal-anilist-imdb-tvmaze)
+- [12 · Meta-Worker, cola dedicada](#12-meta-worker-cola-dedicada-para-refresco-de-metadatos)
+- [24 · E-Books, audiolibros y juegos](#24-tres-tipos-de-obra-nuevos-e-books-audiolibros-y-juegos)
+- [25 · La misma portada en cuatro tamaños](#25-la-misma-portada-en-cuatro-tamaños)
+- [26 · Traducción local, y decir que es automática](#26-traducción-local-y-decir-que-es-automática)
+- [27 · Similares y colecciones para libros](#27-similares-y-colecciones-para-libros)
+- [31 · Proxy de imágenes para descripciones](#31-proxy-de-imágenes-propio-para-las-descripciones)
+
+**🎨 Interfaz y branding**
+- [6 · Branding de NOBS (tema propio)](#6-branding-de-nobs-tema-personalizado)
+- [7 · Ajustes de configuración](#7-ajustes-de-configuración)
+- [8 · Tema Retro v2](#8-refactorización-estética-y-funcional-tema-retro-v2)
+- [16 · Thanks Ratio y castellano por defecto](#16-thanks-ratio-y-localización-al-español-por-defecto)
+- [18 · UI reactiva: trailers, flash cards, backdrops](#18-ui-reactiva-trailers-flotantes-flash-cards-y-backdrops-de-freeleech)
+- [29 · Selector de iconos y build sin ventana](#29-selector-de-iconos-font-awesome-y-un-build-sin-ventana-de-servicio)
+
+**👥 Comunidad y staff**
+- [9 · Integración con Telegram (bot)](#9-integración-con-telegram-bot-de-notificaciones)
+- [13 · Swarm Intelligence y mapa 3D](#13-swarm-intelligence-y-mapa-3d-del-tracker)
+- [20 · Super-paneles de staff, en FOSS](#20-super-paneles-de-staff-administración-avanzada-en-foss)
+- [28 · Anuncios de Telegram por tipo de obra](#28-anuncios-de-telegram-que-entienden-qué-están-anunciando)
+
+</td></tr>
+</table>
+
+---
 
 ### 1. **Meilisearch: Búsqueda Instantánea y Resiliente**
 🔍 *Búsqueda en milisegundos, autoindexada y resiliente.*
@@ -1137,6 +1205,308 @@ Un laboratorio MySQL permanente, **apagado por defecto**, junto al stack de prod
 **Por qué importa**: La mayoría de los forks confían en backups y rezan. Nosotros tenemos un banco forense air-gapped que recupera pérdidas *recientes* fila a fila, sin tocar producción jamás. Recuperación como disciplina, no como pánico.
 
 > *"El banco nunca escribe en producción. La fusión a prod siempre la confirma un humano."*
+
+---
+
+### 23. **Divorcio del Congelador de Dependencias (Laravel 13, Livewire 4, Emoji Propio)**
+🧨 *Un paquete abandonado nos ataba a Laravel 12. Lo escribimos nosotros y saltamos tres majores en una ventana de seis minutos.*
+
+**El Desafío**: Upstream no toca su `composer.lock` desde diciembre de 2025. Heredamos ese congelador tal cual, y con él la sospecha cómoda de que había un apaño histórico que nos ataba a Laravel 12 y que desatarlo sería un proyecto de meses.
+
+No lo había. De **46 dependencias directas, exactamente UNA** bloqueaba el salto: `marcreichel/igdb-laravel`, sin commits desde junio de 2025, pidiendo `illuminate/support ^11.0|^12.0`. Su uso real en todo el código era **una línea** — un `use` en `ProcessIgdbGameJob` — más cuatro `@throws` decorativos. Alimentaba cero filas en `igdb_games`.
+
+Un minuto de `composer why-not laravel/framework 13` convirtió un "proyecto" en "quitar un paquete".
+
+**Lo que construimos**:
+
+Cliente IGDB propio contra `Http::` (`app/Services/Igdb/IgdbClient.php`), verificado contra la API real. Fuera también el envoltorio `hdvinnie/laravel-joypixel-emojis`, que no aportaba nada salvo copiar configuración sobre un `JoyPixels\Client` pero arrastraba un `^6` que congelaba el diccionario de emojis en 2020 mientras las imágenes ya iban por la v11. En su lugar, `EmojiRenderer` propio y un selector de emoji de verdad en el editor BBCode.
+
+```
+📦 EL SALTO (2026-08-20, ventana de 6 minutos):
+  • laravel/framework    12.67.0 → 13.26.1
+  • livewire/livewire     3.8.5  → 4.4.1
+  • intervention/image    2.7.2  → 4.2.1
+  • joypixels/toolkit     6.6.0  → 11.0.0   (3671 → 3991 emoji)
+  • guzzle 7→8 · symfony 7→8 · scout 10→11 · tinker 2→3 · backup 9→10
+  • FUERA: marcreichel/igdb-laravel, hdvinnie/laravel-joypixel-emojis,
+           doctrine/dbal, symfony/dom-crawler  (uso real: cero)
+
+🎯 RESULTADO EN PRODUCCIÓN:
+  • 0 migraciones · 0 advisories · 0 excepciones tras el arranque
+  • route:list normalizado: −2 rutas (webhook del paquete muerto), +4 (Livewire)
+  • Los 3 índices de Meilisearch, idénticos al baseline
+  • ~900 peticiones sin un solo 5xx desde el minuto uno
+```
+
+**Las cuatro trampas, que es lo que de verdad merece estar escrito**:
+
+1. **El JS de Livewire viaja dentro del bundle de Vite.** `resources/js/app.js` importa `livewire.esm.js` desde `vendor/`. Actualizar PHP sin reconstruir el frontend deja runtime de Livewire 3 contra HTML de Livewire 4 y **mata todo componente del sitio**: buscador, chat, paneles de staff, editor de subida. Orden obligatorio: `composer install` **antes** de `npm run build`, nunca al revés. Puerta de control: `grep -c "wire:island" public/build/assets/app-*.js` debe dar 1.
+
+2. **Laravel 13 dejó de redirigir a los invitados.** Sin `Authenticate::redirectUsing(...)` toda petición anónima responde **401** en vez de 302 a `/login`: el sitio queda invisible para quien no ha entrado, y ninguna prueba automática lo cubre. El arreglo vive en `RouteServiceProvider`.
+
+3. **Las cachés de arranque matan el instalador.** `bootstrap/cache/config.php` y `packages.php` siguen nombrando los providers de los paquetes que la actualización elimina. En cuanto `vendor/` se sustituye, cualquier arranque de artisan muere — y el primer script de `post-autoload-dump` es justo `artisan package:discover`. Se instala con `--no-scripts`, se copia el código, se purgan las tres cachés, `config:cache`, y sólo entonces `composer dump-autoload` dispara los scripts.
+
+4. **El constructor de JoyPixels v11 concatena** `/{emojiVersion}/png/unicode/{emojiSize}/` a lo que encuentre en `imagePathPNG`. La ruta local se asigna **después** de construir el cliente. Si se asigna antes, el sitio pide los emoji a `/vendor/joypixels/png/64/11.0/png/unicode/64/1f604.png` y salen todos rotos.
+
+**Detalles de la implementación**:
+- El despliegue es **manual y por fichero**, nunca por git: el manifiesto se regenera siempre con `git diff --name-status`, porque una lista escrita a mano ya se quedó obsoleta una vez y casi se pierde un commit entero por el camino.
+- Antes de copiar nada se comprueba **deriva**: cada fichero de producción debe ser byte a byte el estado previo. Si alguno no lo es, copiar encima destruiría un cambio hecho sólo en prod.
+- `php artisan view:cache` compila **todas** las plantillas de una vez: es la forma barata de cazar sin navegador cualquier directiva Blade que el salto de major se haya llevado por delante.
+- Vuelta atrás sin depender de la base, porque no hay migraciones: `vendor/` **y** `public/build` se restauran juntos. Revertir sólo PHP deja el mismo fallo al revés.
+- El runbook completo, con el as-built de la ejecución, vive fuera del repo en la wiki de operaciones.
+
+**Por qué importa**: Un fork que no puede actualizar su framework es un fork muerto con fecha. La mayoría hereda el `composer.lock` de upstream y lo trata como física. Nosotros lo tratamos como lo que es —una foto vieja de las decisiones de otro— y ahora corremos por delante del proyecto del que salimos, con la ruta de vuelta escrita por si acaso.
+
+> *"El ancla no era el framework. Era un paquete abandonado y una línea de código que no hacía nada."*
+
+---
+
+### 24. **Tres Tipos de Obra Nuevos: E-Books, Audiolibros y Juegos**
+📚 *Un tracker de vídeo aprende a catalogar libros. La ficha no la escribe nadie: la rellena un identificador.*
+
+**El Desafío**: UNIT3D sabe de películas, series, anime y música. Todo lo demás cae en «no meta»: una fila sin portada, sin sinopsis y sin forma de agrupar dos ediciones de la misma obra. Un miembro quería subir su colección entera de audiolibros y no había dónde ponerla.
+
+El problema de fondo no es la categoría, es la **identidad**. Una película se reconoce por el nombre del archivo; un libro no. Y medido sobre una biblioteca real de **12.020 EPUB, sólo el 4,3% declaraba su ISBN** en los metadatos. Identificar la edición a partir del fichero no era viable, así que el diseño se invirtió: **el identificador lo aporta quien sube, y el tracker construye la ficha a partir de él.**
+
+**Lo que construimos**:
+
+Dos tipos de obra con tabla propia —`books` con el ISBN-13 como clave primaria, `audiobooks` con el ASIN— más la taxonomía normalizada que hace navegable el catálogo: autores, sagas, editoriales, narradores y géneros, cada uno con su tabla y su pivote. Los juegos reutilizan `igdb_games`, que ya existía, y estrenan tipos de fichero propios.
+
+```
+🗂️ CATEGORÍAS Y TIPOS NUEVOS:
+  • E-Books (7)      → EPUB · PDF · MOBI · AZW3 · CBZ/CBR
+  • Audiobooks (8)   → M4B · MP3
+  • Retro Arcade (3) → ScummVM · ROM · PC
+
+🔑 IDENTIDAD, UNA POR TIPO DE OBRA:
+  • E-book     → ISBN-13 (13 dígitos; el ISBN-10 se convierte antes)
+  • Audiolibro → ASIN de Audible (10 caracteres, en MAYÚSCULAS)
+  • Juego      → id numérico de IGDB
+
+🏛️ TABLAS NUEVAS (13 migraciones, 2026-08-20 a 08-23):
+  • books · audiobooks
+  • book_authors · book_series · book_publishers · book_narrators · book_genres
+  • 6 pivotes, separados por clave: los de libro van por isbn13
+    y los de audiolibro por asin, porque NO son la misma clave
+
+🧭 NAVEGACIÓN: 8 hubs nuevos en MediaHub
+  • autores · narradores · géneros de libro · editoriales · sagas
+  • géneros de juego · plataformas · compañías
+```
+
+**Detalles de la implementación**:
+- **Google Books identifica; OpenLibrary sólo enriquece.** Medido: OpenLibrary devuelve 404 para ISBN de ediciones españolas y produce falsos positivos si se busca por título. Nunca decide identidad, sólo añade materias, sinopsis y un respaldo de portada sobre un ISBN ya confirmado. Para autores sí es la mejor fuente: es la única gratuita con foto y biografía.
+- **La lectura libre tiene su propio camino.** Un audiolibro de LibriVox o de una biblioteca virtual no tiene ASIN porque no existe en ningún catálogo comercial. Se le acepta el ISBN de la **obra** y la ficha sale con portada, sinopsis y autor; lo único que no se afirma es quién narra.
+- **El identificador no es obligatorio en el formulario.** Es `required_with` sobre una casilla: quien desmarca «Conozco el ISBN» sube igual, pero sin ficha y sin agrupar. Es la salida honesta para una edición rara — y para un pack de 300 ROMs, que no es una obra y no le corresponde ninguna ficha.
+- Cuatro comandos de mantenimiento: `books:sync`, `books:sync-authors`, `books:sync-taxonomy` y `meta:sync`, todos idempotentes y con `--limit`.
+- El catálogo pasó de 524 a **648 rutas**. La ventana de despliegue en producción fue de **2 minutos y 42 segundos**.
+
+**Por qué importa**: Casi todos los forks de UNIT3D son trackers de vídeo con categorías extra vacías. Aquí un e-book, su audiolibro y la edición de bolsillo del mismo título salen **juntos**, con portada y sinopsis, porque el modelo de datos distingue la obra de la edición. Es la diferencia entre una categoría y un catálogo.
+
+> *"Sólo el 4,3% de doce mil EPUB traía su ISBN. Adivinar la edición no era una opción: hay que preguntarla."*
+
+---
+
+### 25. **La Misma Portada en Cuatro Tamaños**
+🖼️ *Quien consume una carátula no quiere «la carátula», quiere una de un tamaño concreto.*
+
+**El Desafío**: Guardar una sola URL de portada obliga a todo el mundo a conformarse con la que eligió el que la guardó. El listado pintaba miniaturas de 90 px descargando imágenes de 2.400 px, y el hook de Telegram mandaba por la red una miniatura de 128 px que llegaba borrosa.
+
+**Lo que construimos**:
+
+Una escalera de portadas, `CoverLadder`, que guarda la misma imagen en cuatro tamaños **sin una sola petición extra**: los cuatro proveedores exponen sus medidas como transformaciones de la propia URL. Cada consumidor pide el ancho que necesita con `coverAtLeast(n)` y recibe el peldaño más pequeño que le sirva.
+
+```
+📐 MEDIDO CONTRA LAS APIS REALES, NO DEDUCIDO:
+
+  Google Books, parámetro `zoom` (no documentado):
+    zoom=1  128×170     zoom=3   575×750
+    zoom=4  800×1018    zoom=6  2177×2771   ← se autolimita a lo que subió el editor
+    (zoom=5 devuelve lo mismo que zoom=1: NO es una escala lineal)
+
+  Amazon/Audible, sufijo del lado mayor:
+    ._SL200_    200×200    12 KB
+    ._SL500_    500×500    49 KB
+    ._SL1200_  1200×1200  181 KB
+    sin sufijo 2400×2400  379 KB
+
+  IGDB: t_cover_small · t_cover_big · t_cover_big_2x · t_1080p
+
+🎯 QUIÉN PIDE QUÉ:
+  • listado de torrents → coverAtLeast(300)   → 49 KB en vez de 379 KB
+  • anuncio de Telegram → coverAtLeast(1280)
+  • ficha de la obra    → la mayor que haya
+```
+
+**Detalles de la implementación**:
+- **La suposición de partida era falsa.** Se daba por hecho que OpenLibrary tendría mejores portadas que Google. Mismo libro: OpenLibrary `-L` da **128×164 y 6,4 KiB**; Google con `zoom=6` da **2177×2771 y 539 KiB**. OpenLibrary quedó como respaldo, nunca por delante.
+- No hizo falta migración: `cover_urls` ya era una columna JSON. `pick()` entiende además el formato antiguo —una lista plana de cadenas— así que las filas viejas siguen funcionando mientras no se vuelvan a scrapear.
+- `?default=false` no es opcional en OpenLibrary: sin él responde **200 con una imagen de relleno** en vez de 404, y se acaban cacheando placeholders.
+
+**Por qué importa**: Es infraestructura invisible que se nota en todo lo demás. La rotación de carátulas puede elegir, el hook de Telegram manda una imagen nítida, y el listado dejó de descargar 379 KB para pintar una miniatura de 90 px.
+
+> *"El parámetro se autolimita: pedir zoom=6 nunca falla por pedir de más. Por eso se pide siempre 6 y no se calcula nada."*
+
+---
+
+### 26. **Traducción Local, y Decir Que Es Automática**
+🌐 *IGDB indexa sólo en inglés. Traducirlo sin avisar sería colar un texto de máquina como si fuera del editor.*
+
+**El Desafío**: Las sinopsis de juego llegan **siempre** en inglés: IGDB no acepta parámetro de idioma. Muchas de libro también, incluso para ediciones españolas. Con las fichas en inglés, media comunidad no las leía — y las copias, de hecho, estaban en castellano.
+
+Depender de DeepL para traducir un catálogo entero significa depender de una cuota mensual y de un tercero que puede cerrar el grifo.
+
+**Lo que construimos**:
+
+Un **LibreTranslate autohospedado** al lado del tracker, sin cuota y sin salir a internet. Traduce lo que no está ya en castellano, **marca lo traducido** y **guarda el original**, para poder rehacerlo si algún día cambia el motor sin volver a pedirle nada al proveedor. En la ficha, un aviso con el idioma de origen y un botón **«ver original»**.
+
+```
+🔤 EL MOTOR TRADUCE LOS TÍTULOS. HAY QUE PROTEGERLOS:
+
+  Sin protección:  The Curse of Monkey Island → «La curva de la isla Monkey»
+  Con protección:  The Curse of Monkey Island → «The Curse of Monkey Island
+                   es la tercera entrega en la serie de juego de aventura…»
+
+  El nombre del juego aparece en casi TODAS las sinopsis de IGDB,
+  así que el error se veía siempre.
+
+🧪 QUÉ MARCADOR SOBREVIVE A LA TRADUCCIÓN (medido, 2 apariciones):
+    ZQX0      2/2  ← el elegido
+    {0}       2/2
+    [[0]]     1/2
+    __0__     0/2  (queda en " 0 ")
+```
+
+**Detalles de la implementación**:
+- Se comprueba el idioma **antes** de traducir: alguna sinopsis corta ya viene en castellano y retraducirla sólo la estropea.
+- Si el traductor no responde se deja el inglés. Una sinopsis en inglés es peor que una en castellano, pero muchísimo mejor que ninguna.
+- El aviso va **delante** del texto, no detrás: el contenedor de la sinopsis tiene `max-height: 150px` con scroll, así que al final quedaba fuera de la parte visible. Un aviso que no se ve no avisa.
+- Un componente Blade para libro, audiolibro y juego. Antes existía sólo en libros y **como `title=` de un `<small>`**, o sea un tooltip: invisible en móvil.
+
+**Por qué importa**: La honestidad con el lector no es opcional. La calidad de un traductor libre es la que es —*Galleones* por galeones— y precisamente por eso hay que decir que es de máquina y dejar ver el texto original.
+
+> *"Colar una traducción automática como si fuera la sinopsis del editor es el mismo pecado que pegar la de otro libro."*
+
+---
+
+### 27. **Similares y Colecciones para Libros**
+🔗 *Abrir «Alas de fuego» y ver debajo «Alas negras». Lo útil de la página de similares no es la lista de arriba: es el cruce de abajo.*
+
+**El Desafío**: Los similares agrupaban vídeo y juegos por su id, pero un libro no tenía nada: cada edición era una isla. Y el bloque de «colección», que en una película sale montado por TMDB, en un libro **hay que cruzarlo**, porque saga y autor viven en tablas distintas y ninguna de las dos es obligatoria.
+
+**Lo que construimos**:
+
+Agrupación por ISBN-13 con el formato como subgrupo —igual que la resolución en vídeo—, de modo que el e-book y el audiolibro de la misma obra caen en el mismo cajón. Y un bloque de colección que **cruza por saga y por autor a la vez**, quedándose sólo con obras que tengan torrent, porque el destino es una página que aborta con 404 si no hay ninguno.
+
+**Detalles de la implementación**:
+- **Hoy se sostiene por el autor, no por la saga.** Medido: Audnexus devuelve `seriesPrimary: null` para las tres ediciones españolas de producción, así que `book_series` está vacía. El cruce por saga está escrito y enchufado; en cuanto llegue el dato, funciona solo.
+- Antes hubo que arreglar el suministro: `books:sync-authors` recorría **sólo** libros, así que el pivote de autores de audiolibro se quedaba vacío **para siempre** —el normalizador no puede inventar un olid a partir de un nombre—. Ahora recorre las dos tablas y cachea las fichas por nombre dentro de la ejecución: una saga entera es el mismo autor.
+- Se parte de los **torrents** y no de las obras, porque de ahí salen a la vez las tres cosas que hacen falta: que la obra exista en el tracker, en qué categoría vive —un e-book y su audiolibro no están en la misma— y a dónde enlazar.
+- Un audiolibro sin ISBN de obra enlaza a su torrent en vez de esconderse.
+
+**Por qué importa**: Es lo que convierte una lista de ficheros en un catálogo que se puede recorrer. Abres cualquiera de las tres ediciones de *El arte de la guerra* y ves las otras dos.
+
+> *"Verificar la resolución de datos en una consola no es verificar la página: una vista de Laravel ejecuta además el controlador y todos sus componentes."*
+
+---
+
+### 28. **Anuncios de Telegram Que Entienden Qué Están Anunciando**
+📣 *Trece subidas se anunciaron al vacío por una imagen de relleno alojada en un servicio muerto.*
+
+**El Desafío**: El anuncio de torrent nuevo daba por hecho dos cosas: que todo torrent trae mediainfo y que la portada es de TMDB. Con un libro salía una ficha con «Codec: N/A», «Audio: N/A» y ningún dato real.
+
+Y había algo peor, invisible desde dentro. Los libros y juegos subidos el 22 de agosto **no se anunciaron**. El hook **sí** se disparó para los trece; Telegram los rechazó todos con el mismo error:
+
+```
+400 Bad Request: failed to get HTTP URL content
+```
+
+Sin portada se caía a un placeholder de `via.placeholder.com`, y **ese servicio está muerto**: hoy ni resuelve. Como Telegram **descarga la imagen él mismo** antes de publicarla, `sendPhoto` fallaba y se perdía el anuncio **entero, texto incluido**. Las películas pasaban porque tenían póster de TMDB.
+
+**Lo que construimos**:
+
+Un anuncio por tipo de obra, y un respaldo que hace imposible perder el texto por culpa de una imagen.
+
+```
+📋 UN CAPTION POR TIPO:
+  • vídeo      codec · resolución · aspecto · duración · bitrate ·
+               framerate · audio con banderas de idioma · subtítulos
+  • libro      autor · editorial · año · páginas · idioma
+  • audiolibro autor · narrador · duración · editorial · año
+  • juego      año · nota · resumen (traducido) recortado a 320 caracteres
+
+🔗 BOTONES SEGÚN QUIÉN IDENTIFICÓ LA OBRA:
+  Google Books por ISBN · Audible por ASIN · IGDB por su url
+  + tráiler de YouTube, que IGDB ya guardaba y nadie leía
+```
+
+**Detalles de la implementación**:
+- **Sin carátula ya no se inventa una**: si no hay, o si `sendPhoto` falla, se manda `sendMessage` con el mismo texto. El texto importa más que la portada.
+- El tipo lo decide la **categoría**, no la presencia de la ficha: un audiolibro de lectura libre no tiene fila en `audiobooks` y sigue siendo un audiolibro. Y `audiobook_meta` se mira **antes** que `book_meta`, porque un audiolibro puede llevar además el ISBN de la obra.
+- Hallazgo raro y reproducible: **el `.png` de IGDB falla en Telegram y el `.jpg` no.** Los dos responden 200 desde el servidor (277 KB frente a 89 KB), pero Telegram rechazaba el png de forma consistente. Las carátulas de juego pasan por la escalera, que sirve jpg.
+- El caption de vídeo se extrajo a su propio método **sin tocar una sola cadena**: comprobado contra un torrent real, sale idéntico.
+
+**Por qué importa**: Un fallo silencioso es peor que uno ruidoso. Trece subidas se publicaron sin que el canal se enterara, y el síntoma —«al Telegram sólo llegan películas»— apuntaba a cualquier sitio menos al de verdad.
+
+> *"El proveedor descarga el recurso, así que un origen caído tumba el mensaje completo, no sólo la imagen. El respaldo tiene que ser el mensaje sin imagen, nunca una imagen inventada."*
+
+---
+
+### 29. **Selector de Iconos Font Awesome, y un Build Sin Ventana de Servicio**
+🎨 *Elegir un icono dejó de ser escribir una clase CSS de memoria.*
+
+**El Desafío**: Las categorías, los tipos y los foros llevan un icono de Font Awesome, y ponerlo consistía en escribir a mano `fas fa-book` y rezar. Sin previsualización, sin saber qué glifos cubre el estilo contratado, y sin enterarte de que el nombre estaba mal hasta ver el hueco en la página.
+
+**Lo que construimos**:
+
+Un selector visual en los formularios de staff que enseña sólo los iconos que **el estilo instalado cubre de verdad**, resuelto **leyendo el `cmap` del propio fichero TTF** en el servidor. La alternativa evidente —`document.fonts` en el navegador— da respuestas distintas por cara y por navegador, así que no vale.
+
+**Detalles de la implementación**:
+- El tope de 120 iconos de la rejilla era **silencioso**: buscabas, no salía, y no había forma de saber si es que no existía o si es que se había cortado la lista. Ahora lo dice, y hay un botón «Show all».
+- `bin/build-frontend.sh` sustituye al `npm run build` a pelo: construye fuera y publica el resultado, para no dejar el sitio con los assets a medias durante la compilación.
+- El botón quedaba invisible con cualquier valor que no fuera de Font Awesome, y vacío cuando el icono no existía. Los dos casos se ven ahora.
+
+**Por qué importa**: Es la clase de detalle que separa un panel de staff usable de uno que hay que documentar. Nadie debería tener que memorizar nombres de glifos.
+
+> *"La cobertura se resuelve en el servidor, leyendo la fuente. Preguntarle al navegador da una respuesta distinta en cada navegador."*
+
+---
+
+### 30. **Meilisearch: Los Settings Dejan de Pisarse Solos**
+🔍 *El script de arranque machacaba en cada reinicio la configuración del índice.*
+
+**El Desafío**: El índice se configura una vez —atributos filtrables, ordenables, ranking— y el script de arranque volvía a escribir sus valores por defecto en cada reinicio del contenedor. El resultado: filtros que funcionaban ayer y hoy no, sin que nadie hubiera tocado nada.
+
+**Lo que construimos**:
+
+Arranque idempotente que **respeta lo que ya está configurado**, sincronización de los atributos ordenables con lo que la aplicación pide de verdad, y un timeout de FastCGI ampliado para que una reindexación grande no muera a medias detrás de nginx.
+
+**Detalles de la implementación**:
+- La comprobación de «cuántos atributos filtrables hay» engaña: la respuesta moderna los devuelve **agrupados**, así que contar los grupos da 2 donde hay ~80. Se cuentan los atributos, no los grupos.
+- La suite de tests **envenena** la configuración cacheada y la caché de aplicación en Redis. Se ejecuta siempre por el envoltorio `bin/run-tests.sh`, nunca a pelo, y jamás contra producción.
+
+**Por qué importa**: Un buscador que se desconfigura solo al reiniciar es un buscador en el que no se puede confiar, y la búsqueda es lo primero que toca un usuario.
+
+> *"Funcionaba ayer y hoy no, sin que nadie tocara nada: eso siempre es un script de arranque."*
+
+---
+
+### 31. **Proxy de Imágenes Propio para las Descripciones**
+🛡️ *Las capturas de una descripción salen de hosts de terceros. Cuando uno cierra, se lleva las galerías por delante.*
+
+**El Desafío**: Las descripciones de torrent enlazan capturas alojadas en hosts gratuitos. Imgbox cerró y se llevó **más de 3.000 galerías** del tracker por delante. Además, cada imagen enlazada en caliente filtra la IP del visitante al host y rompe la política de contenido de la página.
+
+**Lo que construimos**:
+
+Un proxy propio, con lista blanca de orígenes, que sirve las imágenes de descripción desde el mismo dominio. Ya existía uno para las portadas de TMDB (mejora 15); éste extiende la idea a las capturas que escribe el uploader.
+
+**Detalles de la implementación**:
+- **Está construido y aún sin cablear.** Se documenta porque existe en el código y porque el orden importa: primero la campaña de regeneración de galerías, que repone lo que imgbox se llevó, y luego el cambio de ruta.
+- La lista blanca de orígenes es la misma que la del proxy de arte, ampliada con los hosts de portada de libro: `books.google.com`, `books.googleusercontent.com`, `covers.openlibrary.org` y `m.media-amazon.com`.
+
+**Por qué importa**: Es la lección de imgbox convertida en infraestructura. Un tracker no debería perder tres mil galerías porque un tercero decidió cerrar.
+
+> *"Saltarse el visualizador del host es saltarse la publicidad que paga el alojamiento gratuito. Es, en parte, por lo que estos hosts van cerrando."*
 
 ---
 
