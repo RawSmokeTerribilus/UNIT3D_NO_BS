@@ -34,6 +34,11 @@
                         <x-game.poster :game="$alsoDownloadedWork" :$categoryId />
 
                         @break
+                    @case(\App\Models\Book::class)
+                    @case(\App\Models\Audiobook::class)
+                        <x-book.poster :work="$alsoDownloadedWork" :$categoryId />
+
+                        @break
                 @endswitch
                 <figcaption class="trending-poster__download-count" title="Times downloaded">
                     {{ $alsoDownloadedWork->total }}
