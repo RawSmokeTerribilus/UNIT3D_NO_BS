@@ -155,20 +155,11 @@
         @endif
     </ul>
 
-    <p class="meta__description">
-        {{-- El aviso va DELANTE del texto a proposito: .meta__description
-             tiene max-height 150px con scroll, asi que al final quedaba fuera
-             de la parte visible y habia que bajar con la rueda para verlo.
-             Un aviso que no se ve no avisa. --}}
-        @if ($meta?->description_source_language)
-            <small
-                title="{{ $meta->description_original }}"
-            >{{ __('torrent.auto-translated', ['idioma' => strtoupper($meta->description_source_language)]) }}</small>
-            <br />
-        @endif
-
-        {{ $meta?->description ?? '' }}
-    </p>
+    <x-meta.translated-description
+        :texto="$meta?->description ?? ''"
+        :original="$meta?->description_original"
+        :idioma="$meta?->description_source_language"
+    />
 
     <div class="meta__chips">
         <section class="meta__chip-container" title="{{ __('torrent.authorship') }}">

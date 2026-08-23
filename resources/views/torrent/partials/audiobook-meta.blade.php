@@ -102,7 +102,11 @@
             </li>
         @endif
     </ul>
-    <p class="meta__description">{{ $meta?->description ?? '' }}</p>
+    <x-meta.translated-description
+        :texto="$meta?->description ?? ''"
+        :original="$meta?->description_original"
+        :idioma="$meta?->description_source_language"
+    />
     <div class="meta__chips">
         <section class="meta__chip-container">
             <h2 class="meta__heading">Esta grabación</h2>

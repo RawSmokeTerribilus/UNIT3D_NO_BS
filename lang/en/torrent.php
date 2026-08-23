@@ -244,6 +244,8 @@ return [
     'view-more'                => 'View more',
     'narrator'                 => 'Narrator',
     'auto-translated' => 'Synopsis machine-translated from :idioma',
+    'view-original' => 'view original',
+    'view-translation' => 'view translation',
     'author' => 'Author',
     'authorship' => 'Authorship',
     'book-number' => 'Book :n',

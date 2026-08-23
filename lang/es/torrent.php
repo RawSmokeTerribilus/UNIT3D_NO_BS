@@ -239,6 +239,8 @@ return [
     'video' => 'Vídeo',
     'view-more' => 'Ver más',
     'auto-translated' => 'Sinopsis traducida automáticamente del :idioma',
+    'view-original' => 'ver original',
+    'view-translation' => 'ver traducción',
     'author' => 'Autor',
     'authorship' => 'Autoría',
     'book-number' => 'Libro :n',
