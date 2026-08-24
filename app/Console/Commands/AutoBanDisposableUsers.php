@@ -15,6 +15,18 @@ declare(strict_types=1);
  * @credit     PyR8zdl
  */
 
+/**
+ * MODIFICADO PARA NOBS
+ *
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+ *
+ * Este fichero contiene cambios sobre el original de UNIT3D Community Edition.
+ * Se distribuye bajo la misma licencia, GNU AGPL v3.0.
+ *
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+ */
+
 namespace App\Console\Commands;
 
 use App\Models\Ban;
