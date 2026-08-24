@@ -46,6 +46,20 @@
         x-data="{
             cat: {{ old('category_id', (int) $category_id) }},
             cats: JSON.parse(atob('{{ base64_encode(json_encode($categories)) }}')),
+            // id de tipo -> clase de obra ('video', 'book', 'audiobook',
+            // 'game' o null). Sale de types.meta.
+            metaDeTipo: JSON.parse(atob('{{ base64_encode(json_encode($types->pluck('meta', 'id'))) }}')),
+            // ¿Este tipo tiene sentido en la categoría elegida? Sin categoría,
+            // sin clasificar, o en una categoría que no es de ninguna de las
+            // cuatro clases (música, sin metadatos), se muestran todos: es
+            // mejor una opción de más que esconder la buena.
+            tipoVale(meta) {
+                if (!meta) return true;
+                const clase = this.cats[this.cat]?.type;
+                if (!clase) return true;
+                const equivale = { movie: 'video', tv: 'video', book: 'book', audiobook: 'audiobook', game: 'game' };
+                return equivale[clase] === undefined || meta === equivale[clase];
+            },
             tmdb_movie_exists: true,
             tmdb_tv_exists: true,
             imdb_title_exists: true,
@@ -141,7 +155,15 @@
                         class="form__select"
                         required
                         x-model="cat"
-                        @change="cats[cat].type = cats[$event.target.value].type;"
+                        @change="
+                            cats[cat].type = cats[$event.target.value].type;
+                            // Si el tipo elegido deja de valer para la categoría
+                            // nueva, se suelta: quedarse con una opción oculta
+                            // seleccionada enviaría un tipo que no corresponde.
+                            if (!tipoVale(metaDeTipo[$refs.typeId.value])) {
+                                $refs.typeId.value = '';
+                            }
+                        "
                     >
                         <option hidden selected disabled value=""></option>
                         @foreach ($categories as $id => $category)
@@ -155,12 +177,28 @@
                     </label>
                 </p>
                 <p class="form__group">
-                    <select name="type_id" id="autotype" class="form__select" required>
+                    {{-- Los tipos son una tabla GLOBAL en UNIT3D, así que este
+                         desplegable ofrecía "Full Disc" y "HDTV" al subir un
+                         e-book, y "EPUB" al subir una película. Se filtran por
+                         `types.meta` contra la clase de la categoría elegida. --}}
+                    <select
+                        x-ref="typeId"
+                        name="type_id"
+                        id="autotype"
+                        class="form__select"
+                        required
+                    >
                         <option hidden disabled selected value=""></option>
                         @foreach ($types as $type)
                             <option
                                 value="{{ $type->id }}"
                                 @selected(old('type_id') == $type->id)
+                                x-show="tipoVale({{ Js::from($type->meta) }})"
+                                {{-- `display:none` sobre un <option> no lo
+                                     respetan todos los navegadores; `disabled`
+                                     sí, así que aunque se vea no se puede
+                                     elegir. --}}
+                                x-bind:disabled="!tipoVale({{ Js::from($type->meta) }})"
                             >
                                 {{ $type->name }}
                             </option>

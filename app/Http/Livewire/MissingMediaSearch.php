@@ -187,41 +187,28 @@ class MissingMediaSearch extends Component
     }
 
     /**
-     * Los tipos que tienen sentido como columna aquí: los que usa el vídeo.
+     * Los tipos de vídeo, que son los únicos que tienen sentido como columna.
      *
-     * Al añadir las categorías de libro y juego aparecieron diez tipos nuevos
-     * --EPUB, PDF, MOBI, AZW3, CBZ/CBR, M4B, MP3, ScummVM, ROM y PC-- y esta
-     * tabla los pintaba como columna en las 3.210 filas de película: más de
-     * treinta mil celdas rojas afirmando que a una película le "falta" el
-     * EPUB. Eso es justo lo que hacía la página poco creíble.
+     * Al añadir libros y juegos entraron diez tipos nuevos --EPUB, PDF, MOBI,
+     * AZW3, CBZ/CBR, M4B, MP3, ScummVM, ROM y PC-- y esta tabla los pintaba en
+     * las 3.210 filas de película: más de 32.000 celdas rojas afirmando que a
+     * una película le "falta" el EPUB.
      *
-     * La regla sale de los datos y no de una lista escrita a mano, así que un
-     * tipo de vídeo nuevo aparece solo en cuanto se sube el primero.
+     * Se filtra por `types.meta`, la columna que dice a qué clase de obra
+     * pertenece cada tipo. Antes se deducía de los datos --qué tipos aparecen
+     * en torrents de vídeo-- y eso tenía un fallo: un tipo de vídeo que nadie
+     * hubiera subido todavía no salía como columna, y es justo el que más
+     * falta. Con la columna, sale igual.
      *
-     * Limitación conocida, y es real: un tipo de vídeo que NADIE haya subido
-     * todavía no sale como columna, y es precisamente el que más "falta". No
-     * se puede hacer mejor con lo que hay: la tabla `types` es global --sólo
-     * `id`, `name` y `position`-- y no dice a qué clase de obra pertenece cada
-     * tipo. Resolverlo de verdad pide una columna nueva en `types`, que además
-     * arreglaría que el formulario de subida ofrezca "Full Disc" para un
-     * e-book.
+     * Los que sigan a NULL entran también: sin clasificar significa "vale para
+     * todo", y es mejor una columna de más que esconder algo en silencio.
      *
      * @var \Illuminate\Database\Eloquent\Collection<int, Type>
      */
     final protected \Illuminate\Database\Eloquent\Collection $types {
         get => Type::query()
             ->select(['id', 'position', 'name'])
-            ->whereIn('id', function ($query): void {
-                $query->select('type_id')
-                    ->from('torrents')
-                    ->whereNotNull('type_id')
-                    ->whereIn('category_id', function ($q): void {
-                        $q->select('id')
-                            ->from('categories')
-                            ->where('movie_meta', '=', true)
-                            ->orWhere('tv_meta', '=', true);
-                    });
-            })
+            ->where(fn ($query) => $query->where('meta', '=', 'video')->orWhereNull('meta'))
             ->orderBy('position')
             ->get();
     }
