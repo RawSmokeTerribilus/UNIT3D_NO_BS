@@ -123,6 +123,8 @@ return [
     'media-info-paste'         => 'Paste MediaInfo dump here',
     'meta-desc'                => 'Download :name at maximum speed',
     'moderation'               => 'Moderation',
+    'moderation-history'       => 'Moderation history',
+    'no-moderation-history'    => 'No moderation decisions recorded.',
     'movies'                   => 'Movies',
     'movie'                    => 'Movie',
     'tv'                       => 'TV',

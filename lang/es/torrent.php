@@ -119,6 +119,8 @@ return [
     'media-info-paste' => 'Pegar volcado de MediaInfo aquí',
     'meta-desc' => 'Descargar :name a la máxima velocidad',
     'moderation' => 'Moderación',
+    'moderation-history' => 'Historial de moderación',
+    'no-moderation-history' => 'Sin decisiones de moderación registradas.',
     'movies' => 'Películas',
     'movie' => 'Película',
     'tv' => 'Serie',

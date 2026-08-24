@@ -751,6 +751,30 @@ final class Torrent extends Model
     }
 
     /**
+     * Las decisiones de moderación de este torrent, en orden.
+     *
+     * Un torrent se modera varias veces --se aplaza, el uploader corrige, se
+     * aprueba o se rechaza-- y `moderated_by`/`moderated_at` sólo guardan la
+     * última, y sin el motivo. Aquí está la secuencia entera con su porqué.
+     *
+     * @return HasMany<TorrentModeration, $this>
+     */
+    public function moderations(): HasMany
+    {
+        return $this->hasMany(TorrentModeration::class)->oldest();
+    }
+
+    /**
+     * La última decisión de moderación, para listarla sin traer el historial.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<TorrentModeration, $this>
+     */
+    public function latestModeration(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TorrentModeration::class)->latestOfMany();
+    }
+
+    /**
      * Get the e-book edition associated with the torrent.
      *
      * Both sides are keyed by the ISBN-13, so the local and foreign key have

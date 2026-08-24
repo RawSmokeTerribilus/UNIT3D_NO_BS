@@ -116,6 +116,10 @@
                         <th>{{ __('torrent.size') }}</th>
                         <th>{{ __('torrent.uploader') }}</th>
                         <th>{{ __('common.staff') }}</th>
+                        {{-- El motivo vivía sólo dentro del mensaje privado
+                             entre quien decidió y el uploader. Aquí lo ve todo
+                             el staff, que es lo que se pidió. --}}
+                        <th>{{ __('common.reason') }}</th>
                         <th>{{ __('common.action') }}</th>
                     </tr>
                 </thead>
@@ -149,6 +153,9 @@
                             </td>
                             <td>
                                 <x-user-tag :anon="false" :user="$torrent->moderated" />
+                            </td>
+                            <td style="max-width: 22rem; white-space: pre-wrap">
+                                {{ $torrent->latestModeration?->message }}
                             </td>
                             <td>
                                 <menu class="data-table__actions">
@@ -214,6 +221,10 @@
                         <th>{{ __('torrent.size') }}</th>
                         <th>{{ __('torrent.uploader') }}</th>
                         <th>{{ __('common.staff') }}</th>
+                        {{-- El motivo vivía sólo dentro del mensaje privado
+                             entre quien decidió y el uploader. Aquí lo ve todo
+                             el staff, que es lo que se pidió. --}}
+                        <th>{{ __('common.reason') }}</th>
                         <th>{{ __('common.action') }}</th>
                     </tr>
                 </thead>
@@ -247,6 +258,9 @@
                             </td>
                             <td>
                                 <x-user-tag :anon="false" :user="$torrent->moderated" />
+                            </td>
+                            <td style="max-width: 22rem; white-space: pre-wrap">
+                                {{ $torrent->latestModeration?->message }}
                             </td>
                             <td>
                                 <menu class="data-table__actions">

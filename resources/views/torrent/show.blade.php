@@ -88,6 +88,7 @@
 
     {{-- Audits, reports, downloads block --}}
     @if (auth()->user()->group->is_modo)
+        @include('torrent.partials.moderations')
         @include('torrent.partials.audits')
         @include('torrent.partials.reports')
         @include('torrent.partials.downloads')

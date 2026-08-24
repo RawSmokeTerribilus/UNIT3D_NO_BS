@@ -24,6 +24,7 @@ use App\Models\Conversation;
 use App\Models\PrivateMessage;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
+use App\Models\TorrentModeration;
 use App\Repositories\ChatRepository;
 use App\Services\Unit3dAnnounce;
 
@@ -53,14 +54,44 @@ class ModerationController extends Controller
                 ->where('status', '=', ModerationStatus::PENDING)
                 ->get(),
             'postponed' => Torrent::withoutGlobalScope(ApprovedScope::class)
-                ->with(['user.group', 'moderated.group', 'category', 'type', 'resolution'])
+                ->with(['user.group', 'moderated.group', 'category', 'type', 'resolution', 'latestModeration'])
                 ->where('status', '=', ModerationStatus::POSTPONED)
                 ->get(),
             'rejected' => Torrent::withoutGlobalScope(ApprovedScope::class)
-                ->with(['user.group', 'moderated.group', 'category', 'type', 'resolution'])
+                ->with(['user.group', 'moderated.group', 'category', 'type', 'resolution', 'latestModeration'])
                 ->where('status', '=', ModerationStatus::REJECTED)
                 ->get(),
         ]);
+    }
+
+    /**
+     * Deja constancia de una decisión de moderación.
+     *
+     * Nunca puede tumbar la moderación: si el registro falla, el torrent ya se
+     * ha moderado y el uploader ya tiene su aviso. Se anota el fallo y se sigue.
+     */
+    private function registrar(
+        Torrent $torrent,
+        ModerationStatus $status,
+        int $userId,
+        ?string $message = null,
+        ?int $conversationId = null,
+    ): void {
+        try {
+            TorrentModeration::create([
+                'torrent_id'      => $torrent->id,
+                'user_id'         => $userId,
+                'conversation_id' => $conversationId,
+                'status'          => $status,
+                'message'         => $message,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('No se pudo registrar la moderación', [
+                'torrent_id' => $torrent->id,
+                'status'     => $status->value,
+                'error'      => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -108,6 +139,11 @@ class ModerationController extends Controller
 
                 TorrentHelper::approveHelper($id);
 
+                // Las aprobaciones también se registran: sin ellas el historial
+                // contaría sólo los noes y no se entendería la secuencia de un
+                // torrent que se aplazó, se corrigió y acabó entrando.
+                $this->registrar($torrent, ModerationStatus::APPROVED, $staff->id);
+
                 return to_route('staff.moderation.index')
                     ->with('success', 'Torrent approved');
 
@@ -127,6 +163,11 @@ class ModerationController extends Controller
                     'sender_id'       => $staff->id,
                     'message'         => "Greetings, \n\nYour upload, [url=/torrents/".$id.']'.$torrent->name."[/url], has been rejected. Please see below the message from the staff member.\n\n[quote=".$staff->username.']'.$request->message.'[/quote]',
                 ]);
+
+                // El motivo, guardado donde el resto del staff pueda leerlo.
+                // Hasta ahora vivía SÓLO dentro de ese mensaje privado, visible
+                // para el uploader y para quien decidió, y para nadie más.
+                $this->registrar($torrent, ModerationStatus::REJECTED, $staff->id, $request->string('message')->toString(), $conversation->id);
 
                 cache()->forget('announce-torrents:by-infohash:'.$torrent->info_hash);
 
@@ -151,6 +192,11 @@ class ModerationController extends Controller
                     'sender_id'       => $staff->id,
                     'message'         => "Greetings, \n\nYour upload, [url=/torrents/".$id.']'.$torrent->name."[/url], has been postponed. Please see below the message from the staff member.\n\n[quote=".$staff->username.']'.$request->message.'[/quote]',
                 ]);
+
+                // El motivo, guardado donde el resto del staff pueda leerlo.
+                // Hasta ahora vivía SÓLO dentro de ese mensaje privado, visible
+                // para el uploader y para quien decidió, y para nadie más.
+                $this->registrar($torrent, ModerationStatus::POSTPONED, $staff->id, $request->string('message')->toString(), $conversation->id);
 
                 cache()->forget('announce-torrents:by-infohash:'.$torrent->info_hash);
 
