@@ -1,3 +1,15 @@
+/*
+ * NOBS — Nuclear Order Bit Syndicate
+ *
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+ *
+ * Obra original de NOBS, parte de un derivado de UNIT3D Community Edition
+ * (HDInnovations) del que hereda la licencia.
+ *
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+ */
+
 // Staff icon picker. Paints its own opaque surface on purpose: none of the
 // 20 site themes defines a shared variable set (the intersection is empty),
 // so a panel built on theme variables would come out unreadable exactly in

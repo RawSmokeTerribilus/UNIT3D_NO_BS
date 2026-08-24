@@ -1,4 +1,15 @@
 {{--
+    NOBS — Nuclear Order Bit Syndicate
+
+    Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+
+    Obra original de NOBS, parte de un derivado de UNIT3D Community Edition
+    (HDInnovations) del que hereda la licencia.
+
+    @project    NOBS — https://nobs.rawsmoke.net
+    @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+--}}
+{{--
     El historial de moderación del torrent, visible para todo el staff.
 
     Pedido por un moderador, y con razón: al rechazar o aplazar, el motivo es

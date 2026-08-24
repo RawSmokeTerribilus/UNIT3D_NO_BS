@@ -1,3 +1,14 @@
+{{--
+    NOBS — Nuclear Order Bit Syndicate
+
+    Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+
+    Obra original de NOBS, parte de un derivado de UNIT3D Community Edition
+    (HDInnovations) del que hereda la licencia.
+
+    @project    NOBS — https://nobs.rawsmoke.net
+    @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+--}}
 <div class="telegram-settings-section" style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
     <h3 class="panel__subheading">{{ __('user.telegram-settings') ?? 'Telegram Settings' }}</h3>
     

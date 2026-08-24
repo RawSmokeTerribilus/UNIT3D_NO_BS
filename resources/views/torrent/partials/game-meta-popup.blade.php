@@ -1,4 +1,15 @@
 {{--
+    NOBS — Nuclear Order Bit Syndicate
+
+    Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+
+    Obra original de NOBS, parte de un derivado de UNIT3D Community Edition
+    (HDInnovations) del que hereda la licencia.
+
+    @project    NOBS — https://nobs.rawsmoke.net
+    @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+--}}
+{{--
     Tarjeta flotante de juego para el listado de torrents.
 
     Misma estructura y mismas clases que meta-popup.blade.php, igual que la de

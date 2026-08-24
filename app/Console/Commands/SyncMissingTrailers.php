@@ -3,14 +3,15 @@
 declare(strict_types=1);
 
 /**
- * NOTICE OF LICENSE.
+ * NOBS — Nuclear Order Bit Syndicate
  *
- * UNIT3D Community Edition is open-sourced software licensed under the GNU Affero General Public License v3.0
- * The details is bundled with this project in the file LICENSE.txt.
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
  *
- * @project    UNIT3D Community Edition
+ * Obra original de NOBS, parte de un derivado de UNIT3D Community Edition
+ * (HDInnovations) del que hereda la licencia.
  *
- * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
  */
 
 namespace App\Console\Commands;
