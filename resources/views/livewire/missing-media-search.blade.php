@@ -56,19 +56,40 @@
             @foreach ($medias as $media)
                 <tr>
                     <td>
+                        {{-- `titulo` y `anyo` los pone el componente para las dos
+                             clases: una serie no tiene `title` ni `release_date`,
+                             sino `name` y `first_air_date`. --}}
                         @if ($media->torrents_min_category_id === null)
-                            {{ $media->title }} ({{ $media->release_date?->format('Y') }})
+                            {{ $media->titulo }}@if ($media->anyo)
+                                ({{ $media->anyo }})
+                            @endif
                         @else
                             <a
                                 href="{{ route('torrents.similar', ['category_id' => $media->torrents_min_category_id, 'tmdb' => $media->id]) }}"
                             >
-                                {{ $media->title }} ({{ $media->release_date?->format('Y') }})
+                                {{ $media->titulo }}@if ($media->anyo)
+                                    ({{ $media->anyo }})
+                                @endif
                             </a>
                         @endif
+                        {{-- Sin clase nueva a propósito: una clase pide tocar
+                             el SASS y con ello recompilar el frontend entero
+                             por una etiqueta de cuatro letras. --}}
+                        <small style="opacity: 0.6">
+                            {{ $media->kind === 'tv' ? __('torrent.tv') : __('torrent.movie') }}
+                        </small>
                     </td>
                     <td>
+                        {{-- La categoría iba fija a [1] (Películas), así que el
+                             contador de una serie enlazaba a las peticiones de
+                             cine. Se usa la que tienen sus torrents; si no hay
+                             ninguno, se deja que mande el id. --}}
                         <a
-                            href="{{ route('requests.index', ['categories' => [1], 'tmdbId' => $media->id, 'unfilled' => 1]) }}"
+                            href="{{ route('requests.index', array_filter([
+                                'categories' => $media->torrents_min_category_id ? [$media->torrents_min_category_id] : null,
+                                'tmdbId'     => $media->id,
+                                'unfilled'   => 1,
+                            ])) }}"
                         >
                             {{ $media->requests_count }}
                         </a>

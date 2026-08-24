@@ -120,6 +120,8 @@ return [
     'meta-desc' => 'Descargar :name a la máxima velocidad',
     'moderation' => 'Moderación',
     'movies' => 'Películas',
+    'movie' => 'Película',
+    'tv' => 'Serie',
     'mvp' => 'MVP',
     'my-active-torrents' => 'Mis torrents activos',
     'name' => 'Nombre',

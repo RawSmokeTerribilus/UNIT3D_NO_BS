@@ -124,6 +124,8 @@ return [
     'meta-desc'                => 'Download :name at maximum speed',
     'moderation'               => 'Moderation',
     'movies'                   => 'Movies',
+    'movie'                    => 'Movie',
+    'tv'                       => 'TV',
     'mvp'                      => 'MVP',
     'my-active-torrents'       => 'My active torrents',
     'name'                     => 'Name',
