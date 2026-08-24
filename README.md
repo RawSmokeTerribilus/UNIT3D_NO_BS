@@ -1276,7 +1276,7 @@ Dos tipos de obra con tabla propia —`books` con el ISBN-13 como clave primaria
 🗂️ CATEGORÍAS Y TIPOS NUEVOS:
   • E-Books (7)      → EPUB · PDF · MOBI · AZW3 · CBZ/CBR
   • Audiobooks (8)   → M4B · MP3
-  • Retro Arcade (3) → ScummVM · ROM · PC
+  • Arcade (3)       → ScummVM · ROM · PC
 
 🔑 IDENTIDAD, UNA POR TIPO DE OBRA:
   • E-book     → ISBN-13 (13 dígitos; el ISBN-10 se convierte antes)
