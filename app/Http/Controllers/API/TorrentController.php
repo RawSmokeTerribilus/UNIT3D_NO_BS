@@ -34,6 +34,7 @@ use App\Helpers\Bencode;
 use App\Helpers\TorrentHelper;
 use App\Helpers\TorrentTools;
 use App\Http\Resources\TorrentResource;
+use App\Services\Metadata\TorrentMetaProjection;
 use App\Http\Resources\TorrentsResource;
 use App\Models\Category;
 use App\Models\FeaturedTorrent;
@@ -100,6 +101,8 @@ class TorrentController extends BaseController
                     WHEN category_id IN (SELECT `id` from `categories` where `movie_meta` = 1) THEN 'movie'
                     WHEN category_id IN (SELECT `id` from `categories` where `tv_meta` = 1) THEN 'tv'
                     WHEN category_id IN (SELECT `id` from `categories` where `game_meta` = 1) THEN 'game'
+                    WHEN category_id IN (SELECT `id` from `categories` where `book_meta` = 1) THEN 'book'
+                    WHEN category_id IN (SELECT `id` from `categories` where `audiobook_meta` = 1) THEN 'audiobook'
                     WHEN category_id IN (SELECT `id` from `categories` where `music_meta` = 1) THEN 'music'
                     WHEN category_id IN (SELECT `id` from `categories` where `no_meta` = 1) THEN 'no'
                 END as meta
@@ -183,9 +186,13 @@ class TorrentController extends BaseController
         $torrent->mal = ($category->movie_meta || $category->tv_meta) ? ($request->integer('mal') ?: null) : null;
         $torrent->igdb = $category->game_meta ? ($request->integer('igdb') ?: null) : null;
         // Books carry a string id, so integer() would flatten an ISBN to 0.
-        // Los audiolibros también lo aceptan: identifica la OBRA, no la
-        // grabación. Una lectura libre no existe en ningún catálogo comercial
-        // y por tanto no tiene ASIN, pero el libro que se lee sí tiene ISBN.
+        //
+        // Los audiolibros también lo aceptan, y no por capricho: identifica la
+        // OBRA, no la grabación. Una lectura libre -- de aficionado, de un
+        // canal -- no existe en ningún catálogo comercial y por tanto no tiene
+        // ASIN, pero el libro que se lee sí tiene ISBN. Sin esto se quedaba
+        // sin portada, sin sinopsis y sin autor, cuando esos tres datos son
+        // de la obra y no cambian porque los lea otra voz.
         $torrent->isbn13 = ($category->book_meta || $category->audiobook_meta)
             ? ($request->string('isbn13')->trim()->value() ?: null)
             : null;
@@ -560,6 +567,8 @@ class TorrentController extends BaseController
                     WHEN category_id IN (SELECT `id` from `categories` where `movie_meta` = 1) THEN 'movie'
                     WHEN category_id IN (SELECT `id` from `categories` where `tv_meta` = 1) THEN 'tv'
                     WHEN category_id IN (SELECT `id` from `categories` where `game_meta` = 1) THEN 'game'
+                    WHEN category_id IN (SELECT `id` from `categories` where `book_meta` = 1) THEN 'book'
+                    WHEN category_id IN (SELECT `id` from `categories` where `audiobook_meta` = 1) THEN 'audiobook'
                     WHEN category_id IN (SELECT `id` from `categories` where `music_meta` = 1) THEN 'music'
                     WHEN category_id IN (SELECT `id` from `categories` where `no_meta` = 1) THEN 'no'
                 END as meta
@@ -633,6 +642,8 @@ class TorrentController extends BaseController
                         WHEN category_id IN (SELECT `id` from `categories` where `movie_meta` = 1) THEN 'movie'
                         WHEN category_id IN (SELECT `id` from `categories` where `tv_meta` = 1) THEN 'tv'
                         WHEN category_id IN (SELECT `id` from `categories` where `game_meta` = 1) THEN 'game'
+                        WHEN category_id IN (SELECT `id` from `categories` where `book_meta` = 1) THEN 'book'
+                        WHEN category_id IN (SELECT `id` from `categories` where `audiobook_meta` = 1) THEN 'audiobook'
                         WHEN category_id IN (SELECT `id` from `categories` where `music_meta` = 1) THEN 'music'
                         WHEN category_id IN (SELECT `id` from `categories` where `no_meta` = 1) THEN 'no'
                     END as meta
@@ -709,7 +720,12 @@ class TorrentController extends BaseController
                 $torrents = collect();
 
                 foreach ($results['hits'] ?? [] as $hit) {
-                    $meta = $hit['tmdb_movie'] ?? $hit['tmdb_tv'] ?? [];
+                    // Miraba solo `tmdb_movie`/`tmdb_tv`, asi que libro,
+                    // audiolibro y juego salian sin portada, sin generos y sin
+                    // anyo -- teniendolo todo en el mismo documento. Misma
+                    // proyeccion que usa TorrentResource, para que las dos
+                    // rutas de la API no vuelvan a divergir.
+                    $meta = TorrentMetaProjection::fromSearchHit($hit);
 
                     /** @see TorrentResource */
                     $torrents->push([
@@ -717,11 +733,11 @@ class TorrentController extends BaseController
                         'id'         => (string) $hit['id'],
                         'attributes' => [
                             'meta' => [
-                                'poster' => \array_key_exists('poster', $meta) ? tmdb_image('poster_small', $meta['poster']) : 'https://via.placeholder.com/90x135',
-                                'genres' => \array_key_exists('genres', $meta) ? implode(', ', array_column($meta['genres'], 'name')) : '',
+                                'poster' => $meta['poster'],
+                                'genres' => $meta['genres'],
                             ],
                             'name'             => $hit['name'],
-                            'release_year'     => $meta['year'] ?? null,
+                            'release_year'     => $meta['year'],
                             'category'         => $hit['category']['name'] ?? null,
                             'type'             => $hit['type']['name'] ?? null,
                             'resolution'       => $hit['resolution']['name'] ?? null,
@@ -750,6 +766,10 @@ class TorrentController extends BaseController
                             'tvdb_id'          => $hit['tvdb'],
                             'mal_id'           => $hit['mal'],
                             'igdb_id'          => $hit['igdb'],
+                            // Meilisearch omite los nulos, asi que ausente y
+                            // vacio son lo mismo aqui.
+                            'isbn13'           => $hit['isbn13'] ?? null,
+                            'asin'             => $hit['asin'] ?? null,
                             'category_id'      => $hit['category']['id'] ?? null,
                             'type_id'          => $hit['type']['id'] ?? null,
                             'resolution_id'    => $hit['resolution']['id'] ?? null,
