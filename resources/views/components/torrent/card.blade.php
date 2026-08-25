@@ -69,8 +69,13 @@
                             src="{{ tmdb_image('poster_mid', $torrent->book->cover_url) }}"
                     
                             @break
-                        @case($torrent->category->audiobook_meta && $torrent->audiobook?->cover_url)
-                            src="{{ tmdb_image('poster_mid', $torrent->audiobook->cover_url) }}"
+                        {{-- Una lectura libre no tiene ASIN, así que
+                             $torrent->audiobook es null y la portada es la del
+                             LIBRO que se lee. `$meta` ya trae esa caída resuelta
+                             desde TorrentMeta, y es justo lo que hace que la
+                             vista en lista sí pinte la portada y ésta no. --}}
+                        @case($torrent->category->audiobook_meta && $meta?->cover_url)
+                            src="{{ tmdb_image('poster_mid', $meta->cover_url) }}"
                     
                             @break
                         @case($torrent->category->music_meta)
@@ -107,11 +112,20 @@
             </span>
             <span class="torrent-card__meta-separator">&bull;</span>
             <ul class="torrent-card__genres">
-                @foreach ($meta?->genres ?? [] as $genre)
+                @php
+                    // En un audiolibro `genres` es la columna json que manda
+                    // Audnexus: texto plano, sin id ni ficha. Los navegables
+                    // son los de `bookGenres`, el mismo catalogo que los
+                    // e-books, y su id vive en el espacio de book_genre, no
+                    // en el de TMDB: filtra por `bookGenreId`.
+                    $isAudiobookMeta = $meta instanceof \App\Models\Audiobook;
+                    $cardGenres = $isAudiobookMeta ? $meta->bookGenres : ($meta?->genres ?? []);
+                @endphp
+                @foreach ($cardGenres as $genre)
                     <li class="torrent-card__genre-item">
                         <a
                             class="torrent-card__genre"
-                            href="{{ route('torrents.index', ['view' => 'group', 'genreIds' => [$genre->id]]) }}"
+                            href="{{ route('torrents.index', ['view' => 'group'] + ($isAudiobookMeta ? ['bookGenreId' => $genre->id] : ['genreIds' => [$genre->id]])) }}"
                         >
                             {{ $genre->name }}
                         </a>

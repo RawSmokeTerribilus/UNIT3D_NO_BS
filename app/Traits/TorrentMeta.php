@@ -109,6 +109,7 @@ trait TorrentMeta
             ->get()
             ->keyBy('isbn13');
         $audiobooks = Audiobook::query()
+            ->with(['bookGenres'])
             ->whereIn('asin', $asins->filter()->all())
             ->get()
             ->keyBy('asin');
