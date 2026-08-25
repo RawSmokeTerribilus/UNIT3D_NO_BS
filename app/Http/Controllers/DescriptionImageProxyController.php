@@ -18,6 +18,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -46,6 +48,57 @@ final class DescriptionImageProxyController extends Controller
     /** Tope de descarga (bytes). Una captura de 1080p con holgura. */
     private const int MAX_BYTES = 12_582_912;
 
+    /**
+     * Un origen lento no puede secuestrar un worker de PHP-FPM.
+     *
+     * Una descripción con veinte capturas dispara veinte peticiones en
+     * paralelo; con el timeout alto, un host que no responde deja veinte
+     * workers ocupados por visita. Seis segundos es de sobra para una
+     * imagen y acota el daño.
+     */
+    private const int TIMEOUT = 6;
+
+    /**
+     * Cuánto se recuerda que un origen falló, en segundos.
+     *
+     * Sin esto, una descripción que apunta a un host caído reintenta la
+     * descarga COMPLETA en cada visita, para siempre. Es el escenario real:
+     * imgbox cerró y dejó cientos de descripciones apuntando al vacío.
+     */
+    private const int TTL_FALLO = 21_600;
+
+    /**
+     * Ancho máximo que se guarda, en píxeles.
+     *
+     * El BBCode ya sirve estas imágenes encogidas: medido sobre las
+     * descripciones vivas, el 98% de las etiquetas `[img=N]` pide 600 px o
+     * menos, y sólo 18 en toda la base piden más de 1080. Guardar el original
+     * de 1920 px para que el navegador lo encoja a 600 es tirar bytes; y si
+     * alguien quiere verla entera, el enlace va al host de imágenes, no aquí.
+     *
+     * 1200 deja el doble de los 600 habituales, que es lo que necesita una
+     * pantalla HiDPI para verse nítida.
+     */
+    private const int MAX_ANCHO = 1200;
+
+    /**
+     * Por debajo de esto no se recodifica.
+     *
+     * Recodificar es una generación de pérdida más, y en una imagen que ya es
+     * pequeña no compensa: el ahorro es de unos pocos KB.
+     */
+    private const int UMBRAL_BYTES = 153_600;
+
+    /**
+     * Calidad del WebP de salida.
+     *
+     * Medido sobre las capturas ya cacheadas: a 82 la diferencia con el
+     * original al 100% es grano suavizado, invisible a los 600 px a los que
+     * se sirve. Las comparativas de calidad de verdad no pasan por aquí --
+     * slowpics e imgsli están en la lista blanca y van directas.
+     */
+    private const int CALIDAD = 82;
+
     private const array TIPOS = [
         'image/jpeg' => 'jpg',
         'image/png'  => 'png',
@@ -69,25 +122,58 @@ final class DescriptionImageProxyController extends Controller
         $cachePath = $cacheDir.'/'.sha1($url);
 
         if (!file_exists($cachePath)) {
+            // Si ya se supo que este origen falla, se responde 404 sin salir a
+            // la red. Es lo que evita que una galería muerta cueste una
+            // descarga por imagen y por visita.
+            abort_if($this->falloReciente($cachePath), 404);
+
             if (!is_dir($cacheDir)) {
                 mkdir($cacheDir, 0o755, true);
             }
 
-            $response = Http::timeout(12)
-                ->withOptions(['stream' => false, 'allow_redirects' => ['max' => 3]])
-                ->get($url);
+            try {
+                $response = Http::timeout(self::TIMEOUT)
+                    ->withOptions(['stream' => false, 'allow_redirects' => ['max' => 3]])
+                    ->get($url);
+            } catch (\Throwable) {
+                // Un timeout o un DNS que no resuelve llegan como excepción, no
+                // como respuesta fallida, y sin capturarlos el 500 se lo comía
+                // la página entera en vez de este único <img>.
+                $this->anotarFallo($cachePath);
 
-            abort_unless($response->successful(), 404);
+                abort(404);
+            }
+
+            if (!$response->successful()) {
+                $this->anotarFallo($cachePath);
+
+                abort(404);
+            }
 
             $tipo = strtolower(trim(explode(';', (string) $response->header('Content-Type'))[0]));
-            abort_unless(isset(self::TIPOS[$tipo]), 404);
+
+            if (!isset(self::TIPOS[$tipo])) {
+                $this->anotarFallo($cachePath);
+
+                abort(404);
+            }
 
             $cuerpo = $response->body();
-            abort_if($cuerpo === '' || \strlen($cuerpo) > self::MAX_BYTES, 404);
+
+            if ($cuerpo === '' || \strlen($cuerpo) > self::MAX_BYTES) {
+                $this->anotarFallo($cachePath);
+
+                abort(404);
+            }
+
+            [$cuerpo, $tipo] = $this->normalizar($cuerpo, $tipo);
 
             file_put_contents($cachePath, $cuerpo);
             file_put_contents($cachePath.'.type', $tipo);
+            @unlink($cachePath.'.fail');
         }
+
+        $this->marcarUso($cachePath);
 
         $tipo = is_file($cachePath.'.type')
             ? (string) file_get_contents($cachePath.'.type')
@@ -98,6 +184,97 @@ final class DescriptionImageProxyController extends Controller
             'Cache-Control'                => 'public, max-age=2592000, immutable',
             'Cross-Origin-Resource-Policy' => 'same-origin',
         ]);
+    }
+
+    /**
+     * Reduce al ancho de servicio y recodifica a WebP.
+     *
+     * Un GIF se deja intacto: recodificarlo con GD se lleva la animación por
+     * delante y no hay forma de devolverla.
+     *
+     * Si algo falla al decodificar se guarda el original. Una imagen pesada se
+     * ve; una imagen que no está, no.
+     *
+     * @return array{0: string, 1: string} cuerpo y tipo MIME finales
+     */
+    private function normalizar(string $cuerpo, string $tipo): array
+    {
+        if ($tipo === 'image/gif') {
+            return [$cuerpo, $tipo];
+        }
+
+        try {
+            $imagen = Image::decode($cuerpo);
+
+            if ($imagen->width() <= self::MAX_ANCHO && \strlen($cuerpo) <= self::UMBRAL_BYTES) {
+                return [$cuerpo, $tipo];
+            }
+
+            if ($imagen->width() > self::MAX_ANCHO) {
+                $imagen->scaleDown(width: self::MAX_ANCHO);
+            }
+
+            $salida = (string) $imagen->encode(new WebpEncoder(quality: self::CALIDAD));
+        } catch (\Throwable) {
+            return [$cuerpo, $tipo];
+        }
+
+        // Si la vuelta no adelgaza, se queda el original: pasa con capturas ya
+        // optimizadas en origen, y volver a comprimirlas sólo resta calidad.
+        if ($salida === '' || \strlen($salida) >= \strlen($cuerpo)) {
+            return [$cuerpo, $tipo];
+        }
+
+        return [$salida, 'image/webp'];
+    }
+
+    /**
+     * Deja constancia de que esta imagen se ha usado, para que la poda borre
+     * lo MENOS pedido y no lo más antiguo.
+     *
+     * Hace falta porque el volumen está montado con `noatime`: el sistema no
+     * actualiza la fecha de acceso al leer, así que ordenar por atime daría un
+     * orden inventado. Se usa la fecha de modificación como «último uso».
+     *
+     * Se marca como mucho una vez por hora. Un `touch` por petición sería una
+     * escritura de inodo por imagen servida y no aporta nada: para decidir qué
+     * sobra basta con la resolución de horas.
+     */
+    private function marcarUso(string $cachePath): void
+    {
+        if (time() - (int) filemtime($cachePath) > 3600) {
+            @touch($cachePath);
+        }
+    }
+
+    private function falloReciente(string $cachePath): bool
+    {
+        $marca = $cachePath.'.fail';
+
+        if (!is_file($marca)) {
+            return false;
+        }
+
+        if (time() - (int) filemtime($marca) < self::TTL_FALLO) {
+            return true;
+        }
+
+        // Caducó: se borra para que este intento vuelva a probar de verdad. Un
+        // host puede volver, y si no vuelve se anota otra vez.
+        @unlink($marca);
+
+        return false;
+    }
+
+    private function anotarFallo(string $cachePath): void
+    {
+        $dir = \dirname($cachePath);
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0o755, true);
+        }
+
+        @file_put_contents($cachePath.'.fail', (string) time());
     }
 
     /**
