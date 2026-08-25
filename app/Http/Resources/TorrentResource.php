@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Enums\AuthGuard;
+use App\Services\Metadata\TorrentMetaProjection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -88,16 +89,25 @@ class TorrentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Un solo sitio decide portada, generos y anyo por tipo de obra. Ver
+        // TorrentMetaProjection: la otra ruta de la API, `/torrents/filter`,
+        // proyecta lo mismo desde el documento de Meilisearch.
+        $meta = TorrentMetaProjection::fromModel(
+            $this->resource->meta instanceof \Illuminate\Database\Eloquent\Model
+                ? $this->resource->meta
+                : null,
+        );
+
         return [
             'type'       => 'torrent',
             'id'         => (string) $this->id,
             'attributes' => [
                 'meta' => [
-                    'poster' => isset($this->meta->poster) ? tmdb_image('poster_small', $this->meta->poster) : 'https://via.placeholder.com/90x135',
-                    'genres' => isset($this->meta->genres) ? collect($this->meta->genres)->pluck('name')->implode(', ') : '',
+                    'poster' => $meta['poster'],
+                    'genres' => $meta['genres'],
                 ],
                 'name'         => $this->name,
-                'release_year' => isset($this->meta->release_date) ? $this->meta->release_date->format('Y') : (isset($this->meta->first_air_date) ? $this->meta->first_air_date->format('Y') : null),
+                'release_year' => $meta['year'],
                 'category'     => $this->category->name,
                 'type'         => $this->type->name,
                 'resolution'   => $this->when(isset($this->resolution_id), $this->resolution->name ?? ''),
@@ -129,6 +139,12 @@ class TorrentResource extends JsonResource
                 'tvdb_id'          => $this->tvdb,
                 'mal_id'           => $this->mal,
                 'igdb_id'          => $this->igdb,
+                // Libro y audiolibro no tenian identificador en la respuesta:
+                // habia tmdb/imdb/tvdb/mal/igdb y nada para la OBRA escrita.
+                // Un consumidor no podia resolverla. Son campos NUEVOS, asi
+                // que no rompen a nadie que ya lea los de arriba.
+                'isbn13'           => $this->isbn13,
+                'asin'             => $this->asin,
                 'category_id'      => $this->category_id,
                 'type_id'          => $this->type_id,
                 'resolution_id'    => $this->when($this->resolution_id !== null, $this->resolution_id),
