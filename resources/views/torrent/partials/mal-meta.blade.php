@@ -31,7 +31,7 @@
         rel="noreferrer"
     >
         <img
-            src="{{ $mal->poster ?? 'https://via.placeholder.com/400x600' }}"
+            src="{{ $mal->poster ?? url('img/sin-imagen.svg') }}"
             class="meta__poster"
         />
     </a>

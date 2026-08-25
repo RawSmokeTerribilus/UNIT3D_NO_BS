@@ -31,7 +31,7 @@
                                     rgba(0, 0, 0, 0.87),
                                     rgba(45, 71, 131, 0.46)
                                 ),
-                                url({{ isset($collection->backdrop) ? tmdb_image('back_big', $collection->backdrop) : 'https://via.placeholder.com/1280x300' }});
+                                url({{ isset($collection->backdrop) ? tmdb_image('back_big', $collection->backdrop) : url('img/sin-imagen-ancho.svg') }});
                         "
                     >
                         <h3 class="collection__heading">

@@ -65,7 +65,7 @@
             >
                 @if ($torrent->category->movie_meta || $torrent->category->tv_meta)
                     <img
-                        src="{{ isset($meta->poster) ? tmdb_image('poster_small', $meta->poster) : 'https://via.placeholder.com/90x135' }}"
+                        src="{{ isset($meta->poster) ? tmdb_image('poster_small', $meta->poster) : url('img/sin-imagen.svg') }}"
                         class="torrent-search--list__poster-img"
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"
@@ -76,7 +76,7 @@
                 @if ($torrent->category->game_meta)
                     <img
                         style="height: 80px"
-                        src="{{ isset($meta->cover_image_id) ? 'https://images.igdb.com/igdb/image/upload/t_cover_small_2x/' . $meta->cover_image_id . '.png' : 'https://via.placeholder.com/90x135' }}"
+                        src="{{ isset($meta->cover_image_id) ? 'https://images.igdb.com/igdb/image/upload/t_cover_small_2x/' . $meta->cover_image_id . '.png' : url('img/sin-imagen.svg') }}"
                         class="torrent-search--list__poster-img"
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"
@@ -91,7 +91,7 @@
                         {{-- Se pide un tamaño, no "la portada": esto pinta 90x135
                              y estaba trayendo la de 2177 px. `coverAtLeast` elige
                              la más pequeña que llegue al ancho pedido. --}}
-                        src="{{ $meta?->cover_url ? tmdb_image('poster_small', method_exists($meta, 'coverAtLeast') ? ($meta->coverAtLeast(300) ?? $meta->cover_url) : $meta->cover_url) : 'https://via.placeholder.com/90x135' }}"
+                        src="{{ $meta?->cover_url ? tmdb_image('poster_small', method_exists($meta, 'coverAtLeast') ? ($meta->coverAtLeast(300) ?? $meta->cover_url) : $meta->cover_url) : url('img/sin-imagen.svg') }}"
                         class="torrent-search--list__poster-img"
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"
@@ -103,7 +103,7 @@
 
                 @if ($torrent->category->music_meta)
                     <img
-                        src="https://via.placeholder.com/90x135"
+                        src="{{ url('img/sin-imagen.svg') }}"
                         class="torrent-search--list__poster-img"
                         loading="lazy"
                         alt="{{ __('torrent.similar') }}"
@@ -120,7 +120,7 @@
                         />
                     @else
                         <img
-                            src="https://via.placeholder.com/400x600"
+                            src="{{ url('img/sin-imagen.svg') }}"
                             class="torrent-search--list__poster-img"
                             loading="lazy"
                             alt="{{ __('torrent.similar') }}"

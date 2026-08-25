@@ -34,7 +34,7 @@
     @endif
     <span class="meta__poster-link">
         <img
-            src="{{ $meta?->cover_url ? tmdb_image('poster_big', $meta->cover_url) : 'https://via.placeholder.com/400x600' }}"
+            src="{{ $meta?->cover_url ? tmdb_image('poster_big', $meta->cover_url) : url('img/sin-imagen.svg') }}"
             class="meta__poster"
             alt="{{ $meta->title ?? '' }}"
         />

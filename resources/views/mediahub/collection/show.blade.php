@@ -41,7 +41,7 @@
         </a>
         <a class="meta__poster-link" href="#">
             <img
-                src="{{ $collection?->poster ? tmdb_image('poster_big', $collection->poster) : 'https://via.placeholder.com/400x600' }}"
+                src="{{ $collection?->poster ? tmdb_image('poster_big', $collection->poster) : url('img/sin-imagen.svg') }}"
                 class="meta__poster"
             />
         </a>

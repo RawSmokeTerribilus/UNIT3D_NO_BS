@@ -17,7 +17,7 @@
         href="{{ $tmdb ? route('torrents.similar', ['category_id' => $category->id, 'tmdb' => $tmdb]) : '#' }}"
     >
         <img
-            src="{{ $meta?->poster ? tmdb_image('poster_big', $meta->poster) : 'https://via.placeholder.com/400x600' }}"
+            src="{{ $meta?->poster ? tmdb_image('poster_big', $meta->poster) : url('img/sin-imagen.svg') }}"
             class="meta__poster"
         />
     </a>
