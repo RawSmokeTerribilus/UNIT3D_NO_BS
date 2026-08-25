@@ -22,6 +22,7 @@ use App\Models\MetadataArtwork;
 use App\Models\TmdbMovie;
 use App\Models\TmdbTv;
 use App\Models\Torrent;
+use App\Services\Metadata\CoverLadder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -110,7 +111,13 @@ class MetaRotateCovers extends Command
         // Books keep their pool in a json column rather than in
         // metadata_artwork: that table is keyed (category, tmdb_id) and a book
         // has no TMDB id, so a second pass handles them on their own terms.
-        $rotated += $this->rotateBookCovers();
+        //
+        // OJO, no es una errata: este comando ROTA vídeo y CLAVA libros. Los
+        // libros se sacaron de la rotación el 2026-08-25 a propósito — su pool
+        // es una escalera de calidades del mismo dibujo, no portadas distintas.
+        // El porqué entero, con las medidas, en pinBookCovers() y en el vault:
+        // Knowledge/Infrastructure/UNIT3D/rotacion-de-portadas-libros.md
+        $rotated += $this->pinBookCovers();
 
         $cacheDeleted = 0;
         if ($rotated > 0) {
@@ -130,16 +137,23 @@ class MetaRotateCovers extends Command
     }
 
     /**
-     * Advance the active cover of every book and audiobook that has more than
-     * one candidate image.
+     * Clava la portada activa de cada libro y audiolibro en la mejor del pool.
      *
-     * Worth doing for the same reason as the video pass: a provider silently
-     * dropping an image leaves a permanently broken cover, and rotating means
-     * the next run picks a different one instead of showing the gap forever.
+     * Aquí no se rota, y es a propósito. El pool de un libro no son portadas
+     * distintas: es la MISMA imagen en varias calidades (xl/l/m/s), que es
+     * justo para lo que existe CoverLadder. Rotar por esa escalera servía el
+     * cover de 128 px como activo tres días de cada cinco; y en un ISBN
+     * español el último peldaño es el respaldo de OpenLibrary, que devuelve
+     * 404 — que es exactamente lo que `?default=false` está puesto para
+     * provocar. Ver `Knowledge/Infrastructure/UNIT3D/portadas-de-libro-intel.md`.
+     *
+     * El paso diario se mantiene porque sigue siendo autocurativo: si el
+     * proveedor añade una calidad mejor, la siguiente vuelta la recoge.
+     * Idempotente: si ya está clavada, no escribe.
      */
-    private function rotateBookCovers(): int
+    private function pinBookCovers(): int
     {
-        $rotated = 0;
+        $pinned = 0;
 
         /** @var array<class-string<Book|Audiobook>, string> $sets */
         $sets = [
@@ -149,29 +163,25 @@ class MetaRotateCovers extends Command
 
         foreach ($sets as $model => $torrentColumn) {
             foreach ($model::query()->whereNotNull('cover_urls')->cursor() as $row) {
-                // El pool paso de ser una lista de cadenas a una de entradas
-                // con tamano, para que cada consumidor elija la calidad que
-                // necesita. Se aceptan las dos formas: las filas guardadas
-                // antes del cambio siguen rotando sin tocar la base.
                 $pool = $row->cover_urls ?? [];
-                $urls = array_values(array_unique(array_filter(array_map(
-                    static fn ($e) => \is_array($e) ? ($e['url'] ?? null) : $e,
-                    $pool,
-                ))));
 
-                if (\count($urls) < 2) {
-                    continue;   // nothing to rotate between
+                if ($pool === []) {
+                    continue;
                 }
 
-                $index = array_search($row->cover_url, $urls, true);
-                $pick = $urls[($index === false ? 0 : (int) $index + 1) % \count($urls)];
+                // Mismo criterio con el que ProcessBookJob escribe una fila
+                // nueva, para que un refetch no contradiga a este paso.
+                // CoverLadder acepta las dos formas del pool: la lista plana
+                // de cadenas de las filas viejas y la de entradas con tamaño.
+                $pick = CoverLadder::pick($pool, 800)
+                    ?? (\is_array($pool[0]) ? ($pool[0]['url'] ?? null) : $pool[0]);
 
-                if ($pick === $row->cover_url) {
+                if ($pick === null || $pick === $row->cover_url) {
                     continue;
                 }
 
                 $row->forceFill(['cover_url' => $pick])->saveQuietly();
-                $rotated++;
+                $pinned++;
 
                 // Same reindex reason as above: the cover lives on the meta
                 // row, so touching it never bumps torrents.updated_at and the
@@ -180,11 +190,11 @@ class MetaRotateCovers extends Command
             }
         }
 
-        if ($rotated > 0) {
-            $this->info("Advanced covers for {$rotated} book/audiobook edition(s).");
+        if ($pinned > 0) {
+            $this->info("Pinned covers for {$pinned} book/audiobook edition(s).");
         }
 
-        return $rotated;
+        return $pinned;
     }
 
     /**
