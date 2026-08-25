@@ -37,7 +37,7 @@
     <figure>
         <a href="{{ $destino }}" class="torrent-search--poster__poster">
             <img
-                src="{{ $portada ? tmdb_image('poster_mid', $portada) : 'https://via.placeholder.com/90x135' }}"
+                src="{{ $portada ? tmdb_image('poster_mid', $portada) : url('img/sin-imagen.svg') }}"
                 alt="{{ __('torrent.similar') }}"
                 loading="lazy"
             />

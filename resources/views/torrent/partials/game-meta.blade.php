@@ -26,7 +26,7 @@
         href="{{ $igdb ? route('torrents.similar', ['category_id' => $category->id, 'tmdb' => $igdb]) : '#' }}"
     >
         <img
-            src="{{ $meta?->cover_image_id ? 'https://images.igdb.com/igdb/image/upload/t_original/' . $meta->cover_image_id . '.jpg' : 'https://via.placeholder.com/400x600' }}"
+            src="{{ $meta?->cover_image_id ? 'https://images.igdb.com/igdb/image/upload/t_original/' . $meta->cover_image_id . '.jpg' : url('img/sin-imagen.svg') }}"
             class="meta__poster"
         />
     </a>

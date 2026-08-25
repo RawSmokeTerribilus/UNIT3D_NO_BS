@@ -46,7 +46,7 @@
                 ></span>
                 <img src="{{ tmdb_image('poster_big', $popupCover) }}" alt="{{ $meta->title }}" />
             @else
-                <img src="https://via.placeholder.com/500x280" alt="" />
+                <img src="{{ url('img/sin-imagen-ancho.svg') }}" alt="" />
             @endif
             <div class="meta__poster-popup-backdrop-overlay"></div>
         </div>
