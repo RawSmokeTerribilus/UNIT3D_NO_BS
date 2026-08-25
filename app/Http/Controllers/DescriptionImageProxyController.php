@@ -18,6 +18,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -64,6 +66,38 @@ final class DescriptionImageProxyController extends Controller
      * imgbox cerró y dejó cientos de descripciones apuntando al vacío.
      */
     private const int TTL_FALLO = 21_600;
+
+    /**
+     * Ancho máximo que se guarda, en píxeles.
+     *
+     * El BBCode ya sirve estas imágenes encogidas: medido sobre las
+     * descripciones vivas, el 98% de las etiquetas `[img=N]` pide 600 px o
+     * menos, y sólo 18 en toda la base piden más de 1080. Guardar el original
+     * de 1920 px para que el navegador lo encoja a 600 es tirar bytes; y si
+     * alguien quiere verla entera, el enlace va al host de imágenes, no aquí.
+     *
+     * 1200 deja el doble de los 600 habituales, que es lo que necesita una
+     * pantalla HiDPI para verse nítida.
+     */
+    private const int MAX_ANCHO = 1200;
+
+    /**
+     * Por debajo de esto no se recodifica.
+     *
+     * Recodificar es una generación de pérdida más, y en una imagen que ya es
+     * pequeña no compensa: el ahorro es de unos pocos KB.
+     */
+    private const int UMBRAL_BYTES = 153_600;
+
+    /**
+     * Calidad del WebP de salida.
+     *
+     * Medido sobre las capturas ya cacheadas: a 82 la diferencia con el
+     * original al 100% es grano suavizado, invisible a los 600 px a los que
+     * se sirve. Las comparativas de calidad de verdad no pasan por aquí --
+     * slowpics e imgsli están en la lista blanca y van directas.
+     */
+    private const int CALIDAD = 82;
 
     private const array TIPOS = [
         'image/jpeg' => 'jpg',
@@ -132,6 +166,8 @@ final class DescriptionImageProxyController extends Controller
                 abort(404);
             }
 
+            [$cuerpo, $tipo] = $this->normalizar($cuerpo, $tipo);
+
             file_put_contents($cachePath, $cuerpo);
             file_put_contents($cachePath.'.type', $tipo);
             @unlink($cachePath.'.fail');
@@ -148,6 +184,48 @@ final class DescriptionImageProxyController extends Controller
             'Cache-Control'                => 'public, max-age=2592000, immutable',
             'Cross-Origin-Resource-Policy' => 'same-origin',
         ]);
+    }
+
+    /**
+     * Reduce al ancho de servicio y recodifica a WebP.
+     *
+     * Un GIF se deja intacto: recodificarlo con GD se lleva la animación por
+     * delante y no hay forma de devolverla.
+     *
+     * Si algo falla al decodificar se guarda el original. Una imagen pesada se
+     * ve; una imagen que no está, no.
+     *
+     * @return array{0: string, 1: string} cuerpo y tipo MIME finales
+     */
+    private function normalizar(string $cuerpo, string $tipo): array
+    {
+        if ($tipo === 'image/gif') {
+            return [$cuerpo, $tipo];
+        }
+
+        try {
+            $imagen = Image::decode($cuerpo);
+
+            if ($imagen->width() <= self::MAX_ANCHO && \strlen($cuerpo) <= self::UMBRAL_BYTES) {
+                return [$cuerpo, $tipo];
+            }
+
+            if ($imagen->width() > self::MAX_ANCHO) {
+                $imagen->scaleDown(width: self::MAX_ANCHO);
+            }
+
+            $salida = (string) $imagen->encode(new WebpEncoder(quality: self::CALIDAD));
+        } catch (\Throwable) {
+            return [$cuerpo, $tipo];
+        }
+
+        // Si la vuelta no adelgaza, se queda el original: pasa con capturas ya
+        // optimizadas en origen, y volver a comprimirlas sólo resta calidad.
+        if ($salida === '' || \strlen($salida) >= \strlen($cuerpo)) {
+            return [$cuerpo, $tipo];
+        }
+
+        return [$salida, 'image/webp'];
     }
 
     /**
