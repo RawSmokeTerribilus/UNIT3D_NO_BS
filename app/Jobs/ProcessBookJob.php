@@ -92,11 +92,22 @@ class ProcessBookJob implements ShouldQueue
             // exista, sino que no se pudo preguntar. Decirlo bien importa: el
             // log anterior mandaba a buscar un ISBN mejor cuando el ISBN estaba
             // bien y lo que faltaba era cuota.
-            throw new RuntimeException(
-                $google->lastFailureWasTransient()
-                    ? 'Google Books no respondió (HTTP '.$google->lastStatus().') al pedir el ISBN '.$isbn13.'; no consta que el volumen no exista'
-                    : 'Google Books returned no volume for ISBN '.$isbn13
-            );
+            if ($google->lastFailureWasTransient()) {
+                throw new RuntimeException(
+                    'Google Books no respondió (HTTP '.$google->lastStatus().') al pedir el ISBN '.$isbn13
+                    .'; no consta que el volumen no exista'
+                );
+            }
+
+            // Un "no existe" de verdad --la API contestó y no hay volumen-- se
+            // recuerda una semana. Sin esto, `books:sync` vuelve a preguntar por
+            // el mismo ISBN cada quince minutos para siempre, y esas consultas
+            // salen de la misma cuota diaria que la subida. `--force` borra la
+            // marca, que es como se recupera un ISBN que el proveedor añada más
+            // tarde.
+            cache()->put("book-scraper:{$isbn13}", now(), 7 * 24 * 3600);
+
+            throw new RuntimeException('Google Books returned no volume for ISBN '.$isbn13);
         }
 
         $covers = $candidate->coverUrls;

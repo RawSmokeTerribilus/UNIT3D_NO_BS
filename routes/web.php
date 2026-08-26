@@ -997,6 +997,8 @@ Route::middleware('language')->group(function (): void {
                 Route::post('/books-sync', [App\Http\Controllers\Staff\CommandController::class, 'booksSync']);
                 Route::post('/books-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'booksSyncForce']);
                 Route::post('/books-sync-authors', [App\Http\Controllers\Staff\CommandController::class, 'booksSyncAuthors']);
+                Route::post('/games-sync', [App\Http\Controllers\Staff\CommandController::class, 'gamesSync']);
+                Route::post('/games-sync-force', [App\Http\Controllers\Staff\CommandController::class, 'gamesSyncForce']);
                 Route::post('/warm-art-cache', [App\Http\Controllers\Staff\CommandController::class, 'warmArtCache']);
 
                 // User & Cleanup

@@ -51,7 +51,26 @@ class SyncBookMeta extends Command
         $force = (bool) $this->option('force');
         $queued = (bool) $this->option('queue');
 
-        $books = $this->pending('isbn13', Book::class, 'isbn13', $limit, $force);
+        // Un audiolibro puede llevar el ISBN de la obra además de su ASIN. Si su
+        // ficha de audiolibro ya está, ese ISBN no aporta nada y preguntarlo sale
+        // caro: son ISBNs de grabación que Google Books casi nunca indexa, fallan,
+        // se reintentan y se comen las 1000 consultas del día que necesita el
+        // formulario de subida. El 2026-08-26 eran 299 de los 333 pendientes.
+        // El que sí se pregunta es el del audiolibro SIN ficha --la lectura libre
+        // que no está en Audible--, que es justo el caso en que el libro es lo
+        // único que puede identificarlo.
+        $books = $this->pending(
+            'isbn13',
+            Book::class,
+            'isbn13',
+            $limit,
+            $force,
+            fn ($query) => $query->where(
+                fn ($q) => $q
+                    ->whereNull('asin')
+                    ->orWhereNotIn('asin', Audiobook::query()->select('asin'))
+            )
+        );
         $audiobooks = $this->pending('asin', Audiobook::class, 'asin', $limit, $force);
 
         $this->info(sprintf('%d book(s) and %d audiobook(s) to process.', \count($books), \count($audiobooks)));
@@ -77,10 +96,11 @@ class SyncBookMeta extends Command
      * Ids present on a torrent but missing from the metadata table.
      *
      * @param class-string<\Illuminate\Database\Eloquent\Model> $model
+     * @param null|callable(\Illuminate\Database\Eloquent\Builder): mixed $extra filtro extra sobre el conjunto pendiente
      *
      * @return list<string>
      */
-    private function pending(string $column, string $model, string $key, int $limit, bool $force): array
+    private function pending(string $column, string $model, string $key, int $limit, bool $force, ?callable $extra = null): array
     {
         // Torrent uses SoftDeletes: without this the pool counts rows that are
         // already gone. That mistake once turned 11 pending items into "672".
@@ -91,6 +111,10 @@ class SyncBookMeta extends Command
 
         if (!$force) {
             $query->whereNotIn($column, $model::query()->select($key));
+        }
+
+        if ($extra !== null) {
+            $extra($query);
         }
 
         /** @var list<string> $ids */
