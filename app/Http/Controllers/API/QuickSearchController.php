@@ -196,7 +196,14 @@ class QuickSearchController extends Controller
                 && (($hit['category']['book_meta'] ?? false) || ($hit['category']['audiobook_meta'] ?? false))
             ) {
                 $isBook = (bool) ($hit['category']['book_meta'] ?? false);
-                $meta = ($isBook ? $hit['book'] : $hit['audiobook']) ?? null;
+                // Cada acceso lleva su `??`: un documento indexado antes de que
+                // existieran estas categorías no trae las claves, y leerlas a
+                // pelo llenaba el log de `Undefined array key "book"`. Sin la
+                // clave, el resultado sale con el nombre del torrent, que es la
+                // degradación correcta.
+                $meta = $isBook
+                    ? ($hit['book'] ?? null)
+                    : ($hit['audiobook'] ?? $hit['book'] ?? null);
                 $authors = implode(', ', $meta['authors'] ?? []);
 
                 $results[] = [

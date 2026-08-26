@@ -56,6 +56,24 @@
             @endif
         </ul>
     </div>
+    {{-- Por qué esta ficha está vacía. El scrape ocurre en un job, así que su
+         fallo no puede contestar a la subida: el job lo deja escrito al
+         rendirse y aquí se lee. Sin esto, la edición decía "Successfully
+         edited!" y el motivo sólo estaba en storage/logs. --}}
+    @php($avisoMeta = collect([
+        $torrent?->isbn13 ? 'meta-error:book:'.$torrent->isbn13 : null,
+        $torrent?->asin ? 'meta-error:audiobook:'.$torrent->asin : null,
+        ($torrent?->igdb ?? 0) > 0 ? 'meta-error:game:'.$torrent->igdb : null,
+    ])->filter()->map(fn ($clave) => cache()->get($clave))->filter()->first())
+
+    @if ($avisoMeta)
+        <p class="meta__no-meta-warning" style="margin: 0 0 1rem; opacity: 0.85">
+            <i class="{{ config('other.font-awesome') }} fa-triangle-exclamation"></i>
+            No se pudo traer la ficha: {{ $avisoMeta['motivo'] }}
+            <small>({{ $avisoMeta['cuando'] }})</small>
+        </p>
+    @endif
+
     <ul class="meta__ids">
         @if (isset($torrent) && $torrent->imdb > 0)
             <li class="meta__imdb">
