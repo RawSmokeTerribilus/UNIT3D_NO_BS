@@ -26,6 +26,18 @@
             cats: JSON.parse(atob('{{ base64_encode(json_encode($categories)) }}')),
             type: {{ (int) $torrent->type_id }},
             types: JSON.parse(atob('{{ base64_encode(json_encode($types)) }}')),
+            // Los tipos son una tabla GLOBAL, así que este desplegable ofrecía
+            // "EPUB" al editar una película y "Full Disc" al editar un e-book.
+            // Mismo filtro que la vista de subida: types.meta contra la clase
+            // de la categoría elegida. Sin clasificar, o en una categoría que
+            // no es de ninguna clase, se muestran todos.
+            tipoVale(meta) {
+                if (!meta) return true;
+                const clase = this.cats[this.cat]?.type;
+                if (!clase) return true;
+                const equivale = { movie: 'video', tv: 'video', book: 'book', audiobook: 'audiobook', game: 'game' };
+                return equivale[clase] === undefined || meta === equivale[clase];
+            },
             tmdb_movie_exists:
                 {{ Js::from(old('movie_exists_on_tmdb', $torrent->tmdb_movie_id) !== null) }},
             tmdb_tv_exists: {{ Js::from(old('tv_exists_on_tmdb', $torrent->tmdb_tv_id) !== null) }},
@@ -92,7 +104,16 @@
                         name="category_id"
                         x-model="cat"
                         x-ref="catId"
-                        @change="cats[cat].type = cats[$event.target.value].type;"
+                        @change="
+                            cats[cat].type = cats[$event.target.value].type;
+                            // Quedarse con una opción oculta seleccionada
+                            // enviaría un tipo que no corresponde.
+                            // Por la variable del x-model, no por $refs: si no,
+                            // Alpine repone el valor viejo al siguiente render.
+                            if (!tipoVale(types[type]?.meta)) {
+                                type = '';
+                            }
+                        "
                     >
                         <option value="{{ old('category_id') ?? $torrent->category_id }}" selected>
                             {{ $torrent->category->name }} ({{ __('torrent.current') }})
@@ -120,7 +141,15 @@
                             {{ $torrent->type->name }} ({{ __('torrent.current') }})
                         </option>
                         @foreach ($types as $id => $type)
-                            <option value="{{ $id }}" @selected(old('type_id') === $id)>
+                            <option
+                                value="{{ $id }}"
+                                @selected(old('type_id') === $id)
+                                x-show="tipoVale({{ Js::from($type['meta']) }})"
+                                {{-- `display:none` sobre un <option> no lo
+                                     respetan todos los navegadores; `disabled`
+                                     sí. --}}
+                                x-bind:disabled="!tipoVale({{ Js::from($type['meta']) }})"
+                            >
                                 {{ $type['name'] }}
                             </option>
                         @endforeach
@@ -276,7 +305,13 @@
                 </div>
                 <div
                     class="form__group--horizontal"
-                    x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv' || cats[cat].type === 'game'"
+                    x-show="
+                        cats[cat].type === 'movie'
+                        || cats[cat].type === 'tv'
+                        || cats[cat].type === 'game'
+                        || cats[cat].type === 'book'
+                        || cats[cat].type === 'audiobook'
+                    "
                 >
                     <div class="form__group--vertical" x-show="cats[cat].type === 'movie'">
                         <p class="form__group">

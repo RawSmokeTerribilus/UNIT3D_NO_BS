@@ -39,6 +39,9 @@
                 tvdb_tv_exists: {{ Js::from(old('tv_exists_on_tvdb', $torrentRequest->tvdb) !== null) }},
                 mal_anime_exists: {{ Js::from(old('anime_exists_on_mal', $torrentRequest->mal) !== null) }},
                 igdb_game_exists: {{ Js::from(old('game_exists_on_igdb', $torrentRequest->igdb) !== null) }},
+                book_isbn_exists: {{ Js::from(old('book_exists_on_google', $torrentRequest->isbn13) !== null) }},
+                audiobook_asin_exists:
+                    {{ Js::from(old('audiobook_exists_on_audible', $torrentRequest->asin) !== null) }},
             }"
         >
             <h2 class="panel__heading">{{ __('request.edit-request') }}</h2>
@@ -159,7 +162,13 @@
                     </div>
                     <div
                         class="form__group--horizontal"
-                        x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv' || cats[cat].type === 'game'"
+                        x-show="
+                            cats[cat].type === 'movie'
+                            || cats[cat].type === 'tv'
+                            || cats[cat].type === 'game'
+                            || cats[cat].type === 'book'
+                            || cats[cat].type === 'audiobook'
+                        "
                     >
                         <div class="form__group--vertical" x-show="cats[cat].type === 'movie'">
                             <p class="form__group">
@@ -384,6 +393,77 @@
                                 <label class="form__label form__label--floating" for="igdb">
                                     IGDB ID
                                 </label>
+                            </p>
+                        </div>
+                        {{-- Libros y audiolibros: la edición de peticiones no
+                             los tenía, así que una petición mal identificada no
+                             se podía corregir. `UpdateTorrentRequestRequest` ya
+                             lee isbn13 y asin de estas mismas casillas. --}}
+                        <div class="form__group--vertical" x-show="cats[cat].type === 'book'">
+                            <p class="form__group">
+                                <input
+                                    type="checkbox"
+                                    class="form__checkbox"
+                                    id="book_exists_on_google"
+                                    name="book_exists_on_google"
+                                    value="1"
+                                    x-model="book_isbn_exists"
+                                />
+                                <label class="form__label" for="book_exists_on_google">
+                                    Conozco el ISBN de esta edición
+                                </label>
+                            </p>
+                            <p class="form__group" x-show="book_isbn_exists">
+                                <input
+                                    id="isbn13"
+                                    class="form__text"
+                                    inputmode="numeric"
+                                    name="isbn13"
+                                    pattern="[0-9]{13}"
+                                    maxlength="13"
+                                    placeholder=" "
+                                    type="text"
+                                    value="{{ old('isbn13', $torrentRequest->isbn13) }}"
+                                    x-bind:value="cats[cat].type === 'book' && book_isbn_exists ? '{{ old('isbn13', $torrentRequest->isbn13) }}' : ''"
+                                    x-bind:required="cats[cat].type === 'book' && book_isbn_exists"
+                                />
+                                <label class="form__label form__label--floating" for="isbn13">
+                                    ISBN-13
+                                </label>
+                                <span class="form__hint">13 dígitos, sin guiones.</span>
+                            </p>
+                        </div>
+                        <div class="form__group--vertical" x-show="cats[cat].type === 'audiobook'">
+                            <p class="form__group">
+                                <input
+                                    type="checkbox"
+                                    class="form__checkbox"
+                                    id="audiobook_exists_on_audible"
+                                    name="audiobook_exists_on_audible"
+                                    value="1"
+                                    x-model="audiobook_asin_exists"
+                                />
+                                <label class="form__label" for="audiobook_exists_on_audible">
+                                    Esta grabación está en Audible
+                                </label>
+                            </p>
+                            <p class="form__group" x-show="audiobook_asin_exists">
+                                <input
+                                    id="asin"
+                                    class="form__text"
+                                    name="asin"
+                                    pattern="[A-Za-z0-9]{10}"
+                                    maxlength="10"
+                                    placeholder=" "
+                                    type="text"
+                                    value="{{ old('asin', $torrentRequest->asin) }}"
+                                    x-bind:value="cats[cat].type === 'audiobook' && audiobook_asin_exists ? '{{ old('asin', $torrentRequest->asin) }}' : ''"
+                                    x-bind:required="cats[cat].type === 'audiobook' && audiobook_asin_exists"
+                                />
+                                <label class="form__label form__label--floating" for="asin">
+                                    ASIN de Audible
+                                </label>
+                                <span class="form__hint">10 caracteres alfanuméricos.</span>
                             </p>
                         </div>
                     </div>

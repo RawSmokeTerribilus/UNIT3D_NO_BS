@@ -35,6 +35,8 @@ use App\Helpers\TorrentHelper;
 use App\Helpers\TorrentTools;
 use App\Http\Requests\StoreTorrentRequest;
 use App\Http\Requests\UpdateTorrentRequest;
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\Category;
 use App\Models\Distributor;
 use App\Models\History;
@@ -243,7 +245,7 @@ class TorrentController extends Controller
             'mediaInfo'          => $torrent->mediainfo !== null ? (new MediaInfo())->parse($torrent->mediainfo) : null,
             'fileTree'           => $fileTree,
             'alsoDownloaded'     => cache()->flexible(
-                'also-downloaded:by-torrent-id:'.$torrent->id,
+                'also-downloaded:v2:by-torrent-id:'.$torrent->id,
                 [3600 * 12, 3600 * 24 * 14],
                 match (true) {
                     $torrent->category->movie_meta => fn () => TmdbMovie::query()
@@ -314,13 +316,72 @@ class TorrentController extends Controller
                                         ->where('torrent_id', '=', $torrent->id)
                                         ->where('history.created_at', '>', $torrent->created_at->addMinutes(30))
                                 )
-                                ->where('igdb', '!=', $torrent->tmdb_tv_id)
+                                ->where('igdb', '!=', $torrent->igdb)
                                 ->whereRaw('history.created_at > torrents.created_at + INTERVAL 30 MINUTE')
                                 ->groupBy('igdb')
                                 ->orderByDesc('total')
                                 ->limit(30),
                             'also_downloaded',
                             fn ($join) => $join->on('igdb_games.id', '=', 'also_downloaded.igdb')
+                        )
+                        ->orderByDesc('total')
+                        ->get(),
+                    // Libro y audiolibro se agrupan por la clave que los
+                    // identifica --ISBN-13 la edición, ASIN la grabación--, que
+                    // es lo mismo que hace `AlsoDownloadedWorks` en la página de
+                    // similares. Sin estas dos ramas la pestaña salía vacía en
+                    // toda ficha de libro, porque caía en el `default`.
+                    $torrent->category->book_meta && $torrent->isbn13 !== null => fn () => Book::query()
+                        ->joinSub(
+                            Torrent::query()
+                                ->select([
+                                    'isbn13',
+                                    DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                    DB::raw('MIN(category_id) AS category_id')
+                                ])
+                                ->join('history', 'torrents.id', '=', 'history.torrent_id')
+                                ->whereIn(
+                                    'history.user_id',
+                                    History::query()
+                                        ->select('user_id')
+                                        ->where('torrent_id', '=', $torrent->id)
+                                        ->where('history.created_at', '>', $torrent->created_at->addMinutes(30))
+                                )
+                                ->whereNotNull('isbn13')
+                                ->where('isbn13', '!=', $torrent->isbn13)
+                                ->whereRaw('history.created_at > torrents.created_at + INTERVAL 30 MINUTE')
+                                ->groupBy('isbn13')
+                                ->orderByDesc('total')
+                                ->limit(30),
+                            'also_downloaded',
+                            fn ($join) => $join->on('books.isbn13', '=', 'also_downloaded.isbn13')
+                        )
+                        ->orderByDesc('total')
+                        ->get(),
+                    $torrent->category->audiobook_meta && $torrent->asin !== null => fn () => Audiobook::query()
+                        ->joinSub(
+                            Torrent::query()
+                                ->select([
+                                    'asin',
+                                    DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                    DB::raw('MIN(category_id) AS category_id')
+                                ])
+                                ->join('history', 'torrents.id', '=', 'history.torrent_id')
+                                ->whereIn(
+                                    'history.user_id',
+                                    History::query()
+                                        ->select('user_id')
+                                        ->where('torrent_id', '=', $torrent->id)
+                                        ->where('history.created_at', '>', $torrent->created_at->addMinutes(30))
+                                )
+                                ->whereNotNull('asin')
+                                ->where('asin', '!=', $torrent->asin)
+                                ->whereRaw('history.created_at > torrents.created_at + INTERVAL 30 MINUTE')
+                                ->groupBy('asin')
+                                ->orderByDesc('total')
+                                ->limit(30),
+                            'also_downloaded',
+                            fn ($join) => $join->on('audiobooks.asin', '=', 'also_downloaded.asin')
                         )
                         ->orderByDesc('total')
                         ->get(),
@@ -348,16 +409,18 @@ class TorrentController extends Controller
                     $cat['id'] => [
                         'name' => $cat['name'],
                         'type' => match (true) {
-                            $cat->movie_meta => 'movie',
-                            $cat->tv_meta    => 'tv',
-                            $cat->game_meta  => 'game',
-                            $cat->music_meta => 'music',
-                            $cat->no_meta    => 'no',
-                            default          => 'no',
+                            $cat->movie_meta     => 'movie',
+                            $cat->tv_meta        => 'tv',
+                            $cat->game_meta      => 'game',
+                            $cat->book_meta      => 'book',
+                            $cat->audiobook_meta => 'audiobook',
+                            $cat->music_meta     => 'music',
+                            $cat->no_meta        => 'no',
+                            default              => 'no',
                         },
                     ]
                 ]),
-            'types'        => Type::orderBy('position')->get()->mapWithKeys(fn ($type) => [$type['id'] => ['name' => $type['name']]]),
+            'types'        => Type::orderBy('position')->get()->mapWithKeys(fn ($type) => [$type['id'] => ['name' => $type['name'], 'meta' => $type['meta']]]),
             'resolutions'  => Resolution::orderBy('position')->get(),
             'regions'      => Region::orderBy('position')->get(),
             'distributors' => Distributor::orderBy('name')->get(),

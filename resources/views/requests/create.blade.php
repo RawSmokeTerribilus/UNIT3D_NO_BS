@@ -147,7 +147,13 @@
                     </div>
                     <div
                         class="form__group--horizontal"
-                        x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv' || cats[cat].type === 'game'"
+                        x-show="
+                            cats[cat].type === 'movie'
+                            || cats[cat].type === 'tv'
+                            || cats[cat].type === 'game'
+                            || cats[cat].type === 'book'
+                            || cats[cat].type === 'audiobook'
+                        "
                     >
                         <div class="form__group--vertical" x-show="cats[cat].type === 'movie'">
                             <p class="form__group">
