@@ -53,12 +53,16 @@ class AlsoDownloadedWorks extends Component
     final protected Collection $alsoDownloadedWorks {
         get => match ($this->work::class) {
             TmdbMovie::class => cache()->flexible(
-                'also-downloaded:by-tmdb-movie-id:'.$this->work->id,
+                'also-downloaded:v2:by-tmdb-movie-id:'.$this->work->id,
                 [3600 * 12, 3600 * 24 * 14],
                 fn () => TmdbMovie::query()
                     ->joinSub(
                         Torrent::query()
-                            ->select('tmdb_movie_id', DB::raw('COUNT(DISTINCT history.user_id) AS total'))
+                            ->select([
+                                'tmdb_movie_id',
+                                DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                DB::raw('MIN(category_id) AS category_id'),
+                            ])
                             ->join('history', 'torrents.id', '=', 'history.torrent_id')
                             ->whereIn(
                                 'history.user_id',
@@ -84,12 +88,16 @@ class AlsoDownloadedWorks extends Component
                     ->get()
             ),
             TmdbTv::class => cache()->flexible(
-                'also-downloaded:by-tmdb-tv-id:'.$this->work->id,
+                'also-downloaded:v2:by-tmdb-tv-id:'.$this->work->id,
                 [3600 * 12, 3600 * 24 * 14],
                 fn () => TmdbTv::query()
                     ->joinSub(
                         Torrent::query()
-                            ->select('tmdb_tv_id', DB::raw('COUNT(DISTINCT history.user_id) AS total'))
+                            ->select([
+                                'tmdb_tv_id',
+                                DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                DB::raw('MIN(category_id) AS category_id'),
+                            ])
                             ->join('history', 'torrents.id', '=', 'history.torrent_id')
                             ->whereIn(
                                 'history.user_id',
@@ -115,12 +123,16 @@ class AlsoDownloadedWorks extends Component
                     ->get()
             ),
             IgdbGame::class => cache()->flexible(
-                'also-downloaded:by-igdb-game-id:'.$this->work->id,
+                'also-downloaded:v2:by-igdb-game-id:'.$this->work->id,
                 [3600 * 12, 3600 * 24 * 14],
                 fn () => IgdbGame::query()
                     ->joinSub(
                         Torrent::query()
-                            ->select('igdb', DB::raw('COUNT(DISTINCT history.user_id) AS total'))
+                            ->select([
+                                'igdb',
+                                DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                DB::raw('MIN(category_id) AS category_id'),
+                            ])
                             ->join('history', 'torrents.id', '=', 'history.torrent_id')
                             ->whereIn(
                                 'history.user_id',
@@ -152,12 +164,16 @@ class AlsoDownloadedWorks extends Component
             // --un audiolibro tiene ISBN de la obra, no de su edición-- y
             // cruzarlos daría filas huérfanas.
             Book::class => cache()->flexible(
-                'also-downloaded:by-isbn13:'.$this->work->isbn13,
+                'also-downloaded:v2:by-isbn13:'.$this->work->isbn13,
                 [3600 * 12, 3600 * 24 * 14],
                 fn () => Book::query()
                     ->joinSub(
                         Torrent::query()
-                            ->select('isbn13', DB::raw('COUNT(DISTINCT history.user_id) AS total'))
+                            ->select([
+                                'isbn13',
+                                DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                DB::raw('MIN(category_id) AS category_id'),
+                            ])
                             ->join('history', 'torrents.id', '=', 'history.torrent_id')
                             ->whereIn(
                                 'history.user_id',
@@ -184,12 +200,16 @@ class AlsoDownloadedWorks extends Component
                     ->get()
             ),
             Audiobook::class => cache()->flexible(
-                'also-downloaded:by-asin:'.$this->work->asin,
+                'also-downloaded:v2:by-asin:'.$this->work->asin,
                 [3600 * 12, 3600 * 24 * 14],
                 fn () => Audiobook::query()
                     ->joinSub(
                         Torrent::query()
-                            ->select('asin', DB::raw('COUNT(DISTINCT history.user_id) AS total'))
+                            ->select([
+                                'asin',
+                                DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                DB::raw('MIN(category_id) AS category_id'),
+                            ])
                             ->join('history', 'torrents.id', '=', 'history.torrent_id')
                             ->whereIn(
                                 'history.user_id',
