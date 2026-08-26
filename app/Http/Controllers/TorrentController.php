@@ -243,7 +243,7 @@ class TorrentController extends Controller
             'mediaInfo'          => $torrent->mediainfo !== null ? (new MediaInfo())->parse($torrent->mediainfo) : null,
             'fileTree'           => $fileTree,
             'alsoDownloaded'     => cache()->flexible(
-                'also-downloaded:by-torrent-id:'.$torrent->id,
+                'also-downloaded:v2:by-torrent-id:'.$torrent->id,
                 [3600 * 12, 3600 * 24 * 14],
                 match (true) {
                     $torrent->category->movie_meta => fn () => TmdbMovie::query()
@@ -314,7 +314,7 @@ class TorrentController extends Controller
                                         ->where('torrent_id', '=', $torrent->id)
                                         ->where('history.created_at', '>', $torrent->created_at->addMinutes(30))
                                 )
-                                ->where('igdb', '!=', $torrent->tmdb_tv_id)
+                                ->where('igdb', '!=', $torrent->igdb)
                                 ->whereRaw('history.created_at > torrents.created_at + INTERVAL 30 MINUTE')
                                 ->groupBy('igdb')
                                 ->orderByDesc('total')
@@ -348,16 +348,18 @@ class TorrentController extends Controller
                     $cat['id'] => [
                         'name' => $cat['name'],
                         'type' => match (true) {
-                            $cat->movie_meta => 'movie',
-                            $cat->tv_meta    => 'tv',
-                            $cat->game_meta  => 'game',
-                            $cat->music_meta => 'music',
-                            $cat->no_meta    => 'no',
-                            default          => 'no',
+                            $cat->movie_meta     => 'movie',
+                            $cat->tv_meta        => 'tv',
+                            $cat->game_meta      => 'game',
+                            $cat->book_meta      => 'book',
+                            $cat->audiobook_meta => 'audiobook',
+                            $cat->music_meta     => 'music',
+                            $cat->no_meta        => 'no',
+                            default              => 'no',
                         },
                     ]
                 ]),
-            'types'        => Type::orderBy('position')->get()->mapWithKeys(fn ($type) => [$type['id'] => ['name' => $type['name']]]),
+            'types'        => Type::orderBy('position')->get()->mapWithKeys(fn ($type) => [$type['id'] => ['name' => $type['name'], 'meta' => $type['meta']]]),
             'resolutions'  => Resolution::orderBy('position')->get(),
             'regions'      => Region::orderBy('position')->get(),
             'distributors' => Distributor::orderBy('name')->get(),
