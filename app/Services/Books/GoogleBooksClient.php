@@ -19,6 +19,7 @@ namespace App\Services\Books;
 use App\Services\Books\Support\BookCandidate;
 use App\Services\Books\Support\Isbn;
 use App\Services\Metadata\Support\Normalize;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -71,6 +72,13 @@ final class GoogleBooksClient
     private const MIN_AUTHOR_MATCH = 0.85;
 
     private int $failures = 0;
+
+    /**
+     * Codigo HTTP del ultimo fallo, para poder distinguir "este ISBN no existe"
+     * de "no pudimos preguntar". Con la cuota diaria agotada la API contesta
+     * 429 y el volumen se daba por inexistente, que es justo lo contrario.
+     */
+    private ?int $lastStatus = null;
 
     private readonly string $key;
 
@@ -308,6 +316,24 @@ final class GoogleBooksClient
      *
      * @return list<array<string, mixed>>
      */
+    /**
+     * Codigo HTTP del ultimo fallo, o null si el ultimo intento no fallo o
+     * fallo sin respuesta (timeout, DNS).
+     */
+    public function lastStatus(): ?int
+    {
+        return $this->lastStatus;
+    }
+
+    /**
+     * Un fallo pasajero --cuota agotada o la API caida-- no dice nada sobre si
+     * el volumen existe.
+     */
+    public function lastFailureWasTransient(): bool
+    {
+        return \in_array($this->lastStatus, [429, 500, 502, 503, 504], true);
+    }
+
     private function get(array $params): array
     {
         $params['key'] = $this->key;
@@ -320,11 +346,13 @@ final class GoogleBooksClient
 
                 if (\is_array($items) && $items !== []) {
                     $this->failures = 0;
+                    $this->lastStatus = null;
 
                     return array_values($items);
                 }
             } catch (Throwable $e) {
                 $this->failures++;
+                $this->lastStatus = $e instanceof RequestException ? $e->response->status() : null;
                 Log::warning('google-books.search failed: '.$e->getMessage());
             }
 
