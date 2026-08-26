@@ -351,6 +351,8 @@
             </h4>
             <span class="overview__closing-thanks">Con el agradecimiento especial de:</span>
             @foreach ($staffers as $group)
+                @continue($group->users->isEmpty())
+
                 <ul class="overview__staff-list">
                     @foreach ($group->users as $user)
                         <li class="overview__staff-list-item">

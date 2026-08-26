@@ -5,12 +5,14 @@
 }
 
 .overview__opening-heading {
-    font-size: 90px;
+    /* 90px llenaban la pantalla en un portátil. Una talla menos, sin dejar
+       de ser el titular de la página. */
+    font-size: 68px;
     margin: 0;
 }
 
 .overview__opening-subheading {
-    font-size: 50px;
+    font-size: 38px;
     margin: 0;
 }
 
@@ -21,12 +23,14 @@
 }
 
 .overview__closing-heading {
-    font-size: 90px;
+    /* 90px llenaban la pantalla en un portátil. Una talla menos, sin dejar
+       de ser el titular de la página. */
+    font-size: 68px;
     margin: 0;
 }
 
 .overview__closing-subheading {
-    font-size: 50px;
+    font-size: 38px;
     margin: 0;
 }
 
