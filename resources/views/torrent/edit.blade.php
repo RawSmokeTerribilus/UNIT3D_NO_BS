@@ -27,7 +27,10 @@
             type: {{ (int) $torrent->type_id }},
             types: JSON.parse(atob('{{ base64_encode(json_encode($types)) }}')),
             // Los tipos son una tabla GLOBAL, así que este desplegable ofrecía
-            // "EPUB" al editar una película y "Full Disc" al editar un e-book.
+            // 'EPUB' al editar una película y 'Full Disc' al editar un e-book.
+            // OJO: nada de comillas dobles aquí dentro. El atributo va entre
+            // comillas dobles, la primera cierra el x-data y Alpine se queda
+            // sin objeto: 'cats is not defined' en toda la página.
             // Mismo filtro que la vista de subida: types.meta contra la clase
             // de la categoría elegida. Sin clasificar, o en una categoría que
             // no es de ninguna clase, se muestran todos.
