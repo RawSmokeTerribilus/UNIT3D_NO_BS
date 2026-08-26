@@ -19,19 +19,26 @@
         x-ref="posters"
         style="max-height: 330px !important"
     >
+        {{-- La categoría la pone cada obra, no la página: "TV" y "Anime TV
+             Shows" (o "Movies" y "Anime Movies") comparten meta, así que
+             heredar la de la ficha actual componía enlaces como
+             /torrents/similar/5.48891 para una serie que sólo vive en la
+             categoría 2 --404 seguro--. `category_id` viene del MIN() de la
+             subconsulta, y por construcción es una categoría en la que esa
+             obra sí tiene torrents. --}}
         @foreach ($alsoDownloadedWorks as $alsoDownloadedWork)
             <figure class="trending-poster">
                 @switch($alsoDownloadedWork::class)
                     @case(\App\Models\TmdbMovie::class)
-                        <x-movie.poster :movie="$alsoDownloadedWork" :$categoryId />
+                        <x-movie.poster :movie="$alsoDownloadedWork" :categoryId="$alsoDownloadedWork->category_id ?? $categoryId" />
 
                         @break
                     @case(\App\Models\TmdbTv::class)
-                        <x-tv.poster :tv="$alsoDownloadedWork" :$categoryId />
+                        <x-tv.poster :tv="$alsoDownloadedWork" :categoryId="$alsoDownloadedWork->category_id ?? $categoryId" />
 
                         @break
                     @case(\App\Models\IgdbGame::class)
-                        <x-game.poster :game="$alsoDownloadedWork" :$categoryId />
+                        <x-game.poster :game="$alsoDownloadedWork" :categoryId="$alsoDownloadedWork->category_id ?? $categoryId" />
 
                         @break
                 @endswitch

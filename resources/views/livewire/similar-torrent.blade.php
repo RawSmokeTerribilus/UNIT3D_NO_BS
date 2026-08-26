@@ -1104,7 +1104,7 @@
                     style="max-height: 330px !important"
                 >
                     @foreach ($collectionMovies as $collectionMovie)
-                        <x-movie.poster :movie="$collectionMovie" :categoryId="$category->id" />
+                        <x-movie.poster :movie="$collectionMovie" :categoryId="$collectionMovie->torrents_min_category_id ?? $category->id" />
                     @endforeach
                 </div>
             </section>

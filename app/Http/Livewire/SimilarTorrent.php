@@ -406,7 +406,14 @@ class SimilarTorrent extends Component
      * @var ?\Illuminate\Database\Eloquent\Collection<int, TmdbMovie>
      */
     final protected ?\Illuminate\Database\Eloquent\Collection $collectionMovies {
-        get => $this->work instanceof TmdbMovie ? $this->work->collections()->first()?->movies()->get() : null;
+        // `withMin` + `has` es lo mismo que hace la ficha del torrent con
+        // `collections.movies`: la categoría la pone cada peli --una entrega
+        // puede vivir en "Anime Movies" y la siguiente en "Movies"--, y las
+        // que no tienen torrent no se pintan, porque su enlace a similares
+        // sería un 404 fijo.
+        get => $this->work instanceof TmdbMovie
+            ? $this->work->collections()->first()?->movies()->withMin('torrents', 'category_id')->has('torrents')->get()
+            : null;
     }
 
     final public function alertConfirm(): void
