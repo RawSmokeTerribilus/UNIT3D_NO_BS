@@ -202,7 +202,14 @@ class QuickSearchController extends Controller
                 // lee si esta resuelta. Sin esta caida el resultado salia sin
                 // titulo, sin autor y sin portada: el PDF del mismo libro
                 // aparecia y el audiolibro no.
-                $meta = ($isBook ? $hit['book'] : ($hit['audiobook'] ?? $hit['book'])) ?? null;
+                // Cada acceso lleva su `??`: un documento indexado antes de que
+                // existieran estas categorías no trae las claves, y leerlas a
+                // pelo llenaba el log de `Undefined array key "book"` --38 veces
+                // el 2026-08-26--. Sin la clave, el resultado sale con el nombre
+                // del torrent, que es la degradación correcta.
+                $meta = $isBook
+                    ? ($hit['book'] ?? null)
+                    : ($hit['audiobook'] ?? $hit['book'] ?? null);
                 $authors = implode(', ', $meta['authors'] ?? []);
 
                 $results[] = [

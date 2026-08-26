@@ -203,5 +203,20 @@ class ProcessIgdbGameJob implements ShouldQueue
         // use the same value as tmdb to not abuse them with too many requests
 
         cache()->put("igdb-game-scraper:{$this->id}", now(), 8 * 3600);
+        cache()->forget('meta-error:game:'.$this->id);
+    }
+
+    /**
+     * Cuando el job se rinde de verdad --agotados los reintentos-- el motivo se
+     * guarda donde la ficha pueda leerlo. Antes moría en segundo plano mientras
+     * la edición contestaba "Successfully edited!", y averiguar por qué exigía
+     * abrir storage/logs.
+     */
+    public function failed(?\Throwable $e): void
+    {
+        cache()->put('meta-error:game:'.$this->id, [
+            'motivo' => $e?->getMessage() ?? 'motivo desconocido',
+            'cuando' => now()->toDateTimeString(),
+        ], 7 * 24 * 3600);
     }
 }

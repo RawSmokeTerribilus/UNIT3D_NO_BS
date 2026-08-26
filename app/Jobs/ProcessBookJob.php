@@ -241,6 +241,7 @@ class ProcessBookJob implements ShouldQueue
         // Same window TMDB and IGDB use, so a burst of uploads of the same
         // edition does not re-ask the provider.
         cache()->put("book-scraper:{$isbn13}", now(), 8 * 3600);
+        cache()->forget('meta-error:book:'.$this->isbn13);
     }
 
     /**
@@ -299,5 +300,19 @@ class ProcessBookJob implements ShouldQueue
         }
 
         $book->genres()->sync(array_unique($ids));
+    }
+
+    /**
+     * Cuando el job se rinde de verdad --agotados los reintentos-- el motivo se
+     * guarda donde la ficha pueda leerlo. Antes moría en segundo plano mientras
+     * la edición contestaba "Successfully edited!", y averiguar por qué exigía
+     * abrir storage/logs.
+     */
+    public function failed(?\Throwable $e): void
+    {
+        cache()->put('meta-error:book:'.$this->isbn13, [
+            'motivo' => $e?->getMessage() ?? 'motivo desconocido',
+            'cuando' => now()->toDateTimeString(),
+        ], 7 * 24 * 3600);
     }
 }
