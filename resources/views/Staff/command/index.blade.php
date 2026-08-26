@@ -245,6 +245,20 @@
                     'tip'    => 'Cachea foto, biografía y fechas de los autores desde OpenLibrary, para que las fichas de libro tengan la columna de autoría con imagen. Va despacio a propósito; también corre solo cada hora.',
                 ])
                 @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/games-sync',
+                    'label'  => 'Metadata de juegos pendiente',
+                    'icon'   => 'fa-gamepad',
+                    'level'  => 'safe',
+                    'tip'    => 'Rellena la ficha de IGDB de los torrents de juego que ya llevan id pero aún no tienen metadatos. Sólo procesa lo que falta; también corre solo cada 15 minutos.',
+                ])
+                @include('Staff.command._btn', [
+                    'action' => '/dashboard/commands/games-sync-force',
+                    'label'  => 'Refrescar fichas de juegos',
+                    'icon'   => 'fa-rotate',
+                    'level'  => 'safe',
+                    'tip'    => 'Vuelve a pedir a IGDB la ficha de un lote de juegos que ya la tienen, por si el proveedor la ha corregido.',
+                ])
+                @include('Staff.command._btn', [
                     'action' => '/dashboard/commands/warm-art-cache',
                     'label'  => 'Precalentar caché de arte',
                     'icon'   => 'fa-fire',

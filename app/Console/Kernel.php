@@ -142,6 +142,11 @@ class Kernel extends ConsoleKernel
         // Los autores van aparte y mas despacio: OpenLibrary deja de responder
         // si se le llama en bucle, y ademas cada libro son dos peticiones.
         $schedule->command('books:sync-authors', ['--limit' => 15])->hourly()->withoutOverlapping(30);
+        // Los juegos no tenían red: `meta:sync` sólo mira pelis y series. IGDB no
+        // impone una cuota diaria como Google Books, pero el limite se queda
+        // pequeño igual: lo normal es que no haya nada pendiente y la consulta
+        // salga barata.
+        $schedule->command('games:sync', ['--limit' => 25])->everyFifteenMinutes()->withoutOverlapping(10);
         // Pre-warm the art-proxy cache so users never pay the first-hit fetch+resize.
         // Idempotent (skips cached) + time-budgeted so each run stays short; runs
         // often to keep up with daily cover rotation and newly-added titles.

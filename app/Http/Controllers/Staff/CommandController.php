@@ -442,6 +442,23 @@ class CommandController extends Controller
     }
 
     /**
+     * Rellena la ficha de IGDB de los torrents de juego que no la tienen.
+     */
+    public function gamesSync(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('games:sync', ['--limit' => 15]);
+    }
+
+    /**
+     * Vuelve a pedir a IGDB la ficha de un lote de juegos que ya la tienen, por
+     * si el proveedor la ha corregido.
+     */
+    public function gamesSyncForce(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('games:sync', ['--force' => true, '--limit' => 15]);
+    }
+
+    /**
      * Pre-warm the art-proxy image cache — full backfill, detached background process.
      *
      * The full sweep runs far past the queue worker's 300s timeout, so it can't
