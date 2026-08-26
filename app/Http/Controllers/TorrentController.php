@@ -534,6 +534,11 @@ class TorrentController extends Controller
             $torrent->tmdb_tv_id !== null    => (new TMDBScraper())->tv($torrent->tmdb_tv_id, $force),
             $torrent->tmdb_movie_id !== null => (new TMDBScraper())->movie($torrent->tmdb_movie_id, $force),
             $torrent->igdb !== null          => (new IgdbScraper())->game($torrent->igdb),
+            // En un audiolibro manda el ASIN: ahora que puede llevar también el
+            // ISBN de la obra, mirar el ISBN primero le habría dado la ficha del
+            // libro y ninguna del audiolibro.
+            $category !== null && $category->audiobook_meta && $torrent->asin !== null
+                => (new AudiobookScraper())->audiobook($torrent->asin, AudibleClient::defaultRegion(), $force),
             $torrent->isbn13 !== null        => (new BookScraper())->book($torrent->isbn13, $force),
             $torrent->asin !== null          => (new AudiobookScraper())->audiobook($torrent->asin, AudibleClient::defaultRegion(), $force),
             // No tmdb/igdb on a movie/tv torrent: try resolving an IMDb id -> tmdb.
