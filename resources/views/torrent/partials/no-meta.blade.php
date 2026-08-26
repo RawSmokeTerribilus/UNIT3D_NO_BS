@@ -32,11 +32,23 @@
                     Request similar
                 </a>
             </li>
-            @if ((($torrent?->imdb ?? 0) > 0 || ($torrent?->mal ?? 0) > 0) && (auth()->user()->group->is_modo || (auth()->id() === $torrent?->user_id && $torrent?->created_at?->gt(now()->subDay()))))
+            {{-- Cualquier id que `resolveAndScrapeMeta` sepa usar vale para
+                 ofrecer el botón, no sólo IMDb y MAL. Un libro o un audiolibro
+                 cuya ficha no se pobló --la API no contestó, la cuota se agotó--
+                 cae en este parcial, que es justo cuando más falta hace poder
+                 reintentar, y el botón no estaba. --}}
+            @php($tieneAlgunId = ($torrent?->imdb ?? 0) > 0
+                || ($torrent?->mal ?? 0) > 0
+                || ($torrent?->igdb ?? 0) > 0
+                || ($torrent?->tmdb_movie_id ?? 0) > 0
+                || ($torrent?->tmdb_tv_id ?? 0) > 0
+                || $torrent?->isbn13 !== null
+                || $torrent?->asin !== null)
+            @if ($tieneAlgunId && (auth()->user()->group->is_modo || (auth()->id() === $torrent?->user_id && $torrent?->created_at?->gt(now()->subDay()))))
                 <li>
                     <form action="{{ route('torrents.refresh_meta', ['id' => $torrent->id]) }}" method="post">
                         @csrf
-                        <button style="cursor: pointer" title="Resolver metadata desde el id IMDb/MAL del torrent">
+                        <button style="cursor: pointer" title="Volver a pedir la ficha con los identificadores del torrent">
                             Refrescar metadata
                         </button>
                     </form>

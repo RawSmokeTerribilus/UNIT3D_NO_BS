@@ -88,7 +88,15 @@ class ProcessBookJob implements ShouldQueue
         $candidate = $google->byIsbn($isbn13);
 
         if ($candidate === null) {
-            throw new RuntimeException('Google Books returned no volume for ISBN '.$isbn13);
+            // Un 429 --cuota diaria agotada-- o un 5xx no dicen que el ISBN no
+            // exista, sino que no se pudo preguntar. Decirlo bien importa: el
+            // log anterior mandaba a buscar un ISBN mejor cuando el ISBN estaba
+            // bien y lo que faltaba era cuota.
+            throw new RuntimeException(
+                $google->lastFailureWasTransient()
+                    ? 'Google Books no respondió (HTTP '.$google->lastStatus().') al pedir el ISBN '.$isbn13.'; no consta que el volumen no exista'
+                    : 'Google Books returned no volume for ISBN '.$isbn13
+            );
         }
 
         $covers = $candidate->coverUrls;
