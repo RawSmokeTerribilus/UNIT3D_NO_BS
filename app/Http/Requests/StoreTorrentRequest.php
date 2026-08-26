@@ -241,14 +241,19 @@ class StoreTorrentRequest extends FormRequest
                 ]),
             ],
             'isbn13' => [
-                Rule::when($category->book_meta, [
+                // El ISBN-13 también vale en un audiolibro, y no es un caso
+                // raro: una lectura que no está en Audible no tiene ASIN, pero
+                // el LIBRO que se lee sí tiene ISBN, y con él la ficha sale con
+                // portada, sinopsis y autor. Exigir que fuera null aquí dejaba
+                // esas grabaciones sin ninguna forma de identificarse.
+                Rule::when($category->book_meta || $category->audiobook_meta, [
                     'required_with:book_exists_on_google',
                     'nullable',
                     'string',
                     'size:13',
                     'regex:/^\d{13}$/',
                 ]),
-                Rule::when(!$category->book_meta, [
+                Rule::when(!($category->book_meta || $category->audiobook_meta), [
                     $mustBeNull,
                 ]),
             ],
