@@ -294,7 +294,14 @@ class YearlyOverviewController extends Controller
                 'yearly-overview:'.$year.':staffers',
                 3600,
                 fn () => Group::query()
-                    ->with('users.group')
+                    // Las cuentas de sistema o de respaldo están en un grupo de
+                    // staff porque necesitan sus permisos, pero no son personas
+                    // y no pintan nada dando las gracias.
+                    ->with([
+                        'users' => fn ($query) => $query
+                            ->whereNotIn('username', config('other.overview_hidden_users', []))
+                            ->with('group'),
+                    ])
                     ->where('is_modo', '=', 1)
                     ->orWhere('is_admin', '=', 1)
                     ->orderByDesc('position')

@@ -28,6 +28,20 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
+    | Cuentas ocultas en el agradecimiento del resumen anual
+    |--------------------------------------------------------------------------
+    |
+    | El resumen del año cierra dando las gracias al staff, y lo saca de los
+    | grupos de moderación. Ahí caen también las cuentas de sistema o de
+    | respaldo, que no son personas y no pintan nada en un agradecimiento.
+    | Se listan por nombre de usuario.
+    |
+    */
+
+    'overview_hidden_users' => ['BackupOwner'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Site title
     |--------------------------------------------------------------------------
     |
