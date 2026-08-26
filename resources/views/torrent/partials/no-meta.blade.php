@@ -56,24 +56,6 @@
             @endif
         </ul>
     </div>
-    {{-- Por qué esta ficha está vacía. El scrape ocurre en un job, así que su
-         fallo no puede contestar a la subida: el job lo deja escrito al
-         rendirse y aquí se lee. Sin esto, la edición decía "Successfully
-         edited!" y el motivo sólo estaba en storage/logs. --}}
-    @php($avisoMeta = collect([
-        $torrent?->isbn13 ? 'meta-error:book:'.$torrent->isbn13 : null,
-        $torrent?->asin ? 'meta-error:audiobook:'.$torrent->asin : null,
-        ($torrent?->igdb ?? 0) > 0 ? 'meta-error:game:'.$torrent->igdb : null,
-    ])->filter()->map(fn ($clave) => cache()->get($clave))->filter()->first())
-
-    @if ($avisoMeta)
-        <p class="meta__no-meta-warning" style="margin: 0 0 1rem; opacity: 0.85">
-            <i class="{{ config('other.font-awesome') }} fa-triangle-exclamation"></i>
-            No se pudo traer la ficha: {{ $avisoMeta['motivo'] }}
-            <small>({{ $avisoMeta['cuando'] }})</small>
-        </p>
-    @endif
-
     <ul class="meta__ids">
         @if (isset($torrent) && $torrent->imdb > 0)
             <li class="meta__imdb">
@@ -146,4 +128,25 @@
             @endif
         </section>
     </div>
+
+    {{-- Por qué esta ficha está vacía. El scrape ocurre en un job, así que su
+         fallo no puede contestar a la subida: el job lo deja escrito al
+         rendirse y aquí se lee. Va al pie y en letra pequeña a propósito: es
+         una nota de diagnóstico, no el contenido de la ficha. --}}
+    @php($avisoMeta = collect([
+        $torrent?->isbn13 ? 'meta-error:book:'.$torrent->isbn13 : null,
+        $torrent?->asin ? 'meta-error:audiobook:'.$torrent->asin : null,
+        ($torrent?->igdb ?? 0) > 0 ? 'meta-error:game:'.$torrent->igdb : null,
+    ])->filter()->map(fn ($clave) => cache()->get($clave))->filter()->first())
+
+    @if ($avisoMeta)
+        <p
+            class="meta__no-meta-warning"
+            style="margin: 0.75rem 0 0; font-size: 0.7rem; line-height: 1.3; opacity: 0.6"
+        >
+            <i class="{{ config('other.font-awesome') }} fa-triangle-exclamation"></i>
+            No se pudo traer la ficha: {{ $avisoMeta['motivo'] }}
+            ({{ $avisoMeta['cuando'] }})
+        </p>
+    @endif
 </section>
