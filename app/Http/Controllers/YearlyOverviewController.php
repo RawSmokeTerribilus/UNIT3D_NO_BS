@@ -29,6 +29,23 @@ use Illuminate\Support\Facades\DB;
 
 class YearlyOverviewController extends Controller
 {
+    /** Si el año que se está mirando aún no ha terminado. */
+    private bool $anioEnCurso = false;
+
+    /**
+     * Un año cerrado ya no cambia, así que se guarda para siempre. El año en
+     * curso sí cambia --cada descarga lo mueve--, y guardarlo para siempre
+     * congelaría un recuento a medias la primera vez que alguien entre.
+     *
+     * @param  \Closure(): mixed  $consulta
+     */
+    private function recordar(string $clave, \Closure $consulta): mixed
+    {
+        return $this->anioEnCurso
+            ? cache()->remember($clave, 3600, $consulta)
+            : cache()->rememberForever($clave, $consulta);
+    }
+
     /**
      * El ranking anual de una clase de obra, por descargas del año.
      *
@@ -83,8 +100,12 @@ class YearlyOverviewController extends Controller
      */
     public function index(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
     {
+        // Del año en curso hacia atrás hasta el nacimiento del sitio. Antes
+        // arrancaba en `now()->subYear()`, así que un tracker nacido este mismo
+        // año ofrecía el anterior --anterior a su propia existencia-- y esa
+        // entrada daba 404 sí o sí.
         return view('stats.yearly-overviews.index', [
-            'siteYears' => range(now()->subYear()->year, Carbon::parse(config('other.birthdate'))->year),
+            'siteYears' => range(now()->year, Carbon::parse(config('other.birthdate'))->year),
         ]);
     }
 
@@ -97,10 +118,15 @@ class YearlyOverviewController extends Controller
         $currentYear = now()->year;
         $birthYear = Carbon::parse(config('other.birthdate'))->year;
 
-        abort_unless($birthYear <= $year && $year < $currentYear, 404);
+        // El año en curso también se puede mirar. Con `<` el primer resumen de
+        // un tracker nacido este año no llegaría hasta enero del siguiente, y
+        // mientras tanto la página entera --incluido su índice-- era un 404.
+        abort_unless($birthYear <= $year && $year <= $currentYear, 404);
+
+        $this->anioEnCurso = $year === $currentYear;
 
         return view('stats.yearly-overviews.show', [
-            'topMovies' => cache()->rememberForever(
+            'topMovies' => $this->recordar(
                 'yearly-overview:'.$year.':top-movies',
                 fn () => Torrent::with('movie')
                     ->select([
@@ -124,7 +150,7 @@ class YearlyOverviewController extends Controller
                     ->take(10)
                     ->get()
             ),
-            'bottomMovies' => cache()->rememberForever(
+            'bottomMovies' => $this->recordar(
                 'yearly-overview:'.$year.':bottom-movies',
                 fn () => Torrent::with('movie')
                     ->select([
@@ -148,7 +174,7 @@ class YearlyOverviewController extends Controller
                     ->take(5)
                     ->get()
             ),
-            'topTv' => cache()->rememberForever(
+            'topTv' => $this->recordar(
                 'yearly-overview:'.$year.':top-tv',
                 fn () => Torrent::with('tv')
                     ->select([
@@ -172,7 +198,7 @@ class YearlyOverviewController extends Controller
                     ->take(10)
                     ->get()
             ),
-            'bottomTv' => cache()->rememberForever(
+            'bottomTv' => $this->recordar(
                 'yearly-overview:'.$year.':bottom-tv',
                 fn () => Torrent::with('tv')
                     ->select([
@@ -199,27 +225,27 @@ class YearlyOverviewController extends Controller
             // Las tres clases nuevas, con el mismo formato que las de vídeo. La
             // vista sólo pinta las que traen filas: un año sin libros no gana
             // nada con dos paneles vacíos.
-            'topGames' => cache()->rememberForever(
+            'topGames' => $this->recordar(
                 'yearly-overview:'.$year.':top-games',
                 fn () => $this->rankingAnual((int) $year, 'igdb', 'game', 'game_meta', false)
             ),
-            'bottomGames' => cache()->rememberForever(
+            'bottomGames' => $this->recordar(
                 'yearly-overview:'.$year.':bottom-games',
                 fn () => $this->rankingAnual((int) $year, 'igdb', 'game', 'game_meta', true)
             ),
-            'topBooks' => cache()->rememberForever(
+            'topBooks' => $this->recordar(
                 'yearly-overview:'.$year.':top-books',
                 fn () => $this->rankingAnual((int) $year, 'isbn13', 'book', 'book_meta', false)
             ),
-            'bottomBooks' => cache()->rememberForever(
+            'bottomBooks' => $this->recordar(
                 'yearly-overview:'.$year.':bottom-books',
                 fn () => $this->rankingAnual((int) $year, 'isbn13', 'book', 'book_meta', true)
             ),
-            'topAudiobooks' => cache()->rememberForever(
+            'topAudiobooks' => $this->recordar(
                 'yearly-overview:'.$year.':top-audiobooks',
                 fn () => $this->rankingAnual((int) $year, 'asin', 'audiobook', 'audiobook_meta', false)
             ),
-            'bottomAudiobooks' => cache()->rememberForever(
+            'bottomAudiobooks' => $this->recordar(
                 'yearly-overview:'.$year.':bottom-audiobooks',
                 fn () => $this->rankingAnual((int) $year, 'asin', 'audiobook', 'audiobook_meta', true)
             ),
@@ -303,14 +329,14 @@ class YearlyOverviewController extends Controller
                     ->take(10)
                     ->get()
             ),
-            'newUsers' => cache()->rememberForever(
+            'newUsers' => $this->recordar(
                 'yearly-overview:'.$year.':new-users',
                 fn () => User::query()
                     ->where('created_at', '>=', $year.'-01-01 00:00:00')
                     ->where('created_at', '<=', $year.'-12-31 23:59:59')
                     ->count()
             ),
-            'movieUploads' => cache()->rememberForever(
+            'movieUploads' => $this->recordar(
                 'yearly-overview:'.$year.':movie-uploads',
                 fn () => Torrent::query()
                     ->where('created_at', '>=', $year.'-01-01 00:00:00')
@@ -318,7 +344,7 @@ class YearlyOverviewController extends Controller
                     ->whereRelation('category', 'movie_meta', '=', true)
                     ->count()
             ),
-            'tvUploads' => cache()->rememberForever(
+            'tvUploads' => $this->recordar(
                 'yearly-overview:'.$year.':tv-uploads',
                 fn () => Torrent::query()
                     ->where('created_at', '>=', $year.'-01-01 00:00:00')
@@ -326,26 +352,26 @@ class YearlyOverviewController extends Controller
                     ->whereRelation('category', 'tv_meta', '=', true)
                     ->count()
             ),
-            'gameUploads' => cache()->rememberForever(
+            'gameUploads' => $this->recordar(
                 'yearly-overview:'.$year.':game-uploads',
                 fn () => $this->subidasAnuales((int) $year, 'game_meta')
             ),
-            'bookUploads' => cache()->rememberForever(
+            'bookUploads' => $this->recordar(
                 'yearly-overview:'.$year.':book-uploads',
                 fn () => $this->subidasAnuales((int) $year, 'book_meta')
             ),
-            'audiobookUploads' => cache()->rememberForever(
+            'audiobookUploads' => $this->recordar(
                 'yearly-overview:'.$year.':audiobook-uploads',
                 fn () => $this->subidasAnuales((int) $year, 'audiobook_meta')
             ),
-            'totalUploads' => cache()->rememberForever(
+            'totalUploads' => $this->recordar(
                 'yearly-overview:'.$year.':total-uploads',
                 fn () => Torrent::query()
                     ->where('created_at', '>=', $year.'-01-01 00:00:00')
                     ->where('created_at', '<=', $year.'-12-31 23:59:59')
                     ->count()
             ),
-            'totalDownloads' => cache()->rememberForever(
+            'totalDownloads' => $this->recordar(
                 'yearly-overview:'.$year.':total-downloads',
                 fn () => History::query()
                     ->where('created_at', '>=', $year.'-01-01 00:00:00')
