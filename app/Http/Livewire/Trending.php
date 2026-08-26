@@ -35,7 +35,7 @@ class Trending extends Component
     #TODO: Update URL attributes once Livewire 3 fixes upstream bug. See: https://github.com/livewire/livewire/discussions/7746
 
     #[Url(history: true)]
-    #[Validate('in:movie_meta,tv_meta')]
+    #[Validate('in:movie_meta,tv_meta,game_meta,book_meta,audiobook_meta')]
     public string $metaType = 'movie_meta';
 
     #[Url(history: true)]
@@ -67,29 +67,69 @@ class Trending extends Component
     }
 
     /**
+     * Cada clase de obra en una fila: la columna del torrent que la identifica,
+     * la relación con su ficha, y de dónde sale el año de estreno.
+     *
+     * Existía sólo para película y serie, con la columna elegida a mano en cada
+     * consulta. Libros, audiolibros y juegos no salían en ninguna lista porque
+     * su id no es `tmdb_movie_id` ni `tmdb_tv_id`.
+     *
+     * @return array{columna: string, relacion: string, tabla: string, clave: string, fecha: string, esFecha: bool}
+     */
+    private function fuente(): array
+    {
+        return match ($this->metaType) {
+            'tv_meta'        => ['columna' => 'tmdb_tv_id', 'relacion' => 'tv', 'tabla' => 'tmdb_tv', 'clave' => 'id', 'fecha' => 'tmdb_tv.first_air_date', 'esFecha' => true],
+            'game_meta'      => ['columna' => 'igdb', 'relacion' => 'game', 'tabla' => 'igdb_games', 'clave' => 'id', 'fecha' => 'igdb_games.first_release_date', 'esFecha' => true],
+            'book_meta'      => ['columna' => 'isbn13', 'relacion' => 'book', 'tabla' => 'books', 'clave' => 'isbn13', 'fecha' => 'books.first_publish_year', 'esFecha' => false],
+            'audiobook_meta' => ['columna' => 'asin', 'relacion' => 'audiobook', 'tabla' => 'audiobooks', 'clave' => 'asin', 'fecha' => 'audiobooks.release_date', 'esFecha' => true],
+            default          => ['columna' => 'tmdb_movie_id', 'relacion' => 'movie', 'tabla' => 'tmdb_movies', 'clave' => 'id', 'fecha' => 'tmdb_movies.release_date', 'esFecha' => true],
+        };
+    }
+
+    /**
+     * El año de estreno, agregado o no. `books` guarda un entero y las demás
+     * una fecha, así que la expresión no puede ser una sola.
+     */
+    private function expresionAnio(bool $agregado = false): string
+    {
+        $fuente = $this->fuente();
+        $columna = $agregado ? 'MAX('.$fuente['fecha'].')' : $fuente['fecha'];
+
+        return $fuente['esFecha'] ? 'EXTRACT(YEAR FROM '.$columna.')' : $columna;
+    }
+
+    /**
+     * El suelo de tamaño existe porque hay quien descarga cosas diminutas sólo
+     * para granjear bonus, y eso ensucia la estadística. Sólo vale para vídeo:
+     * aplicárselo a un e-book de 4 MB deja la lista vacía para siempre.
+     */
+    private function tamanoMinimo(int $bytesDeVideo): int
+    {
+        return \in_array($this->metaType, ['movie_meta', 'tv_meta'], true) ? $bytesDeVideo : 0;
+    }
+
+    /**
      * @var Collection<int, Torrent>
      */
     final protected Collection $works {
         get {
             $this->validate();
 
-            $metaIdColumn = match ($this->metaType) {
-                'tv_meta' => 'tmdb_tv_id',
-                default   => 'tmdb_movie_id',
-            };
+            $metaIdColumn = $this->fuente()['columna'];
 
             return cache()->flexible(
                 'trending-'.$this->interval.'-'.($this->from ?? '').'-'.($this->until ?? '').'-'.$this->metaType,
                 [1800, 7200],
                 fn () => Torrent::query()
-                    ->with('movie', 'tv')
+                    ->with($this->fuente()['relacion'])
                     ->addSelect([
                         $metaIdColumn,
                         DB::raw('MIN(category_id) as category_id'),
                         DB::raw('COUNT(*) as download_count'),
                     ])
                     ->join('history', 'history.torrent_id', '=', 'torrents.id')
-                    ->where($metaIdColumn, '!=', 0)
+                    ->whereNotNull($metaIdColumn)->where($metaIdColumn, '!=', 0)->where($metaIdColumn, '!=', '')
                     ->when($this->interval === 'day', fn ($query) => $query->whereBetween('history.completed_at', [now()->subDay(), now()]))
                     ->when($this->interval === 'week', fn ($query) => $query->whereBetween('history.completed_at', [now()->subWeek(), now()]))
                     ->when($this->interval === 'month', fn ($query) => $query->whereBetween('history.completed_at', [now()->subMonth(), now()]))
@@ -98,7 +138,7 @@ class Trending extends Component
                     ->when($this->interval === 'custom', fn ($query) => $query->whereBetween('history.completed_at', [$this->from ?: now(), $this->until ?: now()]))
                     ->whereRelation('category', $this->metaType, '=', true)
                     // Small torrents screw the stats since users download them only to farm bon.
-                    ->where('torrents.size', '>', 1024 * 1024 * 1024)
+                    ->where('torrents.size', '>', $this->tamanoMinimo(1024 * 1024 * 1024))
                     ->groupBy($metaIdColumn)
                     ->orderByRaw('COUNT(*) DESC')
                     ->limit(250)
@@ -115,17 +155,14 @@ class Trending extends Component
         get {
             $this->validate();
 
-            $metaIdColumn = match ($this->metaType) {
-                'tv_meta' => 'tmdb_tv_id',
-                default   => 'tmdb_movie_id',
-            };
+            $metaIdColumn = $this->fuente()['columna'];
 
             return cache()->flexible(
                 'weekly-charts:'.$this->metaType,
                 [24 * 3600, 4 * 24 * 3600],
                 fn () => Torrent::query()
                     ->withoutGlobalScopes()
-                    ->with('movie', 'tv')
+                    ->with($this->fuente()['relacion'])
                     ->fromSub(
                         History::query()
                             ->withoutGlobalScopes()
@@ -138,9 +175,9 @@ class Trending extends Component
                                 DB::raw('COUNT(*) AS download_count'),
                                 DB::raw('ROW_NUMBER() OVER (PARTITION BY FROM_DAYS(TO_DAYS(history.created_at) - MOD(TO_DAYS(history.created_at) - 1, 7)) ORDER BY COUNT(*) DESC) AS place'),
                             ])
-                            ->where($metaIdColumn, '!=', 0)
+                            ->whereNotNull($metaIdColumn)->where($metaIdColumn, '!=', 0)->where($metaIdColumn, '!=', '')
                             // Small torrents screw the stats since users download them only to farm bon.
-                            ->where('torrents.size', '>', 1024 * 1024 * 1024)
+                            ->where('torrents.size', '>', $this->tamanoMinimo(1024 * 1024 * 1024))
                             ->groupBy('week_start', $metaIdColumn),
                         'ranked_groups',
                     )
@@ -164,17 +201,14 @@ class Trending extends Component
         get {
             $this->validate();
 
-            $metaIdColumn = match ($this->metaType) {
-                'tv_meta' => 'tmdb_tv_id',
-                default   => 'tmdb_movie_id',
-            };
+            $metaIdColumn = $this->fuente()['columna'];
 
             return cache()->flexible(
                 'monthly-charts:'.$this->metaType,
                 [24 * 3600, 4 * 24 * 3600],
                 fn () => Torrent::query()
                     ->withoutGlobalScopes()
-                    ->with($this->metaType === 'movie_meta' ? 'movie' : 'tv')
+                    ->with($this->fuente()['relacion'])
                     ->fromSub(
                         History::query()
                             ->withoutGlobalScopes()
@@ -187,9 +221,9 @@ class Trending extends Component
                                 DB::raw('COUNT(*) AS download_count'),
                                 DB::raw('ROW_NUMBER() OVER (PARTITION BY EXTRACT(YEAR_MONTH FROM history.created_at) ORDER BY COUNT(*) DESC) AS place'),
                             ])
-                            ->where($metaIdColumn, '!=', 0)
+                            ->whereNotNull($metaIdColumn)->where($metaIdColumn, '!=', 0)->where($metaIdColumn, '!=', '')
                             // Small torrents screw the stats since users download them only to farm bon.
-                            ->where('torrents.size', '>', 1024 * 1024 * 1024)
+                            ->where('torrents.size', '>', $this->tamanoMinimo(1024 * 1024 * 1024))
                             ->groupBy('the_year_month', $metaIdColumn),
                         'ranked_groups',
                     )
@@ -210,43 +244,38 @@ class Trending extends Component
         get {
             $this->validate();
 
-            $metaIdColumn = match ($this->metaType) {
-                'tv_meta' => 'tmdb_tv_id',
-                default   => 'tmdb_movie_id',
-            };
+            $fuente = $this->fuente();
+            $metaIdColumn = $fuente['columna'];
 
             return cache()->flexible(
                 'trending-by-release-year:'.$this->metaType,
                 [24 * 3600, 4 * 24 * 3600],
                 fn () => Torrent::query()
                     ->withoutGlobalScopes()
-                    ->with($this->metaType === 'movie_meta' ? 'movie' : 'tv')
+                    ->with($this->fuente()['relacion'])
                     ->fromSub(
                         Torrent::query()
                             ->withoutGlobalScopes()
                             ->whereRelation('category', $this->metaType, '=', true)
-                            ->leftJoin('tmdb_movies', 'torrents.tmdb_movie_id', '=', 'tmdb_movies.id')
-                            ->leftJoin('tmdb_tv', 'torrents.tmdb_tv_id', '=', 'tmdb_tv.id')
+                            // Una sola tabla, la de la clase de obra que se está
+                            // mirando, en vez de los dos leftJoin fijos a TMDB
+                            // con su COALESCE: así el año sale igual de un libro
+                            // que de una película, y la consulta no arrastra
+                            // tablas que no pinta nada en esta pestaña.
+                            ->join($fuente['tabla'], 'torrents.'.$metaIdColumn, '=', $fuente['tabla'].'.'.$fuente['clave'])
                             ->select([
-                                $metaIdColumn,
+                                'torrents.'.$metaIdColumn,
                                 DB::raw('MIN(category_id) as category_id'),
                                 DB::raw('SUM(times_completed) AS download_count'),
-                                'the_year' => $this->metaType === 'movie_meta'
-                                    ? TmdbMovie::query()
-                                        ->selectRaw('EXTRACT(YEAR FROM tmdb_movies.release_date)')
-                                        ->whereColumn('tmdb_movies.id', '=', 'torrents.tmdb_movie_id')
-                                    : TmdbTv::query()
-                                        ->selectRaw('EXTRACT(YEAR FROM tmdb_tv.first_air_date)')
-                                        ->whereColumn('tmdb_tv.id', '=', 'torrents.tmdb_tv_id'),
-                                DB::raw('ROW_NUMBER() OVER (PARTITION BY COALESCE(EXTRACT(YEAR FROM MAX(tmdb_movies.release_date)), EXTRACT(YEAR FROM MAX(tmdb_tv.first_air_date))) ORDER BY SUM(times_completed) DESC) AS place'),
+                                DB::raw($this->expresionAnio().' AS the_year'),
+                                DB::raw('ROW_NUMBER() OVER (PARTITION BY '.$this->expresionAnio(true).' ORDER BY SUM(times_completed) DESC) AS place'),
                             ])
-                            ->where($metaIdColumn, '!=', 0)
+                            ->whereNotNull('torrents.'.$metaIdColumn)->where('torrents.'.$metaIdColumn, '!=', 0)->where('torrents.'.$metaIdColumn, '!=', '')
                             // Small torrents screw the stats since users download them only to farm bon.
-                            ->where('torrents.size', '>', 2 * 1024 * 1024 * 1024)
+                            ->where('torrents.size', '>', $this->tamanoMinimo(2 * 1024 * 1024 * 1024))
                             ->when($this->metaType === 'tv_meta', fn ($query) => $query->where('episode_number', '=', 0))
                             ->havingNotNull('the_year')
-                            ->where(fn ($query) => $query->whereNotNull('tmdb_movies.id')->orWhereNotNull('tmdb_tv.id'))
-                            ->groupBy('the_year', $metaIdColumn),
+                            ->groupBy('the_year', 'torrents.'.$metaIdColumn),
                         'ranked_groups',
                     )
                     ->where('place', '<=', 10)
@@ -271,6 +300,21 @@ class Trending extends Component
 
             if (Category::where('tv_meta', '=', true)->exists()) {
                 $metaTypes[(string) __('mediahub.show')] = 'tv_meta';
+            }
+
+            // Las tres clases nuevas sólo aparecen si el sitio tiene categorías
+            // suyas, igual que las dos de vídeo: un tracker sin libros no gana
+            // nada con una pestaña vacía.
+            if (Category::where('game_meta', '=', true)->exists()) {
+                $metaTypes['Juegos'] = 'game_meta';
+            }
+
+            if (Category::where('book_meta', '=', true)->exists()) {
+                $metaTypes['Libros'] = 'book_meta';
+            }
+
+            if (Category::where('audiobook_meta', '=', true)->exists()) {
+                $metaTypes['Audiolibros'] = 'audiobook_meta';
             }
 
             return $metaTypes;

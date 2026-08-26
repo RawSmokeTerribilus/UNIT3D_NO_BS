@@ -94,24 +94,7 @@
                             <td class="panel__body trending-weekly__row">
                                 @foreach ($weeklyRankings as $ranking)
                                     <figure class="trending-poster">
-                                        @switch($this->metaType)
-                                            @case('movie_meta')
-                                                <x-movie.poster
-                                                    :movie="$ranking->movie"
-                                                    :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb_movie_id"
-                                                />
-
-                                                @break
-                                            @case('tv_meta')
-                                                <x-tv.poster
-                                                    :tv="$ranking->tv"
-                                                    :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb_tv_id"
-                                                />
-
-                                                @break
-                                        @endswitch
+                                        <x-work.poster :fila="$ranking" :metaType="$this->metaType" />
                                         <figcaption
                                             class="trending-poster__download-count"
                                             title="{{ __('torrent.completed-times') }}"
@@ -146,24 +129,7 @@
                             <td class="panel__body trending-weekly__row">
                                 @foreach ($monthlyRankings as $ranking)
                                     <figure class="trending-poster">
-                                        @switch($this->metaType)
-                                            @case('movie_meta')
-                                                <x-movie.poster
-                                                    :movie="$ranking->movie"
-                                                    :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb_movie_id"
-                                                />
-
-                                                @break
-                                            @case('tv_meta')
-                                                <x-tv.poster
-                                                    :tv="$ranking->tv"
-                                                    :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb_tv_id"
-                                                />
-
-                                                @break
-                                        @endswitch
+                                        <x-work.poster :fila="$ranking" :metaType="$this->metaType" />
                                         <figcaption
                                             class="trending-poster__download-count"
                                             title="{{ __('torrent.completed-times') }}"
@@ -196,24 +162,7 @@
                             <td class="panel__body trending-weekly__row">
                                 @foreach ($releaseYearRankings as $ranking)
                                     <figure class="trending-poster">
-                                        @switch($this->metaType)
-                                            @case('movie_meta')
-                                                <x-movie.poster
-                                                    :movie="$ranking->movie"
-                                                    :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb_movie_id"
-                                                />
-
-                                                @break
-                                            @case('tv_meta')
-                                                <x-tv.poster
-                                                    :tv="$ranking->tv"
-                                                    :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb_tv_id"
-                                                />
-
-                                                @break
-                                        @endswitch
+                                        <x-work.poster :fila="$ranking" :metaType="$this->metaType" />
                                         <figcaption
                                             class="trending-poster__download-count"
                                             title="{{ __('torrent.completed-times') }}"
@@ -232,44 +181,17 @@
         <div class="panel__body torrent-search--poster__results">
             <div wire:loading.delay>Calculando...</div>
 
-            @switch($this->metaType)
-                @case('movie_meta')
-                    @foreach ($works as $work)
-                        <figure class="trending-poster">
-                            <x-movie.poster
-                                :movie="$work->movie"
-                                :categoryId="$work->category_id"
-                                :tmdb="$work->tmdb_movie_id"
-                            />
-                            <figcaption
-                                class="trending-poster__download-count"
-                                title="{{ __('torrent.completed-times') }}"
-                            >
-                                {{ $work->download_count }}
-                            </figcaption>
-                        </figure>
-                    @endforeach
-
-                    @break
-                @case('tv_meta')
-                    @foreach ($works as $work)
-                        <figure class="trending-poster">
-                            <x-tv.poster
-                                :tv="$work->tv"
-                                :categoryId="$work->category_id"
-                                :tmdb="$work->tmdb_tv_id"
-                            />
-                            <figcaption
-                                class="trending-poster__download-count"
-                                title="{{ __('torrent.completed-times') }}"
-                            >
-                                {{ $work->download_count }}
-                            </figcaption>
-                        </figure>
-                    @endforeach
-
-                    @break
-            @endswitch
+            @foreach ($works as $work)
+                <figure class="trending-poster">
+                    <x-work.poster :fila="$work" :metaType="$this->metaType" />
+                    <figcaption
+                        class="trending-poster__download-count"
+                        title="{{ __('torrent.completed-times') }}"
+                    >
+                        {{ $work->download_count }}
+                    </figcaption>
+                </figure>
+            @endforeach
         </div>
     @endif
 </section>
