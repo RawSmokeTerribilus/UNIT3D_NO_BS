@@ -241,19 +241,37 @@ class UserController extends Controller
             }
         }
 
-        // La insignia la elige el donante, pero SÓLO de entre las del catálogo:
-        // el valor acaba en una ruta de imagen, así que se valida contra la lista
-        // blanca de config/insignias.php en vez de aceptar lo que llegue.
-        // El rótulo y el color no se tocan aquí: esos los fija el rango.
+        // El donante elige icono y efecto, pero SÓLO de entre los del catálogo:
+        // uno acaba en una ruta de imagen y el otro en una propiedad CSS, así
+        // que ninguno de los dos puede llegar crudo. Se validan contra las
+        // listas blancas de config/perks-donante.php.
+        //
+        // No hay segmentación por tier: cualquier donante elige de todo. Lo
+        // que separa a los tiers es la duración y los BON.
+        //
+        // La insignia de la derecha NO se elige: es común y la fija el
+        // controlador de donaciones al aprobar.
         if ($user->is_donor) {
+            $efectos = config('perks-donante.efectos');
+
             $request->validate([
-                'donor_badge_icon' => [
+                'donor_rank_icon' => [
                     'nullable',
-                    \Illuminate\Validation\Rule::in(array_keys(config('insignias.catalogo'))),
+                    \Illuminate\Validation\Rule::in(array_keys(config('perks-donante.iconos'))),
+                ],
+                'donor_effect' => [
+                    'nullable',
+                    \Illuminate\Validation\Rule::in(array_keys($efectos)),
                 ],
             ]);
 
-            $user->donor_badge_icon = $request->input('donor_badge_icon') ?: null;
+            $user->donor_rank_icon = $request->input('donor_rank_icon') ?: null;
+
+            // En la BD se guarda el atajo CSS ya resuelto, no la clave: es lo
+            // que las vistas inyectan tal cual, y evita resolver el catálogo
+            // en cada pintada de `user-tag`.
+            $claveEfecto = $request->input('donor_effect') ?: null;
+            $user->donor_effect = $claveEfecto === null ? null : $efectos[$claveEfecto]['css'];
         }
 
         // Define data

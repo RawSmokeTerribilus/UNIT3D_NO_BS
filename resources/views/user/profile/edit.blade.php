@@ -57,58 +57,80 @@
                 @endif
 
                 @if ($user->is_donor)
+                    {{-- Icono de rango, a la izquierda del nick --}}
                     <fieldset class="form__group">
-                        <legend class="form__label">Insignia de donante</legend>
+                        <legend class="form__label">Tu icono de donante</legend>
                         <p class="form__group">
-                            Sustituye a la estrella que va junto a tu nombre. Si no
-                            eliges ninguna, se queda la estrella de siempre.
+                            Sustituye al icono de tu rango, a la izquierda de tu nombre.
+                            Elige el que quieras: no depende de cuánto hayas donado.
                         </p>
-                        <div
-                            style="
-                                display: flex;
-                                flex-wrap: wrap;
-                                gap: 0.75rem;
-                            "
-                        >
-                            <label
-                                style="
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 0.35rem;
-                                    min-width: 11rem;
-                                "
-                            >
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem">
+                            <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 11rem">
                                 <input
                                     type="radio"
-                                    name="donor_badge_icon"
+                                    name="donor_rank_icon"
                                     value=""
-                                    @checked($user->donor_badge_icon === null)
+                                    @checked($user->donor_rank_icon === null)
                                 />
-                                <i class="fal fa-star text-gold"></i>
-                                Ninguna (la estrella)
+                                <i class="{{ $user->group->icon }}"></i>
+                                El de mi rango
                             </label>
-                            @foreach (config('insignias.catalogo') as $fichero => $rotulo)
-                                <label
-                                    style="
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 0.35rem;
-                                        min-width: 11rem;
-                                    "
-                                >
+                            @foreach (config('perks-donante.iconos') as $fichero => $rotulo)
+                                <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 11rem">
                                     <input
                                         type="radio"
-                                        name="donor_badge_icon"
+                                        name="donor_rank_icon"
                                         value="{{ $fichero }}"
-                                        @checked($user->donor_badge_icon === $fichero)
+                                        @checked($user->donor_rank_icon === $fichero)
                                     />
                                     <img
                                         src="{{ asset('img/insignias/' . $fichero) }}"
                                         alt="{{ $rotulo }}"
-                                        style="max-height: 24px; vertical-align: middle"
+                                        style="height: 28px; width: 28px; object-fit: contain"
                                         loading="lazy"
                                     />
                                     {{ $rotulo }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+
+                    {{-- Efecto de fondo del nick --}}
+                    <fieldset class="form__group">
+                        <legend class="form__label">Tu efecto de donante</legend>
+                        <p class="form__group">
+                            El fondo animado que acompaña a tu nombre por todo el sitio.
+                            También es libre: elige el que más te guste.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem">
+                            <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 13rem">
+                                <input
+                                    type="radio"
+                                    name="donor_effect"
+                                    value=""
+                                    @checked($user->donor_effect === null)
+                                />
+                                Ninguno
+                            </label>
+                            @foreach (config('perks-donante.efectos') as $clave => $efecto)
+                                <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 13rem">
+                                    <input
+                                        type="radio"
+                                        name="donor_effect"
+                                        value="{{ $clave }}"
+                                        @checked($user->donor_effect === $efecto['css'])
+                                    />
+                                    <span
+                                        style="
+                                            display: inline-block;
+                                            min-width: 5rem;
+                                            padding: 0 0.4rem;
+                                            background: {{ $efecto['css'] }};
+                                        "
+                                    >
+                                        {{ $user->username }}
+                                    </span>
+                                    {{ $efecto['rotulo'] }}
                                 </label>
                             @endforeach
                         </div>
