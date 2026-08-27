@@ -46,7 +46,7 @@
                 @if ($iconoRangoEsSvg)
                     <img
                         class="user-tag__rank-svg"
-                        src="{{ asset('img/insignias/'.basename($iconoRango)) }}"
+                        src="{{ asset('img/insignias/'.basename($iconoRango)).'?v='.config('perks-donante.version') }}"
                         alt="{{ $tituloRango }}"
                         loading="lazy"
                     />
@@ -78,7 +78,7 @@
                 @if (str_ends_with($user->donor_badge_icon, '.svg'))
                     <img
                         class="user-tag__badge-svg"
-                        src="{{ asset('img/insignias/'.basename($user->donor_badge_icon)) }}"
+                        src="{{ asset('img/insignias/'.basename($user->donor_badge_icon)).'?v='.config('perks-donante.version') }}"
                         alt="{{ $user->donor_badge_title }}"
                         title="{{ $user->donor_badge_title }}"
                         loading="lazy"
@@ -118,7 +118,7 @@
             @if ($iconoRangoEsSvg)
                 <img
                     class="user-tag__rank-svg"
-                    src="{{ asset('img/insignias/'.basename($iconoRango)) }}"
+                    src="{{ asset('img/insignias/'.basename($iconoRango)).'?v='.config('perks-donante.version') }}"
                     alt="{{ $tituloRango }}"
                     loading="lazy"
                 />
@@ -150,7 +150,7 @@
             @if (str_ends_with($user->donor_badge_icon, '.svg'))
                 <img
                     class="user-tag__badge-svg"
-                    src="{{ asset('img/insignias/'.basename($user->donor_badge_icon)) }}"
+                    src="{{ asset('img/insignias/'.basename($user->donor_badge_icon)).'?v='.config('perks-donante.version') }}"
                     alt="{{ $user->donor_badge_title }}"
                     title="{{ $user->donor_badge_title }}"
                     loading="lazy"

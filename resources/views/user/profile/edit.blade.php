@@ -84,7 +84,7 @@
                                         @checked($user->donor_rank_icon === $fichero)
                                     />
                                     <img
-                                        src="{{ asset('img/insignias/' . $fichero) }}"
+                                        src="{{ asset('img/insignias/' . $fichero) . '?v=' . config('perks-donante.version') }}"
                                         alt="{{ $rotulo }}"
                                         style="height: 28px; width: 28px; object-fit: contain"
                                         loading="lazy"

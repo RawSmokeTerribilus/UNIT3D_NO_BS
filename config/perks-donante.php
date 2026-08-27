@@ -17,6 +17,24 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
+    | Version de los assets (anticache de Cloudflare)
+    |--------------------------------------------------------------------------
+    |
+    | Cloudflare cachea los SVG y los GIF en el edge con max-age=14400 (4h) y
+    | una purga desde el panel NO evicto el objeto: seguia devolviendo
+    | cf-cache-status HIT con el `age` intacto. Resultado: se puede iterar sobre
+    | un icono y no verlo cambiar nunca.
+    |
+    | Se le cuelga esta version a la URL, igual que se hace con libretro.js.
+    | SUBIRLA cada vez que se toque un fichero de icono o de efecto; si no, se
+    | seguira sirviendo el viejo hasta que expire solo.
+    |
+    | Formato: AAAAMMDDnn
+    */
+    'version' => '2026082802',
+
+    /*
+    |--------------------------------------------------------------------------
     | Qué puede elegir un donante
     |--------------------------------------------------------------------------
     |
