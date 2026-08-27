@@ -330,7 +330,7 @@
                 class="text-bold"
                 style="
                     color: {{ auth()->user()->group->color }};
-                    background-image: {{ auth()->user()->group->effect }};
+                    background: {{ auth()->user()->group->effect }};
                 "
             >
                 <i class="{{ auth()->user()->group->icon }}"></i>
@@ -439,7 +439,7 @@
                                 class="text-bold"
                                 style="
                                     color: {{ auth()->user()->group->color }};
-                                    background-image: {{ auth()->user()->group->effect }};
+                                    background: {{ auth()->user()->group->effect }};
                                 "
                             >
                                 <i class="{{ auth()->user()->group->icon }}"></i>

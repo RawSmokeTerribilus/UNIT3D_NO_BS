@@ -67,6 +67,7 @@ class ChatUserResource extends JsonResource
             'donor_badge_title' => $this->donor_badge_title,
             'donor_badge_icon'  => $this->donor_badge_icon,
             'donor_badge_color' => $this->donor_badge_color,
+            'donor_effect'      => $this->donor_effect,
         ];
     }
 }
