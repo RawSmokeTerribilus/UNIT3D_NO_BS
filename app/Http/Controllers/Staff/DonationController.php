@@ -21,6 +21,7 @@ use App\Helpers\StringHelper;
 use App\Models\Conversation;
 use App\Services\Unit3dAnnounce;
 use App\Models\Donation;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use App\Models\PrivateMessage;
 use App\Http\Controllers\Controller;
@@ -74,7 +75,26 @@ class DonationController extends Controller
         $donation->starts_at = $now;
 
         if ($donation->package->donor_value > 0) {
-            $donation->ends_at = $now->addDays($donation->package->donor_value);
+            // La renovacion ENCADENA: parte de la caducidad que ya tuviera, no
+            // de hoy. Antes siempre arrancaba en `$now`, asi que renovar antes
+            // de tiempo regalaba los dias que quedaban — justo el castigo
+            // contrario al que merece quien renueva pronto. Con el tiempo como
+            // uno de los dos unicos diferenciadores entre tiers, esto importa.
+            //
+            // `donor_value` esta en DIAS (ojo: en `groups` los `min_age` y
+            // `min_avg_seedtime` del mismo esquema van en segundos).
+            $vigente = $donation->user->is_donor
+                ? $donation->user
+                    ->donations()
+                    ->where('status', '=', ModerationStatus::APPROVED)
+                    ->max('ends_at')
+                : null;
+
+            $desde = ($vigente !== null && Carbon::parse($vigente)->isFuture())
+                ? Carbon::parse($vigente)
+                : $now->copy();
+
+            $donation->ends_at = $desde->addDays($donation->package->donor_value);
         } else {
             $donation->ends_at = null;
         }
@@ -188,7 +208,7 @@ class DonationController extends Controller
             .'[b]Sobre los cupones de freeleech[/b] — esto es lo que más se pregunta:'."\n"
             .'No hay nada que activar en los ajustes, por mucho que se busque. '
             .'Un cupón se gasta [b]en la ficha de un torrent concreto[/b], con el botón '
-            .'«Usa un cupón de freeleech», y deja [i]ese[/i] torrent gratis para ti.'."\n"
+            .'«Usa cupón freeleech», y deja [i]ese[/i] torrent gratis para ti.'."\n"
             .'Mientras seas donante [b]no verás ese botón[/b], y es a propósito: ya bajas '
             .'sin que te cuente, así que gastarlo sería tirarlo. '
             .'Tus cupones [b]no caducan con la donación[/b] — siguen ahí el día que se acabe.'."\n\n"
