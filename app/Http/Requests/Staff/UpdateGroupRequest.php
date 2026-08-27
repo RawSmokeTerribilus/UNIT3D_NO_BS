@@ -42,12 +42,12 @@ class UpdateGroupRequest extends FormRequest
         $group = $request->route('group');
 
         return [
+            // El nombre es cosmético y ya no arrastra al slug, así que un grupo
+            // system_required también se puede renombrar. Lo que sigue protegido
+            // es su BORRADO (GroupController::destroy + la vista de índice).
             'group.name' => [
-                Rule::when(! $group->system_required, [
-                    'required',
-                    'string',
-                ]),
-                Rule::prohibitedIf($group->system_required && $request->group['name'] !== $group->name),
+                'required',
+                'string',
             ],
             'group.position' => [
                 'required',
