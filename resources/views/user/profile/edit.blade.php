@@ -56,6 +56,65 @@
                     </p>
                 @endif
 
+                @if ($user->is_donor)
+                    <fieldset class="form__group">
+                        <legend class="form__label">Insignia de donante</legend>
+                        <p class="form__group">
+                            Sustituye a la estrella que va junto a tu nombre. Si no
+                            eliges ninguna, se queda la estrella de siempre.
+                        </p>
+                        <div
+                            style="
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 0.75rem;
+                            "
+                        >
+                            <label
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.35rem;
+                                    min-width: 11rem;
+                                "
+                            >
+                                <input
+                                    type="radio"
+                                    name="donor_badge_icon"
+                                    value=""
+                                    @checked($user->donor_badge_icon === null)
+                                />
+                                <i class="fal fa-star text-gold"></i>
+                                Ninguna (la estrella)
+                            </label>
+                            @foreach (config('insignias.catalogo') as $fichero => $rotulo)
+                                <label
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.35rem;
+                                        min-width: 11rem;
+                                    "
+                                >
+                                    <input
+                                        type="radio"
+                                        name="donor_badge_icon"
+                                        value="{{ $fichero }}"
+                                        @checked($user->donor_badge_icon === $fichero)
+                                    />
+                                    <img
+                                        src="{{ asset('img/insignias/' . $fichero) }}"
+                                        alt="{{ $rotulo }}"
+                                        style="max-height: 24px; vertical-align: middle"
+                                        loading="lazy"
+                                    />
+                                    {{ $rotulo }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+                @endif
+
                 <p class="form__group">
                     <input
                         id="title"

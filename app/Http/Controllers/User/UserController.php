@@ -241,6 +241,21 @@ class UserController extends Controller
             }
         }
 
+        // La insignia la elige el donante, pero SÓLO de entre las del catálogo:
+        // el valor acaba en una ruta de imagen, así que se valida contra la lista
+        // blanca de config/insignias.php en vez de aceptar lo que llegue.
+        // El rótulo y el color no se tocan aquí: esos los fija el rango.
+        if ($user->is_donor) {
+            $request->validate([
+                'donor_badge_icon' => [
+                    'nullable',
+                    \Illuminate\Validation\Rule::in(array_keys(config('insignias.catalogo'))),
+                ],
+            ]);
+
+            $user->donor_badge_icon = $request->input('donor_badge_icon') ?: null;
+        }
+
         // Define data
         $request->validate([
             'title'     => 'nullable|max:255',

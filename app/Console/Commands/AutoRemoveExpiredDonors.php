@@ -59,6 +59,12 @@ class AutoRemoveExpiredDonors extends Command
 
         foreach ($expiredDonors as $user) {
             $user->is_donor = false;
+            // La insignia de rango caduca con la donación. Se limpia aquí y no
+            // en otro sitio porque este es el único punto que apaga is_donor por
+            // vencimiento; el group_id no se toca, que nunca llegó a moverse.
+            $user->donor_badge_title = null;
+            $user->donor_badge_icon = null;
+            $user->donor_badge_color = null;
             $user->save();
 
             cache()->forget('user:'.$user->passkey);

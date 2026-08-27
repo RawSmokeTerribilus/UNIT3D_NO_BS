@@ -38,18 +38,36 @@
                                     ->getName() !== 'users.show',
                             'vertical-align: text-bottom',
                         ])
-                        title="Custom user icon"
+                        title="Icono propio"
                         src="{{ route('authenticated_images.user_icon', ['user' => $user]) }}"
                     />
                 </i>
             @endif
 
-            @if ($user->is_lifetime == 1)
-                <i class="fal fa-star" id="lifeline" title="Lifetime donor"></i>
-            @endif
-
-            @if ($user->is_donor == 1 && $user->is_lifetime == 0)
-                <i class="fal fa-star text-gold" title="Donor"></i>
+            @if ($user->is_donor == 1 && $user->donor_badge_icon !== null)
+                @if (str_ends_with($user->donor_badge_icon, '.svg'))
+                    <img
+                        @style([
+                            'max-height: 22px;' => request()->route()?->getName() === 'users.show',
+                            'max-height: 17px;' => request()->route()?->getName() !== 'users.show',
+                            'vertical-align: text-bottom',
+                        ])
+                        src="{{ asset('img/insignias/'.basename($user->donor_badge_icon)) }}"
+                        alt="{{ $user->donor_badge_title }}"
+                        title="{{ $user->donor_badge_title }}"
+                        loading="lazy"
+                    />
+                @else
+                    <i
+                        class="{{ $user->donor_badge_icon }}"
+                        style="color: {{ $user->donor_badge_color ?? 'inherit' }}"
+                        title="{{ $user->donor_badge_title }}"
+                    ></i>
+                @endif
+            @elseif ($user->is_lifetime == 1)
+                <i class="fal fa-star" id="lifeline" title="Donante de por vida"></i>
+            @elseif ($user->is_donor == 1)
+                <i class="fal fa-star text-gold" title="Donante"></i>
             @endif
 
             {{ $appendedIcons ?? '' }}
@@ -91,18 +109,36 @@
                                 ->getName() !== 'users.show',
                         'vertical-align: text-bottom',
                     ])
-                    title="Custom user icon"
+                    title="Icono propio"
                     src="{{ route('authenticated_images.user_icon', ['user' => $user]) }}"
                 />
             </i>
         @endif
 
-        @if ($user->is_lifetime == 1)
-            <i class="fal fa-star" id="lifeline" title="Lifetime donor"></i>
-        @endif
-
-        @if ($user->is_donor == 1 && $user->is_lifetime == 0)
-            <i class="fal fa-star text-gold" title="Donor"></i>
+        @if ($user->is_donor == 1 && $user->donor_badge_icon !== null)
+            @if (str_ends_with($user->donor_badge_icon, '.svg'))
+                <img
+                    @style([
+                        'max-height: 22px;' => request()->route()?->getName() === 'users.show',
+                        'max-height: 17px;' => request()->route()?->getName() !== 'users.show',
+                        'vertical-align: text-bottom',
+                    ])
+                    src="{{ asset('img/insignias/'.basename($user->donor_badge_icon)) }}"
+                    alt="{{ $user->donor_badge_title }}"
+                    title="{{ $user->donor_badge_title }}"
+                    loading="lazy"
+                />
+            @else
+                <i
+                    class="{{ $user->donor_badge_icon }}"
+                    style="color: {{ $user->donor_badge_color ?? 'inherit' }}"
+                    title="{{ $user->donor_badge_title }}"
+                ></i>
+            @endif
+        @elseif ($user->is_lifetime == 1)
+            <i class="fal fa-star" id="lifeline" title="Donante de por vida"></i>
+        @elseif ($user->is_donor == 1)
+            <i class="fal fa-star text-gold" title="Donante"></i>
         @endif
 
         {{ $appendedIcons ?? '' }}
