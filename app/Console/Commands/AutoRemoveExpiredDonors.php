@@ -65,6 +65,12 @@ class AutoRemoveExpiredDonors extends Command
             $user->donor_badge_title = null;
             $user->donor_badge_icon = null;
             $user->donor_badge_color = null;
+            // El icono y el efecto tambien caducan. Faltaban aqui: como el
+            // render mira si el campo esta puesto y no `is_donor`, sin esto un
+            // donante vencido seguiria luciendolos indefinidamente.
+            $user->donor_rank_icon = null;
+            $user->donor_rank_color = null;
+            $user->donor_effect = null;
             $user->save();
 
             cache()->forget('user:'.$user->passkey);

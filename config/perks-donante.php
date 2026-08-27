@@ -45,11 +45,17 @@ return [
     | Los ficheros viven en public/img/insignias/.
     */
     'iconos' => [
-        'wizard.svg'           => 'Hechicero',
-        'shinigami-blanco.svg' => 'Parca',
-        'alien.svg'            => 'Alien',
-        'alien-5.svg'          => 'Alien gris',
-        'alien-monster.svg'    => 'Alien monstruo',
+        'wizard.svg'              => 'Hechicero',
+        'shinigami-blanco.svg'    => 'Parca',
+        'alien.svg'               => 'Alien',
+        'alien-5.svg'             => 'Alien gris',
+        'alien-monster.svg'       => 'Alien monstruo',
+        'gladiator-blanco.svg'    => 'Gladiador',
+        'star-one-blanco.svg'     => 'Estrella',
+        'sith-blanco.svg'         => 'Sith',
+        'jedi-blanco.svg'         => 'Jedi',
+        'rebel-blanco.svg'        => 'Rebelde',
+        'boba-fett-blanco.svg'    => 'Cazarrecompensas',
     ],
 
     /*
@@ -78,6 +84,13 @@ return [
         'trazo-neon-rosa'    => [
             'rotulo' => 'Neón rosa',
             'css'    => 'url(/img/trazo-neon-rosa.gif) center/100% 100% no-repeat',
+        ],
+        // El de la cuenta del operador en produccion. Es ademas el efecto del
+        // grupo #root, asi que un donante que lo elija se vera igual que un
+        // Owner: decision consciente, no descuido.
+        'destellos-verdes'   => [
+            'rotulo' => 'Destellos verdes',
+            'css'    => 'url(/img/background9.gif) center/auto 100% repeat-x',
         ],
     ],
 

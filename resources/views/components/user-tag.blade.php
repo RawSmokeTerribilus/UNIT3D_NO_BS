@@ -16,28 +16,25 @@
     // multicolor: enmascarar las aplanaria a un unico color. El precio es que
     // el SVG no hereda el color del rango, cosa que de todas formas nunca fue
     // posible para esas 11.
-    $iconoRango = $user->is_donor == 1 && $user->donor_rank_icon !== null
-        ? $user->donor_rank_icon
-        : $user->group->icon;
+    // Se mira si el campo esta puesto, no `is_donor`. No es por dar el perk a
+    // nadie mas: es que la condicion estaba repetida en nueve sitios de este
+    // fichero y tres del chat, y eso se desincroniza. Quien puede ELEGIRLO se
+    // decide en un solo punto (el formulario del perfil), y al caducar lo
+    // limpia AutoRemoveExpiredDonors.
+    $iconoRango = $user->donor_rank_icon ?? $user->group->icon;
 
     $iconoRangoEsSvg = str_ends_with((string) $iconoRango, '.svg');
 
     $claseIconoRango = $iconoRangoEsSvg ? '' : $iconoRango;
 
-    $tituloRango = $user->is_donor == 1 && $user->donor_rank_icon !== null
-        ? ($user->donor_badge_title ?? $user->group->name)
-        : $user->group->name;
+    $tituloRango = $user->group->name;
 @endphp
 
 @if ($anon)
     @if (auth()->user()->is($user) || auth()->user()->group->is_modo)
         <span
             {{ $attributes->class('user-tag fas fa-eye-slash') }}
-            @if ($user->is_donor == 1)
-                {{ $attributes->merge(['style' => 'background: ' . ($user->donor_effect ?? 'url(/img/sparkels.gif) center/auto 100% repeat-x') . ';' . ($style ?? '')]) }}
-            @else
-                {{ $attributes->merge(['style' => 'background: ' . $user->group->effect . ';' . ($style ?? '')]) }}
-            @endif
+            {{ $attributes->merge(['style' => 'background: ' . ($user->donor_effect ?? ($user->is_donor == 1 ? 'url(/img/sparkels.gif) center/auto 100% repeat-x' : $user->group->effect)) . ';' . ($style ?? '')]) }}
         >
             (
             <a
@@ -77,7 +74,7 @@
                 </i>
             @endif
 
-            @if ($user->is_donor == 1 && $user->donor_badge_icon !== null)
+            @if ($user->donor_badge_icon !== null)
                 @if (str_ends_with($user->donor_badge_icon, '.svg'))
                     <img
                         class="user-tag__badge-svg"
@@ -110,11 +107,7 @@
 @else
     <span
         {{ $attributes->class('user-tag') }}
-        @if ($user->is_donor == 1)
-            {{ $attributes->merge(['style' => 'background: ' . ($user->donor_effect ?? 'url(/img/sparkels.gif) center/auto 100% repeat-x') . ';' . ($style ?? '')]) }}
-        @else
-            {{ $attributes->merge(['style' => 'background: ' . $user->group->effect . ';' . ($style ?? '')]) }}
-        @endif
+        {{ $attributes->merge(['style' => 'background: ' . ($user->donor_effect ?? ($user->is_donor == 1 ? 'url(/img/sparkels.gif) center/auto 100% repeat-x' : $user->group->effect)) . ';' . ($style ?? '')]) }}
     >
         <a
             class="user-tag__link {{ $claseIconoRango }}"
@@ -153,7 +146,7 @@
             </i>
         @endif
 
-        @if ($user->is_donor == 1 && $user->donor_badge_icon !== null)
+        @if ($user->donor_badge_icon !== null)
             @if (str_ends_with($user->donor_badge_icon, '.svg'))
                 <img
                     class="user-tag__badge-svg"
