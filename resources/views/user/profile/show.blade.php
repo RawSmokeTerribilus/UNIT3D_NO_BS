@@ -1350,7 +1350,13 @@
                 <h2 class="panel__heading">{{ __('user.torrents') }}</h2>
                 <dl class="key-value">
                     <div class="key-value__group">
-                        <dt>{{ __('common.fl_tokens') }}</dt>
+                        <dt title="{{ __('torrent.fl-token-where') }}">
+                            {{ __('common.fl_tokens') }}
+                            <i
+                                class="{{ config('other.font-awesome') }} fa-circle-info"
+                                title="{{ __('torrent.fl-token-where') }}"
+                            ></i>
+                        </dt>
                         <dd>{{ $user->fl_tokens }}</dd>
                     </div>
                     @if (config('thanks-system.is-enabled'))
