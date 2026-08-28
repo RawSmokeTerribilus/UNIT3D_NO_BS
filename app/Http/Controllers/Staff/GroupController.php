@@ -36,7 +36,10 @@ class GroupController extends Controller
     public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
         return view('Staff.group.index', [
-            'groups' => Group::orderBy('position')->get(),
+            // `withCount` en vez de contar por grupo en la vista: la tabla lista
+            // los 23 grupos de una y un `users()->count()` por fila serían 23
+            // consultas. Aquí es una sola subconsulta.
+            'groups' => Group::withCount('users')->orderBy('position')->get(),
         ]);
     }
 
@@ -91,7 +94,12 @@ class GroupController extends Controller
      */
     public function update(UpdateGroupRequest $request, Group $group): \Illuminate\Http\RedirectResponse
     {
-        $group->update(['slug' => Str::slug($request->validated('group.name'))] + $request->validated('group'));
+        // El slug es IDENTIDAD, no un derivado del nombre: `announce.rs:438`,
+        // FortifyServiceProvider y FailedLogin ramifican por slug ('banned',
+        // 'validating', 'disabled', 'pruned'), y GroupSeeder hace upsert por slug.
+        // Regenerarlo en cada guardado convertía un simple renombrado en una
+        // rotura de login, announce y del propio seeder. Se fija al crear y ya.
+        $group->update($request->validated('group'));
 
         $group->permissions()->upsert($request->validated('permissions'), ['forum_id', 'group_id']);
 

@@ -1,124 +1,463 @@
-:root {
-    --donation-border-color: #e0e0e0;
-    --donation-box-shadow-color: rgba(0, 0, 0, 0.1);
-    --donation-primary-text-color: #333;
-    --donation-secondary-text-color: #666;
-    --donation-background-color: transparent;
-    --donation-price-days-color: #f44336;
+// =============================================================================
+//  resources/sass/components/_donation-package.scss
+//  NOBS · Donar — rediseño
+//
+//  REGLA DE ORO: aquí no hay un solo color literal. Todo se deriva de
+//  `currentColor` con color-mix(), así que el bloque hereda el color de texto
+//  del tema activo y funciona igual en los 20 temas, claros y oscuros.
+//  El único color "de marca" es var(--accent, currentColor): si el tema define
+//  --accent lo usa; si no, cae a currentColor y sigue siendo legible.
+//
+//  BORRAR del stylesheet actual (rotos en temas oscuros):
+//    :root { --donation-border-color: #e0e0e0;
+//            --donation-primary-text-color: #333;
+//            --donation-secondary-text-color: #666; }
+//  Se sustituyen por los tokens locales de .donation-panel__body (abajo), que
+//  además se re-exportan con los mismos nombres por compatibilidad.
+// =============================================================================
+
+// Los tokens viven en `.donation-panel` (la <section>) y NO en su `__body`.
+// Los <dialog> son hermanos del body dentro de la seccion, asi que colgados del
+// body no los alcanzaban: `background: var(--d-surface)` quedaba invalido y por
+// tanto TRANSPARENTE, y el dialogo se leia encima de la pagina. Un <dialog> en
+// el top layer sigue heredando las propiedades personalizadas de su padre en el
+// DOM, asi que subirlos un nivel los cubre a los dos.
+.donation-panel {
+  // --- tokens locales, todos relativos al color heredado ----------------------
+  --d-line:        color-mix(in oklab, currentColor 22%, transparent);
+  --d-line-soft:   color-mix(in oklab, currentColor 11%, transparent);
+  --d-surface:     color-mix(in oklab, currentColor 5%,  transparent);
+  --d-surface-2:   color-mix(in oklab, currentColor 9%,  transparent);
+  --d-mute:        color-mix(in oklab, currentColor 62%, transparent);
+  --d-faint:       color-mix(in oklab, currentColor 42%, transparent);
+  // Cadena ampliada respecto al mockup: NINGUN tema define `--accent` ni
+  // `--secondary` (medido: 0 de 20), asi que el literal fucsia se habria
+  // aplicado en los veinte. `--color-400` y `--color-blue` si existen — en 8 y
+  // 11 temas — y son el tono medio de la paleta de cada uno, o sea justo un
+  // acento. Los que no tienen ninguno caen al fucsia, que es de la familia del
+  // #bc13fe de NOBS y funciona en claro y oscuro por ir siempre al 9-55 % de
+  // opacidad. Si algun dia se define `--accent` por tema, gana sin tocar esto.
+  --d-accent:      var(--accent, var(--color-400, var(--color-blue, #c81cff)));
+  --d-accent-line: color-mix(in oklab, var(--d-accent) 55%, transparent);
+  --d-accent-wash: color-mix(in oklab, var(--d-accent) 9%,  transparent);
+  --d-glow:        0 0 24px color-mix(in oklab, var(--d-accent) 22%, transparent);
+  --d-glow-strong: 0 0 38px color-mix(in oklab, var(--d-accent) 34%, transparent);
+
+  // compatibilidad con los nombres antiguos (ahora sí sensibles al tema)
+  --donation-border-color:         var(--d-line);
+  --donation-primary-text-color:   currentColor;
+  --donation-secondary-text-color: var(--d-mute);
+
 }
 
+.donation-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 1.75rem;
+
+  // el contenedor de consulta va AQUÍ, no en la rejilla: un elemento no puede
+  // responder a su propio @container.
+  container-type: inline-size;
+}
+
+// --- manifiesto ---------------------------------------------------------------
+.donation-manifesto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  // El mockup traia `max-width: 68ch`, la medida de lectura clasica. Con el
+  // panel a ~1500 px eso corta el parrafo a un tercio del ancho y lo deja como
+  // una columna huerfana con las tarjetas anchas justo debajo. Aqui manda la
+  // caja: el texto ocupa el contenedor, igual que `.donation-perks` y
+  // `.donation-packages`, y los tres bloques comparten margen izquierdo Y
+  // derecho.
+  //
+  // `text-wrap: pretty` sigue puesto, asi que el navegador evita las lineas
+  // viudas de una sola palabra, que es el riesgo real de una linea larga.
+
+  p { margin: 0; line-height: 1.65; text-wrap: pretty; color: var(--d-mute); }
+}
+
+.donation-manifesto__lead {
+  font-size: 1.05rem;
+  color: currentColor !important; // gana al color: var(--d-mute) de arriba
+  strong { color: var(--d-accent); }
+}
+
+// --- ventajas comunes (lo que antes se repetía 5 veces) ----------------------
+.donation-perks {
+  margin: 0;
+  padding: 1.1rem 1.25rem 1.25rem;
+  list-style: none;
+  border: 1px solid var(--d-line-soft);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, var(--d-accent-wash), transparent 70%),
+    var(--d-surface);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.55rem 1.5rem;
+}
+
+.donation-perks__title {
+  grid-column: 1 / -1;
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.donation-perks__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  line-height: 1.45;
+  color: var(--d-mute);
+
+  .fas { margin-top: 0.15rem; font-size: 0.8em; color: var(--d-accent); }
+}
+
+// --- rejilla: 4 plazos + la vitalicia a lo ancho ------------------------------
 .donation-packages {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px; /* Adjust the gap as needed */
-    justify-content: center; /* Center the last row if it has fewer than four packages */
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
 }
 
-.donation-package__wrapper {
-    flex: 1 1 calc(25% - 30px); /* Adjust the width to fit four packages in a row */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border: 1px solid var(--donation-border-color);
-    border-radius: 5px;
-    box-shadow: 0 0 10px var(--donation-box-shadow-color);
-    transition: all 0.3s;
-    margin-bottom: 20px;
-    box-sizing: border-box;
-    background-color: var(--donation-background-color);
-    max-width: calc(
-        25% - 30px
-    ); /* Ensure the packages do not take full width */
+/* halo detrás del grupo de tarjetas */
+.donation-packages::before {
+  content: "";
+  position: absolute;
+  inset: -14px -18px;
+  z-index: -1;
+  border-radius: 14px;
+  background:
+    radial-gradient(60% 100% at 18% 0%, color-mix(in oklab, var(--d-accent) 16%, transparent), transparent 70%),
+    radial-gradient(70% 110% at 88% 100%, color-mix(in oklab, var(--d-accent) 12%, transparent), transparent 72%);
+  filter: blur(6px);
+  pointer-events: none;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    .donation-package__wrapper {
-        flex: 1 1 calc(33.333% - 30px); /* Three packages per row */
-        max-width: calc(33.333% - 30px);
-    }
-}
-
-@media (max-width: 900px) {
-    .donation-package__wrapper {
-        flex: 1 1 calc(50% - 30px); /* Two packages per row */
-        max-width: calc(50% - 30px);
-    }
-}
-
-@media (max-width: 600px) {
-    .donation-package__wrapper {
-        flex: 1 1 calc(100% - 30px); /* One package per row */
-        max-width: calc(100% - 30px);
-    }
-}
+.donation-package__wrapper { display: flex; min-width: 0; }
 
 .donation-package {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.35rem 1.25rem 1.25rem;
+  border: 1px solid var(--d-line-soft);
+  border-radius: 6px;
+  background: var(--d-surface);
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+
+  // filo de neón superior, apagado hasta el hover
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px -1px auto;
+    height: 2px;
+    border-radius: 6px 6px 0 0;
+    background: var(--d-accent);
+    opacity: 0.28;
+    transition: opacity 0.18s, box-shadow 0.18s;
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--d-accent-line);
+    background: var(--d-surface-2);
+    box-shadow: var(--d-glow);
+
+    &::before { opacity: 1; box-shadow: 0 0 14px var(--d-accent); }
+  }
 }
 
-.donation-package__header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
+.donation-package__header { display: flex; flex-direction: column; gap: 0.55rem; }
 
 .donation-package__name {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--donation-primary-text-color);
-    text-decoration: underline;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .donation-package__price-days {
-    display: flex;
-    align-items: center;
-    margin-top: 5px;
-}
-
-.donation-package__days {
-    font-size: 15px;
-    font-weight: 100;
-    color: var(--donation-price-days-color);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .donation-package__price {
-    font-size: 15px;
-    font-weight: 100;
-    color: var(--donation-price-days-color);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--d-accent);
+  text-shadow: 0 0 22px color-mix(in oklab, var(--d-accent) 45%, transparent);
 }
 
-.donation-package__separator {
-    margin: 0 5px;
-}
+.donation-package__separator { color: var(--d-faint); }
+.donation-package__days { font-size: 0.85rem; color: var(--d-mute); }
 
 .donation-package__description {
-    font-size: 14px;
-    color: var(--donation-secondary-text-color);
-    margin-top: 20px;
-    text-align: center;
-    font-style: italic;
+  margin: 0;
+  // 0.85 -> 0.92 -> 1.25rem. El salto grande es deliberado: el problema no era
+  // solo el tamaño sino que va en cursiva y con `--d-faint` (42 % del texto),
+  // asi que a tamaño de parrafo se leia mal de verdad. Ahora queda por ENCIMA
+  // de las ventajas comunes (15 px), que es lo correcto: la frase es lo unico
+  // con voz propia de cada tramo.
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--d-faint);
+  text-wrap: pretty;
 }
 
-.donation-package__benefits-list {
-    display: flex;
+// --- lo único que cambia entre tramos ----------------------------------------
+.donation-package__stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.donation-package__stat {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--d-line-soft);
+  border-radius: 4px;
+  background: var(--d-surface);
+}
+
+.donation-package__stat-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.donation-package__stat-value {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.donation-package__footer { display: flex; }
+.donation-package__footer .form__button { width: 100%; justify-content: center; }
+
+// --- tramo vitalicio: fila propia a todo lo ancho ----------------------------
+.donation-package__wrapper--lifetime { grid-column: 1 / -1; }
+
+.donation-package--lifetime {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  padding: 1.5rem 1.5rem;
+  border-color: var(--d-accent-line);
+  box-shadow: var(--d-glow);
+  overflow: hidden;
+
+  // textura: barrido de líneas + resplandor de esquina, ambos en el color del tema
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(115deg,
+        color-mix(in oklab, var(--d-accent) 20%, transparent) 0%,
+        color-mix(in oklab, var(--d-accent) 7%,  transparent) 42%,
+        transparent 78%);
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  &::before { opacity: 1; box-shadow: 0 0 16px var(--d-accent); }
+  &:hover { box-shadow: var(--d-glow-strong); }
+
+  // El header tenia `flex: 1 1 16rem`: la base son 256 px, pero el `grow: 1` le
+  // hacia quedarse ~400 px reales, y ese ancho de mas no lo usa para nada — su
+  // contenido (distintivo, nombre, precio) cabe de sobra en la mitad. Con
+  // `grow: 0` deja de reclamar sobrante y se queda en lo que ocupa.
+  //
+  // El sobrante liberado va a la descripcion, que ahora va a 1.25rem y es quien
+  // de verdad lo necesita: `grow: 2` frente al `1` de las estadisticas, asi que
+  // se lleva dos tercios de lo que suelta el header.
+  .donation-package__header { flex: 0 1 14rem; }
+  .donation-package__name { font-size: 1.3rem; }
+  .donation-package__price { font-size: 2.4rem; }
+  .donation-package__description { flex: 2 1 18rem; margin: 0; }
+  .donation-package__stats { grid-template-columns: repeat(3, minmax(7rem, 1fr)); margin: 0; flex: 1 1 24rem; }
+  .donation-package__footer { flex: 0 0 auto; }
+  .donation-package__footer .form__button { width: auto; padding-inline: 1.5rem; }
+}
+
+.donation-package__badge {
+  align-self: flex-start;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--d-accent-line);
+  border-radius: 3px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--d-accent);
+}
+
+// --- VARIANTE B: las cinco en la misma fila -----------------------------------
+//     Misma tarjeta, misma jerarquía de color; la vitalicia sigue siendo la
+//     acentuada, pero no ocupa fila propia. Añade la clase al contenedor.
+.donation-packages--five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  .donation-package__wrapper--lifetime { grid-column: auto; }
+
+  .donation-package--lifetime {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    padding: 1.35rem 1.25rem 1.25rem;
+
+    // deshace los flex-basis horizontales de la variante A: en columna
+    // se convertirían en alturas y la tarjeta crecería sin freno
+    &.donation-package--lifetime .donation-package__header,
+    &.donation-package--lifetime .donation-package__description,
+    &.donation-package--lifetime .donation-package__stats,
+    &.donation-package--lifetime .donation-package__footer { flex: 0 0 auto; }
+
+    .donation-package__name { font-size: 1.05rem; }
+    .donation-package__price { font-size: 1.9rem; }
+    .donation-package__stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: auto; }
+    .donation-package__footer .form__button { width: 100%; padding-inline: 0.75rem; }
+  }
 }
 
-.benefits-list {
-    text-align: left;
-    padding-left: 20px;
+// --- aviso de revisión manual ------------------------------------------------
+.donation-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--d-line);
+  border-radius: 5px;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
-.donation-package__footer {
-    margin-top: auto;
-    display: flex;
-    justify-content: center;
-    width: 100%;
+// --- diálogo: dos pasos, y que se vea que son dos ----------------------------
+// Upstream mete TODO el contenido del dialogo dentro de `.dialog__form`, que es
+// quien pinta `--dialog-bg`. Aqui el encabezado y los dos pasos van fuera de ese
+// form, asi que el dialogo tiene que pintarse su propio fondo o se ve la pagina
+// a traves. Se reutilizan los mismos tokens de tema que `.dialog__form`, para
+// que un dialogo de donaciones y uno de cualquier otra pagina se vean iguales.
+.donation-dialog {
+  max-width: 32rem;
+  padding: 20px;
+  border: var(--dialog-border);
+  background-color: var(--dialog-bg);
+  box-shadow: var(--dialog-box-shadow);
+
+  // El form interno ya no necesita su propia caja: seria una caja dentro de
+  // otra, con doble borde y doble sombra.
+  .dialog__form {
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.donation-dialog__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: donation-step;
+}
+
+.donation-dialog__step {
+  display: grid;
+  grid-template-columns: 1.9rem 1fr;
+  gap: 0.4rem 0.85rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--d-line-soft);
+  border-radius: 5px;
+  background: var(--d-surface);
+  counter-increment: donation-step;
+
+  &::before {
+    content: counter(donation-step);
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--d-accent-line);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--d-accent);
+    box-shadow: 0 0 14px color-mix(in oklab, var(--d-accent) 20%, transparent);
+  }
+}
+
+.donation-dialog__step-title { margin: 0; font-size: 0.95rem; font-weight: 600; }
+
+.donation-dialog__step-body {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--d-mute);
+}
+
+.donation-dialog__hint { margin: 0; font-size: 0.78rem; color: var(--d-faint); }
+
+// --- adaptativo por CONTENEDOR (no por viewport): sirve igual dentro del
+//     panel, en la barra lateral o en móvil ------------------------------------
+@container (max-width: 1240px) {
+  .donation-packages--five { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@container (max-width: 1000px) {
+  .donation-packages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .donation-packages--five { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@container (max-width: 620px) {
+  .donation-packages { grid-template-columns: minmax(0, 1fr); }
+
+  .donation-package { padding: 1.15rem 1.1rem; }
+  .donation-package--lifetime { flex-direction: column; align-items: stretch; }
+  .donation-package--lifetime .donation-package__header,
+  .donation-package--lifetime .donation-package__description,
+  .donation-package--lifetime .donation-package__stats,
+  .donation-package--lifetime .donation-package__footer { flex: 0 0 auto; }
+  .donation-package--lifetime .donation-package__stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .donation-package--lifetime .donation-package__footer .form__button { width: 100%; }
+  .donation-packages--five { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donation-package, .donation-package::before { transition: none; }
 }

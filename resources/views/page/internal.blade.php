@@ -23,7 +23,7 @@
                         class="user-card"
                         style="
                             background-color: {{ $user->group->color }};
-                            background-image: {{ $internal->effect }};
+                            background: {{ $internal->effect }};
                         "
                     >
                         <h3 class="user-card__username">

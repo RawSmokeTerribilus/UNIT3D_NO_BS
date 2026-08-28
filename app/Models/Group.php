@@ -157,4 +157,20 @@ final class Group extends Model
     {
         return $this->hasMany(ForumPermission::class);
     }
+
+    /**
+     * ¿Es este grupo staff?
+     *
+     * Definición ÚNICA de «staff» para los perks. Se apoya en `is_modo`, que
+     * es la puerta del panel (`CheckForModo` no mira ninguna otra cosa): si
+     * entras al panel, eres staff. Hoy son Supervisor, Admin y #root.
+     *
+     * `is_editor` e `is_internal` (Editor, Técnico, Artesano) NO cuentan: son
+     * roles de contenido, no de moderación, y no abren el panel. Si algún día
+     * se quiere ampliar, se amplía AQUÍ y no en cada sitio que pregunte.
+     */
+    public function esStaff(): bool
+    {
+        return (bool) $this->is_modo;
+    }
 }

@@ -41,7 +41,29 @@
         @endif
     </li>
     @if ($fileExists && $torrent->status === \App\Enums\ModerationStatus::APPROVED)
-        @if ($torrent->free !== 100 && config('other.freeleech') == false && ! $personal_freeleech && $user->group->is_freeleech == 0 && ! $torrent->freeleechToken_exists)
+        @php
+            // Por qué NO se ofrece el cupón, en orden de precedencia.
+            //
+            // `is_donor` no estaba aquí y es el caso que más duele: el freeleech
+            // de donante NO pasa por `group->is_freeleech`, es un override del
+            // tracker (DONOR_DOWNLOAD_FACTOR_OVERRIDE=0 en el announce Rust).
+            // Sin esta rama, un donante en grupo Neofito ve el boton y quema un
+            // cupon en un torrent que ya le sale gratis.
+            //
+            // Ojo: dentro de @php estamos en contexto PHP, los comentarios van
+            // con // o /* */, nunca con llaves de Blade.
+            $motivoSinCupon = match (true) {
+                (bool) $torrent->freeleechToken_exists => 'ya-usado',
+                $torrent->free === 100                 => 'torrent-gratis',
+                (bool) config('other.freeleech')       => 'freeleech-global',
+                (bool) $personal_freeleech             => 'freeleech-personal',
+                (bool) $user->is_donor                 => 'donante',
+                $user->group->is_freeleech == 1        => 'freeleech-grupo',
+                default                                => null,
+            };
+        @endphp
+
+        @if ($motivoSinCupon === null)
             <li class="form__group form__group--short-horizontal">
                 <form
                     action="{{ route('freeleech_token', ['id' => $torrent->id]) }}"
@@ -52,7 +74,7 @@
                     @csrf
                     <button
                         class="form__button form__button--outlined form__button--centered"
-                        title="{{ __('torrent.fl-tokens-left', ['tokens' => $user->fl_tokens]) }}!"
+                        title="{{ trans_choice('torrent.fl-tokens-left', $user->fl_tokens, ['tokens' => $user->fl_tokens]) }}"
                         x-on:click.prevent="confirmAction"
                     >
                         {{ __('torrent.use-fl-token') }}
@@ -63,16 +85,16 @@
                         Alpine.data('freeleechTokenConfirmation', () => ({
                             confirmAction() {
                                 Swal.fire({
-                                    title: 'Are you sure?',
-                                    text: 'This will use one of your freeleech tokens!',
+                                    title: '¿Seguro?',
+                                    text: 'Vas a gastar uno de tus cupones de freeleech.',
                                     icon: 'warning',
                                     showConfirmButton: true,
                                     showCloseButton: true,
                                 }).then((result) => {
                                     if (result.isConfirmed && {{ $torrent->seeders }} == 0) {
                                         Swal.fire({
-                                            title: 'Are you sure?',
-                                            text: 'This torrent has 0 seeders!',
+                                            title: '¿Seguro?',
+                                            text: 'Este torrent no tiene semillas: puede que no llegues a bajarlo.',
                                             icon: 'warning',
                                             showConfirmButton: true,
                                             showCancelButton: true,
@@ -89,6 +111,31 @@
                         }));
                     });
                 </script>
+            </li>
+        @elseif ($motivoSinCupon !== 'ya-usado' && $user->fl_tokens > 0)
+            {{-- El hueco mudo era el bug de usabilidad: sin esto parece que la
+                 funcion no existe. Solo se pinta a quien TIENE cupones.
+
+                 Dos frases enteras aqui ocupaban tres lineas y descuadraban la
+                 fila de botones. Se queda una linea corta a su misma altura; el
+                 motivo y el como se gastan viven en el `title`, que es donde se
+                 buscan. `nowrap` porque la fila es flex y sin el vuelve a
+                 partirse en cuanto el nombre del torrent empuja.
+
+                 Sin `color`: hereda el del cuerpo, y ese es el unico que TODO
+                 tema garantiza legible sobre su propio fondo. Se probo con
+                 `var(--button-outlined-fg)` para igualar a los botones, pero
+                 hay temas que la clavan (`white` en md3-navy, `#bc13fe` en
+                 nobs) y los `_dark-*` ni la definen: en un boton eso funciona
+                 porque lleva fondo y borde propios, en un <span> pelado no. --}}
+            <li class="form__group form__group--short-horizontal">
+                <span
+                    style="align-self: center; white-space: nowrap; font-size: 0.9em"
+                    title="{{ __('torrent.fl-token-unneeded-'.$motivoSinCupon) }} {{ __('torrent.fl-token-where') }}"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-ticket"></i>
+                    {{ trans_choice('torrent.fl-tokens-chip', $user->fl_tokens, ['tokens' => $user->fl_tokens]) }}
+                </span>
             </li>
         @endif
     @endif

@@ -222,13 +222,13 @@
 
         @if (config('donation.is_enabled'))
             <li class="top-nav__dropdown">
-                <a tabindex="0" title="{{ $donationPercentage }}% filled">
+                <a tabindex="0" title="{{ $donationPercentage }}% de la meta">
                     <div class="top-nav--left__container">
                         <span
                             class="{{ $donationPercentage < 100 ? 'fa-fade' : '' }}"
                             style="color: lightcoral"
                         >
-                            Donate
+                            Donar
                         </span>
                         <div class="progress" style="background-color: slategray">
                             <div
@@ -251,13 +251,7 @@
                     <li>
                         <a href="{{ route('donations.index') }}">
                             <i class="fas fa-display-chart-up-circle-dollar"></i>
-                            Support {{ config('other.title') }} ({{ $donationPercentage }}%)
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://square.link/u/VjB1CNfm" target="_blank">
-                            <i class="fas fa-handshake"></i>
-                            Support NOBS
+                            Sostén {{ config('other.title') }} ({{ $donationPercentage }}%)
                         </a>
                     </li>
                 </ul>
@@ -321,7 +315,7 @@
                     </a>
                 </li>
             @endif
-            <li class="ratio-bar__tokens" title="{{ __('user.my-fl-tokens') }}">
+            <li class="ratio-bar__tokens" title="{{ __('user.my-fl-tokens') }}. {{ __('torrent.fl-token-where') }}">
                 <a href="{{ route('users.show', ['user' => auth()->user()]) }}">
                     <i class="{{ config('other.font-awesome') }} fa-star"></i>
                     {{ $user->fl_tokens }}
@@ -336,7 +330,7 @@
                 class="text-bold"
                 style="
                     color: {{ auth()->user()->group->color }};
-                    background-image: {{ auth()->user()->group->effect }};
+                    background: {{ auth()->user()->group->effect }};
                 "
             >
                 <i class="{{ auth()->user()->group->icon }}"></i>
@@ -445,7 +439,7 @@
                                 class="text-bold"
                                 style="
                                     color: {{ auth()->user()->group->color }};
-                                    background-image: {{ auth()->user()->group->effect }};
+                                    background: {{ auth()->user()->group->effect }};
                                 "
                             >
                                 <i class="{{ auth()->user()->group->icon }}"></i>

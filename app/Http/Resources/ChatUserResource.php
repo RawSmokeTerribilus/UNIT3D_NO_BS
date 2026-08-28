@@ -41,6 +41,9 @@ class ChatUserResource extends JsonResource
      *     is_lifetime: bool,
      *     is_donor: bool,
      *     icon: string,
+     *     donor_badge_title: string|null,
+     *     donor_badge_icon: string|null,
+     *     donor_badge_color: string|null,
      * }
      */
     public function toArray(Request $request): array
@@ -59,6 +62,12 @@ class ChatUserResource extends JsonResource
             'is_lifetime'    => $this->is_lifetime,
             'is_donor'       => $this->is_donor,
             'icon'           => $this->icon,
+            // El chat pinta el nick desde JSON, no desde `user-tag`, así que
+            // la insignia tiene que viajar aparte para verse ahí también.
+            'donor_badge_title' => $this->donor_badge_title,
+            'donor_badge_icon'  => $this->donor_badge_icon,
+            'donor_badge_color' => $this->donor_badge_color,
+            'donor_effect'      => $this->donor_effect,
         ];
     }
 }

@@ -200,7 +200,14 @@ class UserController extends Controller
             }
         }
 
-        if (($request->hasFile('icon') && $user->is_lifetime) || ($request->hasFile('icon') && $user->group->is_modo)) {
+        // Antes: `is_lifetime || is_modo`. El icono propio era el unico perk
+        // reservado a un tier, y eso contradice la regla del sistema: solo el
+        // TIEMPO y los BON separan tiers, el resto es comun. Ademas el gate
+        // estaba desincronizado — el controlador aceptaba a `is_modo` pero el
+        // formulario solo enseñaba el campo a `is_lifetime`, asi que el staff
+        // podia subir icono y no tenia donde hacerlo. De ahi que el contador
+        // llevara 0 usuarios desde siempre.
+        if ($request->hasFile('icon') && ($user->is_donor || $user->group->esStaff())) {
             $image = $request->file('icon');
 
             abort_if(\is_array($image), 400);
@@ -239,6 +246,39 @@ class UserController extends Controller
                 $oldIcon = $user->icon;
                 $user->icon = $filename;
             }
+        }
+
+        // El donante elige icono y efecto, pero SÓLO de entre los del catálogo:
+        // uno acaba en una ruta de imagen y el otro en una propiedad CSS, así
+        // que ninguno de los dos puede llegar crudo. Se validan contra las
+        // listas blancas de config/perks-donante.php.
+        //
+        // No hay segmentación por tier: cualquier donante elige de todo. Lo
+        // que separa a los tiers es la duración y los BON.
+        //
+        // La insignia de la derecha NO se elige: es común y la fija el
+        // controlador de donaciones al aprobar.
+        if ($user->is_donor) {
+            $efectos = config('perks-donante.efectos');
+
+            $request->validate([
+                'donor_rank_icon' => [
+                    'nullable',
+                    \Illuminate\Validation\Rule::in(array_keys(config('perks-donante.iconos'))),
+                ],
+                'donor_effect' => [
+                    'nullable',
+                    \Illuminate\Validation\Rule::in(array_keys($efectos)),
+                ],
+            ]);
+
+            $user->donor_rank_icon = $request->input('donor_rank_icon') ?: null;
+
+            // En la BD se guarda el atajo CSS ya resuelto, no la clave: es lo
+            // que las vistas inyectan tal cual, y evita resolver el catálogo
+            // en cada pintada de `user-tag`.
+            $claveEfecto = $request->input('donor_effect') ?: null;
+            $user->donor_effect = $claveEfecto === null ? null : $efectos[$claveEfecto]['css'];
         }
 
         // Define data

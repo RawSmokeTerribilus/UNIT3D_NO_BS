@@ -34,8 +34,8 @@ return [
     | Configure site to use Donation System
     |
     */
-    'is_enabled'   => false,
+    'is_enabled'   => true,
     'monthly_goal' => 100,
     'currency'     => 'EUR',
-    'description'  => 'un billete pa un filete?',
+    'description'  => '¿Un billete pa un filete?',
 ];

@@ -23,6 +23,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class AutoRemoveExpiredDonors extends Command
@@ -48,7 +49,10 @@ class AutoRemoveExpiredDonors extends Command
      */
     final public function handle(): void
     {
-        $expiredDonors = User::where('is_donor', '=', true)
+        // `with('group')` porque el bucle pregunta `esStaff()` por usuario: sin
+        // esto es una consulta por donante vencido.
+        $expiredDonors = User::with('group')
+            ->where('is_donor', '=', true)
             ->where('is_lifetime', '=', false)
             ->whereHas('donations')
             ->whereDoesntHave('donations', function ($query): void {
@@ -59,9 +63,43 @@ class AutoRemoveExpiredDonors extends Command
 
         foreach ($expiredDonors as $user) {
             $user->is_donor = false;
+            // La insignia de rango caduca con la donación. Se limpia aquí y no
+            // en otro sitio porque este es el único punto que apaga is_donor por
+            // vencimiento; el group_id no se toca, que nunca llegó a moverse.
+            $user->donor_badge_title = null;
+            $user->donor_badge_icon = null;
+            $user->donor_badge_color = null;
+            // El icono y el efecto tambien caducan. Faltaban aqui: como el
+            // render mira si el campo esta puesto y no `is_donor`, sin esto un
+            // donante vencido seguiria luciendolos indefinidamente.
+            $user->donor_rank_icon = null;
+            $user->donor_rank_color = null;
+            $user->donor_effect = null;
+
+            // El icono propio (imagen subida por el usuario) tambien caduca.
+            // Antes no hacia falta limpiarlo porque solo lo tenian lifetime y
+            // staff, que no vencen nunca; al abrirlo a todo donante, sin esto
+            // una donacion de un mes dejaba un adorno permanente.
+            //
+            // El staff lo conserva MIENTRAS sea staff: su derecho no viene de
+            // la donacion sino del cargo, y `esStaff()` es la definicion unica
+            // de eso — la misma que abre el campo en el formulario.
+            //
+            // Se borra tambien el fichero, no solo la fila: es lo que ya hace
+            // `User\UserController` al reemplazar un icono, y si no el disco
+            // acumula huerfanos que nadie vuelve a mirar.
+            if ($user->icon !== null && !$user->group->esStaff()) {
+                Storage::disk('user-icons')->delete($user->icon);
+                $user->icon = null;
+            }
+
             $user->save();
 
+            // Dos cachés: `user:{passkey}` la lee el announce, `cachedUser.{id}`
+            // la web. Olvidar solo la primera dejaba al donante vencido luciendo
+            // sus perks otros 30 s.
             cache()->forget('user:'.$user->passkey);
+            cache()->forget('cachedUser.'.$user->id);
             Unit3dAnnounce::addUser($user);
         }
 

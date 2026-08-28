@@ -36,6 +36,8 @@ use App\Services\Emoji\EmojiRenderer;
 use App\Observers\UserObserver;
 use App\View\Composers\FooterComposer;
 use App\View\Composers\TopNavComposer;
+use Illuminate\Database\Console\Seeds\SeedCommand;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Http\Middleware\TrimStrings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -149,5 +151,22 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('rsskey', fn (Request $request) => User::query()->where('rsskey', '=', $request->route('rsskey'))->first());
 
         Context::add('url', $request->url());
+
+        // Candado de comandos destructivos en producción.
+        //
+        // Los 22 seeders que invoca DatabaseSeeder son `upsert`, no `insert`: un
+        // `php artisan db:seed` sin `--class` reescribe grupos, usuarios,
+        // categorías, tipos, foros, páginas y la tienda de BON con los valores
+        // de fábrica de upstream. `confirmToProceed()` sólo pregunta, y `--force`
+        // la salta; esto lo prohíbe de verdad.
+        //
+        // `DB::prohibitDestructiveCommands()` NO cubre `db:seed` (sólo db:wipe y
+        // migrate:fresh/refresh/reset/rollback), de ahí la segunda llamada.
+        // Bloquear `migrate:rollback` es deliberado: aquí las migraciones van
+        // sólo hacia delante.
+        if ($this->app->isProduction()) {
+            DB::prohibitDestructiveCommands();
+            SeedCommand::prohibit();
+        }
     }
 }

@@ -61,6 +61,23 @@ class UpdateDonationPackageRequest extends FormRequest
                 'min:0',
                 'max:9999',
             ],
+            // Los cupones existian en la tabla desde ayer pero no en el
+            // formulario, asi que solo se podian tocar por SQL.
+            'fl_token_value' => [
+                'nullable',
+                'integer',
+                'min:0',
+                'max:9999',
+            ],
+            // La URL del boton de pago del tier. `active_url` no: PayPal
+            // responde a la comprobacion de DNS pero no queremos que guardar
+            // un paquete dependa de que PayPal este en pie en ese instante.
+            'payment_url' => [
+                'nullable',
+                'string',
+                'url',
+                'max:255',
+            ],
             'is_active' => [
                 'required',
                 'boolean',

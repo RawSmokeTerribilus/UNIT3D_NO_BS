@@ -223,7 +223,7 @@
                                     <header class="chatbox-message__header">
                                         <address
                                             class="chatbox-message__address user-tag"
-                                            :style="(message.user?.is_donor ? 'background-image: url(/img/sparkels.gif);' : (message.user?.group?.effect ? 'background-image:' + message.user.group.effect + ';' : ''))"
+                                            :style="'background: ' + (message.user?.donor_effect || (message.user?.is_donor ? 'url(/img/sparkels.gif) center/auto 100% repeat-x' : (message.user?.group?.effect || 'none')) ) + ';'"
                                         >
                                             <a
                                                 class="user-tag__link"
@@ -245,22 +245,35 @@
                                                     <i>
                                                         <img
                                                             :style="'max-height: 16px; vertical-align: text-bottom;'"
-                                                            title="Custom user icon"
+                                                            title="Icono propio"
                                                             :src="'/authenticated-images/user-icons/' + message.user.username"
                                                             loading="lazy"
                                                         />
                                                     </i>
                                                 </template>
+                                                <img
+                                                    x-show="message.user?.donor_badge_icon?.endsWith('.svg')"
+                                                    :src="'/img/insignias/' + message.user?.donor_badge_icon"
+                                                    :alt="message.user?.donor_badge_title"
+                                                    :title="message.user?.donor_badge_title"
+                                                    style="max-height: 17px; vertical-align: text-bottom"
+                                                />
                                                 <i
-                                                    x-show="message.user?.is_lifetime == 1"
-                                                    class="fal fa-star"
-                                                    id="lifeline"
-                                                    title="Lifetime donor"
+                                                    x-show="message.user?.donor_badge_icon && ! message.user?.donor_badge_icon?.endsWith('.svg')"
+                                                    :class="message.user?.donor_badge_icon"
+                                                    :style="'color: ' + (message.user?.donor_badge_color || 'inherit')"
+                                                    :title="message.user?.donor_badge_title"
                                                 ></i>
                                                 <i
-                                                    x-show="message.user?.is_donor == 1 && message.user?.is_lifetime == 0"
+                                                    x-show="message.user?.is_lifetime == 1 && ! message.user?.donor_badge_icon"
+                                                    class="fal fa-star"
+                                                    id="lifeline"
+                                                    title="Donante de por vida"
+                                                ></i>
+                                                <i
+                                                    x-show="message.user?.is_donor == 1 && message.user?.is_lifetime == 0 && ! message.user?.donor_badge_icon"
                                                     class="fal fa-star text-gold"
-                                                    title="Donor"
+                                                    title="Donante"
                                                 ></i>
                                             </a>
                                         </address>

@@ -43,7 +43,7 @@
                                 <span
                                     style="
                                         color: {{ $group->color }};
-                                        background-image: {{ $group->effect }};
+                                        background: {{ $group->effect }};
                                     "
                                 >
                                     <i class="{{ $group->icon }}"></i>

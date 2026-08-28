@@ -35,6 +35,12 @@ class EnforceSecurityRequirements
         // de Telegram, y su cuenta de TG ya esta en el grupo de NOBS, no en
         // el de staging.
         'NoSoyAni',
+        // Cuenta de pruebas del operador, con rol de admin para testear.
+        // No tiene 2FA ni Telegram y el bloqueo le impedia llegar a las
+        // paginas que precisamente hay que probar. No existe ningun 'test'
+        // en produccion; si algun dia alguien se registra con ese nombre,
+        // quedaria exento sin querer: revisar entonces.
+        'test',
     ];
 
     /**

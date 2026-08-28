@@ -66,6 +66,8 @@ final class DonationPackage extends Model
             'upload_value' => 'int',
             'invite_value' => 'int',
             'bonus_value'  => 'int',
+            'fl_token_value' => 'int',
+            'payment_url'  => 'string',
             'donor_value'  => 'int',
             'is_active'    => 'bool',
             'created_at'   => 'datetime',

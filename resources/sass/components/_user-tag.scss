@@ -6,6 +6,25 @@
     align-items: baseline;
 }
 
+/*
+ * `groups.effect` se inyecta en línea como atajo `background` completo desde
+ * `user-tag.blade.php` y `chat.blade.php`, no como simple `background-image`.
+ * El motivo es que no todos los efectos son texturas: algunos son MARCOS, y
+ * un marco teselado queda mal. Al ser el atajo entero, cada grupo declara su
+ * propio tamaño y repetición:
+ *
+ *   textura -> url(/img/x.gif) center/auto 100% repeat-x
+ *   marco   -> url(/img/x.gif) center/100% 100% no-repeat
+ *
+ * Aquí sólo queda lo que el atajo en línea no puede resolver: impedir que la
+ * caja crezca más que el nombre. Sin esto, donde el contenedor fuerza
+ * `display: block` (blocks/online.blade.php) el efecto se estira a lo ancho de
+ * toda la fila en vez de ceñirse al nick.
+ */
+.user-tag {
+    max-width: fit-content;
+}
+
 .user-tag__link::before {
     margin-right: 0.5ch;
 }
@@ -13,4 +32,50 @@
 .user-tag__link ~ i,
 .user-tag__link ~ a {
     margin-left: 0.5ch;
+}
+
+/*
+ * Icono de rango en formato SVG (donantes). Sustituye al glifo de FontAwesome
+ * que normalmente pinta `.user-tag__link::before`, asi que replica su tamaño
+ * (1em, escala con la fuente) y su separacion (0.5ch), para que un donante y
+ * un no donante queden alineados en la misma lista.
+ */
+.user-tag__rank-svg {
+    /*
+     * 1.75em en vez de 1em: el glifo de FontAwesome se lee bien a tamaño de
+     * texto porque es una fuente hinteada, pero un SVG con detalle (una parca,
+     * un alien) necesita mas superficie o se convierte en una mancha. Al ir en
+     * `em` sigue escalando con la fuente, asi que en el perfil (22px) crece
+     * solo. `align-self: center` evita que arrastre la linea base y separe las
+     * filas de un listado.
+     */
+    height: 1.75em;
+    width: 1.75em;
+    object-fit: contain;
+    align-self: center;
+    margin-right: 0.4ch;
+    flex: none;
+}
+
+/*
+ * Insignia SVG a la DERECHA del nick, la que sustituye a la estrella de
+ * donante. Antes llevaba un `@style` en linea con `max-height` en pixeles
+ * (22 en el perfil, 17 en listados), que no escalaba con la fuente y la dejaba
+ * pegada al nombre.
+ *
+ * - `height: 2em`  -> el doble de lo que ocupaba, y en `em` para crecer sola
+ *                     en el perfil, donde la fuente es de 22px.
+ * - `margin-left`  -> separacion real del nombre; antes heredaba los 0.5ch
+ *                     genericos de `.user-tag__link ~ i`.
+ * - `translateY`   -> la baja un 10% de su propia altura. Se probo con 30% y
+ *                     se pasaba; el resto del desajuste es del propio SVG.
+ */
+.user-tag__badge-svg {
+    height: 2em;
+    width: auto;
+    object-fit: contain;
+    flex: none;
+    align-self: center;
+    margin-left: 1.08ch;
+    transform: translateY(10%);
 }

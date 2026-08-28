@@ -38,6 +38,7 @@
                                 <th>Upload (GiB)</th>
                                 <th>Invite (#)</th>
                                 <th>Bonus (#)</th>
+                                <th>Cupones (#)</th>
                                 <th>Supporter (Days)</th>
                                 <th>Active</th>
                             </tr>
@@ -103,6 +104,14 @@
                                 <td>
                                     <input
                                         type="number"
+                                        name="fl_token_value"
+                                        value="{{ $package->fl_token_value }}"
+                                        class="form__text"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
                                         name="donor_value"
                                         value="{{ $package->donor_value }}"
                                         class="form__text"
@@ -123,6 +132,21 @@
                         </tbody>
                     </table>
                 </div>
+                {{-- Fuera de la tabla a proposito: una URL de PayPal no cabe en
+                     una celda de una tabla de nueve columnas. --}}
+                <p class="form__group">
+                    <input
+                        id="payment_url"
+                        class="form__text"
+                        type="url"
+                        name="payment_url"
+                        value="{{ $package->payment_url }}"
+                        placeholder="https://www.paypal.com/donate/?hosted_button_id=..."
+                    />
+                    <label for="payment_url" class="form__label form__label--floating">
+                        URL de pago del tier (vacío = pasarela genérica)
+                    </label>
+                </p>
                 <button type="submit" class="form__button form__button--filled">Update</button>
             </form>
         </div>

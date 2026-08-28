@@ -32,6 +32,7 @@
                             <th>Upload (Bytes)</th>
                             <th>Invite (#)</th>
                             <th>Bonus (#)</th>
+                            <th>Cupones (#)</th>
                             <th>Supporter (Days)</th>
                             <th>Active</th>
                         </tr>
@@ -103,6 +104,15 @@
                             <td>
                                 <input
                                     type="number"
+                                    name="fl_token_value"
+                                    value=""
+                                    placeholder="nullable"
+                                    class="form__text"
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
                                     name="donor_value"
                                     value=""
                                     placeholder="(empty for lifetime)"
@@ -122,6 +132,20 @@
                         </tr>
                     </tbody>
                 </table>
+                {{-- Fuera de la tabla: una URL de PayPal no cabe en una celda. --}}
+                <p class="form__group">
+                    <input
+                        id="payment_url"
+                        class="form__text"
+                        type="url"
+                        name="payment_url"
+                        value=""
+                        placeholder="https://www.paypal.com/donate/?hosted_button_id=..."
+                    />
+                    <label for="payment_url" class="form__label form__label--floating">
+                        URL de pago del tier (vacío = pasarela genérica)
+                    </label>
+                </p>
                 <button type="submit" class="form__button form__button--filled">Create</button>
             </form>
         </div>
