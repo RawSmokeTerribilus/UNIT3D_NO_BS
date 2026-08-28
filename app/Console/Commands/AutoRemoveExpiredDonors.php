@@ -23,6 +23,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class AutoRemoveExpiredDonors extends Command
@@ -48,7 +49,10 @@ class AutoRemoveExpiredDonors extends Command
      */
     final public function handle(): void
     {
-        $expiredDonors = User::where('is_donor', '=', true)
+        // `with('group')` porque el bucle pregunta `esStaff()` por usuario: sin
+        // esto es una consulta por donante vencido.
+        $expiredDonors = User::with('group')
+            ->where('is_donor', '=', true)
             ->where('is_lifetime', '=', false)
             ->whereHas('donations')
             ->whereDoesntHave('donations', function ($query): void {
@@ -71,9 +75,31 @@ class AutoRemoveExpiredDonors extends Command
             $user->donor_rank_icon = null;
             $user->donor_rank_color = null;
             $user->donor_effect = null;
+
+            // El icono propio (imagen subida por el usuario) tambien caduca.
+            // Antes no hacia falta limpiarlo porque solo lo tenian lifetime y
+            // staff, que no vencen nunca; al abrirlo a todo donante, sin esto
+            // una donacion de un mes dejaba un adorno permanente.
+            //
+            // El staff lo conserva MIENTRAS sea staff: su derecho no viene de
+            // la donacion sino del cargo, y `esStaff()` es la definicion unica
+            // de eso — la misma que abre el campo en el formulario.
+            //
+            // Se borra tambien el fichero, no solo la fila: es lo que ya hace
+            // `User\UserController` al reemplazar un icono, y si no el disco
+            // acumula huerfanos que nadie vuelve a mirar.
+            if ($user->icon !== null && !$user->group->esStaff()) {
+                Storage::disk('user-icons')->delete($user->icon);
+                $user->icon = null;
+            }
+
             $user->save();
 
+            // Dos cachés: `user:{passkey}` la lee el announce, `cachedUser.{id}`
+            // la web. Olvidar solo la primera dejaba al donante vencido luciendo
+            // sus perks otros 30 s.
             cache()->forget('user:'.$user->passkey);
+            cache()->forget('cachedUser.'.$user->id);
             Unit3dAnnounce::addUser($user);
         }
 

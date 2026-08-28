@@ -104,12 +104,26 @@ class DonationController extends Controller
         $donation->user->is_donor = true;
         $donation->user->is_lifetime = $donation->package->donor_value === null;
         $donation->user->seedbonus += $donation->package->bonus_value ?? 0;
-        // La insignia se copia al usuario en vez de resolverse por relación:
-        // `user-tag` se pinta una vez por nick y por listado, y ahí un join
-        // extra es un N+1 en la vista más caliente del sitio.
-        $donation->user->donor_badge_title = $donation->package->badge_title;
-        $donation->user->donor_badge_icon = $donation->package->badge_icon;
-        $donation->user->donor_badge_color = $donation->package->badge_color;
+
+        // Los cupones NO se abonaban. El campo existia en el paquete y el
+        // mensaje de bienvenida ya los prometia, pero nadie los sumaba: el
+        // donante recibia un correo diciendo que tenia N cupones y un saldo
+        // de cero. `fl_tokens` es un contador simple y AutoRemoveExpiredDonors
+        // no lo toca a proposito, asi que sobreviven a la caducidad.
+        $donation->user->fl_tokens += $donation->package->fl_token_value ?? 0;
+
+        // La insignia es FIJA para todo donante y vive en la config, no en el
+        // paquete: es el unico de los tres perks graficos que no elige el
+        // donante. Antes se copiaba de `donation_packages`, lo que obligaba a
+        // repetir el mismo valor en las cinco filas y a tocar la base de datos
+        // para cambiar un icono.
+        //
+        // Se copia al usuario en vez de resolverse por relacion porque
+        // `user-tag` se pinta una vez por nick y por listado, y ahi un join
+        // extra es un N+1 en la vista mas caliente del sitio.
+        $donation->user->donor_badge_title = config('perks-donante.insignia.rotulo');
+        $donation->user->donor_badge_icon = config('perks-donante.insignia.fichero');
+        $donation->user->donor_badge_color = null;
         $donation->user->save();
 
         $conversation = Conversation::create(['subject' => 'Tu donación del '.$donation->created_at.' ha sido aprobada por '.$request->user()->username]);
@@ -123,7 +137,12 @@ class DonationController extends Controller
 
         $donation->save();
 
+        // Dos cachés distintas, y olvidar sólo una fue el bug que costó cuatro
+        // intentos: `user:{passkey}` es la del announce, pero lo que pinta la
+        // web es `cachedUser.{id}` (helper CacheUser, 30 s). Sin la segunda, el
+        // donante no ve su insignia hasta medio minuto después de aprobarla.
         cache()->forget('user:'.$donation->user->passkey);
+        cache()->forget('cachedUser.'.$donation->user->id);
         Unit3dAnnounce::addUser($donation->user);
 
         return redirect()->route('staff.donations.index')

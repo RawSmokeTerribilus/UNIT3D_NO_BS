@@ -114,12 +114,27 @@
             </li>
         @elseif ($motivoSinCupon !== 'ya-usado' && $user->fl_tokens > 0)
             {{-- El hueco mudo era el bug de usabilidad: sin esto parece que la
-                 funcion no existe. Solo se pinta a quien TIENE cupones. --}}
+                 funcion no existe. Solo se pinta a quien TIENE cupones.
+
+                 Dos frases enteras aqui ocupaban tres lineas y descuadraban la
+                 fila de botones. Se queda una linea corta a su misma altura; el
+                 motivo y el como se gastan viven en el `title`, que es donde se
+                 buscan. `nowrap` porque la fila es flex y sin el vuelve a
+                 partirse en cuanto el nombre del torrent empuja.
+
+                 Sin `color`: hereda el del cuerpo, y ese es el unico que TODO
+                 tema garantiza legible sobre su propio fondo. Se probo con
+                 `var(--button-outlined-fg)` para igualar a los botones, pero
+                 hay temas que la clavan (`white` en md3-navy, `#bc13fe` en
+                 nobs) y los `_dark-*` ni la definen: en un boton eso funciona
+                 porque lleva fondo y borde propios, en un <span> pelado no. --}}
             <li class="form__group form__group--short-horizontal">
-                <span class="text-info" title="{{ __('torrent.fl-token-where') }}">
-                    <i class="{{ config('other.font-awesome') }} fa-circle-info"></i>
-                    {{ __('torrent.fl-token-unneeded-'.$motivoSinCupon) }}
-                    {{ trans_choice('torrent.fl-tokens-kept', $user->fl_tokens, ['tokens' => $user->fl_tokens]) }}
+                <span
+                    style="align-self: center; white-space: nowrap; font-size: 0.9em"
+                    title="{{ __('torrent.fl-token-unneeded-'.$motivoSinCupon) }} {{ __('torrent.fl-token-where') }}"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-ticket"></i>
+                    {{ trans_choice('torrent.fl-tokens-chip', $user->fl_tokens, ['tokens' => $user->fl_tokens]) }}
                 </span>
             </li>
         @endif

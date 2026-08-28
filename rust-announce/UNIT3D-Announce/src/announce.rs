@@ -439,10 +439,28 @@ pub async fn announce(
             return Err(GroupNotEnabled(group.slug));
         }
 
-        // Make sure user isn't leeching more torrents than their group allows
+        // Make sure user isn't leeching more torrents than their group allows.
+        //
+        // Donors are exempt when DONOR_UNLIMITED_DOWNLOAD_SLOTS is on. Upstream
+        // only ever looked at the group, so a donor sitting in a group with a
+        // slot cap hit the same wall as everyone else — while the donation page
+        // promised unlimited slots. The exemption covers lifetime donors too:
+        // `is_donor` stays true for them.
+        let donor_ignores_slot_limit =
+            user.is_donor && config.donor_unlimited_download_slots == Some(true);
+
         let has_hit_download_slot_limit = if queries.left > 0 {
             if let Some(slots) = group.download_slots {
-                user.num_leeching >= slots
+                // `slots == 0` is not a cap, it is a block: the leech and limbo
+                // groups use it to stop downloads outright, and they are not
+                // covered by the banned/validating/disabled check above. The
+                // donor perk lifts a LIMIT, it does not undo a punishment, so a
+                // donor demoted into one of those groups stays blocked.
+                if donor_ignores_slot_limit && slots > 0 {
+                    false
+                } else {
+                    user.num_leeching >= slots
+                }
             } else {
                 false
             }

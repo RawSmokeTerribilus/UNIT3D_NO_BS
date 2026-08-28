@@ -34,8 +34,33 @@ return [
     | Configure site to use Donation System
     |
     */
+    // NO se edita a mano: manda la fila `donation.is_enabled` de la tabla
+    // `settings`, que `SettingServiceProvider` aplica con Config::set() en cada
+    // petición. Aquí sólo vive el valor por defecto de una instalación nueva, y
+    // se deja APAGADO para que portar este fichero no encienda las donaciones
+    // en otro entorno por sorpresa. El interruptor está en /dashboard/config.
     'is_enabled'   => false,
     'monthly_goal' => 100,
     'currency'     => 'EUR',
-    'description'  => 'un billete pa un filete?',
+
+    /*
+     * Cómo se llama la pasarela de cara al donante. Sale por config y no
+     * escrito en la vista porque el proveedor se cambia: se empezó con PayPal,
+     * que en cuenta personal enseña el nombre legal del titular en el checkout,
+     * y se pasó a Ko-fi, que enseña el nombre de la página. Ambas cosas se
+     * gestionan desde /dashboard/config, sin tocar código.
+     */
+    'gateway_label' => 'Ko-fi',
+
+    /*
+     * ¿El enlace del tramo lleva el importe ya fijado?
+     *
+     * Con botones alojados de PayPal, sí. Con una página de propina genérica,
+     * NO: el donante teclea la cantidad. De esto depende el texto del diálogo,
+     * y decirle «no tienes que escribir nada» cuando sí tiene que hacerlo es
+     * exactamente el tipo de mentira que hace que una donación acabe con el
+     * importe equivocado.
+     */
+    'amount_prefilled' => false,
+    'description'  => '¿Un billete pa un filete?',
 ];

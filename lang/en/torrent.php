@@ -250,6 +250,7 @@ return [
     'fl-token-unneeded-freeleech-personal'=> 'You have personal freeleech active.',
     'fl-token-unneeded-donante'           => 'You are a donor: your downloads are not counted.',
     'fl-token-unneeded-freeleech-grupo'   => 'Your rank already includes freeleech.',
+    'fl-tokens-chip'               => '{1}1 token saved|[2,*]:tokens tokens saved',
     'fl-tokens-kept'               => '{1}Your token stays saved for when you need it.|[2,*]Your :tokens tokens stay saved for when you need them.',
     'video'                    => 'Video',
     'view-more'                => 'View more',

@@ -200,7 +200,14 @@ class UserController extends Controller
             }
         }
 
-        if (($request->hasFile('icon') && $user->is_lifetime) || ($request->hasFile('icon') && $user->group->is_modo)) {
+        // Antes: `is_lifetime || is_modo`. El icono propio era el unico perk
+        // reservado a un tier, y eso contradice la regla del sistema: solo el
+        // TIEMPO y los BON separan tiers, el resto es comun. Ademas el gate
+        // estaba desincronizado — el controlador aceptaba a `is_modo` pero el
+        // formulario solo enseñaba el campo a `is_lifetime`, asi que el staff
+        // podia subir icono y no tenia donde hacerlo. De ahi que el contador
+        // llevara 0 usuarios desde siempre.
+        if ($request->hasFile('icon') && ($user->is_donor || $user->group->esStaff())) {
             $image = $request->file('icon');
 
             abort_if(\is_array($image), 400);

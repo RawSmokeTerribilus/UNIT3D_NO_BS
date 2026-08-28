@@ -246,6 +246,7 @@ return [
     'fl-token-unneeded-freeleech-personal'=> 'Tienes freeleech personal activo.',
     'fl-token-unneeded-donante'           => 'Eres donante: lo que bajes no te cuenta.',
     'fl-token-unneeded-freeleech-grupo'   => 'Tu rango ya incluye freeleech.',
+    'fl-tokens-chip'               => '{1}1 cupón guardado|[2,*]:tokens cupones guardados',
     'fl-tokens-kept'               => '{1}Tu cupón sigue guardado para cuando lo necesites.|[2,*]Tus :tokens cupones siguen guardados para cuando los necesites.',
     'video' => 'Vídeo',
     'view-more' => 'Ver más',

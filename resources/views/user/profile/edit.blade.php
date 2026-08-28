@@ -43,7 +43,10 @@
                         type="file"
                     />
                 </p>
-                @if ($user->is_lifetime)
+                {{-- Mismo gate que el controlador (`User/UserController.php`).
+                     Si se tocan por separado se vuelve a lo de antes: un campo
+                     que no se ve pero cuya subida se acepta, o al reves. --}}
+                @if ($user->is_donor || $user->group->esStaff())
                     <p class="form__group">
                         <label for="icon" class="form__label">Icono</label>
                         <input
