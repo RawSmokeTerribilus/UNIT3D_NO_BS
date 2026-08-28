@@ -50,7 +50,14 @@
 
 }
 
-.donation-panel__body {
+// `.donation-panel > .donation-panel__body` y no `.donation-panel__body` a secas:
+// `.panel__body` global trae `display: flow-root` con la MISMA especificidad
+// (0,1,0) y se declara DESPUES en el bundle, asi que ganaba. Resultado: el
+// `display: flex` no aplicaba y con el se perdia el `gap`, que es lo que dejaba
+// el manifiesto, las ventajas y las tarjetas pegados entre si mientras que las
+// tarjetas si se separaban de la vitalicia — ese hueco lo pone el `gap` de la
+// rejilla, que si estaba activo.
+.donation-panel > .donation-panel__body {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
@@ -432,6 +439,65 @@
 }
 
 .donation-dialog__hint { margin: 0; font-size: 0.78rem; color: var(--d-faint); }
+
+// El codigo de ejemplo del recibo. Sin esto hereda el `code` global, que es
+// monoespaciado a tamaño de parrafo: en el ancho de un dialogo se lleva la linea
+// entera y parte el parrafo en dos trozos descuadrados.
+.donation-dialog__step-body code {
+  font-size: 0.85em;
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+  background: var(--d-surface-2);
+  overflow-wrap: anywhere;
+}
+
+// Los botones del paso 2. `.form__group--horizontal` global usa
+// `repeat(auto-fit, minmax(240px, 1fr))`, y dentro del dialogo la columna util
+// no llega a 240 px: colapsa a una sola columna y deja dos botones a todo lo
+// ancho, uno encima de otro. Enviar y Cerrar no pesan lo mismo, y pintar
+// «Cerrar» del tamaño de la accion principal es justo lo contrario de lo que
+// toca.
+.donation-dialog .dialog__form .form__group--horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+
+  .form__button { width: auto; }
+
+  // El envio se lleva el sobrante; cerrar se queda en lo que ocupa su texto.
+  .form__button--filled { flex: 1 1 auto; }
+  .form__button--outlined { flex: 0 0 auto; padding-inline: 1.25rem; }
+}
+
+// --- el DIALOGO va por @media, no por @container -----------------------------
+//     Vive en el top layer y no tiene ningun contenedor de consulta por encima,
+//     asi que `@container` no le aplicaria. Ademas es correcto: su ancho lo
+//     manda la ventana, no el panel.
+@media (max-width: 30rem) {
+  .donation-dialog { padding: 14px; }
+
+  // El numero deja de robar una columna: pasa a ir sobre el titulo, en linea.
+  // Con la columna de 1.9rem mas los huecos, en una ventana estrecha al cuerpo
+  // del paso le quedaban ~190 px utiles y todo dentro se veia metido hacia
+  // dentro respecto a la caja.
+  .donation-dialog__step {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.85rem;
+
+    &::before {
+      grid-row: auto;
+      justify-self: start;
+    }
+  }
+
+  .donation-dialog__step-title,
+  .donation-dialog__step-body { grid-column: 1; }
+
+  .donation-dialog .dialog__form .form__group--horizontal .form__button {
+    width: 100%;
+  }
+}
 
 // --- adaptativo por CONTENEDOR (no por viewport): sirve igual dentro del
 //     panel, en la barra lateral o en móvil ------------------------------------
