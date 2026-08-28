@@ -2,7 +2,7 @@
     background-color: #000000 !important;
     box-shadow: 0 4px 10px rgba(254, 1, 154, 0.3), 0 1px 0 #fe019a !important;
     display: grid;
-    grid-template: 'left . menus . right toggle' 60px / 1fr 40px auto 40px 1fr auto;
+    grid-template: 'left . menus . right toggle' 44px / 1fr 40px auto 40px 1fr auto;
     align-items: center;
     padding: 0 14px;
     position: relative;
@@ -19,8 +19,16 @@
         pointer-events: none;
     }
 
-    @media screen and (min-width: 767px) and (max-width: 1400px) {
-        grid-template: 'ratio-bar ratio-bar ratio-bar ratio-bar ratio-bar ratio-bar' 24px 'left . menus . icon-bar toggle' 60px / 1fr 16px auto 24px 1fr auto;
+    // `left` a 2fr contra el 1fr de `icon-bar`.
+    //
+    // Los dos eran 1fr, o sea que se repartian el sobrante a partes iguales.
+    // Pero `icon-bar` son cinco iconos alineados a la derecha: todo su tramo se
+    // le iba en aire, mientras `left` (logo + nombre del sitio + buscador) iba
+    // justo. Con 2fr/1fr el sobrante se parte dos tercios / un tercio, que a
+    // 1920 deja a la izquierda ~850 px en vez de ~640 y a los iconos ~425, de
+    // sobra para lo que llevan.
+    @media screen and (min-width: 767px) and (max-width: 2099px) {
+        grid-template: 'ratio-bar ratio-bar ratio-bar ratio-bar ratio-bar ratio-bar' 24px 'left . menus . icon-bar toggle' 44px / 2fr 16px auto 24px 1fr auto;
     }
 
     &.mobile {
@@ -35,7 +43,7 @@
     display: flex;
     column-gap: 32px;
 
-    @media screen and (min-width: 767px) and (max-width: 1400px) {
+    @media screen and (min-width: 767px) and (max-width: 2099px) {
         column-gap: 12px;
     }
 
@@ -54,7 +62,7 @@
     column-gap: 40px;
     justify-content: end;
 
-    @media screen and (min-width: 767px) and (max-width: 1400px) {
+    @media screen and (min-width: 767px) and (max-width: 2099px) {
         display: contents;
     }
 
@@ -137,14 +145,14 @@
 /* Dropdowns
 ******************************************************************************/
 
-/* Full-height triggers: the dropdown menu opens at ~55px (just below the 60px
+/* Full-height triggers: the dropdown menu opens at ~39px (just below the 44px
    bar), but the trigger was only content-height (~30px, centred via margin:auto
    on .top-nav__main-menus), leaving a dead gap between trigger and menu. Crossing
    that gap dropped :hover and collapsed the menu mid-move. Stretching the trigger
    to the full bar height makes the hover zone reach the menu — no gap, hover
    stays through the move to an option. */
 .top-nav__main-menus > .top-nav__dropdown {
-    height: 60px;
+    height: 44px;
     display: flex;
     align-items: center;
 }
@@ -206,7 +214,7 @@
 .top-nav__dropdown > ul {
     display: none;
     position: absolute;
-    top: calc(60px - 5px);
+    top: calc(44px - 5px);
     flex-direction: column;
     padding: 6px;
     row-gap: 6px;
@@ -218,9 +226,9 @@
     z-index: 1000;
 }
 
-@media screen and (min-width: 767px) and (max-width: 1400px) {
+@media screen and (min-width: 767px) and (max-width: 2099px) {
     .top-nav__dropdown > ul {
-        top: calc(60px + 24px - 5px);
+        top: calc(44px + 24px - 5px);
     }
 }
 
@@ -321,10 +329,29 @@
     padding: 0;
     margin: 0;
 
-    @media screen and (min-width: 767px) and (max-width: 1400px) {
+    // Las stats bajan a su propia fila y van en UNA linea de 8 columnas.
+    //
+    // Este corte llegaba solo hasta 1400 px, y de 1400 a 2100 la barra volvia a
+    // la misma fila que el menu en 2 filas x 4 columnas. Ese bloque es ancho, y
+    // en una pantalla de 1920 con cifras largas (77.12 TiB, 12 139 981 BON) se
+    // comia el ancho del titulo y del buscador: el titulo partia en dos lineas y
+    // el buscador colapsaba a un hueco. No era deriva de codigo — el mismo HTML
+    // y el mismo CSS se ven bien con cifras cortas y rotos con cifras largas.
+    //
+    // A partir de 2100 px la fila unica si cabe y se mantiene como estaba.
+    @media screen and (min-width: 767px) and (max-width: 2099px) {
         grid-area: ratio-bar;
         grid-template-rows: auto;
         grid-template-columns: repeat(8, auto);
+        gap: 3px 14px;
+        font-size: 12px;
+
+        // A la derecha, no centradas. El area abarca las seis columnas, asi que
+        // centrado dejaba la fila de stats sin relacion con nada de la fila de
+        // abajo: ni con el logo a la izquierda ni con los iconos a la derecha.
+        // Alineadas al final comparten borde con la barra de iconos y las dos
+        // filas quedan ancladas por el mismo lado.
+        justify-content: end;
     }
 
     @media screen and (min-width: 2100px) {
@@ -402,7 +429,7 @@
     margin: 0;
     padding: 0;
 
-    @media screen and (min-width: 767px) and (max-width: 1400px) {
+    @media screen and (min-width: 767px) and (max-width: 2099px) {
         grid-area: icon-bar;
         justify-content: end;
     }
@@ -443,11 +470,11 @@
 }
 
 /* Avatar/user dropdown: same full-height-trigger fix as the main menus. The
-   icon-bar icons are 32px, centred in the 60px bar, so the avatar trigger left a
+   icon-bar icons are 32px, centred in the 44px bar, so the avatar trigger left a
    dead gap above its menu (opens ~55px) that collapsed on hover-move. Stretch the
    avatar's dropdown li to full bar height so hover carries into the menu. */
 .top-nav__icon-bar > .top-nav__dropdown {
-    height: 60px;
+    height: 44px;
     display: flex;
     align-items: center;
 }
@@ -534,8 +561,42 @@
         white-space: nowrap;
     }
 
-    @media screen and (min-width: 1900px) {
+    // 1900 -> 2100: el nick solo cabe en la maqueta de UNA fila.
+    //
+    // De 767 a 2099 la barra usa la variante de dos filas, y ahi
+    // `.top-nav__right` es `display: contents` para que las stats puedan
+    // escaparse a su propia area. Sus hijos pasan a ser elementos de la rejilla
+    // del nav: `.top-nav__ratio-bar` y `.top-nav__icon-bar` tienen `grid-area`
+    // propia, pero el nick no, asi que se autocolocaba en la primera celda
+    // libre — la del menu — y se pintaba ENCIMA de «Torrents».
+    //
+    // Se ata al mismo corte que la maqueta de una fila. Entre 1900 y 2099 se
+    // pierde el nick escrito; el avatar sigue ahi al lado y lo lleva dentro.
+    @media screen and (min-width: 2100px) {
         display: flex;
+    }
+
+    // De 1400 a 2099 vuelve, en la FILA DEL MENU y dentro del area de los iconos.
+    //
+    // Aqui `.top-nav__right` es `display: contents`, asi que el nick es un
+    // elemento suelto de la rejilla del nav. Sin `grid-area` se autocolocaba en
+    // la primera celda libre — la del menu — y se pintaba ENCIMA de «Torrents».
+    // Con area explicita tiene sitio propio y no puede invadir nada.
+    //
+    // `justify-self: start` contra el `justify-content: end` de la barra de
+    // iconos: el nick al principio del area, los iconos al final, y el hueco de
+    // en medio hace de separacion entre el nombre y los controles. El area es
+    // 1fr, asi que esa distancia crece con la pantalla en vez de ir clavada en
+    // pixeles. Por debajo de 1400 px el area ya no da de si y se oculta.
+    //
+    // 17px, el mismo cuerpo que las entradas del menu: a 14 se leia como una
+    // nota al pie al lado de iconos de 32.
+    @media screen and (min-width: 1400px) and (max-width: 2099px) {
+        display: flex;
+        grid-area: icon-bar;
+        justify-self: start;
+        align-self: center;
+        font-size: 17px;
     }
 }
 

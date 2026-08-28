@@ -124,6 +124,13 @@ pub struct Config {
     /// If specified, this will override the download factor of the user's
     /// group. The factor is stored as a percentage.
     pub lifetime_donor_download_factor_override: Option<u8>,
+    /// If true, donors ignore their group's `download_slots` limit.
+    ///
+    /// The other donor perks are overrides of a numeric group value, so they
+    /// fit the `Option<T>` pattern above. This one is a lift of a limit, not a
+    /// different value for it, so it is a plain flag: `Some(true)` removes the
+    /// cap, anything else leaves the group's limit in place.
+    pub donor_unlimited_download_slots: Option<bool>,
 }
 
 impl Config {
@@ -313,6 +320,14 @@ impl Config {
                 "DONOR_DOWNLOAD_FACTOR_OVERRIDE must be a number between 0 and 2^8 - 1, if provided",
             )?;
 
+        let donor_unlimited_download_slots = env::var("DONOR_UNLIMITED_DOWNLOAD_SLOTS")
+            .ok()
+            .map(|s| s.parse())
+            .transpose()
+            .context(
+                "DONOR_UNLIMITED_DOWNLOAD_SLOTS must be either `true` or `false`, if provided",
+            )?;
+
         let lifetime_donor_immunity_override = env::var("LIFETIME_DONOR_IMMUNITY_OVERRIDE")
             .ok()
             .map(|s| s.parse())
@@ -379,6 +394,7 @@ impl Config {
             lifetime_donor_immunity_override,
             lifetime_donor_upload_factor_override,
             lifetime_donor_download_factor_override,
+            donor_unlimited_download_slots,
         })
     }
 

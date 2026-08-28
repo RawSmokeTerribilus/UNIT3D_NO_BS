@@ -76,6 +76,15 @@ class ConfigManager extends Component
             ],
         ],
         [
+            'title' => 'Donaciones',
+            'icon'  => 'fa-hand-holding-heart',
+            'settings' => [
+                'donation.is_enabled' => ['label' => 'Sistema de donaciones activo', 'hint' => 'Muestra «Donar» en el menú y la página de tramos. Apagado, la página no es accesible y el panel de donaciones del staff se oculta', 'type' => 'boolean'],
+                'donation.gateway_label' => ['label' => 'Nombre de la pasarela', 'hint' => 'Cómo se llama de cara al donante: Ko-fi, PayPal, Stripe… Aparece en el botón de pago y en el diálogo', 'type' => 'text'],
+                'donation.amount_prefilled' => ['label' => 'El enlace lleva el importe fijado', 'hint' => 'Actívalo sólo si el enlace de cada tramo abre la pasarela con la cantidad ya puesta. Si el donante tiene que teclearla, déjalo apagado y el diálogo se lo dirá', 'type' => 'boolean'],
+            ],
+        ],
+        [
             'title' => 'Sistema de Thanks',
             'icon'  => 'fa-heart',
             'settings' => [

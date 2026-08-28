@@ -58,6 +58,9 @@ class SettingSeeder extends Seeder
             'other.invite-only' => config('other.invite-only') ? 'true' : 'false',
             'thanks-system.is-enabled' => config('thanks-system.is-enabled') ? 'true' : 'false',
             'services.telegram.instance_label' => (string) config('services.telegram.instance_label'),
+            'donation.is_enabled' => config('donation.is_enabled') ? 'true' : 'false',
+            'donation.gateway_label' => (string) config('donation.gateway_label'),
+            'donation.amount_prefilled' => config('donation.amount_prefilled') ? 'true' : 'false',
         ];
 
         foreach ($settings as $key => $value) {

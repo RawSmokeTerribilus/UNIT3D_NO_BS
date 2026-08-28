@@ -373,8 +373,22 @@
 // a traves. Se reutilizan los mismos tokens de tema que `.dialog__form`, para
 // que un dialogo de donaciones y uno de cualquier otra pagina se vean iguales.
 .donation-dialog {
-  max-width: 32rem;
-  padding: 20px;
+  // El doble de ancho y de alto que antes (32rem -> 64rem). `.dialog` global
+  // centra con `left/right: calc(50vw - min(500px / 2, ...))`, o sea con los
+  // 500 px escritos a mano: si sólo se cambia el ancho, el centrado deja de
+  // cuadrar. Por eso se anulan los offsets y se centra con `margin-inline`.
+  width: min(64rem, calc(100vw - 24px));
+  max-width: none;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+
+  // El alto lo manda el contenido (la hoja de estilos del navegador pone
+  // `height: fit-content` a los <dialog>), así que para darle presencia se pide
+  // un mínimo en vez de una altura fija: si el contenido crece, crece con él.
+  min-height: min(34rem, calc(100vh - 24px));
+
+  padding: 28px;
   border: var(--dialog-border);
   background-color: var(--dialog-bg);
   box-shadow: var(--dialog-box-shadow);
@@ -401,7 +415,7 @@
 
 .donation-dialog__step {
   display: grid;
-  grid-template-columns: 1.9rem 1fr;
+  grid-template-columns: 2.2rem 1fr;
   gap: 0.4rem 0.85rem;
   padding: 0.95rem 1rem;
   border: 1px solid var(--d-line-soft);
@@ -414,31 +428,74 @@
     grid-row: span 2;
     display: grid;
     place-items: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2.2rem;
+    height: 2.2rem;
     border: 1px solid var(--d-accent-line);
     border-radius: 50%;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--d-accent);
     box-shadow: 0 0 14px color-mix(in oklab, var(--d-accent) 20%, transparent);
   }
 }
 
-.donation-dialog__step-title { margin: 0; font-size: 0.95rem; font-weight: 600; }
+// Tamaños del dialogo, subidos en bloque.
+//
+// Venia todo del mockup a escala de letra pequeña: encabezado 14 px (del
+// `.dialog__heading` global), titulo de paso 15,2, cuerpo 13,6 y la pista 12,5
+// en `--d-faint`, que es el 42 % del color de texto. Cuatro tamaños distintos y
+// todos por debajo del parrafo normal del sitio, en la unica pantalla del
+// proceso donde equivocarse cuesta dinero de verdad.
+//
+// Aqui la legibilidad gana a la discrecion: no es un pie de pagina, es el paso
+// en el que alguien va a teclear un importe. Ademas del tamaño se sube el
+// CONTRASTE, que a partir de cierto punto pesa mas que los pixeles.
+.donation-dialog .dialog__heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding-inline: 0;
+}
+
+.donation-dialog__step-title { margin: 0; font-size: 1.15rem; font-weight: 600; }
 
 .donation-dialog__step-body {
   grid-column: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.8rem;
   margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.55;
-  color: var(--d-mute);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  // Era `--d-mute` (62 %). En un modal enfocado el texto atenuado no aporta
+  // jerarquia, solo cuesta leerlo.
+  color: currentColor;
 }
 
-.donation-dialog__hint { margin: 0; font-size: 0.78rem; color: var(--d-faint); }
+// Las INSTRUCCIONES del proceso, un escalon por encima del resto del cuerpo:
+// «escribe X como cantidad», «escribe tu usuario en el comentario» y «pégalo
+// aquí y envía». Son las tres frases que, si no se leen, mandan la donación con
+// el importe mal, sin dueño o sin resguardo. El resto del dialogo se queda en
+// 1.05rem.
+//
+// El `:not()` es necesario porque la pista tambien es un <p> hijo directo del
+// cuerpo, y un selector descendente (0,1,1) le ganaria a su propia clase
+// (0,1,0). Sin el, la letra pequeña dejaria de serlo.
+.donation-dialog__step-body > p:not(.donation-dialog__hint) {
+  font-size: 1.2rem;
+  line-height: 1.55;
+}
+
+// La pista pasa de `--d-faint` (42 %) a `--d-mute` (62 %): sigue siendo
+// secundaria, pero legible.
+.donation-dialog__hint { margin: 0; font-size: 0.95rem; color: var(--d-mute); }
+
+// El campo del recibo tambien: `.form__text` global es de 14 px y 40 de alto.
+.donation-dialog .form__text {
+  font-size: 1rem;
+  height: 46px;
+}
+
+.donation-dialog .form__button { font-size: 1rem; }
 
 // El codigo de ejemplo del recibo. Sin esto hereda el `code` global, que es
 // monoespaciado a tamaño de parrafo: en el ancho de un dialogo se lleva la linea
@@ -462,11 +519,37 @@
   flex-wrap: wrap;
   gap: 0.6rem;
 
-  .form__button { width: auto; }
+  // `.form__button` global es `width: 100%`. En un dialogo de 64rem eso da
+  // botones de un palmo, y el ancho extra es para que respire la INFORMACION
+  // del proceso, no para agrandar los controles. Se quedan en su texto.
+  .form__button { width: auto; flex: 0 0 auto; padding-inline: 1.5rem; }
+}
 
-  // El envio se lleva el sobrante; cerrar se queda en lo que ocupa su texto.
-  .form__button--filled { flex: 1 1 auto; }
-  .form__button--outlined { flex: 0 0 auto; padding-inline: 1.25rem; }
+// El enlace de pago del paso 1 es el mismo caso: es un <a> con clase de boton,
+// asi que tambien heredaba el 100 %.
+.donation-dialog__step-body > .form__button {
+  width: auto;
+  align-self: flex-start;
+  padding-inline: 1.5rem;
+}
+
+// Los datos que el donante TIENE que copiar. Es lo unico del dialogo que, si se
+// pasa por alto, obliga a perseguir la donacion a mano despues.
+.donation-dialog__nota {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--d-accent-line);
+  border-radius: 5px;
+  background: var(--d-accent-wash);
+  color: currentColor;
+
+  code {
+    font-weight: 700;
+    font-size: 0.95em;
+  }
 }
 
 // --- el DIALOGO va por @media, no por @container -----------------------------
@@ -474,7 +557,7 @@
 //     asi que `@container` no le aplicaria. Ademas es correcto: su ancho lo
 //     manda la ventana, no el panel.
 @media (max-width: 30rem) {
-  .donation-dialog { padding: 14px; }
+  .donation-dialog { padding: 14px; min-height: 0; }
 
   // El numero deja de robar una columna: pasa a ir sobre el titulo, en linea.
   // Con la columna de 1.9rem mas los huecos, en una ventana estrecha al cuerpo
@@ -494,7 +577,8 @@
   .donation-dialog__step-title,
   .donation-dialog__step-body { grid-column: 1; }
 
-  .donation-dialog .dialog__form .form__group--horizontal .form__button {
+  .donation-dialog .dialog__form .form__group--horizontal .form__button,
+  .donation-dialog__step-body > .form__button {
     width: 100%;
   }
 }

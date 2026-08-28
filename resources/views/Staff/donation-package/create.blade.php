@@ -140,7 +140,7 @@
                         type="url"
                         name="payment_url"
                         value=""
-                        placeholder="https://www.paypal.com/donate/?hosted_button_id=..."
+                        placeholder="https://ko-fi.com/tu_pagina"
                     />
                     <label for="payment_url" class="form__label form__label--floating">
                         URL de pago del tier (vacío = pasarela genérica)

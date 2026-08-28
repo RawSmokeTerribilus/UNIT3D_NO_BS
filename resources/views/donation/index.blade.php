@@ -41,6 +41,13 @@
         // tarjeta se lee peor que «5,00 €».
         $moneda = config('donation.currency');
         $importe = fn ($coste) => number_format((float) $coste, 2, ',', '.').' '.($moneda === 'EUR' ? '€' : $moneda);
+
+        // El nombre de la pasarela NO se escribe en la vista: el proveedor se
+        // cambia. Se empezó con PayPal, que en cuenta personal enseña el nombre
+        // legal del titular en el checkout, y eso para un sitio con nombre
+        // propio queda fuera de lugar.
+        $pasarela = config('donation.gateway_label');
+        $importePrefijado = (bool) config('donation.amount_prefilled');
     @endphp
 
     <section x-data class="panelV2 donation-panel">
@@ -204,16 +211,43 @@
                 </h2>
                 <ol class="donation-dialog__steps">
                     <li class="donation-dialog__step">
-                        <h3 class="donation-dialog__step-title">Primero paga en PayPal</h3>
+                        <h3 class="donation-dialog__step-title">Primero paga en {{ $pasarela }}</h3>
                         <div class="donation-dialog__step-body">
                             @if ($package->payment_url !== null)
-                                <p>
-                                    Se abre en otra pestaña. El importe ya va fijado en
-                                    {{ $importe($package->cost) }}, no tienes que escribir nada.
-                                </p>
+                                @if ($importePrefijado)
+                                    <p>
+                                        Se abre en otra pestaña. El importe ya va fijado en
+                                        {{ $importe($package->cost) }}, no tienes que escribir nada.
+                                    </p>
+                                @else
+                                    {{-- Si la pasarela no acepta el importe por enlace, hay
+                                         que DECIRLO. Prometer que no hay nada que teclear
+                                         cuando sí lo hay acaba en donaciones con el importe
+                                         equivocado y en un tramo que no cuadra. --}}
+                                    <p>
+                                        Se abre en otra pestaña. Escribe
+                                        <strong>{{ $importe($package->cost) }}</strong>
+                                        como cantidad: es lo que corresponde a este tramo.
+                                    </p>
+                                @endif
                                 {{-- El enlace se emite LITERAL. Pegarle `?amount=` a un
                                      botón alojado de PayPal lo tumba con «la organización
                                      seleccionada no está disponible». --}}
+                                {{-- El usuario en el comentario. Sin esto la donación
+                                     llega sin dueño y hay que cruzarla a mano contra la
+                                     lista de pendientes, que es exactamente el trabajo
+                                     que el paso 2 existe para evitar. Se pinta el nombre
+                                     ya resuelto para que se pueda copiar tal cual, sin
+                                     que nadie tenga que recordar cómo se escribía. --}}
+                                <p class="donation-dialog__nota">
+                                    <i class="{{ config('other.font-awesome') }} fa-circle-exclamation"></i>
+                                    <span>
+                                        Importante: escribe tu usuario
+                                        <code>{{ auth()->user()->username }}</code>
+                                        en el comentario de la donación. Es lo que nos
+                                        permite saber que es tuya.
+                                    </span>
+                                </p>
                                 <a
                                     class="form__button form__button--filled"
                                     href="{{ $package->payment_url }}"
@@ -221,7 +255,7 @@
                                     rel="noopener noreferrer"
                                 >
                                     <i class="{{ config('other.font-awesome') }} fa-arrow-up-right-from-square"></i>
-                                    Pagar {{ $importe($package->cost) }} en PayPal
+                                    Pagar {{ $importe($package->cost) }} en {{ $pasarela }}
                                 </a>
                             @else
                                 {{-- Sin botón propio se cae a las pasarelas genéricas, que
@@ -269,9 +303,9 @@
                         </h3>
                         <div class="donation-dialog__step-body">
                             <p>
-                                PayPal te da un código de recibo al terminar (algo como
-                                <code>8AB12345CD678901E</code>). Pégalo aquí y envía: sin ese
-                                código no podemos saber que la donación es tuya.
+                                {{ $pasarela }} te da un código de recibo al terminar, o te lo
+                                manda por correo. Pégalo aquí y envía: sin ese código no
+                                podemos saber que la donación es tuya.
                             </p>
                             <form
                                 class="dialog__form"
@@ -293,7 +327,7 @@
                                         class="form__label form__label--floating"
                                         for="transaction-{{ $package->id }}"
                                     >
-                                        Número de transacción de PayPal
+                                        Número de transacción o de recibo
                                     </label>
                                 </p>
                                 <p class="donation-dialog__hint">
