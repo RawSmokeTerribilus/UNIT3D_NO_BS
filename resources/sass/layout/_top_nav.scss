@@ -550,6 +550,19 @@
     text-align: center;
     padding: 12px 0;
     grid-template-columns: auto;
+
+    // Antes esto caia sobre un <a> que ocupaba todo el ancho del desplegable,
+    // asi que `text-align: center` bastaba. Ahora el elemento es el <span> del
+    // componente `x-user-tag`, que es `inline-flex` con `max-width: fit-content`:
+    // se ciñe al texto, y centrar el texto dentro de una caja del tamaño del
+    // texto no mueve nada. Se le devuelve el ancho y se centra el contenido.
+    //
+    // La clase va duplicada en el selector (0,2,0) para ganar a `.user-tag`
+    // (0,1,0) sin recurrir a !important.
+    display: flex;
+    width: 100%;
+    max-width: none;
+    justify-content: center;
 }
 
 .top-nav__username--highresolution {
@@ -594,6 +607,10 @@
     @media screen and (min-width: 1400px) and (max-width: 2099px) {
         display: flex;
         grid-area: icon-bar;
+        // `start` y no `end`: comparte area con la barra de iconos, que va a
+        // `justify-content: end`. Anclar el nombre tambien al final lo mete
+        // EN el mismo sitio que los iconos y se solapan — probado el
+        // 2026-08-29, el nombre salia por detras de ellos.
         justify-self: start;
         align-self: center;
         font-size: 17px;
