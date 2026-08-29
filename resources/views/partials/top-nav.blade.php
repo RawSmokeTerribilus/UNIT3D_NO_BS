@@ -352,7 +352,10 @@
                         title="{{ __('staff.staff-dashboard') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-cogs"></i>
-                        @if ($hasUnresolvedReport)
+                        {{-- Un solo punto para todo lo que espera en el panel de
+                             staff: reportes sin resolver y donaciones pendientes.
+                             Dos puntos pegados en el mismo icono no se distinguen. --}}
+                        @if ($hasUnresolvedReport || $hasPendingDonation)
                             <x-animation.notification />
                         @endif
                     </a>

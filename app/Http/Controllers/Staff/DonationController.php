@@ -36,9 +36,16 @@ class DonationController extends Controller
     {
         abort_unless($request->user()->group->is_owner, 403);
 
+        // Las pendientes primero: son lo único que pide una acción, y quedaban
+        // enterradas por fecha entre las ya resueltas.
         $donations = Donation::with(['package' => function ($query): void {
             $query->withTrashed();
-        }])->latest()->paginate(25);
+        }])
+            ->orderByRaw('donations.status = ? DESC', [ModerationStatus::PENDING->value])
+            ->latest()
+            ->paginate(25);
+
+        $pendingCount = Donation::where('status', '=', ModerationStatus::PENDING)->count();
 
         $dailyDonations = Donation::selectRaw('DATE(donations.created_at) as date, SUM(donation_packages.cost) as total')
             ->join('donation_packages', 'donations.package_id', '=', 'donation_packages.id')
@@ -59,6 +66,7 @@ class DonationController extends Controller
             'donations'        => $donations,
             'dailyDonations'   => $dailyDonations,
             'monthlyDonations' => $monthlyDonations,
+            'pendingCount'     => $pendingCount,
             // El mismo número que rellena la barra del «Sostén» en la barra superior,
             // para que el panel y el botón no puedan contar cosas distintas.
             'monthlyGoal'      => (int) config('donation.monthly_goal'),
