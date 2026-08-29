@@ -72,9 +72,17 @@ class AutoRemoveExpiredDonors extends Command
             // El icono y el efecto tambien caducan. Faltaban aqui: como el
             // render mira si el campo esta puesto y no `is_donor`, sin esto un
             // donante vencido seguiria luciendolos indefinidamente.
-            $user->donor_rank_icon = null;
-            $user->donor_rank_color = null;
-            $user->donor_effect = null;
+            //
+            // Al staff NO se le quitan: su derecho a elegirlos viene del cargo,
+            // no de la donacion, igual que con el icono propio de mas abajo. La
+            // insignia si se va en todos los casos, porque esa dice «he donado»
+            // y eso ha dejado de ser cierto; el icono y el efecto son solo
+            // personalizacion.
+            if (!$user->group->esStaff()) {
+                $user->donor_rank_icon = null;
+                $user->donor_rank_color = null;
+                $user->donor_effect = null;
+            }
 
             // El icono propio (imagen subida por el usuario) tambien caduca.
             // Antes no hacia falta limpiarlo porque solo lo tenian lifetime y

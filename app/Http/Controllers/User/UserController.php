@@ -258,7 +258,11 @@ class UserController extends Controller
         //
         // La insignia de la derecha NO se elige: es común y la fija el
         // controlador de donaciones al aprobar.
-        if ($user->is_donor) {
+        // Donantes y staff. Al staff no se le marca `is_donor` — eso vincularia
+        // dos cosas que no deben estarlo — solo se le abre el selector. Mismo
+        // gate que el formulario: si se tocan por separado se vuelve al bicho
+        // de un campo que no se ve pero cuya escritura se acepta, o al reves.
+        if ($user->is_donor || $user->group->esStaff()) {
             $efectos = config('perks-donante.efectos');
 
             $request->validate([
