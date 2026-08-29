@@ -370,7 +370,6 @@ class StatsController extends Controller
                 [3600, 2 * 24 * 3600],
                 fn () => Peer::query()
                     ->select([
-                        'agent',
                         DB::raw("SUBSTRING_INDEX(SUBSTRING_INDEX(agent, '/', 1), ' ', 1) AS prefix"),
                         DB::raw('COUNT(DISTINCT torrent_id) AS single_seed_count'),
                     ])
