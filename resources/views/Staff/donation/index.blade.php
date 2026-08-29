@@ -12,6 +12,17 @@
 @section('page', 'page__staff-donation--index')
 
 @section('main')
+    @php
+        // El importe se pintaba con un «$» escrito a mano, así que el panel decía
+        // dólares mientras la pasarela cobra en euros. Sale de la config, igual que
+        // en la página pública de tramos.
+        //
+        // Ojo: dentro de @php estamos en contexto PHP, los comentarios van con //
+        // o /* */, nunca con llaves de Blade.
+        $moneda = config('donation.currency');
+        $importe = fn ($coste) => number_format((float) $coste, 2, ',', '.').' '.($moneda === 'EUR' ? '€' : $moneda);
+    @endphp
+
     <section class="panelV2">
         <header class="panel__header">
             <h2 class="panel__heading">Donation statistics</h2>
@@ -75,7 +86,7 @@
                                 class="{{ $donation->package->trashed() ? 'text-danger' : '' }}"
                                 title="{{ $donation->package->trashed() ? 'Package has been deleted' : '' }}"
                             >
-                                $ {{ $donation->package->cost }}
+                                {{ $importe($donation->package->cost) }}
                             </td>
                             <td
                                 class="{{ $donation->package->trashed() ? 'text-danger' : '' }}"

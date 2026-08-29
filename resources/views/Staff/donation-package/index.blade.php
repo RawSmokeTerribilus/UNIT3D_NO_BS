@@ -12,6 +12,13 @@
 @section('page', 'page__staff-donation-package--index')
 
 @section('main')
+    @php
+        // Mismo arreglo que en el listado de donaciones: el «$» estaba escrito a
+        // mano y la pasarela cobra en euros.
+        $moneda = config('donation.currency');
+        $importe = fn ($coste) => number_format((float) $coste, 2, ',', '.').' '.($moneda === 'EUR' ? '€' : $moneda);
+    @endphp
+
     <section class="panelV2">
         <header class="panel__header">
             <h2 class="panel__heading">Packages</h2>
@@ -50,7 +57,7 @@
                                     {{ $package->name }}
                                 </a>
                             </td>
-                            <td>$ {{ $package->cost }}</td>
+                            <td>{{ $importe($package->cost) }}</td>
                             <td>
                                 {{ App\Helpers\StringHelper::formatBytes($package->upload_value ?? 0) }}
                             </td>
