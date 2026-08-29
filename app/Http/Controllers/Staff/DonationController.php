@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Enums\ModerationStatus;
 use App\Helpers\StringHelper;
+use App\Models\BonExchange;
 use App\Models\Conversation;
 use App\Services\Unit3dAnnounce;
 use App\Models\Donation;
@@ -195,7 +196,8 @@ class DonationController extends Controller
         }
 
         if ($paquete->fl_token_value ?? null) {
-            $abonado[] = '[*]'.$paquete->fl_token_value.' cupones de freeleech';
+            $abonado[] = '[*]'.$paquete->fl_token_value.' '
+                .($paquete->fl_token_value === 1 ? 'cupón' : 'cupones').' de freeleech';
         }
 
         if ($paquete->upload_value) {
@@ -205,6 +207,25 @@ class DonationController extends Controller
         if ($paquete->invite_value) {
             $abonado[] = '[*]'.$paquete->invite_value.' invitaciones';
         }
+
+        // El multiplicador de subida NO vive aquí: son los overrides del announce
+        // Rust (DONOR_UPLOAD_FACTOR_OVERRIDE=200 y LIFETIME_..._OVERRIDE=255 en el
+        // compose). Se escriben a mano porque Laravel no ve ese env, así que si
+        // algún día se tocan hay que tocar también esta línea.
+        $subida = $deporvida
+            ? '2,55: lo que subas se te acredita multiplicado por dos y medio'
+            : '2: lo que subas se te acredita al doble';
+
+        // El precio de las 24H barra libre sale de la tienda, no escrito a mano:
+        // es un objeto que se puede reajustar desde el panel y dejaría el mensaje
+        // mintiendo. Si la fila no existe se cae la frase del precio, no el mensaje.
+        $costeBarraLibre = BonExchange::query()
+            ->where('personal_freeleech', '=', true)
+            ->value('cost');
+
+        $barraLibre = $costeBarraLibre === null
+            ? 'se compra en la tienda'
+            : 'se compra en la tienda por '.number_format((float) $costeBarraLibre, 0, ',', '.').' BON';
 
         $texto = '[b]Gracias por sostener '.config('app.name').'.[/b]'."\n\n"
             .'Tu donación queda aprobada. '
@@ -220,19 +241,39 @@ class DonationController extends Controller
 
         $texto .= '[b]Lo que tienes activo mientras dure:[/b]'."\n"
             .'[list]'."\n"
-            .'[*]Freeleech: lo que bajes no te cuenta.'."\n"
-            .'[*]Inmunidad a los avisos automáticos.'."\n"
-            .'[*]Tu insignia y tu efecto junto al nombre, a la vista de todos.'."\n"
+            .'[*]Freeleech: lo que bajes no te cuenta. Ni un byte.'."\n"
+            .'[*]Subida multiplicada por '.$subida.'.'."\n"
+            .'[*]Ranuras de descarga ilimitadas: se acabó el tope de descargas simultáneas de tu grupo.'."\n"
+            .'[*]Inmunidad a los avisos automáticos por inactividad.'."\n"
+            .'[*]Las gafas de donante y las sparkles en tu nombre, ya puestas.'."\n"
             .'[/list]'."\n"
-            .'[b]Sobre los cupones de freeleech[/b] — esto es lo que más se pregunta:'."\n"
-            .'No hay nada que activar en los ajustes, por mucho que se busque. '
-            .'Un cupón se gasta [b]en la ficha de un torrent concreto[/b], con el botón '
-            .'«Usa cupón freeleech», y deja [i]ese[/i] torrent gratis para ti.'."\n"
-            .'Mientras seas donante [b]no verás ese botón[/b], y es a propósito: ya bajas '
-            .'sin que te cuente, así que gastarlo sería tirarlo. '
-            .'Tus cupones [b]no caducan con la donación[/b] — siguen ahí el día que se acabe.'."\n\n"
-            .'Y que quede dicho: aquí no se vende ratio. El dinero va a mantener los '
-            .'cacharros encendidos, y los premios son el chiste. Gracias de verdad.';
+            // Los recuentos salen de la config y no a mano por lo mismo que en la
+            // página de tramos: si mañana entra un icono al catálogo, la frase se
+            // actualiza sola en vez de quedarse mintiendo.
+            .'[b]Y si quieres cambiarle la cara:[/b]'."\n"
+            .'Las gafas y las sparkles te las hemos puesto nosotros, van solas. Lo que '
+            .'seguramente no sepas es que [b]puedes cambiarlas[/b]: en [b]tu perfil → Editar[/b] '
+            .'tienes los '.\count(config('perks-donante.iconos')).' iconos de rango y los '
+            .\count(config('perks-donante.efectos')).' efectos del catálogo entero. No van por '
+            .'tramo ni te los asignamos nosotros: eliges tú, de todo lo que hay. Si te gusta '
+            .'como está, no toques nada.'."\n\n"
+            .'[b]Sobre los cupones de freeleech[/b] — esto es lo que más se pregunta, y no es lo '
+            .'mismo que el «24H barra libre» de la tienda. Que no te líen:'."\n"
+            .'[list]'."\n"
+            .'[*][b]24H barra libre[/b] — '.$barraLibre.'. Te deja [b]todo el sitio[/b] gratis '
+            .'durante un día, y se acaba solo a las 24 horas.'."\n"
+            .'[*][b]Cupón de freeleech[/b] — es lo que acabas de recibir. Lo gastas en [b]un '
+            .'torrent concreto[/b] y ese torrent te queda gratis [b]para siempre[/b]. No caduca: '
+            .'ni con la donación, ni después.'."\n"
+            .'[/list]'."\n"
+            .'Un cupón se gasta desde la ficha del torrent, con el botón «Usa cupón freeleech». '
+            .'No hay nada que activar en los ajustes, por mucho que se busque. Sólo cabe un cupón '
+            .'por torrent.'."\n"
+            .'Mientras seas donante [b]no verás ese botón[/b], y es a propósito: ya bajas sin que '
+            .'te cuente, así que gastarlo sería tirarlo. Tus cupones te esperan para el día que se '
+            .'acabe la donación.'."\n\n"
+            .'Y que quede dicho: aquí no se vende ratio. El dinero va a mantener los cacharros '
+            .'encendidos, y los premios son el chiste. Gracias de verdad.';
 
         return $texto;
     }
