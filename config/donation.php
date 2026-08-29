@@ -40,7 +40,7 @@ return [
     // se deja APAGADO para que portar este fichero no encienda las donaciones
     // en otro entorno por sorpresa. El interruptor está en /dashboard/config.
     'is_enabled'   => false,
-    'monthly_goal' => 100,
+    'monthly_goal' => 200,
     'currency'     => 'EUR',
 
     /*
