@@ -19,13 +19,22 @@
     position: absolute;
     display: flex;
     height: 100%;
+    // Va `position: absolute` sin ancho, asi que se encogia a su contenido (180
+    // px) mientras el contenedor `.quick-search` crecia con `flex-grow` hasta
+    // 332. Esos 152 px de diferencia eran el hueco entre el buscador y el boton
+    // de Arcade: no era sobrante de la rejilla, era el hijo sin estirar.
+    width: 100%;
 }
 
 .quick-search:active .quick-search__inputs,
 .quick-search:focus-within .quick-search__inputs {
     border-radius: var(--quick-search-border-radius)
         var(--quick-search-border-radius) 0 0;
-    width: 400px;
+    // Antes 400 px clavados: el buscador se ensanchaba de golpe al enfocarlo.
+    // Ahora ya ocupa su contenedor en reposo, asi que en foco solo tiene que
+    // mantenerlo — el salto sobra y ademas descuadraba con el panel de
+    // resultados cuando el contenedor medía menos de 400.
+    width: 100%;
 }
 
 .quick-search__input {
