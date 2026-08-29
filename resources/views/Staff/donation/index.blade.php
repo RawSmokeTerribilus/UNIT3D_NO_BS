@@ -26,6 +26,21 @@
         </div>
     </section>
 
+    {{-- Histórico contra el objetivo. Va aparte y no como tercera columna de las de
+         arriba porque necesita el ancho: con doce meses en el eje, apretada no se lee.
+         El objetivo sale del ajuste vivo, no escrito a mano, para que mover la meta
+         desde /dashboard/config mueva también la línea. --}}
+    <section class="panelV2">
+        <header class="panel__header">
+            <h2 class="panel__heading">Histórico contra el objetivo</h2>
+        </header>
+        <div class="chart-wrapper">
+            <div>
+                <canvas id="goalDonationsChart"></canvas>
+            </div>
+        </div>
+    </section>
+
     <section class="panelV2">
         <header class="panel__header">
             <h2 class="panel__heading">Donations</h2>
@@ -211,6 +226,73 @@
                     scales: {
                         x: { type: 'category' },
                         y: { beginAtZero: true },
+                    },
+                },
+            });
+
+            // Histórico contra el objetivo.
+            //
+            // Reutiliza el mismo dataset que la gráfica de arriba: no hace falta otra
+            // consulta, lo único que añade es el contexto de si el mes llegó o no.
+            //
+            // Los colores van literales y no por variable CSS a propósito: las
+            // `--donation-chart-*` viven en los ficheros de tema y añadir dos nuevas
+            // obligaría a un build del frontend entero por dos rgba. Este bloque es
+            // script inline con nonce, así que no pasa por Vite.
+            const monthlyGoal = {{ Js::from($monthlyGoal) }};
+            const VERDE = 'rgba(75, 192, 120, 0.55)';
+            const AMBAR = 'rgba(235, 170, 60, 0.55)';
+
+            const goalCtx = document.getElementById('goalDonationsChart').getContext('2d');
+            new Chart(goalCtx, {
+                data: {
+                    labels: monthlyDonations.map(
+                        (donation) => `${donation.year}-${String(donation.month).padStart(2, '0')}`,
+                    ),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Recaudado en el mes',
+                            data: monthlyDonations.map((donation) => donation.total),
+                            backgroundColor: monthlyDonations.map((donation) =>
+                                Number(donation.total) >= monthlyGoal ? VERDE : AMBAR,
+                            ),
+                            borderWidth: 0,
+                            order: 2,
+                        },
+                        {
+                            type: 'line',
+                            label: `Objetivo actual (${monthlyGoal} €)`,
+                            data: monthlyDonations.map(() => monthlyGoal),
+                            borderColor: getComputedStyle(
+                                document.documentElement,
+                            ).getPropertyValue('--donation-chart-monthly-border'),
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1,
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        x: { type: 'category' },
+                        y: { beginAtZero: true, title: { display: true, text: '€' } },
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                // La línea es el objetivo de HOY dibujado sobre meses
+                                // pasados. Si la meta cambia, los meses viejos se
+                                // juzgan con la vara nueva — se avisa aquí en vez de
+                                // fingir que teníamos este objetivo desde siempre.
+                                afterBody: (items) =>
+                                    items[0].datasetIndex === 1
+                                        ? 'Objetivo vigente ahora, no el que hubiera ese mes'
+                                        : '',
+                            },
+                        },
                     },
                 },
             });

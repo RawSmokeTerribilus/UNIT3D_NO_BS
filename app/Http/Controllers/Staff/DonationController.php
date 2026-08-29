@@ -59,6 +59,9 @@ class DonationController extends Controller
             'donations'        => $donations,
             'dailyDonations'   => $dailyDonations,
             'monthlyDonations' => $monthlyDonations,
+            // El mismo número que rellena la barra del «Sostén» en la barra superior,
+            // para que el panel y el botón no puedan contar cosas distintas.
+            'monthlyGoal'      => (int) config('donation.monthly_goal'),
         ]);
     }
 
