@@ -79,6 +79,16 @@ class TopNavComposer
                 ->whereNull('solved_by')
                 ->where(fn ($query) => $query->whereNull('assigned_to')->orWhere('assigned_to', '=', $user->id))
                 ->exists(),
+            // Enciende el punto de la rueda dentada, que es la puerta al panel de
+            // staff. Sin esto una donación pendiente sólo se veía entrando al panel
+            // o por el correo, así que se quedaba esperando sin que nadie lo supiera.
+            //
+            // Va detrás de `is_owner` y no de `is_modo` como los reportes porque
+            // aprobar donaciones lo exige `Staff\DonationController` — encenderle el
+            // aviso a un modo sería mandarle a un 403.
+            'hasPendingDonation' => $user->group->is_owner
+                && config('donation.is_enabled')
+                && Donation::query()->where('status', '=', ModerationStatus::PENDING)->exists(),
             'hasUnmoderatedTorrent' => $user->group->is_torrent_modo && Torrent::query()
                 ->withoutGlobalScope(ApprovedScope::class)
                 ->where('status', '=', ModerationStatus::PENDING)

@@ -12,23 +12,29 @@
 @section('page', 'page__staff-donation--index')
 
 @section('main')
-    <section class="panelV2">
-        <header class="panel__header">
-            <h2 class="panel__heading">Donation statistics</h2>
-        </header>
-        <div class="chart-wrapper">
-            <div>
-                <canvas id="dailyDonationsChart"></canvas>
-            </div>
-            <div>
-                <canvas id="monthlyDonationsChart"></canvas>
-            </div>
-        </div>
-    </section>
+    @php
+        // El importe se pintaba con un «$» escrito a mano, así que el panel decía
+        // dólares mientras la pasarela cobra en euros. Sale de la config, igual que
+        // en la página pública de tramos.
+        //
+        // Ojo: dentro de @php estamos en contexto PHP, los comentarios van con //
+        // o /* */, nunca con llaves de Blade.
+        $moneda = config('donation.currency');
+        $importe = fn ($coste) => number_format((float) $coste, 2, ',', '.').' '.($moneda === 'EUR' ? '€' : $moneda);
+    @endphp
 
+    {{-- La tabla va ARRIBA y las gráficas debajo. Antes era al revés y había que
+         bajar mil píxeles de lienzos para llegar a lo único que pide una acción.
+         Las pendientes salen además las primeras dentro de la tabla. --}}
     <section class="panelV2">
         <header class="panel__header">
-            <h2 class="panel__heading">Donations</h2>
+            <h2 class="panel__heading">
+                Donaciones
+                @if ($pendingCount > 0)
+                    — <span class="text-warning">{{ $pendingCount }} pendiente{{ $pendingCount === 1 ? '' : 's' }}</span>
+                    <x-animation.notification />
+                @endif
+            </h2>
         </header>
         <div class="data-table-wrapper">
             <table class="data-table">
@@ -48,7 +54,14 @@
                 </thead>
                 <tbody>
                     @foreach ($donations as $donation)
-                        <tr>
+                        {{-- Fondo tenue en las pendientes: con la tabla ordenada ya
+                             salen arriba, pero al pasar de página conviene que se
+                             distingan sin leer la columna de estado. --}}
+                        <tr
+                            @if ($donation->status === App\Enums\ModerationStatus::PENDING)
+                                style="background: rgba(235, 170, 60, 0.08)"
+                            @endif
+                        >
                             <td>{{ $donation->created_at }}</td>
                             <td>
                                 <x-user-tag :user="$donation->user" :anon="false" />
@@ -60,7 +73,7 @@
                                 class="{{ $donation->package->trashed() ? 'text-danger' : '' }}"
                                 title="{{ $donation->package->trashed() ? 'Package has been deleted' : '' }}"
                             >
-                                $ {{ $donation->package->cost }}
+                                {{ $importe($donation->package->cost) }}
                             </td>
                             <td
                                 class="{{ $donation->package->trashed() ? 'text-danger' : '' }}"
@@ -146,6 +159,26 @@
         </div>
         {{ $donations->links('partials.pagination') }}
     </section>
+
+    {{-- Alturas FIJAS en los contenedores, y `maintainAspectRatio: false` abajo.
+         Sin las dos cosas el lienzo se estira con el flex y una sola barra ocupaba
+         ochocientos píxeles de alto. No quitar una sin quitar la otra.
+
+         Antes había tres gráficas y una sobraba: la mensual a secas enseñaba los
+         mismos datos que la del objetivo pero sin el objetivo. Quedan dos. --}}
+    <section class="panelV2">
+        <header class="panel__header">
+            <h2 class="panel__heading">Estadísticas</h2>
+        </header>
+        <div class="chart-wrapper">
+            <div style="height: 260px; min-width: 0">
+                <canvas id="dailyDonationsChart"></canvas>
+            </div>
+            <div style="height: 260px; min-width: 0">
+                <canvas id="goalDonationsChart"></canvas>
+            </div>
+        </div>
+    </section>
 @endsection
 
 @section('scripts')
@@ -154,65 +187,114 @@
         document.addEventListener('DOMContentLoaded', function () {
             const dailyDonations = {{ Js::from($dailyDonations) }};
             const monthlyDonations = {{ Js::from($monthlyDonations) }};
+            const monthlyGoal = {{ Js::from($monthlyGoal) }};
 
-            // Daily donations chart
-            const dailyCtx = document.getElementById('dailyDonationsChart').getContext('2d');
-            new Chart(dailyCtx, {
+            // Colores literales y no por variable CSS a propósito: las
+            // `--donation-chart-*` viven en los ficheros de tema y añadir más
+            // obligaría a un build del frontend entero. Este bloque es script
+            // inline con nonce, así que no pasa por Vite.
+            const VERDE  = 'rgba(80, 200, 140, 0.75)';
+            const AMBAR  = 'rgba(235, 170, 60, 0.75)';
+            const MALVA  = 'rgba(153, 102, 255, 0.9)';
+            const REJILLA = 'rgba(255, 255, 255, 0.06)';
+            const TINTA   = 'rgba(255, 255, 255, 0.55)';
+
+            // Común a las dos. `maintainAspectRatio: false` es lo que hace que el
+            // lienzo respete la altura del contenedor en vez de estirarse.
+            const base = (extra) => Object.assign({
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: TINTA, boxWidth: 12, padding: 12 } },
+                },
+            }, extra || {});
+
+            const ejeY = {
+                beginAtZero: true,
+                grid: { color: REJILLA },
+                ticks: { color: TINTA, callback: (v) => v + ' €' },
+            };
+
+            // Diarias. Con pocos datos una línea sin puntos visibles es un lienzo
+            // vacío, así que el punto se ve y se rellena el área.
+            new Chart(document.getElementById('dailyDonationsChart'), {
                 type: 'line',
                 data: {
-                    labels: dailyDonations.map((donation) => donation.date),
-                    datasets: [
-                        {
-                            label: 'Daily donations',
-                            data: dailyDonations.map((donation) => donation.total),
-                            backgroundColor: getComputedStyle(
-                                document.documentElement,
-                            ).getPropertyValue('--donation-chart-daily-bg'),
-                            borderColor: getComputedStyle(
-                                document.documentElement,
-                            ).getPropertyValue('--donation-chart-daily-border'),
-                            borderWidth: 1,
-                            fill: false,
-                        },
-                    ],
+                    labels: dailyDonations.map((d) => d.date),
+                    datasets: [{
+                        label: 'Por día',
+                        data: dailyDonations.map((d) => d.total),
+                        borderColor: MALVA,
+                        backgroundColor: 'rgba(153, 102, 255, 0.15)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: MALVA,
+                        fill: true,
+                        tension: 0.25,
+                    }],
                 },
-                options: {
+                options: base({
                     scales: {
-                        x: { type: 'time', time: { unit: 'day' } },
-                        y: { beginAtZero: true },
+                        x: { type: 'time', time: { unit: 'day' }, grid: { color: REJILLA }, ticks: { color: TINTA } },
+                        y: ejeY,
                     },
-                },
+                }),
             });
 
-            // Monthly donations chart
-            const monthlyCtx = document.getElementById('monthlyDonationsChart').getContext('2d');
-            new Chart(monthlyCtx, {
-                type: 'line',
+            // Mes contra objetivo. Verde si llega, ámbar si no.
+            new Chart(document.getElementById('goalDonationsChart'), {
                 data: {
                     labels: monthlyDonations.map(
-                        (donation) => `${donation.year}-${donation.month}`,
+                        (d) => `${d.year}-${String(d.month).padStart(2, '0')}`,
                     ),
                     datasets: [
                         {
-                            label: 'Monthly donations',
-                            data: monthlyDonations.map((donation) => donation.total),
-                            backgroundColor: getComputedStyle(
-                                document.documentElement,
-                            ).getPropertyValue('--donation-chart-monthly-bg'),
-                            borderColor: getComputedStyle(
-                                document.documentElement,
-                            ).getPropertyValue('--donation-chart-monthly-border'),
-                            borderWidth: 1,
+                            type: 'bar',
+                            label: 'Recaudado',
+                            data: monthlyDonations.map((d) => d.total),
+                            backgroundColor: monthlyDonations.map((d) =>
+                                Number(d.total) >= monthlyGoal ? VERDE : AMBAR,
+                            ),
+                            borderWidth: 0,
+                            // Sin esto una sola barra ocupa todo el ancho del panel.
+                            maxBarThickness: 64,
+                            order: 2,
+                        },
+                        {
+                            type: 'line',
+                            label: `Objetivo (${monthlyGoal} €)`,
+                            data: monthlyDonations.map(() => monthlyGoal),
+                            borderColor: MALVA,
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
                             fill: false,
+                            order: 1,
                         },
                     ],
                 },
-                options: {
+                options: base({
                     scales: {
-                        x: { type: 'category' },
-                        y: { beginAtZero: true },
+                        x: { type: 'category', grid: { display: false }, ticks: { color: TINTA } },
+                        // Deja aire por encima del objetivo para que la línea nunca
+                        // quede pegada al borde y se pueda leer.
+                        y: Object.assign({ suggestedMax: monthlyGoal * 1.15 }, ejeY),
                     },
-                },
+                    plugins: {
+                        legend: { labels: { color: TINTA, boxWidth: 12, padding: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                // La línea es el objetivo de HOY dibujado sobre meses
+                                // pasados: no hay histórico de cómo fue cambiando.
+                                afterBody: (items) =>
+                                    items[0].datasetIndex === 1
+                                        ? 'Objetivo vigente ahora, no el que hubiera ese mes'
+                                        : '',
+                            },
+                        },
+                    },
+                }),
             });
         });
     </script>

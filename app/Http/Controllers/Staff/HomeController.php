@@ -75,6 +75,10 @@ class HomeController extends Controller
                 ->where(fn ($query) => $query->whereNull('assigned_to')->orWhere('assigned_to', '=', auth()->id()))
                 ->count(),
             'pendingApplicationsCount' => DB::table('applications')->where('status', '=', ModerationStatus::PENDING)->count(),
+            // Sin esto una donación pendiente sólo se descubría entrando al panel o
+            // mirando el correo. Mismo trato que los reportes: cuenta al lado del
+            // enlace y punto animado si hay algo esperando.
+            'pendingDonationsCount' => DB::table('donations')->where('status', '=', ModerationStatus::PENDING)->count(),
             'certificate'              => $certificate,
             'uptime'                   => $systemInformation->uptime(),
             'ram'                      => $systemInformation->memory(),
