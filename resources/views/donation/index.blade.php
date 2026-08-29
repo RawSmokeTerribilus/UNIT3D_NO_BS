@@ -58,11 +58,18 @@
                     <strong>Aquí no se vende ratio.</strong>
                     {{ config('donation.description') }}
                 </p>
+                {{-- «El dinero va íntegro a mantener los cacharros encendidos» se
+                     perdió al portar la maqueta del rediseño: se sustituyó el párrafo
+                     entero por el del diseñador. Es la única frase del bloque que dice
+                     A DÓNDE VA EL DINERO, que es lo primero que quiere saber alguien
+                     antes de soltar 50 €. No quitarla. --}}
                 <p>
-                    Los premios de abajo los damos a manos llenas precisamente porque no
-                    valen nada, y son los mismos en todos los tramos. Lo único que cambia
-                    es cuánto duran y cuántos puntos caen. Dona si te sobra; si no te
-                    sobra, no dones: el sitio seguirá aquí igual.
+                    Esto no es una tienda: el dinero va íntegro a mantener los cacharros
+                    encendidos. Los premios de abajo los damos a manos llenas
+                    precisamente porque no valen nada, y son los mismos en todos los
+                    tramos. Lo único que cambia es cuánto duran y cuántos puntos caen.
+                    Dona si te sobra; si no te sobra, no dones: el sitio seguirá aquí
+                    igual.
                 </p>
             </div>
 
