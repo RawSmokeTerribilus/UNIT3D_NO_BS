@@ -59,13 +59,18 @@
                     </p>
                 @endif
 
-                @if ($user->is_donor)
+                {{-- Donantes y staff. No convierte a nadie en donante: `is_donor`
+                     no se toca. Lo unico que abre es el selector, y el render ya
+                     mira si el campo esta puesto, no si eres donante, asi que
+                     dejarlo vacio sigue devolviendo al icono del grupo. --}}
+                @if ($user->is_donor || $user->group->esStaff())
                     {{-- Icono de rango, a la izquierda del nick --}}
                     <fieldset class="form__group">
-                        <legend class="form__label">Tu icono de donante</legend>
+                        <legend class="form__label">Tu icono de rango</legend>
                         <p class="form__group">
                             Sustituye al icono de tu rango, a la izquierda de tu nombre.
                             Elige el que quieras: no depende de cuánto hayas donado.
+                            Déjalo en «el de mi rango» y vuelve a mandar el grupo.
                         </p>
                         <div style="display: flex; flex-wrap: wrap; gap: 0.75rem">
                             <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 11rem">
@@ -100,7 +105,7 @@
 
                     {{-- Efecto de fondo del nick --}}
                     <fieldset class="form__group">
-                        <legend class="form__label">Tu efecto de donante</legend>
+                        <legend class="form__label">Tu efecto</legend>
                         <p class="form__group">
                             El fondo animado que acompaña a tu nombre por todo el sitio.
                             También es libre: elige el que más te guste.

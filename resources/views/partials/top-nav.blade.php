@@ -322,27 +322,27 @@
                 </a>
             </li>
         </ul>
-        <a
+        {{-- El MISMO componente que usa el resto del sitio, 147 veces. Antes
+             aqui habia marcado a mano que pintaba dos de las cinco cosas que el
+             componente pinta — se quedaban fuera el icono propio y la insignia —
+             y cada perk nuevo habia que acordarse de copiarlo. Ya paso tres
+             veces: el efecto, el icono SVG y estos dos.
+             Se quita el <a> que lo envolvia: el componente ya enlaza al perfil, y
+             anidar enlaces es HTML invalido. --}}
+        <x-user-tag
+            :user="$user"
+            :anon="false"
             class="top-nav__username--highresolution"
-            href="{{ route('users.show', ['user' => auth()->user()]) }}"
         >
-            <span
-                class="text-bold"
-                style="
-                    color: {{ auth()->user()->group->color }};
-                    background: {{ auth()->user()->group->effect }};
-                "
-            >
-                <i class="{{ auth()->user()->group->icon }}"></i>
-                {{ $user->username }}
-                @if ($hasActiveWarning)
-                    <i
-                        class="{{ config('other.font-awesome') }} fa-exclamation-circle text-orange"
-                        title="{{ __('common.active-warning') }}"
-                    ></i>
-                @endif
-            </span>
-        </a>
+            <x-slot:appendedIcons>
+                    @if ($hasActiveWarning)
+                        <i
+                            class="{{ config('other.font-awesome') }} fa-exclamation-circle text-orange"
+                            title="{{ __('common.active-warning') }}"
+                        ></i>
+                    @endif
+            </x-slot:appendedIcons>
+        </x-user-tag>
         <ul class="top-nav__icon-bar" x-bind:class="expanded && 'mobile'">
             @if ($user->group->is_modo)
                 <li>
@@ -431,27 +431,20 @@
                 </a>
                 <ul>
                     <li>
-                        <a
+                        <x-user-tag
+                            :user="$user"
+                            :anon="false"
                             class="top-nav__username"
-                            href="{{ route('users.show', ['user' => auth()->user()]) }}"
                         >
-                            <span
-                                class="text-bold"
-                                style="
-                                    color: {{ auth()->user()->group->color }};
-                                    background: {{ auth()->user()->group->effect }};
-                                "
-                            >
-                                <i class="{{ auth()->user()->group->icon }}"></i>
-                                {{ $user->username }}
-                                @if ($hasActiveWarning)
-                                    <i
-                                        class="{{ config('other.font-awesome') }} fa-exclamation-circle text-orange"
-                                        title="{{ __('common.active-warning') }}"
-                                    ></i>
-                                @endif
-                            </span>
-                        </a>
+                            <x-slot:appendedIcons>
+                    @if ($hasActiveWarning)
+                        <i
+                            class="{{ config('other.font-awesome') }} fa-exclamation-circle text-orange"
+                            title="{{ __('common.active-warning') }}"
+                        ></i>
+                    @endif
+                            </x-slot:appendedIcons>
+                        </x-user-tag>
                     </li>
                     <li>
                         <a href="{{ route('users.show', ['user' => auth()->user()]) }}">
