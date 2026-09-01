@@ -182,6 +182,8 @@ return [
     'say-thanks' => 'Por favor, recuerden decir <b>gracias</b> y <b>compartan</b> todo el tiempo que puedan',
     'search' => 'Buscar',
     'search-by-name' => 'Buscar por nombre',
+    'search-tip-fewer-words' => 'Se buscan todas las palabras a la vez, así que basta con que una no aparezca para no obtener nada. Prueba con menos: sólo el título, sin año, calidad ni grupo.',
+    'search-tip-scope' => 'La búsqueda mira el nombre del torrent y también autor, saga, estudio, plataforma, género, tipo y resolución.',
     'season-number' => 'Número de temporada',
     'season' => 'Temporada',
     'seed-time' => 'Tiempo compartiendo',

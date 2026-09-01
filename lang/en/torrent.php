@@ -185,6 +185,8 @@ return [
     'satisfied_in'             => 'Satisfied in',
     'say-thanks'               => 'Please remember to say <b>thanks</b> and <b>seed</b> for as long as you can',
     'search'                   => 'Search',
+    'search-tip-fewer-words'   => 'Every word must match, so a single extra one returns nothing. Try fewer: just the title, without year, quality or release group.',
+    'search-tip-scope'         => 'The search covers the torrent name and also author, series, studio, platform, genre, type and resolution.',
     'search-by-name'           => 'Search by name',
     'season-number'            => 'Season number',
     'season'                   => 'Season',
