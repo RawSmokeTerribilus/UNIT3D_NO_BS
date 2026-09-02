@@ -67,7 +67,13 @@ class EnforceSecurityRequirements
             return $next($request);
         }
 
-        $hasTwoFactor = !empty($user->two_factor_secret);
+        // OJO: two_factor_secret se rellena en cuanto el usuario ABRE la pagina
+        // de 2FA y se pinta el QR, antes de confirmar nada. Comprobarlo ahi dejaba
+        // pasar a 317 cuentas (el 12% del padron) que nunca completaron el alta, y
+        // que ademas jamas volvian a ver el aviso, asi que no tenian forma de saber
+        // que les faltaba un paso. Lo unico que significa 2FA activo es la fecha de
+        // confirmacion.
+        $hasTwoFactor = $user->two_factor_confirmed_at !== null;
         $hasTelegram = $user->telegram_group_joined_at !== null;
 
         if ($hasTwoFactor && $hasTelegram) {
