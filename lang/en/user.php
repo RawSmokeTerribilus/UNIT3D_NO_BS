@@ -164,6 +164,7 @@ return [
     'invited-by'                            => 'Invited by',
     'invite-already-sent'                   => 'The email address your trying to send a invite to has already been sent one.',
     'invite-already-used'                   => 'The invite you are trying to resend has already been used.',
+    'invite-already-retracted'               => 'The invite you are trying to retract has already been retracted.',
     'invite-expired'                        => 'The invite you are trying to resend has expired.',
     'invite-friend'                         => 'Invite your friend (email + message required)',
     'invite-resent-success'                 => 'Invite was resent successfully!',

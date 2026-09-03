@@ -174,9 +174,10 @@ class InviteController extends Controller
                 ->withErrors(trans('user.invite-already-used'));
         }
 
-        if ($sentInvite->expires_on < now()) {
+        // NOBS: una invitación caducada también se puede retractar; sólo se bloquea la ya retractada.
+        if ($sentInvite->trashed()) {
             return to_route('users.invites.index', ['user' => $user])
-                ->withErrors(trans('user.invite-expired'));
+                ->withErrors(trans('user.invite-already-retracted'));
         }
 
         $sentInvite->delete();
@@ -197,9 +198,15 @@ class InviteController extends Controller
                 ->withErrors(trans('user.invite-already-used'));
         }
 
+        // NOBS: reenviar reactiva la invitación — restaura la retractada y renueva la caducada.
+        if ($sentInvite->trashed()) {
+            $sentInvite->restore();
+        }
+
         if ($sentInvite->expires_on < now()) {
-            return to_route('users.invites.index', ['user' => $user])
-                ->withErrors(trans('user.invite-expired'));
+            $sentInvite->update([
+                'expires_on' => now()->addDays(config('other.invite_expire')),
+            ]);
         }
 
         Mail::to($sentInvite->email)->send(new InviteUser($sentInvite));

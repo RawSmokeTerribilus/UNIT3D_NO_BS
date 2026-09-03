@@ -117,9 +117,9 @@
                                             @csrf
                                             <button
                                                 x-on:click.prevent="confirmAction"
-                                                data-b64-deletion-message="{{ base64_encode('Are you sure you want to resend the email to: ' . $invite->email . '?') }}"
+                                                data-b64-deletion-message="{{ base64_encode('¿Seguro que quieres reactivar y reenviar la invitación a: ' . $invite->email . '?') }}"
                                                 class="form__button form__button--text"
-                                                @disabled($invite->accepted_at !== null || $invite->expires_on < now())
+                                                @disabled($invite->accepted_at !== null)
                                             >
                                                 {{ __('common.resend') }}
                                             </button>
@@ -135,9 +135,9 @@
                                             @method('DELETE')
                                             <button
                                                 x-on:click.prevent="confirmAction"
-                                                data-b64-deletion-message="{{ base64_encode('Are you sure you want to retract the invite to: ' . $invite->email . '?') }}"
+                                                data-b64-deletion-message="{{ base64_encode('¿Seguro que quieres retractar la invitación a: ' . $invite->email . '?') }}"
                                                 class="form__button form__button--text"
-                                                @disabled($invite->accepted_at !== null || $invite->expires_on < now() || $invite->deleted_at !== null)
+                                                @disabled($invite->accepted_at !== null || $invite->deleted_at !== null)
                                             >
                                                 {{ __('common.delete') }}
                                             </button>
