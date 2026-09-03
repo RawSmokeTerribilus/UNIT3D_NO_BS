@@ -149,6 +149,7 @@ Estos ajustes se anulan si no permites que ningún grupo envíe notificaciones s
     'invited-by' => 'Invitado por',
     'invite-already-sent' => 'La dirección de correo electrónico a la que estás intentando enviar una invitación ya ha recibido una.',
     'invite-already-used' => 'La invitación que estás intentando volver a enviar ya ha sido utilizada.',
+    'invite-already-retracted' => 'La invitación que estás intentando retractar ya fue retractada.',
     'invite-expired' => 'La invitación que estás intentando volver a enviar ha caducado.',
     'invite-friend' => 'Invita a tu amigo (correo electrónico + mensaje requerido)',
     'invite-resent-success' => '¡La invitación se reenvió con éxito!',
