@@ -19,6 +19,7 @@ namespace App\Console\Commands;
 use App\Enums\UserGroup;
 use App\Models\Group;
 use App\Models\User;
+use App\Services\LeechAmnesty;
 use App\Services\Unit3dAnnounce;
 use Exception;
 use Illuminate\Console\Command;
@@ -88,7 +89,15 @@ class AutoGroup extends Command
                         if ($user->group_id === UserGroup::LEECH->value) {
                             // Keep these as 0/1 instead of false/true
                             // because it reduces 6% custom casting overhead
-                            $user->can_download = 0;
+                            //
+                            // NOBS: durante la amnistia del freeleech el grupo
+                            // conserva la descarga salvo que se la haya quitado
+                            // el H&R. Sin esta rama, este comando nocturno
+                            // deshacia la amnistia entera cada madrugada.
+                            $user->can_download = LeechAmnesty::isActive()
+                                && $user->warnings_count < config('hitrun.max_warnings')
+                                    ? 1
+                                    : 0;
                         } elseif ($user->warnings_count < config('hitrun.max_warnings')) {
                             $user->can_download = 1;
                         }

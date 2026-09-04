@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Livewire;
 
+use App\Enums\UserGroup;
 use App\Models\User;
 use App\Models\Warning;
 use App\Notifications\WarningCreated;
@@ -23,6 +24,7 @@ use App\Notifications\WarningDeactivated;
 use App\Notifications\WarningsDeactivated;
 use App\Notifications\WarningsDeleted;
 use App\Notifications\WarningTorrentDeleted;
+use App\Services\Unit3dAnnounce;
 use App\Traits\LivewireSort;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Url;
@@ -129,6 +131,8 @@ class UserWarnings extends Component
             'active'     => false,
         ]);
 
+        $this->restoreDownloadPrivilegesIfEarned();
+
         $this->user->notify(new WarningDeactivated($staff, $warning));
 
         $this->dispatch('success', type: 'success', message: 'Warning was successfully deactivated');
@@ -166,6 +170,8 @@ class UserWarnings extends Component
                 'active'     => false,
             ]);
 
+        $this->restoreDownloadPrivilegesIfEarned();
+
         $this->user->notify(new WarningsDeactivated($staff));
 
         $this->dispatch('success', type: 'success', message: 'All warnings were successfully deactivated');
@@ -188,6 +194,8 @@ class UserWarnings extends Component
 
         $warning->delete();
 
+        $this->restoreDownloadPrivilegesIfEarned();
+
         $this->user->notify(new WarningTorrentDeleted($staff, $warning));
 
         $this->dispatch('success', type: 'success', message: 'Warning was successfully deleted');
@@ -209,6 +217,8 @@ class UserWarnings extends Component
         ]);
 
         $this->user->warnings()->delete();
+
+        $this->restoreDownloadPrivilegesIfEarned();
 
         $this->user->notify(new WarningsDeleted($staff));
 
@@ -235,5 +245,54 @@ class UserWarnings extends Component
             'manualWarningsCount'    => $this->manualWarningsCount,
             'deletedWarningsCount'   => $this->deletedWarningsCount,
         ]);
+    }
+
+    /**
+     * Devuelve el permiso de descarga si al usuario ya le quedan menos avisos
+     * activos que el maximo.
+     *
+     * Hace falta aqui porque AutoDeactivateWarning recorre la tabla warnings,
+     * y Warning usa SoftDeletes: a quien se le borran TODOS los avisos
+     * desaparece de esa consulta y se queda sin descargas para siempre. Le
+     * paso el 2026-08-16 al usuario 52, que quedo bloqueado con ratio 2,31.
+     *
+     * Tambien evita la espera al comando nocturno: la accion de staff surte
+     * efecto en el momento.
+     */
+    private function restoreDownloadPrivilegesIfEarned(): void
+    {
+        $user = $this->user->fresh();
+
+        if ($user === null || $user->can_download) {
+            return;
+        }
+
+        // Estos grupos tienen la descarga cortada por otra razon (ratio bajo,
+        // sancion o cuenta sin validar). Los avisos no son lo que les bloquea
+        // y no nos toca desbloquearlos. Al Sanguijuela lo gobierna su propia
+        // amnistia: ver App\Services\LeechAmnesty.
+        $blockedByOtherRules = [
+            UserGroup::LEECH->value,
+            UserGroup::BANNED->value,
+            UserGroup::DISABLED->value,
+            UserGroup::PRUNED->value,
+            UserGroup::VALIDATING->value,
+        ];
+
+        if (\in_array($user->group_id, $blockedByOtherRules, true)) {
+            return;
+        }
+
+        // La relacion ya excluye los borrados por el scope de SoftDeletes.
+        if ($user->warnings()->where('active', '=', true)->count() >= config('hitrun.max_warnings')) {
+            return;
+        }
+
+        $user->update(['can_download' => 1]);
+
+        cache()->forget('user:'.$user->passkey);
+        cache()->forget('cachedUser.'.$user->id);
+
+        Unit3dAnnounce::addUser($user);
     }
 }

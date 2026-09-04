@@ -1,5 +1,12 @@
 @extends('layout.with-main-and-sidebar')
 
+{{-- NOBS: durante la amnistia del freeleech el candado del ratio no aplica al
+     grupo Sanguijuela. El de can_download sigue vigente. --}}
+@php
+    $ratioBlocked = $user->ratio < config('other.ratio')
+        && !\App\Services\LeechAmnesty::bypassesRatioFor($user);
+@endphp
+
 @section('title')
     <title>{{ __('torrent.download-check') }} - {{ config('other.title') }}</title>
 @endsection
@@ -73,7 +80,7 @@
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('torrent.download-check') }}</h2>
         <div class="panel__body">
-            @if (($user->ratio < config('other.ratio') || $user->can_download == 0) && $torrent->user_id !== $user->id)
+            @if (($ratioBlocked || $user->can_download == 0) && $torrent->user_id !== $user->id)
                 <h4>{{ __('torrent.no-privileges') }}</h4>
             @else
                 <h4>{{ __('torrent.ready') }}</h4>
@@ -86,7 +93,7 @@
                     {{ config('other.ratio') }} :
                 </dt>
                 <dd>
-                    @if ($user->ratio < config('other.ratio'))
+                    @if ($ratioBlocked)
                         <span class="text-red">
                             <i class="{{ config('other.font-awesome') }} fa-times"></i>
                             {{ strtoupper(__('torrent.failed')) }}
@@ -143,7 +150,7 @@
             </div>
         </dl>
         <div class="panel__body">
-            @if (($user->ratio < config('other.ratio') || $user->can_download == 0) && $torrent->user_id != $user->id)
+            @if (($ratioBlocked || $user->can_download == 0) && $torrent->user_id != $user->id)
                 <span class="text-red text-bold">{{ __('torrent.no-privileges-desc') }}</span>
             @else
                 <p class="form__group form__group--horizontal">

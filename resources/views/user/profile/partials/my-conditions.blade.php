@@ -51,6 +51,12 @@
 
     // Download slots
     $slots = $group->download_slots;
+
+    // Amnistia de descarga: el grupo Sanguijuela recupera la descarga
+    // mientras dura el freeleech, salvo bloqueo por H&R.
+    $amnestyOn      = \App\Services\LeechAmnesty::isActive();
+    $amnestyApplies = $amnestyOn && $group->slug === \App\Services\LeechAmnesty::GROUP_SLUG;
+    $amnestyGranted = $amnestyApplies && (bool) $user->can_download;
 @endphp
 
 <section class="panelV2">
@@ -89,11 +95,36 @@
             </dd>
         </div>
 
+        {{-- Amnistía de descarga del freeleech --}}
+        @if ($amnestyApplies)
+            <div class="key-value__group">
+                <dt>Amnistía de freeleech</dt>
+                <dd>
+                    @if ($amnestyGranted)
+                        <i class="{{ config('other.font-awesome') }} fa-unlock text-green"></i>
+                        <span class="text-green">Descarga devuelta</span>
+                        <span style="font-size:.75em; opacity:.7">
+                            mientras dure el freeleech — siembra lo que bajes, congela pero no repara
+                        </span>
+                    @else
+                        <i class="{{ config('other.font-awesome') }} fa-lock text-red"></i>
+                        <span class="text-red">No aplica</span>
+                        <span style="font-size:.75em; opacity:.7">
+                            tienes la descarga revocada por Hit &amp; Run; la amnistía perdona el ratio, no los avisos
+                        </span>
+                    @endif
+                </dd>
+            </div>
+        @endif
+
         {{-- Minimum ratio --}}
         <div class="key-value__group">
             <dt>Ratio mínimo</dt>
             <dd>
-                @if ($effectiveRatio == 0)
+                @if ($amnestyGranted)
+                    <span class="text-green">Sin mínimo</span>
+                    <span style="font-size:.8em; opacity:.7">(amnistía de freeleech)</span>
+                @elseif ($effectiveRatio == 0)
                     <span class="text-green">Sin mínimo</span>
                 @else
                     {{ number_format($effectiveRatio, 2) }}

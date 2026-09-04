@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Staff;
 
 use App\Models\Setting;
+use App\Services\LeechAmnesty;
 use Livewire\Component;
 
 class ConfigManager extends Component
@@ -40,6 +41,8 @@ class ConfigManager extends Component
             'settings' => [
                 'other.freeleech'       => ['label' => 'Freeleech global',        'hint' => 'Todos los torrents son freeleech para todos los usuarios',             'type' => 'boolean'],
                 'other.freeleech_until' => ['label' => 'Freeleech hasta',         'hint' => 'Fecha y hora de fin del freeleech — formato: MM/DD/YYYY H:MM AM/PM TZ', 'type' => 'text'],
+                'other.freeleech_leech_amnesty' => ['label' => 'Amnistía de descarga en freeleech', 'hint' => 'Mientras haya freeleech global, los Sanguijuela recuperan la descarga para poder reponer ratio. NO afecta a quien tiene la descarga revocada por Hit & Run. Al apagar el freeleech se revierte solo. Ojo: si revocas la descarga a mano a un Sanguijuela con pocos avisos, esto se la devuelve — para castigarlo de verdad, muévelo a Castigados', 'type' => 'boolean'],
+                'other.freeleech_leech_slots'   => ['label' => 'Slots durante la amnistía',       'hint' => 'Descargas simultáneas que se le conceden a Sanguijuela mientras dura la amnistía. Fuera de ella el grupo vuelve a 0, que no es un tope sino un bloqueo', 'type' => 'integer'],
                 'other.doubleup'        => ['label' => 'Double upload global',    'hint' => 'Todas las descargas cuentan el doble para el upload',                  'type' => 'boolean'],
                 'other.refundable'      => ['label' => 'Ratio reembolsable',      'hint' => 'El ratio puede ser reembolsado al eliminar torrents propios',          'type' => 'boolean'],
             ],
@@ -149,10 +152,44 @@ class ConfigManager extends Component
                 json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
             );
 
+            $this->resyncLeechAmnesty();
+
             session()->flash('message', 'Configuración guardada correctamente.');
             $this->loadSettings();
         } catch (\Throwable) {
             session()->flash('error', 'Error al guardar. Revisa los logs.');
+        }
+    }
+
+    /**
+     * Encender o apagar el freeleech (o su amnistía) tiene que surtir efecto
+     * ya, no en la siguiente pasada del comando periódico.
+     *
+     * `Config::set` a mano porque SettingServiceProvider lee la tabla en el
+     * boot de la petición: los valores que acabamos de guardar todavía no
+     * están en `config()` dentro de esta misma request.
+     *
+     * Se traga sus propios errores: el guardado de la configuración no puede
+     * fracasar porque el announce esté caído. Si esto no corre, el comando
+     * `auto:leech-amnesty` lo arregla en menos de diez minutos.
+     */
+    private function resyncLeechAmnesty(): void
+    {
+        try {
+            $fresh = Setting::all()->pluck('value', 'key');
+
+            foreach (['other.freeleech', 'other.freeleech_leech_amnesty', 'other.freeleech_leech_slots'] as $key) {
+                if ($fresh->has($key)) {
+                    $value = $fresh[$key];
+                    config([$key => is_numeric($value) ? (int) $value : filter_var($value, FILTER_VALIDATE_BOOLEAN)]);
+                }
+            }
+
+            LeechAmnesty::sync();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ConfigManager: fallo al resincronizar la amnistía de Sanguijuela.', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
