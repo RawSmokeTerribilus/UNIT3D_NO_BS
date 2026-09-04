@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Services\LeechAmnesty;
+use App\Services\TrackerFreeleech;
 use Illuminate\Console\Command;
 
 class AutoLeechAmnesty extends Command
@@ -28,6 +29,21 @@ class AutoLeechAmnesty extends Command
     final public function handle(): int
     {
         $r = LeechAmnesty::sync();
+
+        // Reconciliacion del freeleech global. El .env del announce es cache
+        // derivada de `settings`, y aqui es donde converge si el empujon del
+        // panel fallo o si alguien edito el fichero a mano. Idempotente: no
+        // escribe ni recarga nada cuando el factor ya es el correcto.
+        $fl = TrackerFreeleech::sync();
+
+        if ($fl['changed']) {
+            $this->warn(sprintf(
+                'Freeleech global desincronizado: DOWNLOAD_FACTOR %s -> %d%s',
+                $fl['from'] ?? 'ilegible',
+                $fl['to'],
+                $fl['reloaded'] ? ' (announce recargado)' : ' (¡el announce NO recargo!)',
+            ));
+        }
 
         $estado = $r['active'] ? 'ACTIVA' : 'inactiva';
 

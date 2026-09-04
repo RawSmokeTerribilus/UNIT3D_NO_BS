@@ -143,3 +143,6 @@ vendor.bak*
 
 # Cache de PHPStan (tmpDir en phpstan.neon)
 /.phpstan.cache
+
+# Estado vivo del announce: contiene DATABASE_URL, nunca al repositorio.
+.docker/announce/runtime/

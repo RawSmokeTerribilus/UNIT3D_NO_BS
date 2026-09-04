@@ -354,6 +354,36 @@ class Unit3dAnnounce
     }
 
     /**
+     * Hace que el announce relea su .env sin reiniciarse (`config.rs:401`).
+     *
+     * Lo usa TrackerFreeleech tras reescribir DOWNLOAD_FACTOR: el freeleech
+     * global vive en esa variable, no en `groups.is_freeleech`.
+     */
+    public static function reloadConfig(): bool
+    {
+        if (!self::isConfigValid()) {
+            return true;
+        }
+
+        try {
+            $response = self::buildHttpClient()->post(self::buildRoute('config/reload'));
+        } catch (Throwable) {
+            return false;
+        }
+
+        if (!$response->ok()) {
+            Log::notice('External tracker error - POST config/reload', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @return bool|array<mixed>
      */
     private static function get(string $path, ?int $id = null): bool|array

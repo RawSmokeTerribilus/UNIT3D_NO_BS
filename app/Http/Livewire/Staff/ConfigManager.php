@@ -18,6 +18,7 @@ namespace App\Http\Livewire\Staff;
 
 use App\Models\Setting;
 use App\Services\LeechAmnesty;
+use App\Services\TrackerFreeleech;
 use Livewire\Component;
 
 class ConfigManager extends Component
@@ -153,6 +154,7 @@ class ConfigManager extends Component
             );
 
             $this->resyncLeechAmnesty();
+            $this->resyncGlobalFreeleech();
 
             session()->flash('message', 'Configuración guardada correctamente.');
             $this->loadSettings();
@@ -188,6 +190,31 @@ class ConfigManager extends Component
             LeechAmnesty::sync();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('ConfigManager: fallo al resincronizar la amnistía de Sanguijuela.', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * El freeleech global tampoco viaja solo al announce Rust: vive en la
+     * variable DOWNLOAD_FACTOR de su .env. Ver App\Services\TrackerFreeleech.
+     *
+     * Mismo `Config::set` a mano y mismo tragarse los errores que la amnistía:
+     * guardar la configuración no puede fracasar porque el announce esté caído.
+     * Si esto no corre, `auto:leech-amnesty` reconcilia en menos de diez minutos.
+     */
+    private function resyncGlobalFreeleech(): void
+    {
+        try {
+            $fresh = Setting::all()->pluck('value', 'key');
+
+            if ($fresh->has('other.freeleech')) {
+                config(['other.freeleech' => filter_var($fresh['other.freeleech'], FILTER_VALIDATE_BOOLEAN)]);
+            }
+
+            TrackerFreeleech::sync();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ConfigManager: fallo al proyectar el freeleech global sobre el tracker.', [
                 'error' => $e->getMessage(),
             ]);
         }

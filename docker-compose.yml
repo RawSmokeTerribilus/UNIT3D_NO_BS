@@ -61,6 +61,13 @@ services:
             - TRACKER_MAX_PEERS_PER_TORRENT_PER_USER=${TRACKER_MAX_PEERS_PER_TORRENT_PER_USER:-3}
             - TRACKER_USER_RECEIVE_SEED_LIST_RATE_LIMITS=${TRACKER_USER_RECEIVE_SEED_LIST_RATE_LIMITS:-60=10;900=25;7200=125;86400=500;604800=2500}
             - TRACKER_USER_RECEIVE_LEECH_LIST_RATE_LIMITS=${TRACKER_USER_RECEIVE_LEECH_LIST_RATE_LIMITS:-60=20;900=50;7200=250;86400=1000;604800=5000}
+        volumes:
+            # WORKDIR del announce: solo contiene el .env que genera el entrypoint.
+            # Se saca al host para que (a) el DOWNLOAD_FACTOR que escribe el panel
+            # sobreviva a reinicios y recreates, y (b) unit3d-app pueda reescribirlo
+            # y llamar a /config/reload. Directorio, nunca fichero suelto: el panel
+            # escribe con rename atomico y un bind de fichero se romperia.
+            - ./.docker/announce/runtime:/app
         depends_on:
             - db
         networks:
