@@ -37,6 +37,7 @@ use App\Console\Commands\AutoDeleteStoppedPeers;
 use App\Console\Commands\AutoDisableInactiveUsers;
 use App\Console\Commands\AutoFlushPeers;
 use App\Console\Commands\AutoGroup;
+use App\Console\Commands\AutoLeechAmnesty;
 use App\Console\Commands\AutoHighspeedTag;
 use App\Console\Commands\AutoNerdStat;
 use App\Console\Commands\AutoPreWarning;
@@ -93,6 +94,9 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoDeleteStoppedPeers::class)->everyTwoMinutes();
         $schedule->command(AutoUnbookmarkCompletedTorrents::class)->everyFifteenMinutes();
         $schedule->command(AutoGroup::class)->daily();
+        // La amnistia tiene que reaccionar al interruptor del freeleech sin
+        // esperar a la madrugada. Son ~40 filas: el coste es nulo.
+        $schedule->command(AutoLeechAmnesty::class)->everyTenMinutes()->withoutOverlapping();
         $schedule->command(AutoNerdStat::class)->hourly();
         $schedule->command(AutoCacheRandomMediaIds::class)->hourly();
         $schedule->command(AutoRewardResurrection::class)->daily();

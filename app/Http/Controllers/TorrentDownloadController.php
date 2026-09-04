@@ -22,6 +22,7 @@ use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
 use App\Models\TorrentDownload;
 use App\Models\User;
+use App\Services\LeechAmnesty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -52,7 +53,11 @@ class TorrentDownloadController extends Controller
         $hasHistory = $user->history()->where([['torrent_id', '=', $torrent->id], ['seeder', '=', 1]])->exists();
 
         // User's ratio is too low
-        if ($user->ratio < config('other.ratio') && !($torrent->user_id === $user->id || $hasHistory)) {
+        //
+        // NOBS: la amnistia del freeleech levanta ESTE candado solo para el
+        // grupo Sanguijuela. El de can_download, justo debajo, se queda: es el
+        // que mantiene fuera a quien esta bloqueado por Hit & Run.
+        if ($user->ratio < config('other.ratio') && !LeechAmnesty::bypassesRatioFor($user) && !($torrent->user_id === $user->id || $hasHistory)) {
             return to_route('torrents.show', ['id' => $torrent->id])
                 ->withErrors('Your ratio is too low to download!');
         }

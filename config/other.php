@@ -107,6 +107,17 @@ return [
     'freeleech_until' => '06/15/2026 3:00 PM EST',
 
     /*
+    | Amnistia de descarga para Sanguijuela mientras dura el freeleech global.
+    |
+    | Por defecto APAGADA a proposito: si el read de la tabla `settings` falla,
+    | SettingServiceProvider cae a estos valores de fichero, y el estado seguro
+    | de un permiso es «no concedido».
+    */
+    'freeleech_leech_amnesty' => false,
+
+    'freeleech_leech_slots' => 5,
+
+    /*
     |--------------------------------------------------------------------------
     | Double Upload State
     |--------------------------------------------------------------------------

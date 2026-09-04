@@ -36,6 +36,8 @@ class SettingSeeder extends Seeder
             'other.ratio' => (string) config('other.ratio'),
             'other.freeleech' => config('other.freeleech') ? 'true' : 'false',
             'other.freeleech_until' => (string) config('other.freeleech_until'),
+            'other.freeleech_leech_amnesty' => config('other.freeleech_leech_amnesty') ? 'true' : 'false',
+            'other.freeleech_leech_slots' => (string) config('other.freeleech_leech_slots'),
             'other.doubleup' => config('other.doubleup') ? 'true' : 'false',
             'other.refundable' => config('other.refundable') ? 'true' : 'false',
             'other.default_upload' => (string) config('other.default_upload'),

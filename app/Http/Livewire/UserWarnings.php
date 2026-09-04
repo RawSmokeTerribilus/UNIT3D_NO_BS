@@ -269,7 +269,8 @@ class UserWarnings extends Component
 
         // Estos grupos tienen la descarga cortada por otra razon (ratio bajo,
         // sancion o cuenta sin validar). Los avisos no son lo que les bloquea
-        // y no nos toca desbloquearlos.
+        // y no nos toca desbloquearlos. Al Sanguijuela lo gobierna su propia
+        // amnistia: ver App\Services\LeechAmnesty.
         $blockedByOtherRules = [
             UserGroup::LEECH->value,
             UserGroup::BANNED->value,
@@ -290,6 +291,7 @@ class UserWarnings extends Component
         $user->update(['can_download' => 1]);
 
         cache()->forget('user:'.$user->passkey);
+        cache()->forget('cachedUser.'.$user->id);
 
         Unit3dAnnounce::addUser($user);
     }
