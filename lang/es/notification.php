@@ -20,6 +20,8 @@ return [
     'delete' => 'Borrar',
     'delete-all' => 'Borrar todas las notificaciones',
     'deleted' => '¡Notificación eliminada!',
+    'donation-expired-message' => 'Tu condición de donante ha caducado. Si quieres recuperarla, puedes volver a donar cuando te venga bien. ¡Gracias por el apoyo!',
+    'donation-expired-subject' => 'Tu condición de donante ha caducado',
     'filter-by-type' => 'Filtrar por Tipo de Notificación',
     'mark-all-read' => 'Marcar todo como leído',
     'mark-read' => 'Marcar como leído',

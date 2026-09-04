@@ -12,10 +12,11 @@
     // donante tiene uno se emite un <img> dentro del enlace y se deja el <a>
     // sin clase de icono.
     //
-    // Se usa <img> y no `mask-image` porque de las 21 insignias 11 son
-    // multicolor: enmascarar las aplanaria a un unico color. El precio es que
-    // el SVG no hereda el color del rango, cosa que de todas formas nunca fue
-    // posible para esas 11.
+    // Se usa <img> y no `mask-image` porque buena parte del catalogo es
+    // multicolor: enmascarar aplanaria cada icono a un unico color. El precio
+    // es que la imagen no hereda el color del rango, cosa que de todas formas
+    // nunca fue posible para las multicolor. Sin cifras a proposito: el
+    // catalogo crece y un recuento escrito a mano se queda mintiendo.
     // Se mira si el campo esta puesto, no `is_donor`. No es por dar el perk a
     // nadie mas: es que la condicion estaba repetida en nueve sitios de este
     // fichero y tres del chat, y eso se desincroniza. Quien puede ELEGIRLO se
@@ -23,9 +24,18 @@
     // limpia AutoRemoveExpiredDonors.
     $iconoRango = $user->donor_rank_icon ?? $user->group->icon;
 
-    $iconoRangoEsSvg = str_ends_with((string) $iconoRango, '.svg');
+    // Un icono de rango es O BIEN un fichero de imagen que se pinta con <img>,
+    // O BIEN una clase de FontAwesome que pinta el ::before del enlace. No hay
+    // tercera opcion: lo que no reconozcamos como imagen se trata como clase,
+    // que es lo que sigue guardando `groups.icon` para los grupos sin perk.
+    //
+    // Acepta png y no solo svg porque el catalogo trae ilustraciones raster
+    // multicolor (el pack de iconos): trazarlas a svg las degrada. Si esto
+    // vuelve a ser solo '.svg', esos iconos se inyectan como clase CSS y
+    // desaparecen sin dar error.
+    $iconoRangoEsImagen = preg_match('/\.(svg|png|gif|webp|jpe?g)$/i', (string) $iconoRango) === 1;
 
-    $claseIconoRango = $iconoRangoEsSvg ? '' : $iconoRango;
+    $claseIconoRango = $iconoRangoEsImagen ? '' : $iconoRango;
 
     $tituloRango = $user->group->name;
 @endphp
@@ -43,7 +53,7 @@
                 style="color: {{ $user->group->color }}"
                 title="{{ $tituloRango }}"
             >
-                @if ($iconoRangoEsSvg)
+                @if ($iconoRangoEsImagen)
                     <img
                         class="user-tag__rank-svg"
                         src="{{ asset('img/insignias/'.basename($iconoRango)).'?v='.config('perks-donante.version') }}"
@@ -115,7 +125,7 @@
             style="color: {{ $user->group->color }}"
             title="{{ $tituloRango }}"
         >
-            @if ($iconoRangoEsSvg)
+            @if ($iconoRangoEsImagen)
                 <img
                     class="user-tag__rank-svg"
                     src="{{ asset('img/insignias/'.basename($iconoRango)).'?v='.config('perks-donante.version') }}"

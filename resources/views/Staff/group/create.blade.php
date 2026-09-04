@@ -95,19 +95,48 @@
                     </label>
                 </p>
                 <x-icon-picker name="group[icon]" />
-                <p class="form__group">
-                    <input
-                        id="effect"
-                        class="form__text"
-                        type="text"
-                        name="group[effect]"
-                        value="none"
-                        placeholder="GIF effect"
-                    />
-                    <label class="form__label form__label--floating" for="effect">
-                        Effect (e.g. url(/img/sparkels.gif))
-                    </label>
-                </p>
+                {{--
+                    Efecto de fondo del nick. Era un campo de texto libre sin
+                    validación, y de ahí salió que cuatro grupos guardaran la url
+                    a pelo: sin tamaño ni repetición, el atajo `background` los
+                    deja en `repeat`/`auto` y el gif se tesela y anima por toda la
+                    caja. El catálogo manda; se elige, no se teclea.
+                --}}
+                <fieldset class="form__fieldset">
+                    <legend class="form__legend">Efecto del nick</legend>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem">
+                        <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 13rem">
+                            <input
+                                type="radio"
+                                name="group[effect]"
+                                value="none"
+                                @checked('none' === null || 'none' === '' || 'none' === 'none')
+                            />
+                            Ninguno
+                        </label>
+                        @foreach (config('perks-donante.efectos') as $clave => $efecto)
+                            <label style="display: flex; align-items: center; gap: 0.35rem; min-width: 13rem">
+                                <input
+                                    type="radio"
+                                    name="group[effect]"
+                                    value="{{ $clave }}"
+                                    @checked('none' === $efecto['css'])
+                                />
+                                <span
+                                    style="
+                                        display: inline-block;
+                                        min-width: 5rem;
+                                        padding: 0 0.4rem;
+                                        background: {{ $efecto['css'] }};
+                                    "
+                                >
+                                    Nombre
+                                </span>
+                                {{ $efecto['rotulo'] }}
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
                 <p class="form__group">
                     <input name="group[is_uploader]" type="hidden" value="0" />
                     <input

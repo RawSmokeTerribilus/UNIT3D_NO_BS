@@ -64,8 +64,14 @@ class StoreGroupRequest extends FormRequest
             'group.icon' => [
                 'required',
             ],
+            // El efecto se elige de `config/perks-donante.efectos`, no se teclea.
+            // Lo que llega es la CLAVE del catalogo; el controlador la resuelve
+            // al atajo `background` completo antes de guardar. `none` es la
+            // ausencia de efecto, que es lo que ya guardan las 19 filas sin él.
             'group.effect' => [
                 'sometimes',
+                'nullable',
+                Rule::in(array_merge(['none'], array_keys(config('perks-donante.efectos')))),
             ],
             'group.is_uploader' => [
                 'required',

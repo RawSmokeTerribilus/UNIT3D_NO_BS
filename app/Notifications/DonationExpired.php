@@ -14,6 +14,18 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
  */
 
+/**
+ * MODIFICADO PARA NOBS
+ *
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+ *
+ * Este fichero contiene cambios sobre el original de UNIT3D Community Edition.
+ * Se distribuye bajo la misma licencia, GNU AGPL v3.0.
+ *
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+ */
+
 namespace App\Notifications;
 
 use App\Interfaces\SystemNotificationInterface;
@@ -44,9 +56,16 @@ class DonationExpired extends Notification implements ShouldQueue, SystemNotific
      */
     public function toSystemNotification(User $notifiable): array
     {
+        // Texto por clave de idioma y no incrustado, como en
+        // `PersonalFreeleechCreated`. Aviso: esta notificacion es ShouldQueue, y
+        // el worker no pasa por SetLanguage, asi que hoy se compone con
+        // `config('app.locale')` para todo el mundo. Para que respete el idioma
+        // de cada usuario haria falta que `User` implementase
+        // `HasLocalePreference` devolviendo `settings->locale`; mientras no lo
+        // haga, las claves en `en` estan puestas pero no se llegan a usar.
         return [
-            'subject' => 'Your Donor Status Has Expired',
-            'message' => 'Your donor status has expired. Feel free to donate again to regain your donor status. Thank you for your support!'
+            'subject' => __('notification.donation-expired-subject'),
+            'message' => __('notification.donation-expired-message'),
         ];
     }
 }

@@ -23,6 +23,8 @@ return [
     'delete'              => 'Delete',
     'delete-all'          => 'Delete all notifications',
     'deleted'             => 'Notification deleted!',
+    'donation-expired-message' => 'Your donor status has expired. Feel free to donate again to regain your donor status. Thank you for your support!',
+    'donation-expired-subject' => 'Your donor status has expired',
     'filter-by-type'      => 'Filter by notification type',
     'mark-all-read'       => 'Mark all as read',
     'mark-read'           => 'Mark as read',
