@@ -31,7 +31,7 @@ return [
     |
     | Formato: AAAAMMDDnn
     */
-    'version' => '2026082802',
+    'version' => '2026083001',
 
     /*
     |--------------------------------------------------------------------------
@@ -58,22 +58,68 @@ return [
 
     /*
     | Icono de rango, a la izquierda del nick. Sustituye al icono FontAwesome
-    | del grupo. Sólo SVG con contraste suficiente sobre el fondo oscuro del
-    | tema (#1a1a1f); ver la tabla medida en el vault, `iconos-de-rango-svg`.
-    | Los ficheros viven en public/img/insignias/.
+    | del grupo. Los ficheros viven en public/img/insignias/.
+    |
+    | SVG o PNG: `user-tag.blade.php` reconoce como imagen cualquier extensión
+    | de imagen, y lo que NO lo sea lo trata como clase de FontAwesome. Si esa
+    | condición vuelve a ser sólo '.svg', los png de aquí se inyectan como clase
+    | CSS y desaparecen sin dar error.
+    |
+    | El contraste manda: sobre el fondo oscuro del tema (#1a1a1f) hay que medir
+    | componiendo encima, nunca con `-alpha off`, que cuenta el transparente
+    | como negro. Tabla medida en el vault, `iconos-de-rango-svg`.
+    |
+    | Los rótulos son de UNA palabra a propósito: es un menú, y un nombre
+    | compuesto no ayuda a elegir.
     */
     'iconos' => [
+        // Los de siempre, en svg blanco.
         'wizard.svg'              => 'Hechicero',
         'shinigami-blanco.svg'    => 'Parca',
         'alien.svg'               => 'Alien',
-        'alien-5.svg'             => 'Alien gris',
-        'alien-monster.svg'       => 'Alien monstruo',
+        'alien-5.svg'             => 'Gris',
+        'alien-monster.svg'       => 'Monstruo',
         'gladiator-blanco.svg'    => 'Gladiador',
         'star-one-blanco.svg'     => 'Estrella',
         'sith-blanco.svg'         => 'Sith',
         'jedi-blanco.svg'         => 'Jedi',
         'rebel-blanco.svg'        => 'Rebelde',
-        'boba-fett-blanco.svg'    => 'Cazarrecompensas',
+
+        // Los dos cazarrecompensas van juntos por estar emparentados: el de
+        // arriba es el svg blanco de siempre, el de abajo el del pack, a color.
+        'boba-fett-blanco.svg'    => 'Boba',
+        'mando.png'               => 'Mando',
+
+        // Pack a color. Naves y cacharros.
+        'halcon.png'              => 'Halcón',
+        'muerte.png'              => 'Muerte',
+
+        // Cascos.
+        'soldado.png'             => 'Soldado',
+        'clon.png'                => 'Clon',
+        'casco.png'               => 'Casco',
+        'vader.png'               => 'Vader',
+        'kylo.png'                => 'Kylo',
+
+        // Droides. «Arturito» es el guiño latinoamericano a R2-D2, que allí se
+        // dobló así; el rótulo manda sobre la transliteración castellana.
+        'arturito.png'            => 'Arturito',
+        'bebeocho.png'            => 'Bebeocho',
+        'c3po.png'                => 'C3PO',
+        'droide.png'              => 'Droide',
+
+        // Dorados, de trazo fino. Contraste medido sobre #1a1a1f: 0,154 /
+        // 0,145 / 0,171 — se leen, pero están en la banda floja de la tabla
+        // (`star-laptop` 0,136 flojo, `awesome` 0,179 bien). Si se ven
+        // pequeños, la palanca es encoger el viewBox como en `alien-5`, no
+        // tocar el CSS.
+        'infinito.svg'            => 'Infinito',
+        'laurel.svg'              => 'Laurel',
+        'rayo.svg'                => 'Rayo',
+
+        // Neón. Venía con 78% de relleno transparente y descentrada;
+        // recortada, recentrada y llevada a 130 px como el resto del pack.
+        'diana.png'               => 'Diana',
     ],
 
     /*

@@ -12,12 +12,22 @@
             <h2 class="panel__heading">{{ $group->name }}</h2>
             <div class="panel__body user-card-wrapper">
                 @foreach ($group->users as $user)
+                    {{-- El ORDEN importa. `background` es el atajo: al no llevar
+                         componente de color, resetea `background-color` a
+                         transparent y se come cualquier declaracion anterior.
+                         Por eso el color va DESPUES del atajo, no antes.
+                         `groups.effect` dejo de ser una url pelada y pasó a ser
+                         un atajo completo (`url(...) center/auto 100% repeat-x`),
+                         que como `background-image` seria invalido — de ahi el
+                         atajo. Sin el color detras, `.user-card__username` (que
+                         es `color: #fff` fijo) queda blanco sobre blanco en los
+                         temas claros. --}}
                     <a
                         href="{{ route('users.show', ['user' => $user]) }}"
                         class="user-card"
                         style="
-                            background-color: {{ $user->group->color }};
                             background: {{ $group->effect }};
+                            background-color: {{ $user->group->color }};
                         "
                     >
                         <h3 class="user-card__username">

@@ -63,7 +63,10 @@ class GroupController extends Controller
      */
     public function store(StoreGroupRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $group = Group::create(['slug' => Str::slug($request->validated('group.name'))] + $request->validated('group'));
+        $group = Group::create(
+            ['slug' => Str::slug($request->validated('group.name'))]
+            + self::conEfectoResuelto($request->validated('group'))
+        );
 
         $group->permissions()->upsert($request->validated('permissions'), ['forum_id', 'group_id']);
 
@@ -99,7 +102,7 @@ class GroupController extends Controller
         // 'validating', 'disabled', 'pruned'), y GroupSeeder hace upsert por slug.
         // Regenerarlo en cada guardado convertía un simple renombrado en una
         // rotura de login, announce y del propio seeder. Se fija al crear y ya.
-        $group->update($request->validated('group'));
+        $group->update(self::conEfectoResuelto($request->validated('group')));
 
         $group->permissions()->upsert($request->validated('permissions'), ['forum_id', 'group_id']);
 
@@ -145,4 +148,32 @@ class GroupController extends Controller
         return to_route('staff.groups.index')
             ->with('success', "Group deleted successfully.");
     }
+
+    /**
+     * Cambia la clave de catálogo que manda el formulario por el atajo
+     * `background` completo, que es lo que se guarda.
+     *
+     * Mismo criterio que `User\UserController` con `donor_effect`: en la BD va
+     * el CSS ya resuelto, no la clave, para no resolver el catálogo en cada
+     * pintada de `user-tag`. La diferencia es que aquí la ausencia de efecto se
+     * escribe `none` y no NULL, porque es lo que ya guardan las 19 filas que no
+     * llevan ninguno y lo que comparan las vistas de staff.
+     *
+     * @param  array<string, mixed>  $datos
+     * @return array<string, mixed>
+     */
+    private static function conEfectoResuelto(array $datos): array
+    {
+        if (!\array_key_exists('effect', $datos)) {
+            return $datos;
+        }
+
+        $clave    = $datos['effect'];
+        $efectos  = config('perks-donante.efectos');
+
+        $datos['effect'] = isset($efectos[$clave]) ? $efectos[$clave]['css'] : 'none';
+
+        return $datos;
+    }
+
 }

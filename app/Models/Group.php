@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -156,6 +157,89 @@ final class Group extends Model
     public function permissions(): HasMany
     {
         return $this->hasMany(ForumPermission::class);
+    }
+
+
+    /**
+     * Normaliza `effect` al atajo `background` COMPLETO en el momento de leerlo.
+     *
+     * El campo cambió de significado con los perks de donante: antes guardaba
+     * sólo la url, ahora guarda el atajo entero, porque no todos los efectos
+     * son texturas —algunos son marcos— y cada especie necesita su propio
+     * tamaño y repetición. `users.donor_effect` sí se migró; `groups.effect`
+     * no, y sigue siendo un campo de texto libre que el staff teclea a mano
+     * (`Staff/group/edit.blade.php`, sin más validación que `sometimes`).
+     *
+     * Un valor viejo como `url(/img/sparkels.gif)` inyectado en el atajo deja
+     * `background-repeat` en `repeat` y `background-size` en `auto` —los
+     * valores iniciales, porque el atajo reinicia lo que no se declara—, así
+     * que el gif se TESELA y anima por toda la caja del nick. Con 90
+     * fotogramas eso satura el hilo principal del navegador.
+     *
+     * Se arregla aquí y no con un UPDATE porque el campo se puede volver a
+     * ensuciar en cuanto alguien edite un grupo. Al normalizar en lectura,
+     * quedan cubiertos de una vez las vistas, la API y el chat
+     * (`ChatUserResource` serializa el modelo entero).
+     */
+    protected function effect(): Attribute
+    {
+        return Attribute::make(
+            get: static fn (?string $value): ?string => self::normalizarEfecto($value),
+        );
+    }
+
+    /**
+     * Devuelve el atajo catalogado para el gif que referencie `$valor`.
+     *
+     * Se deja intacto lo que no sabemos mejorar: vacío, `none`, un atajo que ya
+     * trae tamaño y repetición, o un gif que no esté en el catálogo. Preferimos
+     * un efecto sin normalizar a inventarle una repetición a un marco.
+     */
+    public static function normalizarEfecto(?string $valor): ?string
+    {
+        if ($valor === null || trim($valor) === '' || trim($valor) === 'none') {
+            return $valor;
+        }
+
+        // Un atajo completo ya trae al menos un separador tras el `url(...)`.
+        if (preg_match('/\)\s+\S/', $valor) === 1) {
+            return $valor;
+        }
+
+        $fichero = self::ficheroDeEfecto($valor);
+
+        if ($fichero === null) {
+            return $valor;
+        }
+
+        /** @var array<string, array{rotulo: string, css: string}> $catalogo */
+        $catalogo = config('perks-donante.efectos', []);
+
+        foreach ($catalogo as $entrada) {
+            if (isset($entrada['css']) && self::ficheroDeEfecto($entrada['css']) === $fichero) {
+                return $entrada['css'];
+            }
+        }
+
+        return $valor;
+    }
+
+    /**
+     * Saca el nombre del fichero de dentro de un `url(...)`, sin ruta ni comillas.
+     *
+     * El catálogo no está indexado por nombre de gif —`destellos-verdes` apunta
+     * a `background9.gif`—, así que la comparación tiene que ser por fichero y
+     * no por clave.
+     */
+    private static function ficheroDeEfecto(string $valor): ?string
+    {
+        if (preg_match('/url\(\s*[\'"]?([^)\'"]+?)[\'"]?\s*\)/i', $valor, $m) !== 1) {
+            return null;
+        }
+
+        $fichero = basename(trim($m[1]));
+
+        return $fichero === '' ? null : $fichero;
     }
 
     /**
