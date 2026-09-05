@@ -1,0 +1,5 @@
+auditor.env
+run/
+__pycache__/
+**/__pycache__/
+*.pyc

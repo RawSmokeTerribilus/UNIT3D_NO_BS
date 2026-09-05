@@ -1,0 +1,88 @@
+/* Panel de consultas — hereda la paleta del cockpit de forensics. */
+:root {
+  --bg: #0d1117; --panel: #161b22; --fg: #c9d1d9; --muted: #8b949e;
+  --line: #30363d; --accent: #58a6ff; --ok: #2ea043; --warn: #d29922;
+  --bad: #f85149; --off: #6e7681; --secreto: #a371f7;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 14px/1.5 ui-monospace, "JetBrains Mono", "Cascadia Code", Menlo, monospace;
+}
+header {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+  padding: 1rem 1.5rem; border-bottom: 1px solid var(--line);
+  background: var(--panel); position: sticky; top: 0; z-index: 5;
+}
+h1 { font-size: 1.1rem; margin: 0; letter-spacing: .04em; }
+h2 { font-size: .85rem; color: var(--muted); text-transform: uppercase;
+     letter-spacing: .08em; margin: 1.5rem 0 .5rem; }
+main { padding: 0 1.5rem 3rem; max-width: 1400px; }
+.muted { color: var(--muted); }
+.actions { margin-left: auto; display: flex; gap: .5rem; align-items: center; }
+
+button, select, input, textarea {
+  font: inherit; background: #21262d; color: var(--fg);
+  border: 1px solid var(--line); border-radius: 6px; padding: .35rem .6rem;
+}
+button { cursor: pointer; padding: .4rem .9rem; }
+button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button.primario { background: #1f6feb22; border-color: var(--accent); color: var(--accent); }
+button.icono { padding: .2rem .5rem; font-size: .8rem; }
+select, input { min-width: 7rem; }
+textarea { width: 100%; min-height: 6rem; resize: vertical; }
+
+/* ---- tarjeta de paso ---- */
+.paso {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1rem 1.2rem; margin-bottom: .5rem;
+}
+.paso > .cabecera { display: flex; align-items: center; gap: .8rem; margin-bottom: .8rem; }
+.paso .num {
+  font-size: .7rem; letter-spacing: .12em; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 4px; padding: .1rem .5rem;
+}
+.paso .cuenta { margin-left: auto; color: var(--ok); font-variant-numeric: tabular-nums; }
+.enlace { text-align: center; color: var(--muted); font-size: .8rem; padding: .1rem 0 .5rem; }
+
+.linea { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: .4rem; }
+.linea .junta { width: 3.2rem; color: var(--muted); font-size: .8rem; text-align: right; }
+.etiqueta { width: 5.5rem; color: var(--muted); font-size: .8rem; }
+
+.nota {
+  border-left: 2px solid var(--warn); background: #d2992212; color: var(--fg);
+  padding: .4rem .7rem; margin: .3rem 0 .6rem 3.6rem; font-size: .8rem; border-radius: 0 4px 4px 0;
+}
+.nota.secreto { border-left-color: var(--secreto); background: #a371f712; }
+
+.chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip {
+  border: 1px solid var(--line); border-radius: 999px; padding: .15rem .7rem;
+  font-size: .8rem; cursor: pointer; background: #21262d; user-select: none;
+}
+.chip.on { border-color: var(--accent); color: var(--accent); background: #1f6feb1a; }
+.chip.bloqueado { border-color: var(--secreto); color: var(--secreto); cursor: not-allowed; opacity: .75; }
+
+/* ---- resultado ---- */
+.banda { padding: .5rem .8rem; border-radius: 6px; margin: .5rem 0; font-size: .85rem; }
+.banda.aviso { background: #d2992218; border: 1px solid #d2992255; }
+.banda.malo  { background: #f8514918; border: 1px solid #f8514955; color: #ffb4ae; }
+.banda.corte { background: #f8514922; border: 1px solid var(--bad); color: #ffb4ae; font-weight: bold; }
+
+.tablawrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+th, td { padding: .35rem .7rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { background: #1c2128; color: var(--muted); position: sticky; top: 0;
+     font-weight: normal; text-transform: uppercase; font-size: .72rem; letter-spacing: .06em; }
+tbody tr:hover { background: #ffffff08; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.tapado { color: var(--secreto); }
+td.nulo { color: var(--off); font-style: italic; }
+
+pre.sql {
+  background: #010409; border: 1px solid var(--line); border-radius: 8px;
+  padding: .8rem 1rem; overflow-x: auto; font-size: .82rem; color: #9ecbff; margin: .5rem 0;
+}
+details summary { cursor: pointer; color: var(--muted); font-size: .8rem; }
+.oculto { display: none !important; }

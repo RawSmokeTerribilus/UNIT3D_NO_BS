@@ -1,0 +1,71 @@
+"""Configuración del panel, leída del entorno que inyecta el compose."""
+import os
+
+
+def _int(name, default):
+    try:
+        return int(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
+
+
+def _bool(name, default=False):
+    v = os.environ.get(name, "").strip().lower()
+    if not v:
+        return default
+    return v in ("1", "true", "yes", "on", "si", "sí")
+
+
+class Config:
+    bind_addr = os.environ.get("BIND_ADDR", "127.0.0.1")
+    port = _int("PORT", 8781)
+
+    db_host = os.environ.get("AUDITOR_DB_HOST", "db")
+    db_port = _int("AUDITOR_DB_PORT", 3306)
+    db_name = os.environ.get("AUDITOR_DB_NAME", "unit3d")
+    db_user = os.environ.get("AUDITOR_DB_USER", "auditro")
+    db_pass = os.environ.get("AUDITOR_DB_PASS", "")
+
+    loki_url = os.environ.get("AUDITOR_LOKI_URL", "http://loki:3100").rstrip("/")
+    prom_url = os.environ.get("AUDITOR_PROM_URL", "http://prometheus:9090").rstrip("/")
+
+    # Retención real de cada fuente. Se usa para AVISAR cuando se pide más
+    # atrás, nunca para recortar en silencio.
+    retention_days = {
+        "loki": _int("AUDITOR_LOKI_RETENTION_DAYS", 7),
+        "prom": _int("AUDITOR_PROM_RETENTION_DAYS", 15),
+        "binlog": _int("AUDITOR_BINLOG_RETENTION_DAYS", 30),
+    }
+
+    max_rows = _int("AUDITOR_MAX_ROWS", 5000)
+    max_exec_ms = _int("AUDITOR_MAX_EXEC_MS", 15000)
+    max_link_keys = _int("AUDITOR_MAX_LINK_KEYS", 10000)
+    archive_row_days = _int("AUDITOR_ARCHIVE_ROW_DAYS", 365)
+
+    auth_mode = os.environ.get("AUTH_MODE", "none").strip().lower()
+    allowed_emails = [
+        e.strip().lower()
+        for e in os.environ.get("ALLOWED_EMAILS", "").split(",")
+        if e.strip()
+    ]
+    cf_team = os.environ.get("CF_ACCESS_TEAM", "").strip()
+    cf_aud = os.environ.get("CF_ACCESS_AUD", "").strip()
+
+    run_dir = os.environ.get("AUDITOR_RUN_DIR", "/app/run")
+    binlog_dir = os.environ.get("AUDITOR_BINLOG_DIR", "/prod/mysql")
+
+    # Columnas cuyo VALOR no sale nunca. Se pueden interrogar (IS NULL,
+    # COUNT, LENGTH); no se pueden proyectar.
+    #
+    # NO están aquí a propósito: email, passkey, rsskey, api_token. Ya son
+    # visibles para un admin en la web del tracker, y taparlas rompería
+    # consultas legítimas.
+    secretos = {
+        "password",
+        "two_factor_secret",
+        "two_factor_recovery_codes",
+        "remember_token",
+    }
+
+
+cfg = Config()

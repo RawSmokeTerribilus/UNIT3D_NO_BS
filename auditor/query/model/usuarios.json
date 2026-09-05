@@ -1,0 +1,46 @@
+{
+  "id": "usuarios",
+  "nombre": "Usuarios",
+  "fuente": "mysql",
+  "tabla": "users",
+  "clave": "id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo cuentas vivas",
+  "notas": [
+    "El padrón vivo son 2.642. En crudo la tabla tiene 2.660: 18 son bajas lógicas (deleted_at). Contarlas cambia el resultado — el caso del 2FA da 317 vivos y 318 con las bajas dentro.",
+    "information_schema.table_rows da 1.911. Es una estimación de InnoDB, no un recuento. Aquí siempre se cuenta con COUNT(*)."
+  ],
+  "campos": [
+    {"id": "id", "etiqueta": "Id", "col": "id", "tipo": "numero"},
+    {"id": "nombre", "etiqueta": "Usuario", "col": "username", "tipo": "texto"},
+    {"id": "correo", "etiqueta": "Correo", "col": "email", "tipo": "texto"},
+    {"id": "grupo", "etiqueta": "Grupo", "tipo": "catalogo",
+     "via": {"tabla": "groups", "alias": "g", "por": "group_id", "clave_remota": "id",
+             "muestra": "name", "filtra": "slug"},
+     "nota": "Los ids de grupo van +2 respecto al enum de la aplicación. Aquí se filtra por slug, nunca por id."},
+    {"id": "subido", "etiqueta": "Subido", "col": "uploaded", "tipo": "bytes"},
+    {"id": "bajado", "etiqueta": "Bajado", "col": "downloaded", "tipo": "bytes"},
+    {"id": "ratio", "etiqueta": "Ratio", "tipo": "numero",
+     "expr": "ROUND(t.uploaded / NULLIF(t.downloaded, 0), 2)",
+     "nota": "Redondeado a 2 decimales igual que User::getRatioAttribute() (User.php:1176), que es contra lo que compara AutoGroup. Dividir sin redondear da otro recuento: cualquiera entre 0,395 y 0,4049 pasa como 0,40."},
+    {"id": "tfa_abierto", "etiqueta": "2FA abierto", "tipo": "bool", "secreto": true,
+     "expr": "t.two_factor_secret IS NOT NULL",
+     "nota": "Se rellena al ABRIR la página de 2FA, antes de confirmar nada. NO significa que el 2FA esté activo. El middleware miraba este campo y dejó pasar a 317 cuentas (2026-09-02)."},
+    {"id": "tfa_confirmado", "etiqueta": "2FA confirmado", "tipo": "bool",
+     "expr": "t.two_factor_confirmed_at IS NOT NULL",
+     "nota": "Esto sí es 2FA activo de verdad."},
+    {"id": "puede_descargar", "etiqueta": "Puede descargar", "col": "can_download", "tipo": "bool"},
+    {"id": "es_donante", "etiqueta": "Es donante", "col": "is_donor", "tipo": "bool"},
+    {"id": "bonus", "etiqueta": "Bonus", "col": "seedbonus", "tipo": "numero"},
+    {"id": "hitandruns", "etiqueta": "Hit and runs", "col": "hitandruns", "tipo": "numero"},
+    {"id": "alta", "etiqueta": "Alta", "col": "created_at", "tipo": "fecha"},
+    {"id": "ultimo_acceso", "etiqueta": "Último acceso", "col": "last_login", "tipo": "fecha"},
+    {"id": "ultima_accion", "etiqueta": "Última acción", "col": "last_action", "tipo": "fecha",
+     "nota": "Junto con las conexiones y las descargas, una de las tres señales para saber si alguien está vivo. `peers` por sí sola sólo dice conexión ACTUAL."},
+    {"id": "baja", "etiqueta": "Baja lógica", "col": "deleted_at", "tipo": "fecha"}
+  ],
+  "cruces": [
+    {"entidad": "descargas", "por": "id", "hacia": "user_id"},
+    {"entidad": "grupos", "por": "group_id", "hacia": "id"}
+  ]
+}

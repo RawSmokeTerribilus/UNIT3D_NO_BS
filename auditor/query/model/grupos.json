@@ -1,0 +1,33 @@
+{
+  "id": "grupos",
+  "nombre": "Grupos",
+  "fuente": "mysql",
+  "tabla": "groups",
+  "clave": "id",
+  "notas": [
+    "Son 23 grupos, 8 de ellos con autogroup activo. Si un recuento da 19 y 5, el que miente es el canal: fue el bug del `grep` que tomó por binarios los nombres con acentos.",
+    "AutoGroup recorre los grupos con autogroup=1 ordenados por posición DESC y asigna el primero cuyos criterios se cumplan TODOS."
+  ],
+  "campos": [
+    {"id": "id", "etiqueta": "Id", "col": "id", "tipo": "numero",
+     "nota": "No coincide con el enum de la aplicación: va +2. Nunca compararlo a mano contra un id del código."},
+    {"id": "nombre", "etiqueta": "Nombre", "col": "name", "tipo": "texto"},
+    {"id": "slug", "etiqueta": "Slug", "col": "slug", "tipo": "texto"},
+    {"id": "posicion", "etiqueta": "Posición", "col": "position", "tipo": "numero"},
+    {"id": "nivel", "etiqueta": "Nivel", "col": "level", "tipo": "numero"},
+    {"id": "autogroup", "etiqueta": "Automático", "col": "autogroup", "tipo": "bool"},
+    {"id": "min_ratio", "etiqueta": "Ratio mínimo", "col": "min_ratio", "tipo": "numero"},
+    {"id": "min_subido", "etiqueta": "Subida mínima", "col": "min_uploaded", "tipo": "bytes"},
+    {"id": "min_antiguedad", "etiqueta": "Antigüedad mínima", "col": "min_age", "tipo": "numero"},
+    {"id": "min_seedsize", "etiqueta": "Volumen mínimo en semilla", "col": "min_seedsize", "tipo": "bytes"},
+    {"id": "min_seedtime", "etiqueta": "Tiempo medio mínimo", "col": "min_avg_seedtime", "tipo": "numero"},
+    {"id": "min_subidas", "etiqueta": "Subidas mínimas", "col": "min_uploads", "tipo": "numero"},
+    {"id": "es_staff", "etiqueta": "Es staff", "col": "is_modo", "tipo": "bool",
+     "nota": "is_modo es la única definición de staff en UNIT3D: es lo que mira CheckForModo para todo /dashboard."},
+    {"id": "es_admin", "etiqueta": "Es admin", "col": "is_admin", "tipo": "bool"},
+    {"id": "es_owner", "etiqueta": "Es owner", "col": "is_owner", "tipo": "bool"},
+    {"id": "inmune", "etiqueta": "Inmune", "col": "is_immune", "tipo": "bool"},
+    {"id": "freeleech", "etiqueta": "Freeleech", "col": "is_freeleech", "tipo": "bool"}
+  ],
+  "cruces": [{"entidad": "usuarios", "por": "id", "hacia": "group_id"}]
+}

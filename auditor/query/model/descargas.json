@@ -1,0 +1,30 @@
+{
+  "id": "descargas",
+  "nombre": "Descargas",
+  "fuente": "mysql",
+  "tabla": "history",
+  "clave": "user_id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo registros vivos",
+  "notas": [
+    "La tabla no tiene columna `id`: la pareja usuario+torrent es la que identifica una fila.",
+    "Hay DOS pares de contadores. `subido`/`bajado` son lo ACREDITADO (lo que cuenta para el ratio, ya con freeleech y devoluciones aplicados). `subido_real`/`bajado_real` son lo que movió el cliente de verdad. Compararlos es lo que destapa una promoción mal aplicada."
+  ],
+  "campos": [
+    {"id": "usuario", "etiqueta": "Usuario", "col": "user_id", "tipo": "numero"},
+    {"id": "torrent", "etiqueta": "Torrent", "col": "torrent_id", "tipo": "numero"},
+    {"id": "subido", "etiqueta": "Subido acreditado", "col": "uploaded", "tipo": "bytes"},
+    {"id": "subido_real", "etiqueta": "Subido real", "col": "actual_uploaded", "tipo": "bytes"},
+    {"id": "bajado", "etiqueta": "Bajado acreditado", "col": "downloaded", "tipo": "bytes"},
+    {"id": "bajado_real", "etiqueta": "Bajado real", "col": "actual_downloaded", "tipo": "bytes"},
+    {"id": "devuelto", "etiqueta": "Bajada devuelta", "col": "refunded_download", "tipo": "bytes"},
+    {"id": "semilla", "etiqueta": "En semilla", "col": "seeder", "tipo": "bool"},
+    {"id": "activo", "etiqueta": "Activo", "col": "active", "tipo": "bool"},
+    {"id": "tiempo_semilla", "etiqueta": "Tiempo en semilla", "col": "seedtime", "tipo": "numero"},
+    {"id": "hitrun", "etiqueta": "Hit and run", "col": "hitrun", "tipo": "bool"},
+    {"id": "inmune", "etiqueta": "Inmune", "col": "immune", "tipo": "bool"},
+    {"id": "completado", "etiqueta": "Completado", "col": "completed_at", "tipo": "fecha"},
+    {"id": "creado", "etiqueta": "Creado", "col": "created_at", "tipo": "fecha"}
+  ],
+  "cruces": [{"entidad": "usuarios", "por": "user_id", "hacia": "id"}]
+}

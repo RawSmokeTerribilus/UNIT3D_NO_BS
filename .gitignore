@@ -146,3 +146,8 @@ vendor.bak*
 
 # Estado vivo del announce: contiene DATABASE_URL, nunca al repositorio.
 .docker/announce/runtime/
+
+# panel de consultas para auditorías — config local + archivo de ejecuciones
+auditor/auditor.env
+auditor/run/
+auditor/**/__pycache__/

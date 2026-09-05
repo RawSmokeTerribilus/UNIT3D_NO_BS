@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de consultas — auditorías</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>PANEL DE CONSULTAS</h1>
+  <span class="muted" id="cabecera-info">cargando modelo…</span>
+  <div class="actions">
+    <button id="btn-crudo" class="icono" title="Escribir la consulta a mano">SQL a mano</button>
+    <a href="http://127.0.0.1:8780" target="_blank"><button class="icono">Cockpit forense</button></a>
+  </div>
+</header>
+
+<main>
+  <h2>Compositor</h2>
+  <div id="pasos"></div>
+  <div class="linea" style="margin-top:.6rem">
+    <button id="btn-ejecutar" class="primario">Ejecutar</button>
+    <button id="btn-ver">Ver la consulta</button>
+    <button id="btn-limpiar">Limpiar</button>
+    <span class="muted" id="estado"></span>
+  </div>
+
+  <div id="crudo" class="oculto">
+    <h2>SQL a mano</h2>
+    <p class="muted" style="font-size:.8rem;margin:.2rem 0 .5rem">
+      Sólo lectura. El valor de un secreto no sale por pantalla: se puede
+      interrogar en el <code>WHERE</code> o contar con <code>COUNT()</code>.
+    </p>
+    <textarea id="sql-crudo" spellcheck="false"
+      placeholder="SELECT COUNT(*) FROM users WHERE deleted_at IS NULL"></textarea>
+    <div class="linea" style="margin-top:.4rem">
+      <button id="btn-ejecutar-crudo" class="primario">Ejecutar SQL</button>
+    </div>
+  </div>
+
+  <div id="consulta-caja" class="oculto">
+    <h2>Consulta generada</h2>
+    <pre class="sql" id="consulta"></pre>
+  </div>
+
+  <div id="resultado-caja" class="oculto">
+    <h2>Resultado</h2>
+    <div id="bandas"></div>
+    <div class="linea">
+      <button id="btn-csv" class="icono">Exportar CSV</button>
+      <button id="btn-json" class="icono">Exportar JSON</button>
+      <span class="muted" id="resumen"></span>
+    </div>
+    <div class="tablawrap"><table id="tabla"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <h2>Historial</h2>
+  <div class="tablawrap"><table id="historial"><thead></thead><tbody></tbody></table></div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

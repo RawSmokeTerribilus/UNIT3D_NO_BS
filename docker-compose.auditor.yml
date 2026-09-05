@@ -1,0 +1,66 @@
+# Panel de consultas para auditorías — servicio local, siempre encendido.
+#
+# Configuración en auditor/auditor.env (ver auditor.env.example).
+#
+# Aislamiento:
+#   - proyecto propio (unit3d_auditor); no toca el stack de prod
+#   - SIN docker.sock y sin ejecutar docker: sólo lee servicios por red
+#   - la cuenta de base es auditro, con SELECT únicamente sobre `unit3d`
+#   - el único montaje son los binlogs de prod, en :ro
+#   - sin `:z` en ningún volumen (rompe NTFS/exFAT/CIFS/NFS)
+#   - corre como uid 27 (mysql), que es quien puede leer los binlogs
+name: ${AUDITOR_PROJECT:-unit3d_auditor}
+
+services:
+  auditor:
+    build:
+      context: ./auditor
+    image: unit3d-auditor:local
+    container_name: ${AUDITOR_CONTAINER:-unit3d-auditor}
+    restart: unless-stopped
+    user: "27:27"
+    environment:
+      - BIND_ADDR=0.0.0.0
+      - PORT=8781
+      - AUDITOR_DB_HOST=${AUDITOR_DB_HOST:-db}
+      - AUDITOR_DB_PORT=${AUDITOR_DB_PORT:-3306}
+      - AUDITOR_DB_NAME=${AUDITOR_DB_NAME:-unit3d}
+      - AUDITOR_DB_USER=${AUDITOR_DB_USER:-auditro}
+      - AUDITOR_DB_PASS=${AUDITOR_DB_PASS:?falta AUDITOR_DB_PASS (viene de UNIT3D_PROD_DB_AUDITRO_PASS)}
+      - AUDITOR_LOKI_URL=${AUDITOR_LOKI_URL:-http://loki:3100}
+      - AUDITOR_PROM_URL=${AUDITOR_PROM_URL:-http://prometheus:9090}
+      - AUDITOR_LOKI_RETENTION_DAYS=${AUDITOR_LOKI_RETENTION_DAYS:-7}
+      - AUDITOR_PROM_RETENTION_DAYS=${AUDITOR_PROM_RETENTION_DAYS:-15}
+      - AUDITOR_BINLOG_RETENTION_DAYS=${AUDITOR_BINLOG_RETENTION_DAYS:-30}
+      - AUDITOR_MAX_ROWS=${AUDITOR_MAX_ROWS:-5000}
+      - AUDITOR_MAX_EXEC_MS=${AUDITOR_MAX_EXEC_MS:-15000}
+      - AUDITOR_MAX_LINK_KEYS=${AUDITOR_MAX_LINK_KEYS:-10000}
+      - AUDITOR_ARCHIVE_ROW_DAYS=${AUDITOR_ARCHIVE_ROW_DAYS:-365}
+      - AUTH_MODE=${AUTH_MODE:-none}
+      - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
+      - CF_ACCESS_TEAM=${CF_ACCESS_TEAM:-}
+      - CF_ACCESS_AUD=${CF_ACCESS_AUD:-}
+    ports:
+      # El bind local lo pone el host; dentro escucha en 0.0.0.0.
+      - "${BIND_ADDR:-127.0.0.1}:${PORT:-8781}:8781"
+    volumes:
+      - ./auditor/run:/app/run
+      - ${PROD_MYSQL_DIR:-./.docker/data/mysql}:/prod/mysql:ro
+    networks:
+      - prod
+      - monitoring
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+             "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8781/api/health', timeout=3).status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  prod:
+    external: true
+    name: ${AUDITOR_NET_PROD:-unit3d_docker_unit3d}
+  monitoring:
+    external: true
+    name: ${AUDITOR_NET_MONITORING:-monitoring_docker_monitoring}
