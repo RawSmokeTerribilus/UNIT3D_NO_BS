@@ -462,10 +462,14 @@
                                                 x-on:click="playing = true"
                                             >
                                                 <img
-                                                    src="https://i.ytimg.com/vi/{{ $trailerKey }}/maxresdefault.jpg"
+                                                    {{-- hqdefault y no maxresdefault: YouTube solo genera la
+                                                         maxres para parte de los videos, asi que pedirla primero
+                                                         se comia un 404 por miniatura antes de caer al respaldo.
+                                                         La hqdefault existe siempre. Si algun dia se prefiere la
+                                                         calidad al ruido en consola, se revierte esta linea. --}}
+                                                    src="https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg"
                                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
                                                     alt="Trailer thumbnail"
-                                                    x-on:error="$el.src = 'https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg'"
                                                 />
                                                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
                                                     <svg width="68" height="48" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
