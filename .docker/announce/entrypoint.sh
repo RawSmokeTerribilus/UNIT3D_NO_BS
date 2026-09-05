@@ -21,22 +21,30 @@ if [ -z "${TRACKER_KEY:-}" ]; then
     exit 1
 fi
 
-# El freeleech global lo gobierna el dashboard (settings `other.freeleech`), que
-# reescribe DOWNLOAD_FACTOR en este mismo fichero y llama a /config/reload. /app
-# es un bind mount del host, asi que el fichero sobrevive al contenedor: aqui hay
-# que conservar ese valor o cada reinicio apagaria la promo en silencio.
+# Las promos globales las gobierna el dashboard (settings `other.freeleech` y
+# `other.doubleup`), que reescribe DOWNLOAD_FACTOR / UPLOAD_FACTOR en este mismo
+# fichero y llama a /config/reload. /app es un bind mount del host, asi que el
+# fichero sobrevive al contenedor: aqui hay que conservar esos valores o cada
+# reinicio apagaria la promo en silencio.
 #
-# TRACKER_DOWNLOAD_FACTOR queda solo como semilla del primer arranque, cuando el
+# Las TRACKER_*_FACTOR quedan solo como semilla del primer arranque, cuando el
 # fichero todavia no existe.
-download_factor="${TRACKER_DOWNLOAD_FACTOR:-100}"
+preserved_factor() {
+    # $1 = nombre de la variable, $2 = valor por defecto
+    if [ -f /app/.env ]; then
+        persisted="$(sed -n "s/^$1=\([0-9]\{1,3\}\)\$/\1/p" /app/.env | head -1)"
 
-if [ -f /app/.env ]; then
-    persisted="$(sed -n 's/^DOWNLOAD_FACTOR=\([0-9]\{1,3\}\)$/\1/p' /app/.env | head -1)"
-
-    if [ -n "$persisted" ]; then
-        download_factor="$persisted"
+        if [ -n "$persisted" ]; then
+            printf '%s' "$persisted"
+            return 0
+        fi
     fi
-fi
+
+    printf '%s' "$2"
+}
+
+download_factor="$(preserved_factor DOWNLOAD_FACTOR "${TRACKER_DOWNLOAD_FACTOR:-100}")"
+upload_factor="$(preserved_factor UPLOAD_FACTOR "${TRACKER_UPLOAD_FACTOR:-100}")"
 
 db_user_encoded="$(urlencode "$db_user")"
 db_password_encoded="$(urlencode "$db_password")"
@@ -52,7 +60,7 @@ NUMWANT_MAX=${TRACKER_NUMWANT_MAX:-15}
 ANNOUNCE_MIN=${TRACKER_ANNOUNCE_MIN:-1800}
 ANNOUNCE_MIN_ENFORCED=${TRACKER_ANNOUNCE_MIN_ENFORCED:-1740}
 ANNOUNCE_MAX=${TRACKER_ANNOUNCE_MAX:-3600}
-UPLOAD_FACTOR=${TRACKER_UPLOAD_FACTOR:-100}
+UPLOAD_FACTOR=${upload_factor}
 DOWNLOAD_FACTOR=${download_factor}
 PEER_EXPIRY_INTERVAL=${TRACKER_PEER_EXPIRY_INTERVAL:-1800}
 ACTIVE_PEER_TTL=${TRACKER_ACTIVE_PEER_TTL:-7200}

@@ -356,8 +356,9 @@ class Unit3dAnnounce
     /**
      * Hace que el announce relea su .env sin reiniciarse (`config.rs:401`).
      *
-     * Lo usa TrackerFreeleech tras reescribir DOWNLOAD_FACTOR: el freeleech
-     * global vive en esa variable, no en `groups.is_freeleech`.
+     * Lo usa TrackerPromos tras reescribir DOWNLOAD_FACTOR / UPLOAD_FACTOR: las
+     * promos globales viven en esas variables, no en `groups.is_freeleech` ni
+     * en `groups.is_double_upload`.
      */
     public static function reloadConfig(): bool
     {

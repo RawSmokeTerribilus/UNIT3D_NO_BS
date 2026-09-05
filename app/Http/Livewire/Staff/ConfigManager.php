@@ -18,7 +18,7 @@ namespace App\Http\Livewire\Staff;
 
 use App\Models\Setting;
 use App\Services\LeechAmnesty;
-use App\Services\TrackerFreeleech;
+use App\Services\TrackerPromos;
 use Livewire\Component;
 
 class ConfigManager extends Component
@@ -154,7 +154,7 @@ class ConfigManager extends Component
             );
 
             $this->resyncLeechAmnesty();
-            $this->resyncGlobalFreeleech();
+            $this->resyncGlobalPromos();
 
             session()->flash('message', 'Configuración guardada correctamente.');
             $this->loadSettings();
@@ -196,25 +196,28 @@ class ConfigManager extends Component
     }
 
     /**
-     * El freeleech global tampoco viaja solo al announce Rust: vive en la
-     * variable DOWNLOAD_FACTOR de su .env. Ver App\Services\TrackerFreeleech.
+     * Las promos globales tampoco viajan solas al announce Rust: viven en las
+     * variables DOWNLOAD_FACTOR / UPLOAD_FACTOR de su .env.
+     * Ver App\Services\TrackerPromos.
      *
      * Mismo `Config::set` a mano y mismo tragarse los errores que la amnistía:
      * guardar la configuración no puede fracasar porque el announce esté caído.
      * Si esto no corre, `auto:leech-amnesty` reconcilia en menos de diez minutos.
      */
-    private function resyncGlobalFreeleech(): void
+    private function resyncGlobalPromos(): void
     {
         try {
             $fresh = Setting::all()->pluck('value', 'key');
 
-            if ($fresh->has('other.freeleech')) {
-                config(['other.freeleech' => filter_var($fresh['other.freeleech'], FILTER_VALIDATE_BOOLEAN)]);
+            foreach (TrackerPromos::settings() as $key) {
+                if ($fresh->has($key)) {
+                    config([$key => filter_var($fresh[$key], FILTER_VALIDATE_BOOLEAN)]);
+                }
             }
 
-            TrackerFreeleech::sync();
+            TrackerPromos::sync();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('ConfigManager: fallo al proyectar el freeleech global sobre el tracker.', [
+            \Illuminate\Support\Facades\Log::error('ConfigManager: fallo al proyectar las promos globales sobre el tracker.', [
                 'error' => $e->getMessage(),
             ]);
         }
