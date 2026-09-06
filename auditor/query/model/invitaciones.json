@@ -1,0 +1,78 @@
+{
+  "id": "invitaciones",
+  "nombre": "Invitaciones",
+  "fuente": "mysql",
+  "tabla": "invites",
+  "clave": "id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo invitaciones vivas",
+  "notas": [
+    "La caducidad efectiva en producción no es la del fichero de configuración: la fuente de verdad es la tabla `settings`, no `config/*.php`.",
+    "Reenviar una invitación reactiva la caducada en vez de crear otra."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "quien_invita",
+      "etiqueta": "Quién invita",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "correo",
+      "etiqueta": "Correo invitado",
+      "col": "email",
+      "tipo": "texto"
+    },
+    {
+      "id": "codigo",
+      "etiqueta": "Código",
+      "col": "code",
+      "tipo": "texto",
+      "secreto": true,
+      "nota": "El código es la credencial de alta: quien lo tenga se registra. Se puede interrogar, no se puede mostrar."
+    },
+    {
+      "id": "aceptada_por",
+      "etiqueta": "Aceptada por",
+      "col": "accepted_by",
+      "tipo": "numero"
+    },
+    {
+      "id": "aceptada",
+      "etiqueta": "Aceptada",
+      "col": "accepted_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "caduca",
+      "etiqueta": "Caduca",
+      "col": "expires_on",
+      "tipo": "fecha"
+    },
+    {
+      "id": "nota_interna",
+      "etiqueta": "Nota interna",
+      "col": "internal_note",
+      "tipo": "texto"
+    },
+    {
+      "id": "creada",
+      "etiqueta": "Creada",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}

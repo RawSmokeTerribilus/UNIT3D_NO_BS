@@ -1,0 +1,73 @@
+{
+  "id": "donaciones",
+  "nombre": "Donaciones",
+  "fuente": "mysql",
+  "tabla": "donations",
+  "clave": "id",
+  "notas": [
+    "Vivo en producción desde el 2026-08-29, con cinco tramos por Ko-fi. Las 14 que hay están todas en estado 1."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "donante",
+      "etiqueta": "Donante",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "regalada_a",
+      "etiqueta": "Regalada a",
+      "col": "gifted_user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "estado",
+      "etiqueta": "Estado",
+      "col": "status",
+      "tipo": "numero"
+    },
+    {
+      "id": "paquete",
+      "etiqueta": "Paquete",
+      "col": "package_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "es_regalo",
+      "etiqueta": "Es regalo",
+      "col": "is_gifted",
+      "tipo": "bool"
+    },
+    {
+      "id": "empieza",
+      "etiqueta": "Empieza",
+      "col": "starts_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "acaba",
+      "etiqueta": "Acaba",
+      "col": "ends_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "creada",
+      "etiqueta": "Creada",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}

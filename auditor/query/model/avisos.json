@@ -1,0 +1,84 @@
+{
+  "id": "avisos",
+  "nombre": "Avisos",
+  "fuente": "mysql",
+  "tabla": "warnings",
+  "clave": "id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo avisos visibles",
+  "notas": [
+    "TRAMPA GRANDE: «Delete All Warnings» borra en lógico, y AutoDeactivateWarning recorre esta tabla para devolver `can_download`. Sin filas visibles el usuario NO LO RECUPERA NUNCA. El botón de al lado, «Deactivate», sí funciona.",
+    "Hay 1.225 avisos activos y 607 con baja lógica. Ahora mismo hay 1 usuario sin descargas y sin ningún aviso visible: ése es el patrón del fallo.",
+    "El vencimiento de hit and run a 1.100 días es DELIBERADO. No proponer bajarlo."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "usuario",
+      "etiqueta": "Usuario",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "puesto_por",
+      "etiqueta": "Puesto por",
+      "col": "warned_by",
+      "tipo": "numero"
+    },
+    {
+      "id": "torrent",
+      "etiqueta": "Torrent",
+      "col": "torrent_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "motivo",
+      "etiqueta": "Motivo",
+      "col": "reason",
+      "tipo": "texto"
+    },
+    {
+      "id": "activo",
+      "etiqueta": "Activo",
+      "col": "active",
+      "tipo": "bool"
+    },
+    {
+      "id": "vence",
+      "etiqueta": "Vence",
+      "col": "expires_on",
+      "tipo": "fecha"
+    },
+    {
+      "id": "borrado_por",
+      "etiqueta": "Borrado por",
+      "col": "deleted_by",
+      "tipo": "numero"
+    },
+    {
+      "id": "baja",
+      "etiqueta": "Baja lógica",
+      "col": "deleted_at",
+      "tipo": "fecha",
+      "nota": "Que esto tenga valor es lo que deja al usuario sin descargas para siempre."
+    },
+    {
+      "id": "creado",
+      "etiqueta": "Creado",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}

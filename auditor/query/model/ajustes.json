@@ -1,0 +1,69 @@
+{
+  "id": "ajustes",
+  "nombre": "Ajustes de usuario",
+  "fuente": "mysql",
+  "tabla": "user_settings",
+  "clave": "user_id",
+  "notas": [
+    "Esta tabla se cachea en Redis con rememberForever. Un UPDATE a mano NO surte efecto hasta purgar la caché: si un cambio no se ve, sospechar de Redis antes que del dato.",
+    "Sólo hay 295 filas para 2.642 usuarios: quien no la tiene usa los valores por defecto. Contar aquí NO es contar usuarios.",
+    "`show_adult_content` llegó a esconder el 14% del catálogo. Ojo al leerlo: de las 295 filas, 294 lo tienen activado — la fila sólo existe si el usuario tocó algo, así que esto NO dice que 294 de 2.642 vean adulto, sino que casi todo el que configuró algo lo activó."
+  ],
+  "campos": [
+    {
+      "id": "usuario",
+      "etiqueta": "Usuario",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "idioma",
+      "etiqueta": "Idioma",
+      "col": "locale",
+      "tipo": "texto"
+    },
+    {
+      "id": "estilo",
+      "etiqueta": "Estilo",
+      "col": "style",
+      "tipo": "numero"
+    },
+    {
+      "id": "adulto",
+      "etiqueta": "Ve contenido adulto",
+      "col": "show_adult_content",
+      "tipo": "bool"
+    },
+    {
+      "id": "censura",
+      "etiqueta": "Censura",
+      "col": "censor",
+      "tipo": "bool"
+    },
+    {
+      "id": "maquetacion",
+      "etiqueta": "Maquetación de torrents",
+      "col": "torrent_layout",
+      "tipo": "numero"
+    },
+    {
+      "id": "css_propio",
+      "etiqueta": "CSS propio",
+      "col": "custom_css",
+      "tipo": "texto"
+    },
+    {
+      "id": "creado",
+      "etiqueta": "Creado",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}

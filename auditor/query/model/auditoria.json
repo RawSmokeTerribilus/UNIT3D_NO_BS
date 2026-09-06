@@ -1,0 +1,63 @@
+{
+  "id": "auditoria",
+  "nombre": "Auditoría de cambios",
+  "fuente": "mysql",
+  "tabla": "audits",
+  "clave": "id",
+  "notas": [
+    "Sólo registra cambios de modelo: create, update y delete de Eloquent, sobre 28 clases distintas. Una LECTURA no deja rastro aquí, y los comandos que lanza el staff desde /dashboard/commands tampoco.",
+    "Para saber QUÉ cambió hay que leer `record`, que es el diff en JSON."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "quien",
+      "etiqueta": "Quién",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "clase",
+      "etiqueta": "Sobre qué",
+      "col": "auditable_type",
+      "tipo": "texto"
+    },
+    {
+      "id": "objeto",
+      "etiqueta": "Id del objeto",
+      "col": "auditable_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "accion",
+      "etiqueta": "Acción",
+      "col": "action",
+      "tipo": "texto",
+      "nota": "Sólo create, update o delete."
+    },
+    {
+      "id": "cambio",
+      "etiqueta": "Cambio (JSON)",
+      "col": "record",
+      "tipo": "texto"
+    },
+    {
+      "id": "cuando",
+      "etiqueta": "Cuándo",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}
