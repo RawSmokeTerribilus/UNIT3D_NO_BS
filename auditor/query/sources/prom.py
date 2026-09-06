@@ -70,13 +70,39 @@ class PromSource:
                       truncated=truncado, window_ok=dentro, warnings=avisos)
 
 
+# Etiquetas que identifican de verdad, en orden de utilidad. cAdvisor añade
+# docenas que no distinguen nada y que, volcadas tal cual, dejan el nombre de la
+# serie en un hash de contenedor ilegible.
+_PREFERIDAS = ["name", "container", "pod", "instance", "job", "device",
+               "mountpoint", "cpu", "mode", "state", "code", "type"]
+_RUIDO = ("container_label_", "annotation_", "label_")
+_RUIDO_EXACTO = {"id", "image", "container_id", "__name__"}
+
+
 def _claves(resultado):
-    claves = []
+    """Etiquetas útiles, ordenadas: primero las que identifican, luego el resto.
+
+    `id` e `image` se descartan cuando hay `name`, que dice lo mismo y se lee.
+    """
+    vistas = set()
     for s in resultado:
-        for k in s.get("metric", {}):
-            if k != "__name__" and k not in claves:
-                claves.append(k)
-    return claves
+        vistas.update(s.get("metric", {}).keys())
+    hay_nombre = "name" in vistas or "container" in vistas
+
+    utiles = []
+    for k in _PREFERIDAS:
+        if k in vistas:
+            utiles.append(k)
+    for k in sorted(vistas):
+        if k in utiles or k in _RUIDO_EXACTO or k.startswith(_RUIDO):
+            continue
+        utiles.append(k)
+    if not hay_nombre:
+        # Sin `name` no se puede tirar `id`: sería quedarse sin identidad.
+        for k in ("id", "image"):
+            if k in vistas and k not in utiles:
+                utiles.append(k)
+    return utiles
 
 
 def _instantanea(d):

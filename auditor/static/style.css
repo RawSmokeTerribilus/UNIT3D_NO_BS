@@ -86,3 +86,18 @@ pre.sql {
 }
 details summary { cursor: pointer; color: var(--muted); font-size: .8rem; }
 .oculto { display: none !important; }
+
+/* ---- gráficas ---- */
+#grafica { margin: .6rem 0; }
+#grafica svg { display: block; max-width: 100%; }
+.cifra { padding: 1.4rem 0 .6rem; }
+/* Sin tabular-nums: en una cifra grande el ancho fijo separa los dígitos. */
+.cifra-valor {
+  font: 600 56px/1 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--fg); letter-spacing: -.02em;
+}
+.cifra-pie { color: var(--muted); font-size: .82rem; margin-top: .4rem; }
+.grafica-pie { font-size: .78rem; margin-top: .3rem; }
+.leyenda { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; margin-top: .5rem; font-size: .8rem; }
+.leyenda-item { display: inline-flex; align-items: center; gap: .4rem; }
+.leyenda-punto { width: .7rem; height: .7rem; border-radius: 2px; flex: none; }

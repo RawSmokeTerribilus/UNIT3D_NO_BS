@@ -23,7 +23,11 @@ from query.sources.mysql import MySQLError, MySQLSource
 from query.sources.prom import PromSource
 
 DIR_ESTATICOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
-DIR_GUARDADAS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "query", "saved")
+# Dos sitios a propósito: lo SEMBRADO viaja en git dentro de la imagen y es de
+# sólo lectura; lo que guarda el operador es dato local y va al volumen. Se leen
+# los dos, se escribe siempre en el segundo.
+DIR_SEMBRADAS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "query", "saved")
+DIR_GUARDADAS = os.path.join(cfg.run_dir, "saved")
 
 TIPOS = {".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8",
          ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml"}
@@ -143,6 +147,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(_compilar(cuerpo))
             if ruta == "/api/query/run":
                 return self._json(_ejecutar(cuerpo, self._identidad(), self._origen()))
+            if ruta == "/api/query/saved":
+                return self._json(_guardar(cuerpo, self._identidad()))
+            if ruta == "/api/query/saved/borrar":
+                return self._json(_borrar_guardada(cuerpo.get("nombre")))
             return self._json({"error": "ruta desconocida: %s" % ruta}, 404)
         except Exception as e:
             return self._error(e)
@@ -379,18 +387,64 @@ def _col(nombre):
     return "`%s`" % nombre
 
 
+_NOMBRE_OK = __import__("re").compile(r"^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$")
+
+
+def _ruta_guardada(nombre):
+    if not _NOMBRE_OK.match(nombre or ""):
+        raise ValueError(
+            "el nombre sólo admite minúsculas, números y guiones, de 3 a 60: %r" % nombre)
+    return os.path.join(DIR_GUARDADAS, nombre + ".json")
+
+
+def _guardar(cuerpo, identidad):
+    """Guarda una composición con nombre. Así crece el catálogo: por uso."""
+    nombre = (cuerpo.get("nombre") or "").strip().lower().replace(" ", "-")
+    ruta = _ruta_guardada(nombre)
+    os.makedirs(DIR_GUARDADAS, exist_ok=True)
+    d = {
+        "nombre": nombre,
+        "titulo": cuerpo.get("titulo") or nombre.replace("-", " "),
+        "porque": cuerpo.get("porque") or "",
+        "pasos": cuerpo.get("pasos") or [],
+        "guardada_por": identidad,
+        "guardada_en": archive.now_utc(),
+    }
+    if not d["pasos"]:
+        raise ValueError("no hay ningún paso que guardar")
+    tmp = ruta + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(d, fh, ensure_ascii=False, indent=2)
+    os.replace(tmp, ruta)
+    return {"ok": True, "nombre": nombre}
+
+
+def _borrar_guardada(nombre):
+    ruta = _ruta_guardada((nombre or "").strip().lower())
+    if os.path.exists(ruta):
+        os.remove(ruta)
+        return {"ok": True, "nombre": nombre}
+    return {"ok": False, "mensaje": "no existe: %s" % nombre}
+
+
 def _listar_guardadas():
-    salida = []
-    if not os.path.isdir(DIR_GUARDADAS):
-        return salida
-    for f in sorted(os.listdir(DIR_GUARDADAS)):
-        if not f.endswith(".json"):
+    """Las sembradas y las propias. Si coinciden en nombre, manda la propia."""
+    por_nombre = {}
+    for carpeta, origen in ((DIR_SEMBRADAS, "sembrada"), (DIR_GUARDADAS, "propia")):
+        if not os.path.isdir(carpeta):
             continue
-        with open(os.path.join(DIR_GUARDADAS, f), encoding="utf-8") as fh:
-            d = json.load(fh)
-        d["archivo"] = f
-        salida.append(d)
-    return salida
+        for f in sorted(os.listdir(carpeta)):
+            if not f.endswith(".json"):
+                continue
+            try:
+                with open(os.path.join(carpeta, f), encoding="utf-8") as fh:
+                    d = json.load(fh)
+            except ValueError:
+                continue
+            d["origen"] = origen
+            d["editable"] = origen == "propia"
+            por_nombre[d.get("nombre") or f[:-5]] = d
+    return [por_nombre[k] for k in sorted(por_nombre)]
 
 
 def _selftest():

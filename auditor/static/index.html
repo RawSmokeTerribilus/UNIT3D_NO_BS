@@ -22,8 +22,19 @@
   <div class="linea" style="margin-top:.6rem">
     <button id="btn-ejecutar" class="primario">Ejecutar</button>
     <button id="btn-ver">Ver la consulta</button>
+    <button id="btn-guardar">Guardar…</button>
     <button id="btn-limpiar">Limpiar</button>
     <span class="muted" id="estado"></span>
+  </div>
+
+  <h2>Guardadas</h2>
+  <p class="muted" style="font-size:.8rem;margin:.2rem 0 .5rem">
+    El catálogo crece por uso: se guarda lo que se repite, no se diseña antes.
+  </p>
+  <div id="guardadas" class="chips"></div>
+  <div id="serie-caja" class="oculto">
+    <h2>Esta consulta en el tiempo</h2>
+    <div id="serie"></div>
   </div>
 
   <div id="crudo" class="oculto">
@@ -52,6 +63,7 @@
       <button id="btn-json" class="icono">Exportar JSON</button>
       <span class="muted" id="resumen"></span>
     </div>
+    <div id="grafica"></div>
     <div class="tablawrap"><table id="tabla"><thead></thead><tbody></tbody></table></div>
   </div>
 
@@ -59,6 +71,6 @@
   <div class="tablawrap"><table id="historial"><thead></thead><tbody></tbody></table></div>
 </main>
 
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

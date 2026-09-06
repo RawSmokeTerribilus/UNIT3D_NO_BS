@@ -26,6 +26,10 @@ def _ahora():
     return datetime.now(timezone.utc)
 
 
+def now_utc():
+    return _ahora().isoformat()
+
+
 def _dir_base():
     return os.path.join(cfg.run_dir, "queries")
 

@@ -1,6 +1,8 @@
 /* Panel de consultas — compositor. Vanilla JS, sin build, sin dependencias. */
 'use strict';
 
+import { pintarGrafica } from './chart.js';
+
 let MODELO = null;      // {entidades:{id:ent}, operadores:{tipo:[...]}, ...}
 let PASOS = [];         // estado del compositor
 let ULTIMO = null;      // último resultado, para exportar
@@ -35,6 +37,7 @@ async function arrancar() {
     d.topes.filas + ' filas / ' + (d.topes.ms / 1000) + ' s';
   if (!PASOS.length) PASOS.push(nuevoPaso(Object.keys(MODELO.entidades)[0]));
   pintarPasos();
+  pintarGuardadas();
   pintarHistorial();
 }
 
@@ -422,6 +425,7 @@ function pintarError(msg) {
   $('#resultado-caja').classList.remove('oculto');
   $('#bandas').textContent = '';
   $('#bandas').appendChild(el('div', { class: 'banda malo', text: msg }));
+  $('#grafica').textContent = '';
   $('#tabla').querySelector('thead').textContent = '';
   $('#tabla').querySelector('tbody').textContent = '';
   $('#resumen').textContent = '';
@@ -457,6 +461,10 @@ function pintarResultado(d) {
   $('#resumen').textContent =
     d.meta.row_count + ' filas · ' + d.meta.duration_ms + ' ms · ' + (d.run_id || '');
 
+  // La gráfica primero; la tabla siempre debajo, que es la otra forma de leer
+  // los valores y la que no depende del color.
+  pintarGrafica($('#grafica'), d.columns, d.rows);
+
   const thead = $('#tabla').querySelector('thead');
   const tbody = $('#tabla').querySelector('tbody');
   thead.textContent = '';
@@ -470,6 +478,65 @@ function pintarResultado(d) {
       return el('td', { text: String(v) });
     })));
   }
+}
+
+/* ----------------------------------------------------------------- guardadas */
+let GUARDADA = null;   // nombre de la composición cargada, si la hay
+
+async function pintarGuardadas() {
+  const cont = $('#guardadas');
+  cont.textContent = '';
+  let d;
+  try { d = await api('/api/query/saved'); } catch (e) { return; }
+  if (!d.guardadas.length) {
+    cont.appendChild(el('span', { class: 'muted', text: 'todavía ninguna.' }));
+    return;
+  }
+  for (const g of d.guardadas) {
+    cont.appendChild(el('span', {
+      class: 'chip' + (GUARDADA === g.nombre ? ' on' : ''),
+      text: g.titulo, title: g.porque || g.nombre,
+      onclick: () => cargarGuardada(g),
+    }));
+  }
+}
+
+function cargarGuardada(g) {
+  PASOS = JSON.parse(JSON.stringify(g.pasos)).map(desdeCuerpo);
+  GUARDADA = g.nombre;
+  pintarPasos();
+  pintarGuardadas();
+  pintarSerie(g.nombre);
+}
+
+/* El compositor guarda las condiciones en lista con su junta; lo que viaja al
+   servidor es un árbol. Al cargar hay que deshacer esa traducción. */
+function desdeCuerpo(p) {
+  const conds = [];
+  const aplanar = (nodo, junta) => {
+    if (!nodo) return;
+    if (nodo.y) { nodo.y.forEach((n, k) => aplanar(n, k === 0 ? 'Y' : 'Y')); return; }
+    if (nodo.o) { nodo.o.forEach((n, k) => aplanar(n, k === 0 ? 'Y' : 'O')); return; }
+    conds.push(Object.assign({ junta: junta || 'Y' }, nodo));
+  };
+  aplanar(p.condiciones, 'Y');
+  return {
+    entidad: p.entidad, condiciones: conds,
+    mostrar: p.mostrar || [], agrupar: p.agrupar || [], calcular: p.calcular || [],
+    enlace: p.enlace, ventana: p.ventana,
+  };
+}
+
+async function pintarSerie(nombre) {
+  const caja = $('#serie-caja');
+  try {
+    const d = await api('/api/query/series?saved=' + encodeURIComponent(nombre));
+    if (!d.serie || d.serie.length < 2) { caja.classList.add('oculto'); return; }
+    caja.classList.remove('oculto');
+    pintarGrafica($('#serie'),
+      ['Momento (UTC)', 'Filas'],
+      d.serie.map((p) => [p.ts_utc.slice(0, 19).replace('T', ' '), p.row_count]));
+  } catch (e) { caja.classList.add('oculto'); }
 }
 
 /* ----------------------------------------------------------------- historial */
@@ -508,11 +575,32 @@ const csvCampo = (v) => {
 };
 
 /* -------------------------------------------------------------------- eventos */
-$('#btn-ejecutar').addEventListener('click', () => ejecutar(cadena()));
+$('#btn-ejecutar').addEventListener('click', () => ejecutar(cadena(), GUARDADA));
+$('#btn-guardar').addEventListener('click', async () => {
+  const titulo = prompt('Nombre de la consulta (para reconocerla después):', GUARDADA || '');
+  if (!titulo) return;
+  const porque = prompt('¿Para qué sirve? Una línea. Se enseña al pasar por encima.', '') || '';
+  const nombre = titulo.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  try {
+    await api('/api/query/saved', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, titulo: titulo.trim(), porque, pasos: PASOS.map(aCuerpo) }),
+    });
+    GUARDADA = nombre;
+    $('#estado').textContent = 'guardada como «' + nombre + '»';
+    pintarGuardadas();
+  } catch (e) { pintarError(e.message); }
+});
 $('#btn-ejecutar-crudo').addEventListener('click', () => ejecutar({ sql: $('#sql-crudo').value }));
 $('#btn-crudo').addEventListener('click', () => $('#crudo').classList.toggle('oculto'));
 $('#btn-limpiar').addEventListener('click', () => {
   PASOS = [nuevoPaso(Object.keys(MODELO.entidades)[0])];
+  GUARDADA = null;
+  $('#serie-caja').classList.add('oculto');
+  pintarGuardadas();
   $('#resultado-caja').classList.add('oculto');
   $('#consulta-caja').classList.add('oculto');
   pintarPasos();
