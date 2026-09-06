@@ -40,6 +40,9 @@ class Config:
     max_rows = _int("AUDITOR_MAX_ROWS", 5000)
     max_exec_ms = _int("AUDITOR_MAX_EXEC_MS", 15000)
     max_link_keys = _int("AUDITOR_MAX_LINK_KEYS", 10000)
+    # El binlog no lo cubre max_execution_time: eso es de MySQL. Aquí el techo
+    # es de reloj, porque leer 1,7 GB por día de ventana no tiene otro freno.
+    binlog_max_seconds = _int("AUDITOR_BINLOG_MAX_SECONDS", 45)
     archive_row_days = _int("AUDITOR_ARCHIVE_ROW_DAYS", 365)
 
     auth_mode = os.environ.get("AUTH_MODE", "none").strip().lower()

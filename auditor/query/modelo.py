@@ -30,8 +30,9 @@ class Campo:
         self.loki = d.get("loki")          # etiqueta de flujo en Loki
         self.linea = bool(d.get("linea"))  # filtra el texto de la línea
         self.prom = d.get("prom")          # etiqueta de serie en Prometheus
+        self.binlog = d.get("binlog")      # papel al leer el binlog
         if not (self.col or self.expr or self.via or self.loki or self.linea
-                or self.prom or self.tipo == "metrica"):
+                or self.prom or self.binlog or self.tipo == "metrica"):
             raise ModeloError("campo %s: falta col, expr, via, loki o prom" % self.id)
 
     def sql_valor(self):
@@ -62,6 +63,7 @@ class Campo:
             # `cruces` (que van en nombres de columna) con ids de campo.
             "col": self.col,
             "loki": self.loki, "linea": self.linea, "prom": self.prom,
+            "binlog": self.binlog,
         }
 
 

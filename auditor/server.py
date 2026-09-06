@@ -13,10 +13,11 @@ from urllib.parse import parse_qs, urlparse
 
 from config import cfg
 from query import archive
-from query.compile import (OPERADORES, CompileError, compilar, compilar_loki,
-                           compilar_prom)
+from query.compile import (OPERADORES, CompileError, compilar, compilar_binlog,
+                           compilar_loki, compilar_prom)
 from query.guard import GuardError, revisar
 from query.modelo import ModeloError, cargar
+from query.sources.binlog import BinlogError, BinlogSource
 from query.sources.http_json import FuenteHTTPError
 from query.sources.loki import LokiSource
 from query.sources.mysql import MySQLError, MySQLSource
@@ -166,6 +167,8 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(e, MySQLError):
             return self._json({"error": "mysql", "codigo": e.code,
                                "mensaje": e.message, "sql": e.sql}, 502)
+        if isinstance(e, BinlogError):
+            return self._json({"error": "binlog", "mensaje": str(e)}, 502)
         if isinstance(e, FuenteHTTPError):
             return self._json({"error": e.fuente, "mensaje": e.detalle,
                                "url": e.url}, 502)
@@ -191,6 +194,12 @@ def _compilar(cuerpo):
                                        "valores": ["‹claves del paso %d›" % i]}
         eid = paso.get("entidad")
         fuente = ents[eid].fuente if eid in ents else "mysql"
+        if fuente == "binlog":
+            a = compilar_binlog(paso, ents[eid])
+            salida.append({"paso": i + 1, "entidad": eid, "fuente": fuente,
+                           "consulta": "mysqlbinlog · " + repr(a), "parametros": [],
+                           "columnas": [], "avisos": []})
+            continue
         if fuente == "loki":
             c = compilar_loki(paso, ents[eid])[0]
         elif fuente == "prom":
@@ -325,6 +334,11 @@ def _un_paso(paso, ents, origen, limite):
         r = PromSource().run(c.sql, paso.get("ventana"), limit=limite, rango=rango)
         r.warnings = c.avisos + r.warnings
         return r
+
+    if fuente == "binlog":
+        a = compilar_binlog(paso, ents[eid])
+        return BinlogSource().run(a["tabla"], a["clave_col"], a["clave_val"],
+                                  paso.get("ventana"), limit=limite)
 
     raise CompileError("fuente desconocida: %r" % fuente)
 

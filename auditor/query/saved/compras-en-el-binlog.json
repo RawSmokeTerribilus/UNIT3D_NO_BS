@@ -1,0 +1,24 @@
+{
+  "titulo": "Compras de tienda, según el binlog",
+  "porque": "Las compras tal como se escribieron, con su hora al segundo. Un «100GB de subida» son 107.374.182.400 bytes clavados: si la subida de alguien salta esa cifra exacta, es esto y no seedeo.",
+  "pasos": [
+    {
+      "entidad": "cambios",
+      "ventana": {
+        "ultimas_horas": 6
+      },
+      "condiciones": {
+        "y": [
+          {
+            "campo": "tabla",
+            "op": "es",
+            "valor": "bon_transactions"
+          }
+        ]
+      }
+    }
+  ],
+  "nombre": "compras-en-el-binlog",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}
