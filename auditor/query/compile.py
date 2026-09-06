@@ -256,3 +256,122 @@ def _ident(nombre):
     los dos modos, para que estas cadenas no dependan del sql_mode.
     """
     return "`%s`" % str(nombre).replace("`", "")
+
+
+# ---------------------------------------------------------------- LogQL / PromQL
+def compilar_loki(paso, ent):
+    """Compositor → LogQL.
+
+    Las condiciones sobre etiquetas entran en el selector de flujo, que es lo
+    barato. El filtro por texto de la línea va después, que es lo caro.
+    """
+    selector = dict(ent.selector_base)
+    filtros_linea = []
+    avisos = []
+
+    for hoja in _hojas(paso.get("condiciones")):
+        campo = ent.campo(hoja["campo"])
+        op = hoja.get("op", "es")
+        valor = hoja.get("valor")
+        if campo.linea:
+            if op in ("es", "contiene"):
+                filtros_linea.append('|= "%s"' % _escapa(valor))
+            elif op == "no es":
+                filtros_linea.append('!= "%s"' % _escapa(valor))
+            else:
+                raise CompileError(
+                    "sobre el texto de la línea sólo valen «contiene» y «no es»")
+        elif campo.loki:
+            if op in ("es",):
+                selector[campo.loki] = ("=", str(valor))
+            elif op in ("no es",):
+                selector[campo.loki] = ("!=", str(valor))
+            else:
+                raise CompileError(
+                    "«%s» es una etiqueta de Loki: sólo «es» y «no es»." % campo.etiqueta)
+        else:
+            raise CompileError("«%s» no se puede consultar en Loki" % campo.etiqueta)
+
+    partes = []
+    for k, v in selector.items():
+        op, val = v if isinstance(v, tuple) else ("=", v)
+        partes.append('%s%s"%s"' % (k, op, _escapa(val)))
+    logql = "{%s}" % ", ".join(partes)
+    if filtros_linea:
+        logql += " " + " ".join(filtros_linea)
+
+    agregada = bool(paso.get("calcular"))
+    if agregada:
+        agrupar = [ent.campo(c).loki for c in (paso.get("agrupar") or [])]
+        if any(g is None for g in agrupar):
+            raise CompileError("en Loki sólo se puede agrupar por etiquetas de flujo")
+        horas = float((paso.get("ventana") or {}).get("ultimas_horas") or 1)
+        rango = "%dm" % max(1, int(horas * 60))
+        interior = "count_over_time(%s[%s])" % (logql, rango)
+        logql = ("sum by (%s) (%s)" % (", ".join(agrupar), interior)) if agrupar \
+            else "sum(%s)" % interior
+        avisos.append("Se cuenta sobre la ventana entera (%s)." % rango)
+
+    return Compilado(logql, (), [], ent, avisos), agregada
+
+
+def compilar_prom(paso, ent):
+    """Compositor → PromQL."""
+    metrica = None
+    etiquetas = []
+    for hoja in _hojas(paso.get("condiciones")):
+        campo = ent.campo(hoja["campo"])
+        op = hoja.get("op", "es")
+        valor = hoja.get("valor")
+        signo = {"es": "=", "no es": "!=", "contiene": "=~"}.get(op)
+        if signo is None:
+            raise CompileError(
+                "«%s» en Prometheus admite «es», «no es» y «contiene»." % campo.etiqueta)
+        if campo.tipo == "metrica":
+            if signo != "=":
+                raise CompileError("la métrica se elige con «es»")
+            metrica = str(valor)
+        elif campo.prom:
+            patron = ".*%s.*" % _escapa(valor) if signo == "=~" else _escapa(valor)
+            etiquetas.append('%s%s"%s"' % (campo.prom, signo, patron))
+        else:
+            raise CompileError("«%s» no se puede consultar en Prometheus" % campo.etiqueta)
+
+    if not metrica:
+        raise CompileError(
+            "hace falta elegir una métrica: añade la condición «Métrica es …».")
+    if not _METRICA_OK.match(metrica):
+        raise CompileError("nombre de métrica inválido: %r" % metrica)
+
+    promql = metrica + ("{%s}" % ", ".join(etiquetas) if etiquetas else "")
+    calc = (paso.get("calcular") or [{}])[0].get("fn")
+    agrupar = [ent.campo(c).prom for c in (paso.get("agrupar") or [])]
+    fn = {"sumar": "sum", "media": "avg", "minimo": "min", "maximo": "max",
+          "contar": "count"}.get(calc)
+    if fn:
+        promql = ("%s by (%s) (%s)" % (fn, ", ".join(a for a in agrupar if a), promql)) \
+            if any(agrupar) else "%s(%s)" % (fn, promql)
+    return Compilado(promql, (), [], ent, []), bool(paso.get("rango"))
+
+
+_METRICA_OK = __import__("re").compile(r"^[A-Za-z_:][A-Za-z0-9_:]*$")
+
+
+def _hojas(nodo):
+    """Aplana el árbol de condiciones. Loki y Prometheus no tienen OR de
+    condiciones como tal, así que aquí sólo se admite la conjunción."""
+    if not nodo:
+        return []
+    if "y" in nodo:
+        salida = []
+        for n in nodo["y"]:
+            salida.extend(_hojas(n))
+        return salida
+    if "o" in nodo:
+        raise CompileError(
+            "en logs y métricas las condiciones se combinan sólo con Y, no con O.")
+    return [nodo]
+
+
+def _escapa(v):
+    return str(v).replace("\\", "\\\\").replace('"', '\\"')

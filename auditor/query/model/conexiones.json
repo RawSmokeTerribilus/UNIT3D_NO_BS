@@ -1,0 +1,31 @@
+{
+  "id": "conexiones",
+  "nombre": "Conexiones",
+  "fuente": "mysql",
+  "tabla": "peers",
+  "clave": "user_id",
+  "notas": [
+    "Es una foto del AHORA: qué clientes están anunciando en este momento. No sirve para saber si alguien «está vivo» — para eso hacen falta las tres señales: esta, las descargas y la última acción del usuario.",
+    "62.979 filas de 1.063 usuarios distintos, de las que 45.584 están activas. Una fila es un cliente en un torrent, no una persona: quien seedea 300 torrents pone 300 filas."
+  ],
+  "campos": [
+    {"id": "usuario", "etiqueta": "Usuario", "col": "user_id", "tipo": "numero"},
+    {"id": "torrent", "etiqueta": "Torrent", "col": "torrent_id", "tipo": "numero"},
+    {"id": "activo", "etiqueta": "Activo", "col": "active", "tipo": "bool"},
+    {"id": "semilla", "etiqueta": "En semilla", "col": "seeder", "tipo": "bool"},
+    {"id": "visible", "etiqueta": "Visible", "col": "visible", "tipo": "bool"},
+    {"id": "conectable", "etiqueta": "Conectable", "col": "connectable", "tipo": "bool"},
+    {"id": "cliente", "etiqueta": "Cliente", "col": "agent", "tipo": "texto"},
+    {"id": "ip", "etiqueta": "IP", "tipo": "texto", "expr": "INET6_NTOA(t.ip)",
+     "nota": "Guardada como varbinary; aquí se muestra ya legible. Es un dato personal: no la saques de una auditoría a un informe que vaya a circular."},
+    {"id": "puerto", "etiqueta": "Puerto", "col": "port", "tipo": "numero"},
+    {"id": "subido", "etiqueta": "Subido", "col": "uploaded", "tipo": "bytes"},
+    {"id": "bajado", "etiqueta": "Bajado", "col": "downloaded", "tipo": "bytes"},
+    {"id": "restante", "etiqueta": "Restante", "tipo": "bytes", "expr": "t.`left`",
+     "nota": "`left` es palabra reservada de SQL; por eso va entrecomillada."},
+    {"id": "creada", "etiqueta": "Creada", "col": "created_at", "tipo": "fecha"},
+    {"id": "vista", "etiqueta": "Último anuncio", "col": "updated_at", "tipo": "fecha",
+     "nota": "Cuándo anunció por última vez este cliente. Es lo más cercano a «sigue ahí»."}
+  ],
+  "cruces": [{"entidad": "usuarios", "por": "user_id", "hacia": "id"}]
+}

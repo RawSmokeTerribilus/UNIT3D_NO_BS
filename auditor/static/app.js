@@ -39,6 +39,20 @@ async function arrancar() {
 }
 
 const nuevoPaso = (entidad) => ({ entidad, condiciones: [], mostrar: [], agrupar: [], calcular: [] });
+
+/* Enlace por defecto entre dos entidades, deducido de los `cruces` del modelo.
+   Los cruces van en nombres de columna; aquí se traducen a ids de campo. */
+function enlacePorDefecto(entPrevia, entNueva) {
+  const cruce = (MODELO.entidades[entNueva].cruces || []).find((c) => c.entidad === entPrevia);
+  const porCol = (eid, col) => (MODELO.entidades[eid].campos.find((c) => c.col === col) || {}).id;
+  if (cruce) {
+    const aqui = porCol(entNueva, cruce.por);
+    const alla = porCol(entPrevia, cruce.hacia);
+    if (aqui && alla) return { campo: aqui, desde_campo: alla };
+  }
+  const num = (eid) => (MODELO.entidades[eid].campos.find((c) => c.tipo === 'numero') || {}).id;
+  return { campo: num(entNueva), desde_campo: num(entPrevia) };
+}
 const campoDe = (ent, cid) => MODELO.entidades[ent].campos.find((c) => c.id === cid);
 
 /* ------------------------------------------------------------- el compositor */
@@ -49,6 +63,19 @@ function pintarPasos() {
     if (i > 0) cont.appendChild(el('div', { class: 'enlace', text: '↓ pasa la clave del paso ' + i }));
     cont.appendChild(tarjetaPaso(paso, i));
   });
+  cont.appendChild(el('div', { class: 'linea', style: 'margin-top:.4rem' }, [
+    el('button', {
+      class: 'icono', text: '+ paso encadenado',
+      onclick: () => {
+        const previa = PASOS[PASOS.length - 1].entidad;
+        const nueva = Object.keys(MODELO.entidades).find((k) => k !== previa) || previa;
+        const p = nuevoPaso(nueva);
+        p.enlace = enlacePorDefecto(previa, nueva);
+        PASOS.push(p);
+        pintarPasos();
+      },
+    }),
+  ]));
 }
 
 function tarjetaPaso(paso, i) {
@@ -65,8 +92,18 @@ function tarjetaPaso(paso, i) {
   }
 
   const cuenta = el('span', { class: 'cuenta', text: paso._cuenta == null ? '' : paso._cuenta + ' filas' });
-  caja.appendChild(el('div', { class: 'cabecera' },
-    [el('span', { class: 'num', text: 'PASO ' + (i + 1) }), selEnt, cuenta]));
+  const cab = [el('span', { class: 'num', text: 'PASO ' + (i + 1) }), selEnt, cuenta];
+  if (i > 0) {
+    cab.push(el('button', {
+      class: 'icono', text: '× paso', title: 'quitar este paso',
+      onclick: () => { PASOS.splice(i, 1); pintarPasos(); },
+    }));
+  }
+  caja.appendChild(el('div', { class: 'cabecera' }, cab));
+
+  if (i > 0) caja.appendChild(lineaEnlace(paso, i));
+
+  if (ent.fuente !== 'mysql') caja.appendChild(lineaVentana(paso, ent));
 
   if (ent.ambito) {
     caja.appendChild(el('div', { class: 'nota', text: 'Ámbito automático: ' + ent.ambito + '.' }));
@@ -87,11 +124,13 @@ function tarjetaPaso(paso, i) {
     }),
   ]));
 
-  /* mostrar */
-  caja.appendChild(el('div', { class: 'linea' }, [
-    el('span', { class: 'etiqueta', text: 'mostrar' }),
-    chipsCampos(paso, 'mostrar'),
-  ]));
+  /* mostrar: sólo MySQL. En logs y métricas las columnas las fija la fuente. */
+  if (ent.fuente === 'mysql') {
+    caja.appendChild(el('div', { class: 'linea' }, [
+      el('span', { class: 'etiqueta', text: 'mostrar' }),
+      chipsCampos(paso, 'mostrar'),
+    ]));
+  }
   /* agrupar y calcular */
   caja.appendChild(el('div', { class: 'linea' }, [
     el('span', { class: 'etiqueta', text: 'agrupar' }),
@@ -105,6 +144,20 @@ function tarjetaPaso(paso, i) {
   return caja;
 }
 
+let TEMPORIZADOR_METRICAS = null;
+function buscarMetricas(texto) {
+  clearTimeout(TEMPORIZADOR_METRICAS);
+  TEMPORIZADOR_METRICAS = setTimeout(async () => {
+    try {
+      const d = await api('/api/query/metricas?q=' + encodeURIComponent(texto || ''));
+      const dl = $('#lista-metricas');
+      if (!dl) return;
+      dl.textContent = '';
+      for (const m of d.metricas.slice(0, 200)) dl.appendChild(el('option', { value: m }));
+    } catch (e) { /* el desplegable se queda como esté */ }
+  }, 250);
+}
+
 const CATALOGOS = {};
 async function cargarCatalogo(entidad, campo) {
   const clave = entidad + '.' + campo;
@@ -113,6 +166,55 @@ async function cargarCatalogo(entidad, campo) {
                            '&campo=' + encodeURIComponent(campo)).then((d) => d.valores);
   }
   return CATALOGOS[clave];
+}
+
+function lineaEnlace(paso, i) {
+  const previa = PASOS[i - 1].entidad;
+  const linea = el('div', { class: 'linea' });
+  linea.appendChild(el('span', { class: 'etiqueta', text: 'de los' }));
+  linea.appendChild(el('span', { class: 'muted', text: 'del paso ' + i + ', cruzando' }));
+
+  const sel = (eid, actual, alCambiar) => {
+    const s = el('select', { onchange: (e) => { alCambiar(e.target.value); pintarPasos(); } });
+    for (const c of MODELO.entidades[eid].campos) {
+      if (c.secreto || !['numero', 'texto'].includes(c.tipo)) continue;
+      const o = el('option', { value: c.id, text: c.etiqueta });
+      if (c.id === actual) o.selected = true;
+      s.appendChild(o);
+    }
+    return s;
+  };
+  paso.enlace = paso.enlace || enlacePorDefecto(previa, paso.entidad);
+  linea.appendChild(sel(previa, paso.enlace.desde_campo, (v) => { paso.enlace.desde_campo = v; }));
+  linea.appendChild(el('span', { class: 'muted', text: '→' }));
+  linea.appendChild(sel(paso.entidad, paso.enlace.campo, (v) => { paso.enlace.campo = v; }));
+  return linea;
+}
+
+const RETENCION = { loki: 7, prom: 15, binlog: 30 };
+
+function lineaVentana(paso, ent) {
+  paso.ventana = paso.ventana || { ultimas_horas: 1 };
+  const linea = el('div', { class: 'linea' });
+  linea.appendChild(el('span', { class: 'etiqueta', text: 'ventana' }));
+  const s = el('select', {
+    onchange: (e) => { paso.ventana.ultimas_horas = Number(e.target.value); pintarPasos(); },
+  });
+  for (const [h, t] of [[1, 'última hora'], [6, 'últimas 6 h'], [24, 'último día'],
+                        [72, 'últimos 3 días'], [168, 'últimos 7 días'],
+                        [360, 'últimos 15 días'], [720, 'últimos 30 días']]) {
+    const dias = h / 24;
+    const fuera = dias > (RETENCION[ent.fuente] || 9999);
+    const o = el('option', { value: h, text: t + (fuera ? '  ⚠ fuera de retención' : '') });
+    if (h === paso.ventana.ultimas_horas) o.selected = true;
+    s.appendChild(o);
+  }
+  linea.appendChild(s);
+  linea.appendChild(el('span', {
+    class: 'muted',
+    text: 'esta fuente guarda ' + (RETENCION[ent.fuente] || '?') + ' días',
+  }));
+  return linea;
 }
 
 const opsDe = (campo) => MODELO.operadores[campo.tipo] || MODELO.operadores.texto;
@@ -162,6 +264,15 @@ function lineaCondicion(paso, cond, j) {
         s.appendChild(o);
       }
       linea.appendChild(s);
+    } else if (campo.tipo === 'metrica') {
+      const inp = el('input', {
+        value: cond.valor || '', placeholder: 'busca una métrica…',
+        list: 'lista-metricas', style: 'min-width:22rem',
+        oninput: (e) => { cond.valor = e.target.value; buscarMetricas(e.target.value); },
+      });
+      linea.appendChild(inp);
+      if (!$('#lista-metricas')) document.body.appendChild(el('datalist', { id: 'lista-metricas' }));
+      buscarMetricas(cond.valor || 'container_');
     } else if (campo.tipo === 'catalogo') {
       // Desplegable con los valores reales. Se ENSEÑA el nombre («Sanguijuela»)
       // y se ENVÍA el slug («leech»), que es lo estable.
@@ -169,6 +280,7 @@ function lineaCondicion(paso, cond, j) {
       s.appendChild(el('option', { value: '', text: 'cargando…' }));
       linea.appendChild(s);
       cargarCatalogo(paso.entidad, campo.id).then((vals) => {
+        if (!vals.length) throw new Error('vacío');
         s.textContent = '';
         for (const v of vals) {
           const o = el('option', { value: v.valor, text: v.etiqueta });
@@ -229,7 +341,12 @@ function selCalculo(paso) {
       pintarPasos();
     },
   });
-  for (const [v, t] of [['', '(nada)'], ['contar', 'contar filas']]) {
+  const fuente = MODELO.entidades[paso.entidad].fuente;
+  const opciones = fuente === 'prom'
+    ? [['', '(valor tal cual)'], ['sumar', 'sumar'], ['media', 'media'],
+       ['maximo', 'máximo'], ['minimo', 'mínimo'], ['contar', 'contar series']]
+    : [['', '(nada)'], ['contar', fuente === 'loki' ? 'contar líneas' : 'contar filas']];
+  for (const [v, t] of opciones) {
     const o = el('option', { value: v, text: t });
     if (actual && actual.fn === v) o.selected = true;
     if (!actual && v === '') o.selected = true;
@@ -240,13 +357,19 @@ function selCalculo(paso) {
 }
 
 /* ------------------------------------------------------------------ ejecutar */
-const aCuerpo = (paso) => ({
-  entidad: paso.entidad,
-  condiciones: aArbol(paso.condiciones),
-  mostrar: paso.mostrar,
-  agrupar: paso.agrupar,
-  calcular: paso.calcular,
-});
+const aCuerpo = (paso) => {
+  const d = {
+    entidad: paso.entidad,
+    condiciones: aArbol(paso.condiciones),
+    mostrar: paso.mostrar,
+    agrupar: paso.agrupar,
+    calcular: paso.calcular,
+  };
+  if (paso.enlace) d.enlace = paso.enlace;
+  if (paso.ventana) d.ventana = paso.ventana;
+  return d;
+};
+const cadena = () => ({ pasos: PASOS.map(aCuerpo) });
 
 function aArbol(conds) {
   if (!conds.length) return null;
@@ -271,7 +394,10 @@ async function ejecutar(cuerpo, guardada) {
     });
     ULTIMO = d;
     pintarResultado(d);
-    if (PASOS[0]) PASOS[0]._cuenta = d.meta.row_count;
+    PASOS.forEach((p, i) => {
+      p._cuenta = d.pasos && d.pasos[i] ? d.pasos[i].row_count : null;
+    });
+    if (!d.pasos && PASOS[0]) PASOS[0]._cuenta = d.meta.row_count;
     pintarPasos();
     $('#estado').textContent = '';
   } catch (e) {
@@ -371,7 +497,7 @@ const csvCampo = (v) => {
 };
 
 /* -------------------------------------------------------------------- eventos */
-$('#btn-ejecutar').addEventListener('click', () => ejecutar({ paso: aCuerpo(PASOS[0]) }));
+$('#btn-ejecutar').addEventListener('click', () => ejecutar(cadena()));
 $('#btn-ejecutar-crudo').addEventListener('click', () => ejecutar({ sql: $('#sql-crudo').value }));
 $('#btn-crudo').addEventListener('click', () => $('#crudo').classList.toggle('oculto'));
 $('#btn-limpiar').addEventListener('click', () => {
@@ -385,7 +511,7 @@ $('#btn-ver').addEventListener('click', async () => {
     const d = await api('/api/query/compile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paso: aCuerpo(PASOS[0]) }),
+      body: JSON.stringify(cadena()),
     });
     $('#consulta-caja').classList.remove('oculto');
     $('#consulta').textContent = d.consulta +

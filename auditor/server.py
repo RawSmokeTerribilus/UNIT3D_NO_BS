@@ -13,10 +13,14 @@ from urllib.parse import parse_qs, urlparse
 
 from config import cfg
 from query import archive
-from query.compile import OPERADORES, CompileError, compilar
+from query.compile import (OPERADORES, CompileError, compilar, compilar_loki,
+                           compilar_prom)
 from query.guard import GuardError, revisar
 from query.modelo import ModeloError, cargar
+from query.sources.http_json import FuenteHTTPError
+from query.sources.loki import LokiSource
 from query.sources.mysql import MySQLError, MySQLSource
+from query.sources.prom import PromSource
 
 DIR_ESTATICOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 DIR_GUARDADAS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "query", "saved")
@@ -96,6 +100,9 @@ class Handler(BaseHTTPRequestHandler):
             if ruta == "/api/query/valores":
                 return self._json(_valores_catalogo(
                     (q.get("entidad") or [""])[0], (q.get("campo") or [""])[0]))
+            if ruta == "/api/query/metricas":
+                return self._json({"metricas": PromSource().metricas(
+                    (q.get("q") or [""])[0])[:500]})
             if ruta == "/api/query/saved":
                 return self._json({"guardadas": _listar_guardadas()})
             if ruta == "/api/query/history":
@@ -142,6 +149,9 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(e, MySQLError):
             return self._json({"error": "mysql", "codigo": e.code,
                                "mensaje": e.message, "sql": e.sql}, 502)
+        if isinstance(e, FuenteHTTPError):
+            return self._json({"error": e.fuente, "mensaje": e.detalle,
+                               "url": e.url}, 502)
         if isinstance(e, (CompileError, GuardError, ModeloError, ValueError)):
             return self._json({"error": type(e).__name__, "mensaje": str(e)}, 400)
         traceback.print_exc()
@@ -150,11 +160,34 @@ class Handler(BaseHTTPRequestHandler):
 
 # ------------------------------------------------------------------ lógica
 def _compilar(cuerpo):
+    """Enseña la consulta sin ejecutarla. Una cadena devuelve una por paso."""
     ents = cargar()
-    paso = cuerpo.get("paso") or cuerpo
-    c = compilar(paso, ents)
-    return {"consulta": c.sql, "parametros": list(c.params),
-            "columnas": c.columnas, "avisos": c.avisos}
+    pasos = cuerpo.get("pasos") or [cuerpo.get("paso") or cuerpo]
+    salida = []
+    for i, paso in enumerate(pasos):
+        paso = dict(paso)
+        enlace = paso.pop("enlace", None)
+        if i > 0 and enlace:
+            # Sin ejecutar no hay claves; se enseña el hueco tal cual, para que
+            # se vea DÓNDE entran las del paso anterior.
+            paso["_enlace_valores"] = {"campo": enlace["campo"],
+                                       "valores": ["‹claves del paso %d›" % i]}
+        eid = paso.get("entidad")
+        fuente = ents[eid].fuente if eid in ents else "mysql"
+        if fuente == "loki":
+            c = compilar_loki(paso, ents[eid])[0]
+        elif fuente == "prom":
+            c = compilar_prom(paso, ents[eid])[0]
+        else:
+            c = compilar(paso, ents)
+        salida.append({"paso": i + 1, "entidad": eid, "fuente": fuente,
+                       "consulta": c.sql, "parametros": list(c.params),
+                       "columnas": c.columnas, "avisos": c.avisos})
+    return {"pasos": salida, "consulta": "\n\n".join(
+        "-- paso %d (%s)\n%s" % (p["paso"], p["entidad"], p["consulta"]) for p in salida),
+        "parametros": [v for p in salida for v in p["parametros"]],
+        "columnas": salida[-1]["columnas"],
+        "avisos": [a for p in salida for a in p["avisos"]]}
 
 
 def _ejecutar(cuerpo, identidad):
@@ -189,20 +222,114 @@ def _ejecutar_inner(cuerpo, identidad, guardada):
         composicion = {"modo": "crudo", "sql": sql}
     else:
         ents = cargar()
-        paso = cuerpo.get("paso") or cuerpo
+        pasos = cuerpo.get("pasos") or [cuerpo.get("paso") or cuerpo]
+        r, tramos = _cadena(pasos, ents, origen, limite)
+        composicion = {"pasos": pasos}
+
+    run_id = archive.registrar(r, composicion=composicion, guardada=guardada,
+                               identidad=identidad)
+    d = r.to_dict()
+    d["run_id"] = run_id
+    if not cuerpo.get("sql"):
+        d["pasos"] = tramos
+    return d
+
+
+def _cadena(pasos, ents, origen, limite):
+    """Ejecuta una cadena de pasos. Devuelve (resultado del último, resumen).
+
+    Un paso puede consumir la clave del anterior. Cuando ambos son de MySQL se
+    resuelve con una lista IN; el día que haya fuentes distintas, el cruce será
+    en memoria sobre la misma forma de resultado.
+    """
+    resultado = None
+    tramos = []
+    claves = None
+
+    for i, paso in enumerate(pasos):
+        paso = dict(paso)
+        enlace = paso.pop("enlace", None)
+        if i > 0 and enlace and claves is not None:
+            paso["_enlace_valores"] = {"campo": enlace["campo"], "valores": claves}
+
+        r = _un_paso(paso, ents, origen, limite)
+
+        # Claves para el paso siguiente. Se piden con una consulta propia: así
+        # no dependen de qué columnas haya elegido mostrar el operador.
+        siguiente = pasos[i + 1] if i + 1 < len(pasos) else None
+        if siguiente and siguiente.get("enlace"):
+            claves, aviso = _claves(paso, siguiente["enlace"], ents, origen)
+            if aviso:
+                r.warnings.append(aviso)
+
+        tramos.append({
+            "entidad": paso.get("entidad"),
+            "fuente": r.source,
+            "row_count": len(r.rows),
+            "duration_ms": r.duration_ms,
+            "truncated": r.truncated,
+            "window_ok": r.window_ok,
+            "consulta": r.consulta_generada,
+            "claves_pasadas": None if claves is None or not siguiente else len(claves),
+        })
+        resultado = r
+
+    return resultado, tramos
+
+
+def _un_paso(paso, ents, origen, limite):
+    """Ejecuta un paso contra la fuente que le toque.
+
+    Las tres fuentes devuelven la MISMA forma de resultado; por eso el cruce
+    entre pasos, la gráfica y el archivo no tienen que saber de dónde vino.
+    """
+    eid = paso.get("entidad")
+    if eid not in ents:
+        raise CompileError("entidad desconocida: %r" % eid)
+    fuente = ents[eid].fuente
+
+    if fuente == "mysql":
         c = compilar(paso, ents)
         r = origen.run(c.sql, c.params, limit=limite)
         r.warnings = c.avisos + r.warnings
         r.consulta_generada = c.sql
         if c.columnas:
             r.columns = c.columnas + r.columns[len(c.columnas):]
-        composicion = paso
+        return r
 
-    run_id = archive.registrar(r, composicion=composicion, guardada=guardada,
-                               identidad=identidad)
-    d = r.to_dict()
-    d["run_id"] = run_id
-    return d
+    if fuente == "loki":
+        c, agregada = compilar_loki(paso, ents[eid])
+        r = LokiSource().run(c.sql, paso.get("ventana"), limit=limite, agregada=agregada)
+        r.warnings = c.avisos + r.warnings
+        return r
+
+    if fuente == "prom":
+        c, rango = compilar_prom(paso, ents[eid])
+        r = PromSource().run(c.sql, paso.get("ventana"), limit=limite, rango=rango)
+        r.warnings = c.avisos + r.warnings
+        return r
+
+    raise CompileError("fuente desconocida: %r" % fuente)
+
+
+def _claves(paso, enlace, ents, origen):
+    """Valores de la columna que enlaza dos pasos."""
+    campo_origen = enlace.get("desde_campo") or ents[paso["entidad"]].clave
+    solo_clave = dict(paso)
+    solo_clave["mostrar"] = [campo_origen]
+    solo_clave["agrupar"] = []
+    solo_clave["calcular"] = []
+    solo_clave.pop("ordenar", None)
+    c = compilar(solo_clave, ents)
+    tope = cfg.max_link_keys
+    r = origen.run(c.sql, c.params, limit=tope)
+    valores = sorted({fila[0] for fila in r.rows if fila[0] is not None})
+    aviso = None
+    if r.truncated:
+        aviso = ("El enlace entre pasos se quedó en %d claves, que es el tope. "
+                 "El paso siguiente está viendo sólo una parte: afina el primer "
+                 "paso." % tope)
+    return valores, aviso
 
 
 def _valores_catalogo(eid, cid):
@@ -216,6 +343,17 @@ def _valores_catalogo(eid, cid):
     if eid not in ents:
         raise ValueError("entidad desconocida: %r" % eid)
     campo = ents[eid].campo(cid)
+    if ents[eid].fuente == "loki" and campo.loki:
+        # Las etiquetas de Loki se preguntan a Loki, no a MySQL.
+        from query.sources.http_json import pedir
+        import time as _t
+        fin = int(_t.time() * 1e9)
+        ini = fin - 6 * 3600 * 10 ** 9
+        d = pedir("loki", cfg.loki_url, "/loki/api/v1/label/%s/values" % campo.loki,
+                  {"start": str(ini), "end": str(fin)})
+        vals = sorted(d.get("data") or [])
+        return {"campo": campo.id, "etiqueta": campo.etiqueta,
+                "valores": [{"valor": v, "etiqueta": v} for v in vals]}
     if not campo.via:
         raise ValueError("«%s» no es un campo de catálogo" % campo.etiqueta)
     via = campo.via
@@ -262,6 +400,8 @@ def _selftest():
         except MySQLError as e:
             p[etiqueta] = True
             p[etiqueta + "_error"] = "%s: %s" % (e.code, e.message)
+    p["loki_vivo"] = LokiSource().salud()
+    p["prom_vivo"] = PromSource().salud()
     try:
         p["entidades"] = sorted(cargar().keys())
     except ModeloError as e:

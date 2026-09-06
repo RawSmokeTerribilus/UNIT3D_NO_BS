@@ -1,0 +1,17 @@
+{
+  "id": "logs_nginx",
+  "nombre": "Logs de nginx",
+  "fuente": "loki",
+  "selector_base": {"job": "unit3d_nginx"},
+  "notas": [
+    "Loki guarda 7 días y además rechaza lo más viejo. Un cruce de logs con usuarios sólo se puede REHACER durante esa semana: pasado eso, o el panel archivó el informe, o esa correlación no vuelve.",
+    "El único trabajo que hay aquí es `unit3d_nginx`, con dos tipos: `site` (el tráfico) y `auth`. Los logs de nginx cambiaron de sitio una vez y se llevaron por delante a CrowdSec, Wazuh y Loki a la vez."
+  ],
+  "campos": [
+    {"id": "tipo", "etiqueta": "Tipo de log", "tipo": "catalogo", "loki": "log_type"},
+    {"id": "estado", "etiqueta": "Código HTTP", "tipo": "catalogo", "loki": "status"},
+    {"id": "metodo", "etiqueta": "Método", "tipo": "catalogo", "loki": "method"},
+    {"id": "linea", "etiqueta": "Texto de la línea", "tipo": "texto", "linea": true,
+     "nota": "Filtra por el contenido de la línea, no por una etiqueta. Es lo más caro de Loki: acota antes por tipo o por código."}
+  ]
+}
