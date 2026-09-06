@@ -1,0 +1,32 @@
+{
+  "titulo": "Espías: quién trajo a quién",
+  "porque": "Cuentas que entraron por la misma persona. El árbol completo se ve en la web del tracker; esto sirve para cruzarlo con el resto de señales.",
+  "pasos": [
+    {
+      "entidad": "coincidencias",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "rasgo",
+            "op": "es",
+            "valor": "quien_invito"
+          }
+        ]
+      },
+      "mostrar": [
+        "valor",
+        "usuarios",
+        "quienes",
+        "primera",
+        "ultima"
+      ],
+      "ordenar": {
+        "campo": "usuarios",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "nombre": "espias-quien-invito",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

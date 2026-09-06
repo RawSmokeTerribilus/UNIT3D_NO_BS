@@ -50,6 +50,7 @@ construcción.
 <tr><td>Cambios (binlog)</td><td><strong>30 días</strong> · 70 ficheros, 50&nbsp;GB</td><td>avisa y recorta la ventana</td></tr>
 <tr><td>Métricas (Prometheus)</td><td><strong>15 días</strong> o 5&nbsp;GB, lo que llegue antes</td><td><code>window_ok</code> a falso + aviso</td></tr>
 <tr><td>Logs de nginx (Loki)</td><td><strong>7 días</strong></td><td><code>window_ok</code> a falso + aviso</td></tr>
+<tr><td>IPs de la web (recolectadas)</td><td><strong>desde la primera pasada</strong> · se acumula</td><td>si está vacío, lo dice</td></tr>
 <tr><td>Volcados de 4&nbsp;h</td><td>≈16 horas (4 ficheros)</td><td>no se consulta desde aquí</td></tr>
 </table>
 <div class="aviso">
@@ -108,30 +109,75 @@ funciona independientemente de qué columnas hayas elegido mostrar.
 </p>
 
 <h2>Los secretos</h2>
-<div class="aviso">
-<strong>Un secreto se puede interrogar; no se puede proyectar.</strong>
-Puedes filtrar por él, contarlo y agrupar por su presencia. Lo que no sale nunca
-por pantalla es su valor.
+<div class="aviso bien">
+Por defecto <strong>sólo se tapa el hash de la contraseña</strong>. Todo lo
+demás sale entero: correos, IPs, tokens, alias de Telegram, secreto y códigos de
+2FA.
 </div>
 <p>
-Los campos marcados con 🔒 no aparecen en la lista de «mostrar»: el compositor
-literalmente no sabe emitir su valor. El caso que define la regla es el del 2FA —
-para encontrar a los 317 que abrieron la página y no confirmaron hace falta la
-columna <em>en el filtro</em>, nunca en la salida.
+El motivo es que ya son visibles para un admin en la web del tracker, así que
+taparlos aquí no protegería nada y sí tendría un coste real: <strong>si no
+puedes leer una IP, no puedes comprobar si la coincidencia que te enseña el
+panel es cierta</strong>. Una herramienta de auditoría que no deja corroborar
+sus propios informes no sirve.
 </p>
 <p>
-Hoy son secretos: la contraseña, el secreto y los códigos de recuperación de 2FA,
-el <em>remember token</em>, el token de enlace de Telegram y el código de
-invitación. <strong>No</strong> lo son el correo, la passkey, la rsskey ni el
-api_token: ya son visibles para un admin en la web del tracker, y taparlos
-rompería consultas legítimas.
+El mecanismo sigue ahí y es de una línea: añadir un nombre de columna a
+<code>secretos</code> en <code>config.py</code> hace que ese campo se pueda
+interrogar —filtrar, contar— pero no mostrar. Otro operador de este fork puede
+querer otra política.
+</p>
+
+<h2>Auditorías de coincidencias</h2>
+<p>
+La entidad <strong>Coincidencias</strong> responde a «quiénes comparten algo».
+Se elige el rasgo y salen los racimos con los nombres. Siete rasgos: IP del
+cliente, IP de login fallido, IP de seedbox, correo normalizado, dominio del
+correo, quién les invitó y cliente de torrent.
+</p>
+<div class="aviso malo">
+<strong>Una coincidencia no es una prueba.</strong> El CGNAT de un operador, un
+piso compartido, la misma salida de VPN o el mismo proveedor de seedbox producen
+exactamente esta señal. Esto da candidatos para mirarlos a mano.
+</div>
+<p>
+Vale mucho más <strong>cruzar dos rasgos</strong> que uno con muchos usuarios.
+Para eso están los campos derivados de Usuarios —comparte correo, comparte IP de
+cliente, cuántas IPs comparte, comparte seedbox—, que se combinan con todo lo
+demás y con los pasos encadenados.
 </p>
 <p>
-En el modo de SQL a mano el candado es un tokenizador, no un analizador
-completo: deja pasar <code>COUNT(secreto)</code> y el <code>WHERE</code>, y
-rechaza el resto. Protege del volcado accidental a tu propia pantalla, que es la
-amenaza real. No es un control contra alguien decidido.
+El <strong>correo normalizado</strong> es el rasgo más fuerte: quita el
+«+etiqueta» y los puntos del nombre, que en Gmail no distinguen, así que
+<code>juan.perez+nobs@gmail.com</code> y <code>juanperez@gmail.com</code> salen
+como el mismo buzón.
 </p>
+
+<h3>La IP de navegación</h3>
+<p>
+<strong>No está en la base.</strong> La tabla <code>sessions</code> está vacía
+porque las sesiones van en Redis, y no hay columna de IP de registro. La única
+fuente es el log de nginx, y Loki sólo guarda 7 días.
+</p>
+<p>
+Por eso el panel la <strong>recolecta y la guarda</strong>. Parte del tráfico
+lleva una clave por usuario en la URL —<code>/rss/&lt;id&gt;.&lt;32 hex&gt;</code>,
+<code>/torrent/download/&lt;id&gt;.&lt;32 hex&gt;</code> y
+<code>api_token=…</code>— y esas claves casan contra <code>rsskey</code> y
+<code>api_token</code>. Se acumula en un almacén propio, así que a partir de la
+primera pasada la ventana deja de ser de 7 días.
+</p>
+<p>
+Se recoge sola cada 3 horas, leyendo las últimas 8 — la ventana es más larga que
+el intervalo a propósito, para que un reinicio no deje hueco. El botón
+<em>Recolectar IPs</em> fuerza una pasada.
+</p>
+<div class="aviso">
+<strong>Es una muestra, no un censo.</strong> Quien entra por la web y no usa
+cliente, RSS ni API no aparece. Que alguien no salga ahí no dice nada. El panel
+te recuerda en cada consulta cuánto lleva recogido y desde cuándo: úsalo para
+interpretar un cero.
+</div>
 
 <h2>Las trampas que el modelo ya evita</h2>
 <p>
@@ -207,6 +253,17 @@ La cuenta que usa el panel sólo tiene <code>SELECT</code> sobre <code>unit3d</c
 No puede escribir nada, ni leer las contraseñas de las cuentas de base de datos.
 Puedes trastear sin miedo: lo peor que sale es un error.
 </div>
+
+<h2>Lo que NO está aquí</h2>
+<ul>
+<li><strong>El árbol de invitaciones</strong> ya existe en el tracker, en
+<code>/users/&lt;nombre&gt;/invite-tree</code>. Aquí sólo están los dos campos
+derivados —quién le invitó, a cuántos ha invitado— para poder cruzarlos.</li>
+<li><strong>La IP de registro</strong> no la guarda UNIT3D en ninguna parte.</li>
+<li><strong>El cruce en memoria entre fuentes distintas</strong> todavía no: el
+encadenado resuelve MySQL con MySQL. Las IPs de la web se consultan como entidad
+propia.</li>
+</ul>
 
 <h2>Los dos servicios</h2>
 <p>

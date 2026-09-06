@@ -1,0 +1,29 @@
+{
+  "titulo": "IPs de navegación compartidas",
+  "porque": "La única IP de navegación que existe, recolectada de los logs y acumulada. Si el almacén está vacío o recién empezado, un cero no significa nada: mira el aviso de contexto.",
+  "pasos": [
+    {
+      "entidad": "ips_web",
+      "agrupar": [
+        "ip"
+      ],
+      "calcular": [
+        {
+          "fn": "distintos",
+          "campo": "usuario"
+        }
+      ],
+      "umbral": {
+        "op": "más de",
+        "valor": 1
+      },
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "nombre": "ips-web-compartidas",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

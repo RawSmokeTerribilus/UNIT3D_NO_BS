@@ -1,0 +1,32 @@
+{
+  "titulo": "Una IP probando varios usuarios",
+  "porque": "Intentos de login fallidos agrupados por IP. Puede ser alguien con dos cuentas, o fuerza bruta desde fuera: mira los nombres.",
+  "pasos": [
+    {
+      "entidad": "coincidencias",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "rasgo",
+            "op": "es",
+            "valor": "ip_login_fallido"
+          }
+        ]
+      },
+      "mostrar": [
+        "valor",
+        "usuarios",
+        "quienes",
+        "primera",
+        "ultima"
+      ],
+      "ordenar": {
+        "campo": "usuarios",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "nombre": "logins-fallidos-por-ip",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

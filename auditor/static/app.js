@@ -596,6 +596,24 @@ $('#btn-guardar').addEventListener('click', async () => {
 });
 $('#btn-ejecutar-crudo').addEventListener('click', () => ejecutar({ sql: $('#sql-crudo').value }));
 $('#btn-crudo').addEventListener('click', () => $('#crudo').classList.toggle('oculto'));
+$('#btn-ips').addEventListener('click', async () => {
+  // El hilo de fondo ya recolecta cada 3 h; esto es para forzarlo antes de
+  // mirar algo concreto.
+  const b = $('#btn-ips');
+  b.disabled = true;
+  $('#estado').textContent = 'leyendo los logs…';
+  try {
+    const d = await api('/api/ips/recolectar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ horas: 8 }),
+    });
+    $('#estado').textContent =
+      d.lineas + ' líneas · ' + d.resueltas + ' resueltas · ' +
+      d.pares_nuevos + ' pares nuevos' +
+      (d.sin_resolver ? ' · ' + d.sin_resolver + ' sin resolver' : '');
+  } catch (e) { pintarError(e.message); $('#estado').textContent = ''; }
+  b.disabled = false;
+});
 $('#btn-limpiar').addEventListener('click', () => {
   PASOS = [nuevoPaso(Object.keys(MODELO.entidades)[0])];
   GUARDADA = null;

@@ -1,0 +1,32 @@
+{
+  "titulo": "Multicuenta: misma IP de cliente",
+  "porque": "IPs de announce compartidas por varias cuentas, desde abril. Candidatos, no veredictos: CGNAT, piso compartido, VPN y seedbox dan la misma señal.",
+  "pasos": [
+    {
+      "entidad": "coincidencias",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "rasgo",
+            "op": "es",
+            "valor": "ip_cliente"
+          }
+        ]
+      },
+      "mostrar": [
+        "valor",
+        "usuarios",
+        "quienes",
+        "primera",
+        "ultima"
+      ],
+      "ordenar": {
+        "campo": "usuarios",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "nombre": "multicuenta-ip-cliente",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

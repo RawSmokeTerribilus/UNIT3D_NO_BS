@@ -41,14 +41,20 @@ class Compilado:
 
 
 def compilar(paso, entidades):
-    """Compila un paso del compositor a (sql, params, columnas)."""
+    """Compila un paso del compositor a (sql, params, columnas).
+
+    Sirve para MySQL y para el almacén de IPs, que es SQLite: el dialecto que
+    se genera aquí (SELECT, JOIN, GROUP BY, HAVING, marcadores) es el mismo en
+    los dos. Lo único que cambia es el marcador de parámetro.
+    """
     eid = paso.get("entidad")
     if eid not in entidades:
         raise CompileError("entidad desconocida: %r" % eid)
     ent = entidades[eid]
-    if ent.fuente != "mysql":
+    if ent.fuente not in ("mysql", "ipstore"):
         raise CompileError(
-            "la entidad «%s» es de la fuente %s, no de MySQL" % (ent.nombre, ent.fuente))
+            "la entidad «%s» es de la fuente %s, que no se consulta con SQL"
+            % (ent.nombre, ent.fuente))
 
     avisos = []
     joins = {}
@@ -369,6 +375,16 @@ def _cualificar(expr):
     if partes and "." not in partes[0] and partes[0].isidentifier():
         partes[0] = "%s.%s" % (ALIAS_BASE, partes[0])
     return " ".join(partes)
+
+
+def a_sqlite(sql):
+    """Traduce el SQL generado al dialecto de SQLite.
+
+    Sólo dos diferencias en lo que emite este compilador: el marcador de
+    parámetro y el acento grave, que SQLite entiende pero es más limpio
+    normalizar a comillas dobles.
+    """
+    return sql.replace("%s", "?").replace("`", '"')
 
 
 def _ident(nombre):

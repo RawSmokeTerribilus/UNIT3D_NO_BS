@@ -1,0 +1,62 @@
+{
+  "id": "ips_web",
+  "nombre": "IPs de la web (recolectadas)",
+  "fuente": "ipstore",
+  "clave": "usuario_id",
+  "notas": [
+    "En la base NO hay IP de navegación: `sessions` está vacía porque las sesiones van en Redis, y no existe columna de IP de registro. Esto se recolecta de los logs de nginx y SE GUARDA, así que a partir de la primera pasada la ventana deja de ser los 7 días de Loki.",
+    "Se resuelve quién es cada IP porque parte del tráfico lleva una clave por usuario en la URL: /rss/<id>.<32 hex>, /torrent/download/<id>.<32 hex> y api_token=… Esas claves casan con users.rsskey y users.api_token.",
+    "ES UNA MUESTRA, NO UN CENSO. Quien entra por la web y no usa cliente, RSS ni API no aparece. Que alguien no salga aquí no dice nada.",
+    "Hay que recolectar antes de consultar. Si el almacén está vacío, un cero no significa que no haya coincidencias — el panel lo avisa."
+  ],
+  "campos": [
+    {
+      "id": "usuario",
+      "etiqueta": "Usuario",
+      "col": "usuario",
+      "tipo": "texto"
+    },
+    {
+      "id": "usuario_id",
+      "etiqueta": "Id de usuario",
+      "col": "usuario_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "ip",
+      "etiqueta": "IP",
+      "col": "ip",
+      "tipo": "texto"
+    },
+    {
+      "id": "via",
+      "etiqueta": "Por dónde",
+      "col": "via",
+      "tipo": "catalogo_fijo",
+      "valores": [
+        "rss/descarga",
+        "api"
+      ],
+      "nota": "Cómo se supo de quién era: por la clave del RSS y las descargas, o por el api_token."
+    },
+    {
+      "id": "veces",
+      "etiqueta": "Peticiones",
+      "col": "veces",
+      "tipo": "numero"
+    },
+    {
+      "id": "primera",
+      "etiqueta": "Vista por primera vez",
+      "col": "primera",
+      "tipo": "fecha"
+    },
+    {
+      "id": "ultima",
+      "etiqueta": "Vista por última vez",
+      "col": "ultima",
+      "tipo": "fecha"
+    }
+  ],
+  "tabla": "vistas"
+}

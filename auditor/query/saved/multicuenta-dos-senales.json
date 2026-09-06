@@ -1,0 +1,35 @@
+{
+  "titulo": "Multicuenta: correo Y IP a la vez",
+  "porque": "El cruce, que es donde está el valor. Un rasgo solo da candidatos; dos a la vez ya cuesta explicarlo por casualidad.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "comparte_correo",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "comparte_ip_cliente",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "correo",
+        "grupo",
+        "ips_compartidas",
+        "invitado_por",
+        "alta",
+        "ultima_accion"
+      ]
+    }
+  ],
+  "nombre": "multicuenta-dos-senales",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

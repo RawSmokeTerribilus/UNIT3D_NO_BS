@@ -1,0 +1,32 @@
+{
+  "titulo": "Multicuenta: mismo correo normalizado",
+  "porque": "La señal más fuerte de la base. Quita el «+etiqueta» y los puntos del nombre, que en Gmail no distinguen: dos cuentas ahí son el mismo buzón.",
+  "pasos": [
+    {
+      "entidad": "coincidencias",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "rasgo",
+            "op": "es",
+            "valor": "correo_normalizado"
+          }
+        ]
+      },
+      "mostrar": [
+        "valor",
+        "usuarios",
+        "quienes",
+        "primera",
+        "ultima"
+      ],
+      "ordenar": {
+        "campo": "usuarios",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "nombre": "multicuenta-correo",
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

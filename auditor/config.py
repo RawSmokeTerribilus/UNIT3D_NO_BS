@@ -43,6 +43,13 @@ class Config:
     # El binlog no lo cubre max_execution_time: eso es de MySQL. Aquí el techo
     # es de reloj, porque leer 1,7 GB por día de ventana no tiene otro freno.
     binlog_max_seconds = _int("AUDITOR_BINLOG_MAX_SECONDS", 45)
+
+    # Recolección automática de IPs. Sin esto la ventana sigue siendo los 7 días
+    # de Loki: lo que no se recoja a tiempo se pierde para siempre. Se recoge
+    # una ventana MÁS LARGA que el intervalo a propósito, para que un reinicio o
+    # un fallo puntual no deje un hueco.
+    ips_auto_horas = _int("AUDITOR_IPS_AUTO_HORAS", 3)
+    ips_auto_ventana = _int("AUDITOR_IPS_AUTO_VENTANA", 8)
     archive_row_days = _int("AUDITOR_ARCHIVE_ROW_DAYS", 365)
 
     auth_mode = os.environ.get("AUTH_MODE", "none").strip().lower()

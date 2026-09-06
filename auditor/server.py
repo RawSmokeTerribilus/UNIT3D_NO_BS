@@ -19,6 +19,7 @@ from query.guard import GuardError, revisar
 from query.modelo import ModeloError, cargar
 from query.sources.binlog import BinlogError, BinlogSource
 from query.sources.http_json import FuenteHTTPError
+from query.sources.ipstore import IpStore, IpStoreError
 from query.sources.loki import LokiSource
 from query.sources.mysql import MySQLError, MySQLSource
 from query.sources.prom import PromSource
@@ -111,6 +112,8 @@ class Handler(BaseHTTPRequestHandler):
                     "topes": {"filas": cfg.max_rows, "ms": cfg.max_exec_ms,
                               "claves_enlace": cfg.max_link_keys},
                 })
+            if ruta == "/api/ips/estado":
+                return self._json({"contexto": IpStore().contexto()})
             if ruta == "/api/query/valores":
                 return self._json(_valores_catalogo(
                     (q.get("entidad") or [""])[0], (q.get("campo") or [""])[0]))
@@ -150,6 +153,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(_ejecutar(cuerpo, self._identidad(), self._origen()))
             if ruta == "/api/query/saved":
                 return self._json(_guardar(cuerpo, self._identidad()))
+            if ruta == "/api/ips/recolectar":
+                return self._json(IpStore().recolectar(
+                    horas=float(cuerpo.get("horas") or 6)))
             if ruta == "/api/query/saved/borrar":
                 return self._json(_borrar_guardada(cuerpo.get("nombre")))
             return self._json({"error": "ruta desconocida: %s" % ruta}, 404)
@@ -167,6 +173,8 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(e, MySQLError):
             return self._json({"error": "mysql", "codigo": e.code,
                                "mensaje": e.message, "sql": e.sql}, 502)
+        if isinstance(e, IpStoreError):
+            return self._json({"error": "ips_web", "mensaje": str(e)}, 502)
         if isinstance(e, BinlogError):
             return self._json({"error": "binlog", "mensaje": str(e)}, 502)
         if isinstance(e, FuenteHTTPError):
@@ -319,6 +327,15 @@ def _un_paso(paso, ents, origen, limite):
         r = origen.run(c.sql, c.params, limit=limite)
         r.warnings = c.avisos + r.warnings
         r.consulta_generada = c.sql
+        if c.columnas:
+            r.columns = c.columnas + r.columns[len(c.columnas):]
+        return r
+
+    if fuente == "ipstore":
+        from query.compile import a_sqlite
+        c = compilar(paso, ents)
+        r = IpStore().run(a_sqlite(c.sql), c.params, limit=limite)
+        r.warnings = c.avisos + r.warnings
         if c.columnas:
             r.columns = c.columnas + r.columns[len(c.columnas):]
         return r
@@ -486,9 +503,38 @@ def _selftest():
     return p
 
 
+def _recolector():
+    """Hilo de fondo que acumula IPs. Es lo que hace que la ventana deje de ser
+    los 7 días de Loki: lo que no se recoja a tiempo se pierde para siempre."""
+    import threading
+    import time as _t
+
+    if cfg.ips_auto_horas <= 0:
+        sys.stderr.write("recolector de IPs DESACTIVADO (AUDITOR_IPS_AUTO_HORAS=0)\n")
+        return
+
+    def bucle():
+        _t.sleep(20)  # que el servicio arranque antes de la primera pasada
+        while True:
+            try:
+                r = IpStore().recolectar(horas=cfg.ips_auto_ventana)
+                sys.stderr.write(
+                    "recolector: %d líneas, %d resueltas, %d pares nuevos\n"
+                    % (r["lineas"], r["resueltas"], r["pares_nuevos"]))
+            except Exception as e:  # nunca tumba el servicio
+                sys.stderr.write("recolector: fallo — %s: %s\n" % (type(e).__name__, e))
+            _t.sleep(cfg.ips_auto_horas * 3600)
+
+    h = threading.Thread(target=bucle, name="recolector-ips", daemon=True)
+    h.start()
+    sys.stderr.write("recolector de IPs cada %d h (ventana %d h)\n"
+                     % (cfg.ips_auto_horas, cfg.ips_auto_ventana))
+
+
 def main():
     validar_auth()
     archive.caducar()
+    _recolector()
     srv = ThreadingHTTPServer((cfg.bind_addr, cfg.port), Handler)
     sys.stderr.write("unit3d-auditor escuchando en %s:%d (auth=%s)\n"
                      % (cfg.bind_addr, cfg.port, cfg.auth_mode))
