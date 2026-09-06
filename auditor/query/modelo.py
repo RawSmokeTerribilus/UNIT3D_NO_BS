@@ -84,6 +84,9 @@ class Entidad:
         # elija. Es lo que permite preguntar «quién comparte X» sin que el
         # operador tenga que componer una autounión.
         self.rasgos = d.get("rasgos", {})
+        # Columna del RESULTADO contra la que se puede cruzar en memoria cuando
+        # esta entidad recibe un enlace y su fuente no habla SQL.
+        self.enlace_en = d.get("enlace_en")
         self.campos = {}
         for c in d.get("campos", []):
             campo = Campo(c)
@@ -102,6 +105,7 @@ class Entidad:
             "id": self.id, "nombre": self.nombre, "fuente": self.fuente,
             "clave": self.clave, "notas": self.notas, "cruces": self.cruces,
             "selector_base": self.selector_base,
+            "enlace_en": self.enlace_en,
             "rasgos": [{"id": k, "etiqueta": v.get("etiqueta", k),
                         "nota": v.get("nota")} for k, v in self.rasgos.items()],
             "ambito": self.ambito_etiqueta,

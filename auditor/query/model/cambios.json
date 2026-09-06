@@ -6,14 +6,31 @@
     "La única máquina del tiempo que hay. Las tablas dicen cómo está algo HOY; esto dice cuándo cambió y desde qué valor. Así se resolvió el caso rt001ztp: un salto de 100 GiB clavados que era una compra de tienda, no seedeo.",
     "Ventana real 30 días, 70 ficheros y 50 GB. Lo anterior no existe en ninguna parte, ni aquí ni en los volcados.",
     "Los binlogs van en formato ROW: llevan el valor de cada columna antes y después, secretos incluidos y en claro. Aquí se tapan igual que en el resto del panel: se ve QUÉ cambió, no a qué valor.",
-    "Hay que decir una tabla. Sin acotar por fila y por ventana corta, leer esto es caro: son 1,7 GB al día."
+    "Hay que decir una tabla. Sin acotar por fila y por ventana corta, leer esto es caro: son 1,7 GB al día.",
+    "Se puede encadenar DESDE otra entidad: las claves del paso anterior se cruzan en memoria contra la columna «Fila». Loki y Prometheus no admiten enlace porque sus resultados no llevan ninguna columna que identifique a un usuario."
   ],
   "campos": [
-    {"id": "tabla", "etiqueta": "Tabla", "tipo": "texto", "binlog": "tabla",
-     "nota": "El nombre real de la tabla en la base: users, torrents, history, warnings…"},
-    {"id": "fila", "etiqueta": "Id de la fila", "tipo": "numero", "binlog": "clave",
-     "nota": "Acota a una fila concreta. Sin esto se leen los cambios de toda la tabla en la ventana, que puede ser muchísimo."},
-    {"id": "columna_clave", "etiqueta": "Columna que identifica", "tipo": "texto", "binlog": "clave_col",
-     "nota": "Por defecto `id`. En `history` no hay id: la pareja es user_id + torrent_id."}
-  ]
+    {
+      "id": "tabla",
+      "etiqueta": "Tabla",
+      "tipo": "texto",
+      "binlog": "tabla",
+      "nota": "El nombre real de la tabla en la base: users, torrents, history, warnings…"
+    },
+    {
+      "id": "fila",
+      "etiqueta": "Id de la fila",
+      "tipo": "numero",
+      "binlog": "clave",
+      "nota": "Acota a una fila concreta. Sin esto se leen los cambios de toda la tabla en la ventana, que puede ser muchísimo."
+    },
+    {
+      "id": "columna_clave",
+      "etiqueta": "Columna que identifica",
+      "tipo": "texto",
+      "binlog": "clave_col",
+      "nota": "Por defecto `id`. En `history` no hay id: la pareja es user_id + torrent_id."
+    }
+  ],
+  "enlace_en": "Fila"
 }

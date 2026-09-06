@@ -107,6 +107,18 @@ Un paso puede consumir la clave del anterior: «saca estos usuarios y ahora
 mírame sus descargas». Las claves se piden con una consulta propia, así que
 funciona independientemente de qué columnas hayas elegido mostrar.
 </p>
+<table>
+<tr><th>De → a</th><th>Cómo se cruza</th></tr>
+<tr><td>Base de datos → base de datos</td><td>lista <code>IN</code>, una sola consulta</td></tr>
+<tr><td>Base de datos ↔ IPs de la web</td><td>lista <code>IN</code>: las dos hablan SQL</td></tr>
+<tr><td>Base de datos → Cambios (binlog)</td><td><strong>cruce en memoria</strong> por la columna «Fila»</td></tr>
+<tr><td>→ Logs de nginx · Métricas</td><td><strong>rechazado</strong>, con el motivo</td></tr>
+</table>
+<div class="aviso malo">
+Si el paso que se cruza en memoria venía <strong>recortado</strong> por el tope de
+filas, el panel lo dice: pueden faltar coincidencias que se quedaron fuera. Un
+cruce sobre un resultado recortado no es una respuesta completa.
+</div>
 
 <h2>Los secretos</h2>
 <div class="aviso bien">
@@ -278,9 +290,12 @@ Puedes trastear sin miedo: lo peor que sale es un error.
 <code>/users/&lt;nombre&gt;/invite-tree</code>. Aquí sólo están los dos campos
 derivados —quién le invitó, a cuántos ha invitado— para poder cruzarlos.</li>
 <li><strong>La IP de registro</strong> no la guarda UNIT3D en ninguna parte.</li>
-<li><strong>El cruce en memoria entre fuentes distintas</strong> todavía no: el
-encadenado resuelve MySQL con MySQL. Las IPs de la web se consultan como entidad
-propia.</li>
+<li><strong>Encadenar hacia los logs de nginx o hacia las métricas.</strong> No
+es una limitación técnica: sus resultados no traen ninguna columna que
+identifique a un usuario, así que no hay nada contra lo que cruzar. El panel lo
+<em>rechaza con un mensaje</em> en vez de devolverte el paso sin filtrar. Para ir
+de un usuario a sus logs, el camino es «IPs de la web», que sí resuelve quién es
+cada IP.</li>
 </ul>
 
 <h2>Los dos servicios</h2>

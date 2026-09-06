@@ -290,10 +290,37 @@ def _cadena(pasos, ents, origen, limite):
     for i, paso in enumerate(pasos):
         paso = dict(paso)
         enlace = paso.pop("enlace", None)
+        cruce_en_memoria = None
+
         if i > 0 and enlace and claves is not None:
-            paso["_enlace_valores"] = {"campo": enlace["campo"], "valores": claves}
+            ent_destino = ents.get(paso.get("entidad"))
+            if ent_destino is None:
+                raise CompileError("entidad desconocida: %r" % paso.get("entidad"))
+            if ent_destino.fuente in ("mysql", "ipstore"):
+                # Las dos hablan SQL: el enlace entra como lista IN.
+                paso["_enlace_valores"] = {"campo": enlace["campo"], "valores": claves}
+            elif ent_destino.enlace_en:
+                # No habla SQL, pero su resultado trae una columna que
+                # identifica la fila: se cruza en memoria después de ejecutar.
+                cruce_en_memoria = (ent_destino.enlace_en, set(map(str, claves)))
+            else:
+                # Ni SQL ni columna que cruzar. ANTES esto se ignoraba en
+                # silencio y devolvía el paso SIN FILTRAR, presentándolo como si
+                # fuera el resultado del cruce. Mentir así es justo lo que este
+                # panel existe para no hacer.
+                raise CompileError(
+                    "«%s» no se puede encadenar: sus resultados no traen ninguna "
+                    "columna que identifique a un usuario o a una fila, así que "
+                    "no hay nada contra lo que cruzar las claves del paso "
+                    "anterior. Para llegar de un usuario a sus logs, usa «IPs de "
+                    "la web», que sí resuelve quién es cada IP."
+                    % ent_destino.nombre)
 
         r = _un_paso(paso, ents, origen, limite)
+
+        if cruce_en_memoria:
+            col, valores = cruce_en_memoria
+            r = _cruzar(r, col, valores)
 
         # Claves para el paso siguiente. Se piden con una consulta propia: así
         # no dependen de qué columnas haya elegido mostrar el operador.
@@ -367,17 +394,56 @@ def _un_paso(paso, ents, origen, limite):
     raise CompileError("fuente desconocida: %r" % fuente)
 
 
+def _cruzar(r, columna, valores):
+    """Filtra un resultado en memoria por una columna contra un juego de claves.
+
+    Es el cruce entre fuentes que no hablan SQL. Funciona porque las cuatro
+    fuentes devuelven la misma forma de resultado.
+    """
+    if columna not in r.columns:
+        r.warnings.append(
+            "No se pudo cruzar: el resultado no trae la columna «%s»." % columna)
+        return r
+    i = r.columns.index(columna)
+    antes = len(r.rows)
+    r.rows = [f for f in r.rows if str(f[i]) in valores]
+    r.warnings.append(
+        "Cruzado en memoria por «%s»: %d de %d filas casan con el paso anterior."
+        % (columna, len(r.rows), antes))
+    if r.truncated:
+        r.warnings.append(
+            "OJO: el paso venía RECORTADO antes de cruzar, así que pueden faltar "
+            "coincidencias que se quedaron fuera del tope.")
+    return r
+
+
 def _claves(paso, enlace, ents, origen):
-    """Valores de la columna que enlaza dos pasos."""
-    campo_origen = enlace.get("desde_campo") or ents[paso["entidad"]].clave
+    """Valores de la columna que enlaza dos pasos.
+
+    Se piden con una consulta propia para no depender de qué columnas haya
+    elegido mostrar el operador — y contra la fuente que toque, que un paso de
+    origen puede ser el almacén de IPs y no MySQL.
+    """
+    ent = ents[paso["entidad"]]
+    campo_origen = enlace.get("desde_campo") or ent.clave
     solo_clave = dict(paso)
     solo_clave["mostrar"] = [campo_origen]
-    solo_clave["agrupar"] = []
-    solo_clave["calcular"] = []
     solo_clave.pop("ordenar", None)
+    # El umbral («sólo grupos con más de N») necesita su cálculo y su agrupado:
+    # quitarlos dejaba el HAVING huérfano y la consulta reventaba.
+    if not solo_clave.get("umbral"):
+        solo_clave["agrupar"] = []
+        solo_clave["calcular"] = []
+    elif campo_origen not in (solo_clave.get("agrupar") or []):
+        solo_clave["agrupar"] = [campo_origen] + list(solo_clave.get("agrupar") or [])
+
     c = compilar(solo_clave, ents)
     tope = cfg.max_link_keys
-    r = origen.run(c.sql, c.params, limit=tope)
+    if ent.fuente == "ipstore":
+        from query.compile import a_sqlite
+        r = IpStore().run(a_sqlite(c.sql), c.params, limit=tope)
+    else:
+        r = origen.run(c.sql, c.params, limit=tope)
     valores = sorted({fila[0] for fila in r.rows if fila[0] is not None})
     aviso = None
     if r.truncated:
