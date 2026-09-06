@@ -1,0 +1,37 @@
+{
+  "nombre": "autogroup-desviaciones",
+  "titulo": "AutoGroup: desviaciones",
+  "porque": "Quién está en un grupo distinto del que le tocaría, replicando los seis criterios del comando. Filtra a los que el comando SÍ evalúa. Una desviación suele ser un ascenso pendiente de la pasada de medianoche.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "en_autogroup",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "desviado",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "grupo_que_tocaria",
+        "ratio",
+        "ultima_accion"
+      ],
+      "ordenar": {
+        "campo": "ratio",
+        "sentido": "asc"
+      }
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

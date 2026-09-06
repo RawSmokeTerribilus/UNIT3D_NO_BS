@@ -1,0 +1,29 @@
+{
+  "nombre": "ratio-bajo-por-grupo",
+  "titulo": "Por debajo del ratio mínimo, por grupo",
+  "porque": "Usuarios bajo 0,40 desglosados por grupo. Usa el Ratio del modelo, que ya va redondeado a 2 como el código: sin redondear el recuento sale distinto.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "ratio",
+            "op": "<",
+            "valor": 0.4
+          }
+        ]
+      },
+      "agrupar": [
+        "grupo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ]
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

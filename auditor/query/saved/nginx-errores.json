@@ -1,0 +1,32 @@
+{
+  "nombre": "nginx-errores",
+  "titulo": "nginx: respuestas de error",
+  "porque": "Códigos que devuelve el sitio en la ventana elegida. Loki sólo guarda 7 días: más atrás no es que no encuentre nada, es que no existe.",
+  "pasos": [
+    {
+      "entidad": "logs_nginx",
+      "ventana": {
+        "ultimas_horas": 24
+      },
+      "condiciones": {
+        "y": [
+          {
+            "campo": "tipo",
+            "op": "es",
+            "valor": "site"
+          }
+        ]
+      },
+      "agrupar": [
+        "estado"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ]
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

@@ -1,0 +1,31 @@
+{
+  "nombre": "sin-descargas-sin-aviso",
+  "titulo": "Sin descargas y sin aviso visible",
+  "porque": "El patrón del fallo de «Delete All Warnings»: el borrado lógico deja al usuario sin `can_download` para siempre, porque AutoDeactivateWarning no encuentra filas que desactivar.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "puede_descargar",
+            "op": "es",
+            "valor": false
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "ultima_accion",
+        "alta"
+      ],
+      "ordenar": {
+        "campo": "ultima_accion",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

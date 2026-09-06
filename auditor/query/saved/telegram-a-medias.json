@@ -1,0 +1,29 @@
+{
+  "nombre": "telegram-a-medias",
+  "titulo": "Telegram: vinculaciones a medias",
+  "porque": "Pidieron vincular Telegram y no lo terminaron: tienen token de enlace y no tienen chat_id, así que no les llega ningún aviso. Los 164 que tienen token están todos así.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "tg_pendiente",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "agrupar": [
+        "grupo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ]
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

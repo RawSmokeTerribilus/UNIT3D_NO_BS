@@ -1,0 +1,34 @@
+{
+  "nombre": "2fa-sin-confirmar",
+  "titulo": "2FA abierto sin confirmar",
+  "porque": "Abrieron la página de 2FA y no lo completaron. El middleware miraba `two_factor_secret` en vez de `two_factor_confirmed_at` y dejó pasar a 317 cuentas (2026-09-02).",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "tfa_abierto",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "tfa_confirmado",
+            "op": "es",
+            "valor": false
+          }
+        ]
+      },
+      "agrupar": [
+        "grupo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ]
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

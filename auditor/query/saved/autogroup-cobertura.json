@@ -1,0 +1,20 @@
+{
+  "nombre": "autogroup-cobertura",
+  "titulo": "AutoGroup: cobertura",
+  "porque": "Cuánto padrón entra en la evaluación automática y cuánto queda exento. Los exentos son staff y estados de moderación, más Semilla, que es el único grupo de usuarios normales fuera.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "agrupar": [
+        "grupo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ]
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

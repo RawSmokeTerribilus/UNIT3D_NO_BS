@@ -1,0 +1,37 @@
+{
+  "nombre": "actividad-real",
+  "titulo": "Actividad real: las tres señales",
+  "porque": "`peers` sólo dice conexión ACTUAL. Quien no tiene cliente puede estar perfectamente vivo: hay 311 sin cliente que han estado en la web esta semana.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "tiene_cliente",
+            "op": "es",
+            "valor": false
+          },
+          {
+            "campo": "ultima_accion",
+            "op": "en los últimos días",
+            "valor": 7
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "ultima_accion",
+        "ultimo_anuncio",
+        "clientes_activos"
+      ],
+      "ordenar": {
+        "campo": "ultima_accion",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

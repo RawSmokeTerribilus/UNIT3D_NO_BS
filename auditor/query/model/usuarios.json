@@ -59,8 +59,36 @@
       "id": "ratio",
       "etiqueta": "Ratio",
       "tipo": "numero",
-      "expr": "ROUND(t.uploaded / NULLIF(t.downloaded, 0), 2)",
-      "nota": "Redondeado a 2 decimales igual que User::getRatioAttribute() (User.php:1176), que es contra lo que compara AutoGroup. Dividir sin redondear da otro recuento: cualquiera entre 0,395 y 0,4049 pasa como 0,40."
+      "expr": "CASE WHEN t.downloaded = 0 THEN NULL ELSE ROUND(t.uploaded / t.downloaded, 2) END",
+      "nota": "Redondeado a 2 decimales igual que User::getRatioAttribute() (User.php:1176), que es contra lo que compara AutoGroup: sin redondear el recuento cambia — bajo 0,40 hay 32 redondeando y 34 sin redondear. OJO con los 22 usuarios que no han bajado nada: el código les da ratio INFINITO y aquí salen vacíos, así que ninguna comparación numérica los coge. Para incluirlos, usa «Ratio infinito»."
+    },
+    {
+      "id": "ratio_infinito",
+      "etiqueta": "Ratio infinito",
+      "tipo": "bool",
+      "expr": "t.downloaded = 0",
+      "nota": "No ha bajado nada. El código le da ratio INF, así que cumple cualquier ratio mínimo. Son 22, y 18 están en grupos automáticos."
+    },
+    {
+      "id": "grupo_que_tocaria",
+      "etiqueta": "Grupo que le tocaría",
+      "tipo": "texto",
+      "expr": "(SELECT g2.name FROM `groups` g2 WHERE g2.autogroup = 1 AND (g2.min_uploaded IS NULL OR t.uploaded >= g2.min_uploaded) AND (g2.min_ratio IS NULL OR t.downloaded = 0      OR ROUND(t.uploaded / t.downloaded, 2) >= g2.min_ratio) AND (g2.min_age IS NULL OR TIMESTAMPDIFF(SECOND, t.created_at, UTC_TIMESTAMP()) >= g2.min_age) AND (g2.min_avg_seedtime IS NULL OR (SELECT IFNULL(AVG(h.seedtime),0) FROM history h      WHERE h.user_id = t.id AND h.deleted_at IS NULL) >= g2.min_avg_seedtime) AND (g2.min_seedsize IS NULL OR (SELECT IFNULL(SUM(tt.size),0) FROM history h      JOIN torrents tt ON tt.id = h.torrent_id AND tt.deleted_at IS NULL      WHERE h.user_id = t.id AND h.active = 1 AND h.seeder = 1 AND h.deleted_at IS NULL)      >= g2.min_seedsize) AND (g2.min_uploads IS NULL OR (SELECT COUNT(*) FROM torrents tt      WHERE tt.user_id = t.id AND tt.deleted_at IS NULL) >= g2.min_uploads) ORDER BY g2.position DESC LIMIT 1)",
+      "nota": "Replica AutoGroup.php entero: grupos con autogroup=1 por posición descendente, y el primero que cumple los SEIS criterios. Un mínimo a NULL significa «sin requisito» y pasa — los ocho grupos tienen min_uploads a NULL. `min_age` va en SEGUNDOS, no en días."
+    },
+    {
+      "id": "en_autogroup",
+      "etiqueta": "En grupo automático",
+      "tipo": "bool",
+      "expr": "(SELECT g4.autogroup FROM `groups` g4 WHERE g4.id = t.group_id) = 1",
+      "nota": "La pasada programada de `auto:group` SÓLO evalúa a quien ya está en uno de los 8 grupos automáticos. Sin este filtro, «Desviado» mete a Semilla, Validando, Admin y Druida, a los que el comando ni mira."
+    },
+    {
+      "id": "desviado",
+      "etiqueta": "Desviado de AutoGroup",
+      "tipo": "bool",
+      "expr": "(SELECT g3.name FROM `groups` g3 WHERE g3.id = t.group_id) <> (SELECT g2.name FROM `groups` g2 WHERE g2.autogroup = 1 AND (g2.min_uploaded IS NULL OR t.uploaded >= g2.min_uploaded) AND (g2.min_ratio IS NULL OR t.downloaded = 0      OR ROUND(t.uploaded / t.downloaded, 2) >= g2.min_ratio) AND (g2.min_age IS NULL OR TIMESTAMPDIFF(SECOND, t.created_at, UTC_TIMESTAMP()) >= g2.min_age) AND (g2.min_avg_seedtime IS NULL OR (SELECT IFNULL(AVG(h.seedtime),0) FROM history h      WHERE h.user_id = t.id AND h.deleted_at IS NULL) >= g2.min_avg_seedtime) AND (g2.min_seedsize IS NULL OR (SELECT IFNULL(SUM(tt.size),0) FROM history h      JOIN torrents tt ON tt.id = h.torrent_id AND tt.deleted_at IS NULL      WHERE h.user_id = t.id AND h.active = 1 AND h.seeder = 1 AND h.deleted_at IS NULL)      >= g2.min_seedsize) AND (g2.min_uploads IS NULL OR (SELECT COUNT(*) FROM torrents tt      WHERE tt.user_id = t.id AND tt.deleted_at IS NULL) >= g2.min_uploads) ORDER BY g2.position DESC LIMIT 1)",
+      "nota": "El grupo actual no es el que le tocaría. Combínalo SIEMPRE con «En grupo automático es sí»: el comando sólo mira a quien ya está en uno de los ocho. Y recuerda que corre una vez al día, así que una desviación puede ser sólo un ascenso que aún no ha pasado por medianoche."
     },
     {
       "id": "tfa_abierto",

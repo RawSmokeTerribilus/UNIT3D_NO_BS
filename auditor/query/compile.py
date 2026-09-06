@@ -142,9 +142,23 @@ def compilar(paso, entidades):
         sql += "\nGROUP BY " + ", ".join(str(i + 1) for i in range(len(agrupar)))
     orden = paso.get("ordenar")
     if orden:
-        campo = ent.campo(orden["campo"])
         sentido = "DESC" if str(orden.get("sentido", "asc")).lower().startswith("desc") else "ASC"
-        sql += "\nORDER BY %s %s" % (campo.sql_valor(), sentido)
+        cid = orden.get("campo")
+        if agrupar or calcular:
+            # La sesión corre con ONLY_FULL_GROUP_BY (viene en ANSI, igual que la
+            # aplicación): al agrupar sólo se puede ordenar por una columna
+            # agrupada o por el cálculo. Se ordena por posición para no repetir
+            # la expresión.
+            if cid in ("_calculo", None) or cid not in agrupar:
+                if cid not in ("_calculo", None):
+                    avisos.append(
+                        "Al agrupar no se puede ordenar por «%s», que no está en el "
+                        "agrupado: se ordena por el cálculo." % ent.campo(cid).etiqueta)
+                sql += "\nORDER BY %d %s" % (len(seleccion), sentido)
+            else:
+                sql += "\nORDER BY %d %s" % (agrupar.index(cid) + 1, sentido)
+        else:
+            sql += "\nORDER BY %s %s" % (ent.campo(cid).sql_valor(), sentido)
 
     return Compilado(sql, tuple(params), columnas, ent, avisos)
 

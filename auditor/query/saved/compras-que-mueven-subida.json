@@ -1,0 +1,24 @@
+{
+  "nombre": "compras-que-mueven-subida",
+  "titulo": "Compras de tienda que mueven la subida",
+  "porque": "Para no confundir una compra con seedeo. El caso rt001ztp: +107.374.182.400 bytes clavados a las 08:27:28 eran «100GB de subida».",
+  "pasos": [
+    {
+      "entidad": "tienda",
+      "agrupar": [
+        "articulo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

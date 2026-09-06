@@ -1,0 +1,30 @@
+{
+  "nombre": "memoria-por-contenedor",
+  "titulo": "Memoria por contenedor",
+  "porque": "Consumo de los contenedores de UNIT3D. Prometheus guarda 15 días o 5 GB, lo que llegue antes.",
+  "pasos": [
+    {
+      "entidad": "metricas",
+      "ventana": {
+        "ultimas_horas": 6
+      },
+      "rango": true,
+      "condiciones": {
+        "y": [
+          {
+            "campo": "metrica",
+            "op": "es",
+            "valor": "container_memory_usage_bytes"
+          },
+          {
+            "campo": "contenedor",
+            "op": "contiene",
+            "valor": "unit3d"
+          }
+        ]
+      }
+    }
+  ],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

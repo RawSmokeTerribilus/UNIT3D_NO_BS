@@ -50,7 +50,10 @@ class PromSource:
 
         t0 = time.time()
         if rango:
-            paso = max(15, int((fin - ini) / 400))
+            # 120 puntos por serie: suficiente para una gráfica de 260px y deja
+            # sitio a varias series sin chocar con el tope de filas. Con 400 y 23
+            # contenedores se pasaba de 5.000 y el resultado salía recortado.
+            paso = max(15, int((fin - ini) / 120))
             d = pedir("prometheus", self.base, "/api/v1/query_range",
                       {"query": promql, "start": "%.3f" % ini, "end": "%.3f" % fin,
                        "step": str(paso)})
