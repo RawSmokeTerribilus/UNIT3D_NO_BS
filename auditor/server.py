@@ -79,6 +79,15 @@ class Handler(BaseHTTPRequestHandler):
             return self.headers.get("Cf-Access-Authenticated-User-Email", "desconocido")
         return "local"
 
+    def _origen(self):
+        """De dónde vino la ejecución.
+
+        Sin esto el historial mezcla lo que se lanza desde la página con lo que
+        se lanza por API o desde la terminal, y todo se ve igual.
+        """
+        o = (self.headers.get("X-Panel-Origen") or "").strip().lower()
+        return o if o in ("panel", "cli") else "api"
+
     # ------------------------------------------------------------------ GET
     def do_GET(self):
         u = urlparse(self.path)
@@ -133,7 +142,7 @@ class Handler(BaseHTTPRequestHandler):
             if ruta == "/api/query/compile":
                 return self._json(_compilar(cuerpo))
             if ruta == "/api/query/run":
-                return self._json(_ejecutar(cuerpo, self._identidad()))
+                return self._json(_ejecutar(cuerpo, self._identidad(), self._origen()))
             return self._json({"error": "ruta desconocida: %s" % ruta}, 404)
         except Exception as e:
             return self._error(e)
@@ -190,7 +199,7 @@ def _compilar(cuerpo):
         "avisos": [a for p in salida for a in p["avisos"]]}
 
 
-def _ejecutar(cuerpo, identidad):
+def _ejecutar(cuerpo, identidad, procedencia="api"):
     """Ejecuta y archiva. También archiva lo que se RECHAZA.
 
     Un intento denegado —pedir un hash, escribir, tocar el esquema mysql— es
@@ -201,15 +210,15 @@ def _ejecutar(cuerpo, identidad):
     composicion = {"modo": "crudo", "sql": cuerpo["sql"]} if cuerpo.get("sql") else (
         cuerpo.get("paso") or cuerpo)
     try:
-        return _ejecutar_inner(cuerpo, identidad, guardada)
+        return _ejecutar_inner(cuerpo, identidad, guardada, procedencia)
     except Exception as e:
         archive.registrar(None, composicion=composicion, guardada=guardada,
-                          identidad=identidad,
+                          identidad=identidad, origen=procedencia,
                           error="%s: %s" % (type(e).__name__, e))
         raise
 
 
-def _ejecutar_inner(cuerpo, identidad, guardada):
+def _ejecutar_inner(cuerpo, identidad, guardada, procedencia="api"):
     origen = MySQLSource()
     limite = int(cuerpo.get("limite") or cfg.max_rows)
 
@@ -227,7 +236,7 @@ def _ejecutar_inner(cuerpo, identidad, guardada):
         composicion = {"pasos": pasos}
 
     run_id = archive.registrar(r, composicion=composicion, guardada=guardada,
-                               identidad=identidad)
+                               identidad=identidad, origen=procedencia)
     d = r.to_dict()
     d["run_id"] = run_id
     if not cuerpo.get("sql"):

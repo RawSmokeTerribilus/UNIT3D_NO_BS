@@ -117,8 +117,8 @@ function tarjetaPaso(paso, i) {
     el('button', {
       class: 'icono', text: '+ condición',
       onclick: () => {
-        const primero = ent.campos[0];
-        paso.condiciones.push({ campo: primero.id, op: opsDe(primero)[0], valor: '', junta: 'Y' });
+        const primero = ent.campos.find((c) => !c.secreto) || ent.campos[0];
+        paso.condiciones.push(condNueva(primero));
         pintarPasos();
       },
     }),
@@ -217,6 +217,15 @@ function lineaVentana(paso, ent) {
   return linea;
 }
 
+/* Una condición nace con un valor válido puesto. Dejarla en '' hacía que un
+   booleano se colara como «no» y que un número emitiera `= ''`: cero filas sin
+   explicación. */
+function condNueva(campo) {
+  const c = { campo: campo.id, op: opsDe(campo)[0], valor: '', junta: 'Y' };
+  if (campo.tipo === 'bool') c.valor = true;
+  return c;
+}
+
 const opsDe = (campo) => MODELO.operadores[campo.tipo] || MODELO.operadores.texto;
 
 function lineaCondicion(paso, cond, j) {
@@ -235,8 +244,9 @@ function lineaCondicion(paso, cond, j) {
   const selCampo = el('select', {
     onchange: (e) => {
       cond.campo = e.target.value;
-      cond.op = opsDe(campoDe(paso.entidad, cond.campo))[0];
-      cond.valor = '';
+      const nc = campoDe(paso.entidad, cond.campo);
+      cond.op = opsDe(nc)[0];
+      cond.valor = nc.tipo === 'bool' ? true : '';
       pintarPasos();
     },
   });
@@ -260,7 +270,7 @@ function lineaCondicion(paso, cond, j) {
       const s = el('select', { onchange: (e) => { cond.valor = e.target.value === 'sí'; } });
       for (const v of ['sí', 'no']) {
         const o = el('option', { value: v, text: v });
-        if ((v === 'sí') === (cond.valor === true)) o.selected = true;
+        if ((v === 'sí') === (cond.valor === true || cond.valor === '')) o.selected = true;
         s.appendChild(o);
       }
       linea.appendChild(s);
@@ -389,7 +399,7 @@ async function ejecutar(cuerpo, guardada) {
   try {
     const d = await api('/api/query/run', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Panel-Origen': 'panel' },
       body: JSON.stringify(Object.assign({ guardada: guardada || null }, cuerpo)),
     });
     ULTIMO = d;
@@ -471,12 +481,13 @@ async function pintarHistorial() {
   const tbody = t.querySelector('tbody');
   thead.textContent = '';
   tbody.textContent = '';
-  thead.appendChild(el('tr', {}, ['cuándo (UTC)', 'quién', 'guardada', 'filas', 'ms', 'resultado']
+  thead.appendChild(el('tr', {}, ['cuándo (UTC)', 'quién', 'desde', 'guardada', 'filas', 'ms', 'resultado']
     .map((c) => el('th', { text: c }))));
   for (const e of d.ejecuciones) {
     tbody.appendChild(el('tr', {}, [
       el('td', { text: e.ts_utc.slice(0, 19).replace('T', ' ') }),
       el('td', { text: e.identidad }),
+      el('td', { class: e.origen === 'panel' ? '' : 'muted', text: e.origen || 'api' }),
       el('td', { text: e.guardada || '—' }),
       el('td', { class: 'num', text: e.error ? '—' : String(e.row_count) }),
       el('td', { class: 'num', text: e.error ? '—' : String(e.duration_ms) }),

@@ -84,6 +84,41 @@
       "tipo": "bool"
     },
     {
+      "id": "tg_vinculado",
+      "etiqueta": "Telegram vinculado",
+      "tipo": "bool",
+      "expr": "t.telegram_chat_id IS NOT NULL",
+      "nota": "Vinculación TERMINADA: hay chat_id. 2.225 cuentas. Es el único estado que significa «le llegan los avisos»."
+    },
+    {
+      "id": "tg_pendiente",
+      "etiqueta": "Telegram a medias",
+      "tipo": "bool",
+      "secreto": true,
+      "expr": "t.telegram_token IS NOT NULL AND t.telegram_chat_id IS NULL",
+      "nota": "Pidió vincular y no lo completó: tiene token de enlace y no tiene chat_id. Son 164, y los 164 que tienen token están en este estado. El campo es secreto porque el token es una credencial de un solo uso: se puede interrogar, no se puede mostrar."
+    },
+    {
+      "id": "tg_en_grupo",
+      "etiqueta": "En el grupo de Telegram",
+      "tipo": "bool",
+      "expr": "t.telegram_group_joined_at IS NOT NULL",
+      "nota": "2.128 cuentas. Estar en el grupo y estar vinculado son cosas distintas: se puede tener una sin la otra."
+    },
+    {
+      "id": "tg_usuario",
+      "etiqueta": "Usuario de Telegram",
+      "tipo": "texto",
+      "col": "telegram_username",
+      "nota": "Puede estar vacío aunque la cuenta esté vinculada — 319 así — porque en Telegram el alias es opcional. Para saber si está vinculado, mirar el chat_id, nunca esto."
+    },
+    {
+      "id": "tg_alta_grupo",
+      "etiqueta": "Entró al grupo",
+      "tipo": "fecha",
+      "col": "telegram_group_joined_at"
+    },
+    {
       "id": "es_donante",
       "etiqueta": "Es donante",
       "col": "is_donor",

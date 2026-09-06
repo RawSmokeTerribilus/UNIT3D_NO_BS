@@ -193,8 +193,24 @@ def _hoja(nodo, ent, joins, params):
     if op == "no está vacío":
         return "(%s IS NOT NULL)" % izq
 
+    # Una condición sin valor NO se emite. `t.id = \'\'` devuelve cero filas y
+    # nadie sabe por qué: es exactamente el canal que miente, esta vez en la
+    # cara del operador. Mejor un error que diga qué falta.
+    if valor is None or valor == "" or (isinstance(valor, (list, tuple)) and not valor):
+        raise CompileError(
+            "la condición sobre «%s» está sin valor. Pon uno, elige «está vacío» "
+            "o quita la condición." % campo.etiqueta)
+
     if campo.tipo == "bool":
-        cierto = valor in (True, 1, "1", "si", "sí", "true", "yes")
+        ciertos = (True, 1, "1", "si", "sí", "true", "yes")
+        falsos = (False, 0, "0", "no", "false")
+        if valor in ciertos:
+            cierto = True
+        elif valor in falsos:
+            cierto = False
+        else:
+            raise CompileError(
+                "«%s» sólo admite sí o no, y llegó %r." % (campo.etiqueta, valor))
         if campo.expr:
             return "(%s)" % campo.expr if cierto else "(NOT (%s))" % campo.expr
         params.append(1 if cierto else 0)

@@ -65,6 +65,7 @@ class Config:
         "two_factor_secret",
         "two_factor_recovery_codes",
         "remember_token",
+        "telegram_token",
     }
 
 

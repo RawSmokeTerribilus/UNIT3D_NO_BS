@@ -41,7 +41,7 @@ def nuevo_id(momento=None):
 
 
 def registrar(resultado, composicion=None, guardada=None, identidad="local",
-              error=None):
+              error=None, origen="api"):
     """Archiva una ejecución. Devuelve el run_id."""
     momento = _ahora()
     run_id = nuevo_id(momento)
@@ -53,6 +53,7 @@ def registrar(resultado, composicion=None, guardada=None, identidad="local",
         "run_id": run_id,
         "ts_utc": momento.isoformat(),
         "identidad": identidad,
+        "origen": origen,
         "guardada": guardada,
         "composicion": composicion,
         "error": error,
@@ -67,6 +68,7 @@ def registrar(resultado, composicion=None, guardada=None, identidad="local",
         "run_id": run_id,
         "ts_utc": entero["ts_utc"],
         "identidad": identidad,
+        "origen": origen,
         "guardada": guardada,
         "entidad": (composicion or {}).get("entidad") if isinstance(composicion, dict) else None,
         "source": d["meta"].get("source"),
