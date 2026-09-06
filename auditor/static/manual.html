@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual — Panel de consultas</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  main.manual { max-width: 68ch; line-height: 1.65; }
+  main.manual h2 { margin-top: 2.4rem; }
+  main.manual h3 { font-size: .95rem; margin: 1.6rem 0 .4rem; color: var(--fg); }
+  main.manual p, main.manual li { color: var(--fg); }
+  main.manual code { background: #010409; padding: .1rem .35rem; border-radius: 4px; color: #9ecbff; }
+  main.manual table { margin: .8rem 0; }
+  main.manual td, main.manual th { white-space: normal; }
+  .aviso { border-left: 3px solid var(--warn); background: #d2992212; padding: .7rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+  .aviso.malo { border-left-color: var(--bad); background: #f8514912; }
+  .aviso.bien { border-left-color: var(--ok); background: #2ea04312; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MANUAL</h1>
+  <span class="muted">Panel de consultas para auditorías</span>
+  <div class="actions"><a href="/"><button class="icono">← Volver al panel</button></a></div>
+</header>
+
+<main class="manual">
+
+<h2>Qué es esto</h2>
+<p>
+Una forma de preguntarle cosas a la base de producción, a los logs y a las
+métricas <strong>sin escribir SQL, LogQL ni PromQL</strong>. Se componen las
+preguntas con desplegables y sale un informe.
+</p>
+<p>
+Nace de tres fallos reales de hacerlo a mano con <code>docker exec … mysql -e</code>:
+un <code>grep</code> que truncó resultados en silencio y dio 19 grupos cuando son
+23; un volcado accidental de un hash y un blob de 2FA por pantalla; y consultas
+cuyo SQL no coincidía con lo que aplica el código. El panel ataca los tres por
+construcción.
+</p>
+
+<h2>Lo que tienes que saber para fiarte del resultado</h2>
+
+<h3>Hasta dónde llega cada fuente</h3>
+<table>
+<tr><th>Fuente</th><th>Hacia atrás</th><th>Qué pasa si pides más</th></tr>
+<tr><td>Tablas de MySQL</td><td>desde siempre</td><td>—</td></tr>
+<tr><td>Cambios (binlog)</td><td><strong>30 días</strong> · 70 ficheros, 50&nbsp;GB</td><td>avisa y recorta la ventana</td></tr>
+<tr><td>Métricas (Prometheus)</td><td><strong>15 días</strong> o 5&nbsp;GB, lo que llegue antes</td><td><code>window_ok</code> a falso + aviso</td></tr>
+<tr><td>Logs de nginx (Loki)</td><td><strong>7 días</strong></td><td><code>window_ok</code> a falso + aviso</td></tr>
+<tr><td>Volcados de 4&nbsp;h</td><td>≈16 horas (4 ficheros)</td><td>no se consulta desde aquí</td></tr>
+</table>
+<div class="aviso">
+Si Prometheus se llenó antes de los 15 días, la ventana real es más corta y nadie
+puede saber cuánto. Ante la duda, mira si hay datos al principio del rango.
+</div>
+
+<h3>Topes de cada ejecución</h3>
+<table>
+<tr><th>Tope</th><th>Valor</th><th>Cómo te enteras</th></tr>
+<tr><td>Filas devueltas</td><td>5.000</td><td>banda roja <em>RESULTADO RECORTADO</em></td></tr>
+<tr><td>Tiempo de consulta en MySQL</td><td>15 s</td><td>error con su código</td></tr>
+<tr><td>Tiempo de lectura del binlog</td><td>45 s</td><td>aviso de que falta el principio</td></tr>
+<tr><td>Claves entre pasos encadenados</td><td>10.000</td><td>aviso explícito</td></tr>
+</table>
+<p>
+Ninguno de estos topes recorta en silencio. Si no ves ninguna banda ni aviso, el
+resultado está entero.
+</p>
+
+<h3>Qué puede significar «0 filas»</h3>
+<ul>
+<li><strong>No hay nada que cumpla</strong> las condiciones. Es lo normal.</li>
+<li><strong>Una condición está sin valor.</strong> No pasa: el panel se niega y te
+dice qué campo falta. Antes emitía <code>= ''</code> y devolvía cero sin explicar
+nada — ése era el fallo que este panel existe para no repetir.</li>
+<li><strong>Pediste fuera de la retención.</strong> Mira <code>window_ok</code>: si
+está en falso, lo que buscas no es que no aparezca, es que <em>no existe</em>.</li>
+<li><strong>El ámbito automático te lo quitó.</strong> Usuarios, torrents, avisos,
+descargas e invitaciones excluyen las bajas lógicas por defecto, y el panel lo
+dice en un aviso cada vez.</li>
+</ul>
+
+<h2>Cómo se compone</h2>
+<p>
+Un <strong>paso</strong> es: una entidad, unas condiciones, y qué quieres ver.
+</p>
+<ul>
+<li><strong>mostrar</strong> — columnas tal cual, una fila por registro.</li>
+<li><strong>agrupar</strong> + <strong>calcular</strong> — un resumen. Al agrupar
+sólo se puede ordenar por algo agrupado o por el propio cálculo; si pides otra
+cosa, el panel ordena por el cálculo y avisa.</li>
+</ul>
+<p>
+Las condiciones se unen con <strong>Y</strong> y <strong>O</strong>. Los tramos
+seguidos unidos por O se agrupan entre paréntesis y el conjunto se une con Y, que
+es como se lee de arriba abajo. El botón <em>Ver la consulta</em> enseña
+exactamente lo que se va a ejecutar: si dudas de algo, míralo ahí.
+</p>
+
+<h3>Encadenar pasos</h3>
+<p>
+Un paso puede consumir la clave del anterior: «saca estos usuarios y ahora
+mírame sus descargas». Las claves se piden con una consulta propia, así que
+funciona independientemente de qué columnas hayas elegido mostrar.
+</p>
+
+<h2>Los secretos</h2>
+<div class="aviso">
+<strong>Un secreto se puede interrogar; no se puede proyectar.</strong>
+Puedes filtrar por él, contarlo y agrupar por su presencia. Lo que no sale nunca
+por pantalla es su valor.
+</div>
+<p>
+Los campos marcados con 🔒 no aparecen en la lista de «mostrar»: el compositor
+literalmente no sabe emitir su valor. El caso que define la regla es el del 2FA —
+para encontrar a los 317 que abrieron la página y no confirmaron hace falta la
+columna <em>en el filtro</em>, nunca en la salida.
+</p>
+<p>
+Hoy son secretos: la contraseña, el secreto y los códigos de recuperación de 2FA,
+el <em>remember token</em>, el token de enlace de Telegram y el código de
+invitación. <strong>No</strong> lo son el correo, la passkey, la rsskey ni el
+api_token: ya son visibles para un admin en la web del tracker, y taparlos
+rompería consultas legítimas.
+</p>
+<p>
+En el modo de SQL a mano el candado es un tokenizador, no un analizador
+completo: deja pasar <code>COUNT(secreto)</code> y el <code>WHERE</code>, y
+rechaza el resto. Protege del volcado accidental a tu propia pantalla, que es la
+amenaza real. No es un control contra alguien decidido.
+</p>
+
+<h2>Las trampas que el modelo ya evita</h2>
+<p>
+Cada campo lleva su nota. Estas son las que más veces han dado un número
+equivocado:
+</p>
+<table>
+<tr><th>Trampa</th><th>Qué pasa</th></tr>
+<tr><td><strong>Ratio sin redondear</strong></td><td>AutoGroup compara contra
+<code>round(ratio, 2)</code>. Bajo 0,40 hay <strong>32</strong> redondeando y
+<strong>34</strong> sin redondear. El campo «Ratio» ya va redondeado, así que la
+división cruda no es componible.</td></tr>
+<tr><td><strong>Ratio infinito</strong></td><td>Quien no ha bajado nada tiene ratio
+INF en el código y cumple cualquier mínimo. Son 22. En el panel salen vacíos:
+para incluirlos usa «Ratio infinito».</td></tr>
+<tr><td><strong>Ids de grupo</strong></td><td>Van +2 respecto al enum de la
+aplicación. El panel filtra por <code>slug</code> y te enseña el nombre.</td></tr>
+<tr><td><strong>Bajas lógicas</strong></td><td>2.642 usuarios vivos, 2.660 en crudo.
+En el caso del 2FA la diferencia es 317 contra 318.</td></tr>
+<tr><td><strong><code>table_rows</code></strong></td><td>Es una estimación de InnoDB:
+dice 1.911 usuarios cuando son 2.642. El panel siempre cuenta de verdad.</td></tr>
+<tr><td><strong>«Delete All Warnings»</strong></td><td>Borra en lógico y deja al
+usuario sin descargas para siempre, porque el trabajo que las devuelve no
+encuentra filas que desactivar.</td></tr>
+<tr><td><strong><code>peers</code></strong></td><td>Sólo dice conexión ACTUAL. Hay
+1.024 con cliente y otros 311 sin cliente que han estado en la web esta semana.
+Para «¿está vivo?» hacen falta las tres señales.</td></tr>
+<tr><td><strong>AutoGroup</strong></td><td>Sólo evalúa a quien ya está en uno de los
+8 grupos automáticos, y corre una vez al día. Sin filtrar por «En grupo
+automático» salen 233 falsos desviados; con el filtro salen 2, que son ascensos
+pendientes de medianoche.</td></tr>
+<tr><td><strong>Ajustes de usuario</strong></td><td>295 filas para 2.642 usuarios:
+quien no la tiene usa los valores por defecto. Contar ahí no es contar usuarios.
+Además se cachea en Redis, así que un UPDATE a mano no se ve hasta purgar.</td></tr>
+</table>
+
+<h2>El archivo</h2>
+<p>
+Cada ejecución se guarda: quién, cuándo, desde dónde (panel, api o cli), la
+composición entera, la consulta generada y el resultado. <strong>También las
+rechazadas</strong>, porque un intento denegado es justo lo que un registro de
+auditoría tiene que conservar.
+</p>
+<p>
+Todo en UTC. La base va en UTC y el host en CEST: no los mezcles al comparar.
+</p>
+<p>
+Como se guarda el nombre de la composición, la misma consulta en dos fechas se
+puede comparar. Ése es el eje temporal que necesita cualquier análisis de
+comportamiento — y la única forma de conservar un cruce con logs más allá de los
+7 días que guarda Loki.
+</p>
+
+<h2>Cómo saber que va bien</h2>
+<p>
+Si dudas de que el panel esté sano, estas cifras están comprobadas y deberían
+salir parecidas (el padrón se mueve a diario):
+</p>
+<table>
+<tr><th>Consulta</th><th>Debería dar</th></tr>
+<tr><td>Usuarios · contar</td><td>≈2.642 vivos</td></tr>
+<tr><td>Grupos · contar</td><td><strong>23</strong>, de ellos 8 automáticos</td></tr>
+<tr><td>Cobertura de AutoGroup</td><td>≈2.412 dentro / 231 fuera</td></tr>
+<tr><td>2FA abierto sin confirmar</td><td><strong>317</strong></td></tr>
+<tr><td>Desviados de AutoGroup</td><td>un puñado, y todos ascensos pendientes</td></tr>
+</table>
+<div class="aviso malo">
+Si un recuento parece raro, <strong>sospecha del canal antes que del dato</strong>.
+Es exactamente lo que pasó con los 19 grupos que eran 23.
+</div>
+<div class="aviso bien">
+La cuenta que usa el panel sólo tiene <code>SELECT</code> sobre <code>unit3d</code>.
+No puede escribir nada, ni leer las contraseñas de las cuentas de base de datos.
+Puedes trastear sin miedo: lo peor que sale es un error.
+</div>
+
+<h2>Los dos servicios</h2>
+<p>
+El <strong>panel de consultas</strong> vive en el puerto <strong>8781</strong>. El
+<strong>cockpit forense</strong> —restaurar, comparar, línea de daños— vive en el
+<strong>8780</strong>. Son cosas distintas y cada uno enlaza al otro desde su
+cabecera.
+</p>
+
+</main>
+</body>
+</html>
