@@ -647,3 +647,61 @@ $('#btn-json').addEventListener('click', () => {
 });
 
 arrancar().catch((e) => { $('#cabecera-info').textContent = 'error: ' + e.message; });
+
+
+/* ---------------------------------------------------------- buscador de IP */
+/* Antes esto era mirar en seis sitios a mano, uno por uno. */
+$('#buscar-ip').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const ip = $('#ip-q').value.trim();
+  if (!ip) return;
+  const caja = $('#ip-caja'), out = $('#ip-resultado');
+  caja.classList.remove('oculto');
+  out.textContent = '';
+  out.appendChild(el('div', { class: 'muted', text: 'buscando en todas las fuentes…' }));
+  try {
+    const d = await api('/api/ip?q=' + encodeURIComponent(ip));
+    out.textContent = '';
+    out.appendChild(el('div', { class: 'ip-veredicto', text: d.veredicto }));
+    for (const b of d.bloques) out.appendChild(bloqueIp(b));
+  } catch (err) {
+    out.textContent = '';
+    out.appendChild(el('div', { class: 'banda malo', text: err.message }));
+  }
+});
+
+const NOMBRES = { geo: 'Geolocalización', mysql: 'Base de datos', ips_web: 'IPs recolectadas',
+                  loki: 'Logs de nginx', crowdsec: 'CrowdSec' };
+
+function bloqueIp(b) {
+  const caja = el('div', { class: 'ip-bloque' });
+  caja.appendChild(el('div', { class: 'cab' }, [
+    el('b', { text: NOMBRES[b.fuente] || b.fuente }),
+    el('span', { class: 'alcance', text: b.error ? 'error: ' + b.error : (b.alcance || '') }),
+  ]));
+  const cuerpo = el('div', { class: 'cuerpo' });
+  const par = (k, v) => cuerpo.appendChild(
+    el('div', { class: 'ip-par' }, [el('span', { text: k }), el('span', { text: String(v) })]));
+
+  let algo = false;
+  if (b.datos) { for (const [k, v] of Object.entries(b.datos)) if (v != null) { par(k, v); algo = true; } }
+  for (const h of b.hallazgos || []) {
+    algo = true;
+    const t = Object.entries(h).filter(([, v]) => v != null && v !== '')
+      .map(([k, v]) => k + ': ' + v).join('  ·  ');
+    cuerpo.appendChild(el('div', { class: 'ip-par' }, [el('span', { text: '•' }), el('span', { text: t })]));
+  }
+  if (b.peticiones != null) {
+    par('peticiones', b.peticiones + (b.truncado ? '  (recortado: hay más)' : ''));
+    algo = algo || b.peticiones > 0;
+  }
+  if (b.estados) par('códigos', Object.entries(b.estados).map(([k, v]) => k + '×' + v).join('  '));
+  for (const r of b.rutas || []) par(r.veces + '×', r.ruta);
+  for (const a of b.agentes || []) par('agente', a.agente + '  (' + a.veces + ')');
+  for (const a of b.alertas || []) { algo = true; par(a.cuando ? String(a.cuando).slice(0, 19) : 'alerta', a.escenario + '  ' + (a.eventos || '') + ' eventos'); }
+  for (const dd of b.decisiones || []) { algo = true; par('decisión', dd.tipo + ' — ' + dd.motivo + '  hasta ' + dd.hasta); }
+  if (b.nota) par('nota', b.nota);
+  if (!algo && !b.error) cuerpo.appendChild(el('div', { class: 'ip-vacio', text: 'sin coincidencias en esta fuente' }));
+  caja.appendChild(cuerpo);
+  return caja;
+}

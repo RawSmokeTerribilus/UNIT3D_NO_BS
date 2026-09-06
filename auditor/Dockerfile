@@ -12,7 +12,7 @@ FROM rawsmoke/unit3d-forensics:v0.1.0
 # cryptography es OBLIGATORIO: MySQL 8 autentica con caching_sha2_password y
 # sin él PyMySQL ni siquiera conecta.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends python3-pymysql python3-cryptography \
+ && apt-get install -y --no-install-recommends python3-pymysql python3-cryptography python3-maxminddb \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

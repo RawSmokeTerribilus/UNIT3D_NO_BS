@@ -10,6 +10,10 @@
 <header>
   <h1>PANEL DE CONSULTAS</h1>
   <span class="muted" id="cabecera-info">cargando modelo…</span>
+  <form id="buscar-ip" class="linea" style="gap:.3rem;margin:0">
+    <input id="ip-q" placeholder="buscar una IP en todo el sistema…" style="min-width:19rem" spellcheck="false">
+    <button type="submit" class="icono">Buscar IP</button>
+  </form>
   <div class="actions">
     <a href="/manual.html"><button class="icono" title="Qué significa cada cosa y dónde están los límites">Manual</button></a>
     <button id="btn-ips" class="icono" title="Leer los logs ahora y acumular pares IP↔usuario">Recolectar IPs</button>
@@ -19,6 +23,11 @@
 </header>
 
 <main>
+  <div id="ip-caja" class="oculto">
+    <h2>Rastro de la IP</h2>
+    <div id="ip-resultado"></div>
+  </div>
+
   <h2>Compositor</h2>
   <div id="pasos"></div>
   <div class="linea" style="margin-top:.6rem">

@@ -38,6 +38,8 @@ services:
       - AUDITOR_BINLOG_MAX_SECONDS=${AUDITOR_BINLOG_MAX_SECONDS:-45}
       - AUDITOR_IPS_AUTO_HORAS=${AUDITOR_IPS_AUTO_HORAS:-3}
       - AUDITOR_IPS_AUTO_VENTANA=${AUDITOR_IPS_AUTO_VENTANA:-8}
+      - AUDITOR_GEOIP_DIR=/geoip
+      - AUDITOR_CROWDSEC_DB=/crowdsec/crowdsec.db
       - AUDITOR_ARCHIVE_ROW_DAYS=${AUDITOR_ARCHIVE_ROW_DAYS:-365}
       - AUTH_MODE=${AUTH_MODE:-none}
       - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
@@ -49,6 +51,10 @@ services:
     volumes:
       - ./auditor/run:/app/run
       - ${PROD_MYSQL_DIR:-./.docker/data/mysql}:/prod/mysql:ro
+      # Sólo lectura, para el buscador de IPs: geolocalización local (datos
+      # públicos de MaxMind) e histórico de alertas de CrowdSec.
+      - ${AUDITOR_GEOIP_DIR:-/home/rawserver/Hardening/geoip}:/geoip:ro
+      - ${AUDITOR_CROWDSEC_DIR:-/var/lib/crowdsec/data}:/crowdsec:ro
     networks:
       - prod
       - monitoring

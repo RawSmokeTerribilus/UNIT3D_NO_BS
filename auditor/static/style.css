@@ -101,3 +101,20 @@ details summary { cursor: pointer; color: var(--muted); font-size: .8rem; }
 .leyenda { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; margin-top: .5rem; font-size: .8rem; }
 .leyenda-item { display: inline-flex; align-items: center; gap: .4rem; }
 .leyenda-punto { width: .7rem; height: .7rem; border-radius: 2px; flex: none; }
+
+/* ---- buscador de IP ---- */
+.ip-veredicto {
+  background: #1f6feb1a; border: 1px solid var(--accent); border-radius: 8px;
+  padding: .7rem 1rem; margin-bottom: .8rem; font-size: .95rem;
+}
+.ip-bloque { border: 1px solid var(--line); border-radius: 8px; margin-bottom: .5rem; }
+.ip-bloque > .cab {
+  display: flex; gap: .8rem; align-items: baseline; padding: .5rem .9rem;
+  background: #1c2128; border-radius: 8px 8px 0 0;
+}
+.ip-bloque > .cab b { text-transform: uppercase; font-size: .78rem; letter-spacing: .06em; }
+.ip-bloque > .cab .alcance { color: var(--muted); font-size: .78rem; margin-left: auto; }
+.ip-bloque .cuerpo { padding: .5rem .9rem; }
+.ip-vacio { color: var(--off); font-style: italic; font-size: .85rem; }
+.ip-par { display: flex; gap: .6rem; font-size: .85rem; padding: .12rem 0; }
+.ip-par span:first-child { color: var(--muted); min-width: 10rem; }

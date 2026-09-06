@@ -18,6 +18,7 @@ from query.compile import (OPERADORES, CompileError, compilar, compilar_binlog,
 from query.guard import GuardError, revisar
 from query.modelo import ModeloError, cargar
 from query.sources.binlog import BinlogError, BinlogSource
+from query.ipfind import IpFindError, buscar as buscar_ip
 from query.sources.http_json import FuenteHTTPError
 from query.sources.ipstore import IpStore, IpStoreError
 from query.sources.loki import LokiSource
@@ -112,6 +113,10 @@ class Handler(BaseHTTPRequestHandler):
                     "topes": {"filas": cfg.max_rows, "ms": cfg.max_exec_ms,
                               "claves_enlace": cfg.max_link_keys},
                 })
+            if ruta == "/api/ip":
+                return self._json(buscar_ip(
+                    (q.get("q") or [""])[0],
+                    horas_log=float((q.get("horas") or [168])[0])))
             if ruta == "/api/ips/estado":
                 return self._json({"contexto": IpStore().contexto()})
             if ruta == "/api/query/valores":
@@ -173,6 +178,8 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(e, MySQLError):
             return self._json({"error": "mysql", "codigo": e.code,
                                "mensaje": e.message, "sql": e.sql}, 502)
+        if isinstance(e, IpFindError):
+            return self._json({"error": "ip", "mensaje": str(e)}, 400)
         if isinstance(e, IpStoreError):
             return self._json({"error": "ips_web", "mensaje": str(e)}, 502)
         if isinstance(e, BinlogError):

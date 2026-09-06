@@ -128,6 +128,24 @@ interrogar —filtrar, contar— pero no mostrar. Otro operador de este fork pue
 querer otra política.
 </p>
 
+<h2>Buscar una IP</h2>
+<p>
+La caja de arriba busca una IP en <strong>todas</strong> las fuentes a la vez y
+devuelve un veredicto: geolocalización local, conexiones de cliente, logins
+fallidos, seedboxes, lista de bloqueo, IPs recolectadas de los logs, 7 días de
+nginx y el histórico de CrowdSec.
+</p>
+<p>
+Cada bloque dice <strong>hasta dónde alcanza</strong>, y eso es lo importante:
+un «sin coincidencias» de una fuente que sólo guarda 7 días no significa lo
+mismo que uno de una tabla que guarda desde siempre. Confundirlos es como se
+sacan conclusiones falsas.
+</p>
+<div class="aviso">
+Cuando una IP es de un miembro <em>y</em> CrowdSec la ha señalado, el veredicto
+lo dice en mayúsculas. Casi siempre es un falso positivo: mira antes de actuar.
+</div>
+
 <h2>Auditorías de coincidencias</h2>
 <p>
 La entidad <strong>Coincidencias</strong> responde a «quiénes comparten algo».
