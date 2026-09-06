@@ -1,0 +1,88 @@
+{
+  "id": "coincidencias",
+  "nombre": "Coincidencias",
+  "fuente": "mysql",
+  "clave": "valor",
+  "rasgos": {
+    "ip_cliente": {
+      "etiqueta": "IP del cliente (peers)",
+      "nota": "La IP con la que anuncia el cliente de torrent. Es la prueba más disponible: llega hasta el 2026-04-03.",
+      "sql": "SELECT INET6_NTOA(p.ip) AS valor, COUNT(DISTINCT p.user_id) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(p.created_at) AS primera, MAX(p.updated_at) AS ultima FROM peers p JOIN users u ON u.id = p.user_id AND u.deleted_at IS NULL GROUP BY p.ip"
+    },
+    "ip_login_fallido": {
+      "etiqueta": "IP de un intento de login fallido",
+      "nota": "Una misma IP probando varios nombres de usuario. Ojo: también es la firma de un ataque de fuerza bruta desde fuera, no sólo de alguien con dos cuentas.",
+      "sql": "SELECT f.ip_address AS valor, COUNT(DISTINCT f.username) AS usuarios, GROUP_CONCAT(DISTINCT f.username ORDER BY f.username SEPARATOR ', ') AS quienes, MIN(f.created_at) AS primera, MAX(f.created_at) AS ultima FROM failed_login_attempts f GROUP BY f.ip_address"
+    },
+    "ip_seedbox": {
+      "etiqueta": "IP de una seedbox declarada",
+      "nota": "Seedboxes declaradas por el usuario. Compartir proveedor es normalísimo: sólo cuenta si la IP es exactamente la misma.",
+      "sql": "SELECT s.ip AS valor, COUNT(DISTINCT s.user_id) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(s.created_at) AS primera, MAX(s.updated_at) AS ultima FROM seedboxes s JOIN users u ON u.id = s.user_id AND u.deleted_at IS NULL GROUP BY s.ip"
+    },
+    "correo_normalizado": {
+      "etiqueta": "Correo normalizado (+etiqueta y puntos)",
+      "nota": "La señal más fuerte que hay. Quita el «+loquesea» y los puntos del nombre, que en Gmail no distinguen: «juan.perez+nobs@gmail.com» y «juanperez@gmail.com» son el MISMO buzón. Hay 20 correos con +etiqueta.",
+      "sql": "SELECT CONCAT(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(LOWER(u.email),'@',1),'+',1),'.',''), '@', SUBSTRING_INDEX(LOWER(u.email),'@',-1)) AS valor, COUNT(*) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(u.created_at) AS primera, MAX(u.created_at) AS ultima FROM users u WHERE u.deleted_at IS NULL GROUP BY 1"
+    },
+    "dominio_correo": {
+      "etiqueta": "Dominio del correo",
+      "nota": "Por sí solo no dice nada —gmail.com se lo lleva casi todo—; sirve para los dominios raros y pequeños. Hay 35 dominios con más de una cuenta.",
+      "sql": "SELECT SUBSTRING_INDEX(LOWER(u.email),'@',-1) AS valor, COUNT(*) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(u.created_at) AS primera, MAX(u.created_at) AS ultima FROM users u WHERE u.deleted_at IS NULL GROUP BY 1"
+    },
+    "quien_invito": {
+      "etiqueta": "Quién les invitó",
+      "nota": "Cuentas que entraron por la misma persona. Para lo de los espías es la señal más fuerte, y el árbol entero se ve en la web del tracker. 189 invitaciones aceptadas.",
+      "sql": "SELECT inv.username AS valor, COUNT(DISTINCT i.accepted_by) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(i.accepted_at) AS primera, MAX(i.accepted_at) AS ultima FROM invites i JOIN users inv ON inv.id = i.user_id JOIN users u ON u.id = i.accepted_by AND u.deleted_at IS NULL WHERE i.accepted_by IS NOT NULL GROUP BY inv.username"
+    },
+    "cliente_torrent": {
+      "etiqueta": "Cliente de torrent (agente)",
+      "nota": "Señal DÉBIL: media isla usa el mismo qBittorrent. Sólo vale combinada con otra, o si la cadena es rarísima.",
+      "sql": "SELECT p.agent AS valor, COUNT(DISTINCT p.user_id) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(p.created_at) AS primera, MAX(p.updated_at) AS ultima FROM peers p JOIN users u ON u.id = p.user_id AND u.deleted_at IS NULL GROUP BY p.agent"
+    }
+  },
+  "notas": [
+    "Responde a «quiénes comparten algo». Es la forma de toda auditoría de multicuenta, espías o granjas.",
+    "UNA COINCIDENCIA NO ES UNA PRUEBA. El CGNAT de un operador, un piso compartido, la misma salida de VPN o el mismo proveedor de seedbox producen exactamente esta señal. Esto da candidatos para mirarlos a mano, no veredictos.",
+    "Vale mucho más el cruce de dos rasgos distintos que un rasgo con muchos usuarios. Dos cuentas que comparten IP Y correo normalizado es otra cosa que dos que comparten sólo la IP.",
+    "No hay IP de registro ni de navegación en la base: la tabla `sessions` está vacía porque las sesiones van en Redis. La IP de navegación sólo existe en los logs de nginx, y ahí sólo 7 días."
+  ],
+  "campos": [
+    {
+      "id": "rasgo",
+      "etiqueta": "Rasgo compartido",
+      "tipo": "rasgo",
+      "nota": "Elige QUÉ tienen en común. Es obligatorio: sin rasgo no hay nada que comparar."
+    },
+    {
+      "id": "valor",
+      "etiqueta": "Valor compartido",
+      "col": "valor",
+      "tipo": "texto"
+    },
+    {
+      "id": "usuarios",
+      "etiqueta": "Cuántos lo comparten",
+      "col": "usuarios",
+      "tipo": "numero",
+      "nota": "Si no pones condición, el panel se queda con los de 2 o más: un racimo de uno no es una coincidencia."
+    },
+    {
+      "id": "quienes",
+      "etiqueta": "Quiénes",
+      "col": "quienes",
+      "tipo": "texto"
+    },
+    {
+      "id": "primera",
+      "etiqueta": "Visto por primera vez",
+      "col": "primera",
+      "tipo": "fecha"
+    },
+    {
+      "id": "ultima",
+      "etiqueta": "Visto por última vez",
+      "col": "ultima",
+      "tipo": "fecha"
+    }
+  ]
+}

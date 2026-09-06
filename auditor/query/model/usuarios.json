@@ -94,7 +94,6 @@
       "id": "tfa_abierto",
       "etiqueta": "2FA abierto",
       "tipo": "bool",
-      "secreto": true,
       "expr": "t.two_factor_secret IS NOT NULL",
       "nota": "Se rellena al ABRIR la página de 2FA, antes de confirmar nada. NO significa que el 2FA esté activo. El middleware miraba este campo y dejó pasar a 317 cuentas (2026-09-02)."
     },
@@ -122,7 +121,6 @@
       "id": "tg_pendiente",
       "etiqueta": "Telegram a medias",
       "tipo": "bool",
-      "secreto": true,
       "expr": "t.telegram_token IS NOT NULL AND t.telegram_chat_id IS NULL",
       "nota": "Pidió vincular y no lo completó: tiene token de enlace y no tiene chat_id. Son 164, y los 164 que tienen token están en este estado. El campo es secreto porque el token es una credencial de un solo uso: se puede interrogar, no se puede mostrar."
     },
@@ -163,6 +161,48 @@
       "etiqueta": "Hit and runs",
       "col": "hitandruns",
       "tipo": "numero"
+    },
+    {
+      "id": "comparte_correo",
+      "etiqueta": "Comparte correo con otro",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM users u9 WHERE u9.id <> t.id AND u9.deleted_at IS NULL AND CONCAT(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(LOWER(u9.email),'@',1),'+',1),'.',''),'@',SUBSTRING_INDEX(LOWER(u9.email),'@',-1)) = CONCAT(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(LOWER(t.email),'@',1),'+',1),'.',''),'@',SUBSTRING_INDEX(LOWER(t.email),'@',-1)))",
+      "nota": "El correo NORMALIZADO —sin «+etiqueta» y sin los puntos del nombre— coincide con el de otra cuenta viva. Es la señal más fuerte de multicuenta que hay en la base."
+    },
+    {
+      "id": "comparte_ip_cliente",
+      "etiqueta": "Comparte IP de cliente",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM peers p1 JOIN peers p2 ON p2.ip = p1.ip AND p2.user_id <> p1.user_id WHERE p1.user_id = t.id)",
+      "nota": "Alguna de sus IPs de cliente la usa también otra cuenta. Por sí sola NO prueba nada: CGNAT del operador, piso compartido, salida de VPN y proveedor de seedbox dan exactamente esta señal."
+    },
+    {
+      "id": "ips_compartidas",
+      "etiqueta": "Cuántas IPs comparte",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(DISTINCT p1.ip) FROM peers p1 WHERE p1.user_id = t.id AND EXISTS (SELECT 1 FROM peers p2 WHERE p2.ip = p1.ip AND p2.user_id <> p1.user_id))",
+      "nota": "Cuántas IPs distintas suyas aparecen también en otra cuenta."
+    },
+    {
+      "id": "comparte_seedbox",
+      "etiqueta": "Comparte IP de seedbox",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM seedboxes s1 JOIN seedboxes s2 ON s2.ip = s1.ip AND s2.user_id <> s1.user_id WHERE s1.user_id = t.id)",
+      "nota": "Seedbox declarada con la misma IP exacta que otra cuenta."
+    },
+    {
+      "id": "invitado_por",
+      "etiqueta": "Invitado por",
+      "tipo": "texto",
+      "expr": "(SELECT u2.username FROM invites i JOIN users u2 ON u2.id = i.user_id WHERE i.accepted_by = t.id ORDER BY i.accepted_at LIMIT 1)",
+      "nota": "Quién le trajo. 189 invitaciones aceptadas en total. El árbol entero se ve en la web del tracker (/users/<nombre>/invite-tree); aquí está sólo el dato, para poder cruzarlo con lo demás."
+    },
+    {
+      "id": "invitados",
+      "etiqueta": "A cuántos ha invitado",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM invites i WHERE i.user_id = t.id AND i.accepted_by IS NOT NULL)",
+      "nota": "Sólo las aceptadas. Un número alto no es sospechoso por sí solo: cruzarlo con qué han hecho los invitados."
     },
     {
       "id": "alta",

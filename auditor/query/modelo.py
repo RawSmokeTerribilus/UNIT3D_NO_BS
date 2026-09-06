@@ -32,7 +32,8 @@ class Campo:
         self.prom = d.get("prom")          # etiqueta de serie en Prometheus
         self.binlog = d.get("binlog")      # papel al leer el binlog
         if not (self.col or self.expr or self.via or self.loki or self.linea
-                or self.prom or self.binlog or self.tipo == "metrica"):
+                or self.prom or self.binlog
+                or self.tipo in ("metrica", "rasgo")):
             raise ModeloError("campo %s: falta col, expr, via, loki o prom" % self.id)
 
     def sql_valor(self):
@@ -79,6 +80,10 @@ class Entidad:
         self.notas = d.get("notas", [])
         self.cruces = d.get("cruces", [])
         self.selector_base = d.get("selector_base", {})
+        # Entidades cuyo FROM es una subconsulta distinta según el rasgo que se
+        # elija. Es lo que permite preguntar «quién comparte X» sin que el
+        # operador tenga que componer una autounión.
+        self.rasgos = d.get("rasgos", {})
         self.campos = {}
         for c in d.get("campos", []):
             campo = Campo(c)
@@ -97,6 +102,8 @@ class Entidad:
             "id": self.id, "nombre": self.nombre, "fuente": self.fuente,
             "clave": self.clave, "notas": self.notas, "cruces": self.cruces,
             "selector_base": self.selector_base,
+            "rasgos": [{"id": k, "etiqueta": v.get("etiqueta", k),
+                        "nota": v.get("nota")} for k, v in self.rasgos.items()],
             "ambito": self.ambito_etiqueta,
             "campos": [c.to_dict() for c in self.campos.values()],
         }

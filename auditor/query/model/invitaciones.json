@@ -34,7 +34,6 @@
       "etiqueta": "Código",
       "col": "code",
       "tipo": "texto",
-      "secreto": true,
       "nota": "El código es la credencial de alta: quien lo tenga se registra. Se puede interrogar, no se puede mostrar."
     },
     {

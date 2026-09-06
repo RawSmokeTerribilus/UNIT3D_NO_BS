@@ -23,6 +23,9 @@ OPERADORES = {
 _COMPARADOR = {"=": "=", "≠": "<>", "<": "<", "≤": "<=", ">": ">", "≥": ">=",
                "es": "=", "no es": "<>"}
 
+_UMBRAL = {"más de": ">", "al menos": ">=", "menos de": "<",
+           "como mucho": "<=", "exactamente": "="}
+
 
 class CompileError(Exception):
     pass
@@ -50,6 +53,12 @@ def compilar(paso, entidades):
     avisos = []
     joins = {}
     params = []
+
+    # Entidades por rasgo: el FROM sale de una subconsulta distinta según lo
+    # que se elija comparar. La condición del rasgo se consume aquí y no llega
+    # al WHERE.
+    origen, paso, avisos_rasgo = _origen(ent, paso)
+    avisos.extend(avisos_rasgo)
 
     mostrar = list(paso.get("mostrar") or [])
     agrupar = list(paso.get("agrupar") or [])
@@ -133,13 +142,35 @@ def compilar(paso, entidades):
             params.extend(valores)
 
     # --- montaje -------------------------------------------------------------
-    sql = "SELECT\n  %s\nFROM %s AS %s" % (",\n  ".join(seleccion), _ident(ent.tabla), ALIAS_BASE)
+    sql = "SELECT\n  %s\nFROM %s AS %s" % (",\n  ".join(seleccion), origen, ALIAS_BASE)
     for j in joins.values():
         sql += "\n%s" % j
     if donde:
         sql += "\nWHERE " + "\n  AND ".join(donde)
     if agrupar:
         sql += "\nGROUP BY " + ", ".join(str(i + 1) for i in range(len(agrupar)))
+
+    # «Sólo grupos con más de N»: es la forma de toda auditoría de coincidencias
+    # —multicuenta, espías, granjas—, y sin esto no se puede preguntar.
+    umbral = paso.get("umbral")
+    if umbral:
+        if not calcular:
+            raise CompileError(
+                "«sólo grupos con…» necesita un cálculo: añade «contar» o "
+                "«contar distintos» para saber de qué se ponen más de N.")
+        op = _UMBRAL.get(umbral.get("op", "más de"))
+        if not op:
+            raise CompileError(
+                "umbral desconocido: %r. Vale %s"
+                % (umbral.get("op"), ", ".join(_UMBRAL)))
+        try:
+            n = int(umbral.get("valor"))
+        except (TypeError, ValueError):
+            raise CompileError("el umbral tiene que ser un número entero")
+        # Se compara contra el ALIAS del cálculo, que MySQL admite en HAVING y
+        # evita repetir la expresión.
+        sql += "\nHAVING %s %s %%s" % (_ident(columnas[-1]), op)
+        params.append(n)
     orden = paso.get("ordenar")
     if orden:
         sentido = "DESC" if str(orden.get("sentido", "asc")).lower().startswith("desc") else "ASC"
@@ -161,6 +192,68 @@ def compilar(paso, entidades):
             sql += "\nORDER BY %s %s" % (ent.campo(cid).sql_valor(), sentido)
 
     return Compilado(sql, tuple(params), columnas, ent, avisos)
+
+
+def _origen(ent, paso):
+    """Devuelve (FROM, paso sin la condición de rasgo, avisos)."""
+    if not ent.rasgos:
+        return _ident(ent.tabla), paso, []
+
+    elegido, resto = _extraer_rasgo(paso.get("condiciones"), ent)
+    if not elegido:
+        raise CompileError(
+            "hay que elegir qué comparar: añade la condición «Rasgo compartido "
+            "es …». Vale %s." % ", ".join(ent.rasgos))
+    if elegido not in ent.rasgos:
+        raise CompileError("rasgo desconocido: %r. Vale %s"
+                           % (elegido, ", ".join(ent.rasgos)))
+
+    paso = dict(paso)
+    paso["condiciones"] = resto
+    avisos = []
+    nota = ent.rasgos[elegido].get("nota")
+    if nota:
+        avisos.append(nota)
+
+    # Un racimo de uno no es una coincidencia: si nadie dice lo contrario, se
+    # filtran los de 2 o más y se avisa de que se ha hecho.
+    if not _menciona(resto, "usuarios"):
+        extra = {"campo": "usuarios", "op": "≥", "valor": 2}
+        paso["condiciones"] = {"y": ([resto] if resto else []) + [extra]}
+        avisos.append("Sin condición sobre cuántos lo comparten: se muestran "
+                      "los de 2 o más.")
+    return "(%s)" % ent.rasgos[elegido]["sql"], paso, avisos
+
+
+def _extraer_rasgo(nodo, ent):
+    """Saca la hoja del campo de tipo `rasgo` y devuelve (valor, resto)."""
+    if not nodo:
+        return None, None
+    if "y" in nodo or "o" in nodo:
+        clave = "y" if "y" in nodo else "o"
+        elegido, hijos = None, []
+        for n in nodo[clave]:
+            e, r = _extraer_rasgo(n, ent)
+            elegido = elegido or e
+            if r:
+                hijos.append(r)
+        if not hijos:
+            return elegido, None
+        if len(hijos) == 1:
+            return elegido, hijos[0]
+        return elegido, {clave: hijos}
+    campo = ent.campos.get(nodo.get("campo"))
+    if campo is not None and campo.tipo == "rasgo":
+        return nodo.get("valor"), None
+    return None, nodo
+
+
+def _menciona(nodo, cid):
+    if not nodo:
+        return False
+    if "y" in nodo or "o" in nodo:
+        return any(_menciona(n, cid) for n in nodo.get("y", nodo.get("o", [])))
+    return nodo.get("campo") == cid
 
 
 def _registrar_join(campo, joins):

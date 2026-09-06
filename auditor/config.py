@@ -57,18 +57,18 @@ class Config:
     run_dir = os.environ.get("AUDITOR_RUN_DIR", "/app/run")
     binlog_dir = os.environ.get("AUDITOR_BINLOG_DIR", "/prod/mysql")
 
-    # Columnas cuyo VALOR no sale nunca. Se pueden interrogar (IS NULL,
-    # COUNT, LENGTH); no se pueden proyectar.
+    # Columnas cuyo VALOR no sale nunca.
     #
-    # NO están aquí a propósito: email, passkey, rsskey, api_token. Ya son
-    # visibles para un admin en la web del tracker, y taparlas rompería
-    # consultas legítimas.
+    # Por defecto SÓLO el hash de la contraseña. Todo lo demás —secreto y
+    # códigos de 2FA, tokens, correos, IPs, alias de Telegram— ya es visible
+    # para un admin en la web del tracker, así que taparlo aquí no protegería
+    # nada y sí impediría corroborar un informe: si no puedes leer una IP, no
+    # puedes comprobar si la coincidencia que te enseña el panel es real.
+    #
+    # El mecanismo se queda porque esto es FOSS público y otro operador puede
+    # querer otra política: añadir nombres de columna a esta lista basta.
     secretos = {
         "password",
-        "two_factor_secret",
-        "two_factor_recovery_codes",
-        "remember_token",
-        "telegram_token",
     }
 
 
