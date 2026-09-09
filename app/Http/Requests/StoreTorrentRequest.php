@@ -122,6 +122,19 @@ class StoreTorrentRequest extends FormRequest
                             ModerationStatus::POSTPONED => $fail('A torrent with the same info_hash has already been uploaded and is currently postponed.'),
                         };
                     }
+
+                    // El info_hash solo pilla la copia exacta del mismo .torrent.
+                    // Rehacerlo -- otro piece length, otra fecha, la entropia que
+                    // se inyecta al regenerarlo -- da un hash nuevo para el mismo
+                    // material, asi que el duplicado hay que verlo en la lista de
+                    // ficheros, que es lo unico que no cambia.
+                    $gemelo = Torrent::withoutGlobalScope(ApprovedScope::class)
+                        ->where('content_hash', '=', TorrentTools::contentHash($decodedTorrent))
+                        ->first();
+
+                    if ($gemelo !== null) {
+                        $fail('Ya existe un torrent con este mismo contenido: #'.$gemelo->id.' — '.$gemelo->name.'. Mismos ficheros y mismos tamanos, aunque el .torrent sea otro.');
+                    }
                 }
             ],
             'nfo' => [

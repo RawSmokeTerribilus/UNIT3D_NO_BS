@@ -48,6 +48,7 @@ use AllowDynamicProperties;
  * App\Models\Torrent.
  *
  * @property string                          $info_hash
+ * @property string|null                     $content_hash
  * @property int                             $id
  * @property string                          $name
  * @property string                          $description
@@ -153,6 +154,7 @@ final class Torrent extends Model
      */
     protected $discarded = [
         'info_hash',
+        'content_hash',
     ];
 
     /**

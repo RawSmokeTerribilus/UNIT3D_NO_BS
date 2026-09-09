@@ -168,6 +168,7 @@ class TorrentController extends BaseController
         $torrent->mediainfo = TorrentTools::anonymizeMediainfo($request->filled('mediainfo') ? $request->string('mediainfo') : null);
         $torrent->bdinfo = $request->input('bdinfo');
         $torrent->info_hash = $infohash;
+        $torrent->content_hash = TorrentTools::contentHash($decodedTorrent);
         $torrent->file_name = $fileName;
         $torrent->num_file = $meta['count'];
         $torrent->folder = Bencode::get_name($decodedTorrent);
@@ -248,6 +249,14 @@ class TorrentController extends BaseController
                 'required',
             ],
             'info_hash' => [
+                'required',
+                Rule::unique('torrents')->whereNull('deleted_at'),
+            ],
+            // La huella del contenido es lo que de verdad dice "esto ya esta
+            // subido": el info_hash cambia con el piece length, la fecha de
+            // creacion y la entropia del .torrent regenerado, asi que dos copias
+            // identicas byte a byte pasaban el filtro sin despeinarse.
+            'content_hash' => [
                 'required',
                 Rule::unique('torrents')->whereNull('deleted_at'),
             ],
@@ -406,6 +415,8 @@ class TorrentController extends BaseController
             'sticky' => [
                 'required',
             ],
+        ], [
+            'content_hash.unique' => 'Ya existe un torrent con este mismo contenido (mismos ficheros y mismos tamanos). Si de verdad es otra cosa, cambia lo que la diferencia; si es el mismo material, no hace falta subirlo otra vez.',
         ]);
 
         if ($v->fails()) {

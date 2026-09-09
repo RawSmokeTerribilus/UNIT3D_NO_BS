@@ -717,6 +717,7 @@ class TorrentController extends Controller
         $torrent = Torrent::create([
             'mediainfo'    => TorrentTools::anonymizeMediainfo($request->filled('mediainfo') ? $request->string('mediainfo') : null),
             'info_hash'    => Bencode::get_infohash($decodedTorrent),
+            'content_hash' => TorrentTools::contentHash($decodedTorrent),
             'file_name'    => $fileName,
             'num_file'     => $meta['count'],
             'folder'       => Bencode::get_name($decodedTorrent),

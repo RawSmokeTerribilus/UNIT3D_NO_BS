@@ -134,6 +134,44 @@ class TorrentTools
     }
 
     /**
+     * Huella del CONTENIDO de un torrent.
+     *
+     * El info_hash no sirve para decir "esto ya está subido": cambia con el piece
+     * length, con la fecha de creación y con la entropía que se le inyecta al
+     * regenerar el .torrent, así que dos ficheros idénticos byte a byte producen dos
+     * info_hash distintos. Lo que no cambia es la lista de ficheros: rutas relativas
+     * y longitudes.
+     *
+     * La ruta de cada fichero se toma tal cual viene en info.files[].path, que ya es
+     * relativa a la carpeta raíz -- así renombrar la carpeta contenedora no crea un
+     * torrent "nuevo". Se ordena antes de juntar porque el orden dentro del .torrent
+     * depende de quién lo creó.
+     *
+     * @param  array<mixed>  $decodedTorrent
+     */
+    public static function contentHash(array $decodedTorrent): string
+    {
+        $entries = [];
+        $total = 0;
+
+        if (\array_key_exists('files', $decodedTorrent['info']) && (is_countable($decodedTorrent['info']['files']) ? \count($decodedTorrent['info']['files']) : 0)) {
+            foreach ($decodedTorrent['info']['files'] as $file) {
+                $length = (int) $file['length'];
+                $total += $length;
+                $entries[] = implode('/', $file['path'])."\0".$length;
+            }
+        } else {
+            $length = (int) $decodedTorrent['info']['length'];
+            $total += $length;
+            $entries[] = $decodedTorrent['info']['name']."\0".$length;
+        }
+
+        sort($entries, SORT_STRING);
+
+        return sha1(implode("\n", $entries)."\n".$total);
+    }
+
+    /**
      * Returns the NFO.
      */
     public static function getNfo(?UploadedFile $inputFile): bool|string|null
