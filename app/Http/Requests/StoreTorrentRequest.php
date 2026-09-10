@@ -133,7 +133,17 @@ class StoreTorrentRequest extends FormRequest
                         ->first();
 
                     if ($gemelo !== null) {
-                        $fail('Ya existe un torrent con este mismo contenido: #'.$gemelo->id.' — '.$gemelo->name.'. Mismos ficheros y mismos tamanos, aunque el .torrent sea otro.');
+                        // El estado importa: si esta pendiente o aplazado, el
+                        // ApprovedScope lo esconde del catalogo y el uploader no
+                        // encuentra nada al buscarlo.
+                        $estado = match ($gemelo->status) {
+                            ModerationStatus::PENDING   => 'pendiente de moderar, por eso no aparece en el catalogo',
+                            ModerationStatus::APPROVED  => 'ya publicado',
+                            ModerationStatus::REJECTED  => 'rechazado por el staff',
+                            ModerationStatus::POSTPONED => 'aplazado por el staff, por eso no aparece en el catalogo',
+                        };
+
+                        $fail('Ya existe un torrent con este mismo contenido: #'.$gemelo->id.' — '.$gemelo->name.' ('.$estado.'). Mismos ficheros y mismos tamanos, aunque el .torrent sea otro.');
                     }
                 }
             ],
