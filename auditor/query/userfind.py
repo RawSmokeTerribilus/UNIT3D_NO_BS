@@ -125,7 +125,7 @@ def _ips(s, uid, usuario):
 
 def _coincidencias(s, uid, usuario):
     d = _campos(s, uid, ["comparte_correo", "comparte_ip_cliente", "ips_compartidas",
-                         "comparte_seedbox", "ips_ultima_semana"])
+                         "ips_ultima_semana"])
     u = IpUnion()
     r = u.run(
         "SELECT b.usuario, a.ip, a.procedencia, b.procedencia FROM ips a "

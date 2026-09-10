@@ -14,8 +14,10 @@ Las procedencias no valen lo mismo y por eso van etiquetadas:
   cliente        el torrent anunciando. La más fiable y la que más lejos llega.
   web            navegación, resuelta por la clave de la URL. Muestra, no censo.
   login-fallido  un intento de entrar. Puede ser el dueño o puede ser otro.
-  seedbox        declarada por el propio usuario.
   bloqueada      de la lista negra del tracker; sin usuario asociado.
+
+Las seedboxes NO entran: su IP está cifrada en la base y aquí sólo llegaría el
+texto cifrado. Ver el comentario en `_materializar`.
 """
 import os
 import sqlite3
@@ -69,12 +71,20 @@ class IpUnion:
              "COUNT(*) AS n FROM failed_login_attempts f "
              "LEFT JOIN users u ON u.id = f.user_id "
              "WHERE f.ip_address IS NOT NULL GROUP BY f.user_id, f.username, f.ip_address"),
-            ("seedbox",
-             "SELECT sb.user_id AS uid, u.username AS quien, sb.ip AS ip, "
-             "MIN(sb.created_at) AS prim, MAX(sb.updated_at) AS ult, COUNT(*) AS n "
-             "FROM seedboxes sb "
-             "JOIN users u ON u.id = sb.user_id AND u.deleted_at IS NULL "
-             "WHERE sb.ip IS NOT NULL GROUP BY sb.user_id, sb.ip"),
+            # SEEDBOXES FUERA, a propósito. `seedboxes.ip` está CIFRADO en la
+            # base con el Crypt de Laravel (AES-CBC): el valor es
+            # `eyJpdiI6...`, base64 de {"iv","value","mac","tag"}. Meterlo aquí
+            # llenaba el registro de 24 cadenas que no son IPs.
+            #
+            # Y peor: el IV es aleatorio, así que la MISMA IP cifra distinto
+            # cada vez —24 filas, 24 valores distintos—, de modo que comparar
+            # cifrado contra cifrado no casa nunca. El campo «comparte seedbox»
+            # daba 0 siempre, y ese 0 no significaba «nadie comparte»: no
+            # significaba nada.
+            #
+            # Descifrarlo aquí es posible (hace falta APP_KEY) pero es una
+            # decisión del operador, no un detalle de implementación: esos datos
+            # están cifrados en reposo a propósito.
             ("bloqueada",
              "SELECT NULL AS uid, NULL AS quien, b.ip_address AS ip, "
              "MIN(b.created_at) AS prim, MAX(b.created_at) AS ult, COUNT(*) AS n "

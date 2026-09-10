@@ -318,13 +318,6 @@
       "nota": "Cuántas IPs distintas suyas aparecen también en otra cuenta."
     },
     {
-      "id": "comparte_seedbox",
-      "etiqueta": "Comparte IP de seedbox",
-      "tipo": "bool",
-      "expr": "EXISTS (SELECT 1 FROM seedboxes s1 JOIN seedboxes s2 ON s2.ip = s1.ip AND s2.user_id <> s1.user_id WHERE s1.user_id = t.id)",
-      "nota": "Seedbox declarada con la misma IP exacta que otra cuenta."
-    },
-    {
       "id": "pico_descarga",
       "etiqueta": "Mayor descarga en un torrent",
       "tipo": "bytes",
