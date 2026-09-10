@@ -21,6 +21,7 @@ from query.sources.binlog import BinlogError, BinlogSource
 from query.ipfind import IpFindError, buscar as buscar_ip
 from query.sources.http_json import FuenteHTTPError
 from query.sources.ipstore import IpStore, IpStoreError
+from query.sources.ipunion import IpUnion, IpUnionError
 from query.sources.loki import LokiSource
 from query.sources.mysql import MySQLError, MySQLSource
 from query.sources.prom import PromSource
@@ -180,6 +181,8 @@ class Handler(BaseHTTPRequestHandler):
                                "mensaje": e.message, "sql": e.sql}, 502)
         if isinstance(e, IpFindError):
             return self._json({"error": "ip", "mensaje": str(e)}, 400)
+        if isinstance(e, IpUnionError):
+            return self._json({"error": "ips_todas", "mensaje": str(e)}, 502)
         if isinstance(e, IpStoreError):
             return self._json({"error": "ips_web", "mensaje": str(e)}, 502)
         if isinstance(e, BinlogError):
@@ -258,7 +261,7 @@ def _ejecutar_inner(cuerpo, identidad, guardada, procedencia="api"):
         # modo crudo: aquí sí actúa el candado de respaldo
         sql = cuerpo["sql"]
         avisos = revisar(sql)
-        r = origen.run(sql, (), limit=limite)
+        r = origen.run(sql, (), limit=limite, crudo=True)
         r.warnings = avisos + r.warnings
         composicion = {"modo": "crudo", "sql": sql}
     else:
@@ -296,7 +299,7 @@ def _cadena(pasos, ents, origen, limite):
             ent_destino = ents.get(paso.get("entidad"))
             if ent_destino is None:
                 raise CompileError("entidad desconocida: %r" % paso.get("entidad"))
-            if ent_destino.fuente in ("mysql", "ipstore"):
+            if ent_destino.fuente in ("mysql", "ipstore", "ipunion"):
                 # Las dos hablan SQL: el enlace entra como lista IN.
                 paso["_enlace_valores"] = {"campo": enlace["campo"], "valores": claves}
             elif ent_destino.enlace_en:
@@ -361,6 +364,15 @@ def _un_paso(paso, ents, origen, limite):
         r = origen.run(c.sql, c.params, limit=limite)
         r.warnings = c.avisos + r.warnings
         r.consulta_generada = c.sql
+        if c.columnas:
+            r.columns = c.columnas + r.columns[len(c.columnas):]
+        return r
+
+    if fuente == "ipunion":
+        from query.compile import a_sqlite
+        c = compilar(paso, ents)
+        r = IpUnion().run(a_sqlite(c.sql), c.params, limit=limite)
+        r.warnings = c.avisos + r.warnings
         if c.columnas:
             r.columns = c.columnas + r.columns[len(c.columnas):]
         return r
@@ -434,8 +446,10 @@ def _claves(paso, enlace, ents, origen):
     if not solo_clave.get("umbral"):
         solo_clave["agrupar"] = []
         solo_clave["calcular"] = []
-    elif campo_origen not in (solo_clave.get("agrupar") or []):
-        solo_clave["agrupar"] = [campo_origen] + list(solo_clave.get("agrupar") or [])
+    else:
+        from query.compile import _ids_agrupados
+        if campo_origen not in _ids_agrupados(solo_clave):
+            solo_clave["agrupar"] = [campo_origen] + list(solo_clave.get("agrupar") or [])
 
     c = compilar(solo_clave, ents)
     tope = cfg.max_link_keys

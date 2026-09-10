@@ -157,10 +157,122 @@
       "tipo": "numero"
     },
     {
+      "id": "puerto_cerrado",
+      "etiqueta": "Puerto cerrado",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM peers pc WHERE pc.user_id = t.id AND pc.active = 1 AND pc.connectable = 0) AND NOT EXISTS (SELECT 1 FROM peers pc2 WHERE pc2.user_id = t.id AND pc2.active = 1 AND pc2.connectable = 1)",
+      "nota": "Ninguno de sus clientes activos acepta conexiones entrantes. Sube peor y arrastra al enjambre. Se mira sobre conexiones ACTIVAS: quien no tiene ninguna no sale ni a favor ni en contra."
+    },
+    {
+      "id": "torrents_subidos",
+      "etiqueta": "Torrents subidos",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM torrents tu WHERE tu.user_id = t.id AND tu.deleted_at IS NULL)",
+      "nota": "Sólo los vivos. En todo el tracker hay 89 personas que han subido algo."
+    },
+    {
+      "id": "volumen_subido",
+      "etiqueta": "Volumen subido (sus torrents)",
+      "tipo": "bytes",
+      "expr": "(SELECT IFNULL(SUM(tu.size),0) FROM torrents tu WHERE tu.user_id = t.id AND tu.deleted_at IS NULL)",
+      "nota": "Suma del tamaño de sus torrents. No es lo mismo que «Subido», que es tráfico acreditado."
+    },
+    {
+      "id": "dias_hasta_primera_subida",
+      "etiqueta": "Días hasta su primera subida",
+      "tipo": "numero",
+      "expr": "(SELECT TIMESTAMPDIFF(DAY, t.created_at, MIN(tu.created_at)) FROM torrents tu WHERE tu.user_id = t.id AND tu.deleted_at IS NULL)",
+      "nota": "Vacío si nunca subió nada. La media del tracker son 14 días."
+    },
+    {
+      "id": "bonus_sin_gastar",
+      "etiqueta": "Bonus sin gastar nunca",
+      "tipo": "bool",
+      "expr": "t.seedbonus > 0 AND NOT EXISTS (SELECT 1 FROM bon_transactions b WHERE b.sender_id = t.id)",
+      "nota": "Tiene puntos y no ha comprado nada jamás. Son 894 por encima de 100.000. Útil para saber si la tienda se usa."
+    },
+    {
+      "id": "invites_sin_usar",
+      "etiqueta": "Invitaciones sin usar",
+      "tipo": "numero",
+      "col": "invites",
+      "nota": "Las que tiene disponibles, no las que ha enviado. Cruzado con inactividad sale quién acapara invitaciones sin estar."
+    },
+    {
       "id": "hitandruns",
       "etiqueta": "Hit and runs",
       "col": "hitandruns",
       "tipo": "numero"
+    },
+    {
+      "id": "avisos_activos",
+      "etiqueta": "Avisos activos",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 1 AND w.deleted_at IS NULL)",
+      "nota": "Sólo los visibles y activos. Ojo: «Delete All Warnings» borra en lógico y deja al usuario sin descargas para siempre, con este contador a cero."
+    },
+    {
+      "id": "avisos_para_ban",
+      "etiqueta": "Avisos que le faltan para el ban",
+      "tipo": "numero",
+      "expr": "((SELECT CAST(s9.value AS SIGNED) FROM settings s9 WHERE s9.`key` = 'hitrun.max_warnings') - (SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 1 AND w.deleted_at IS NULL))",
+      "nota": "Umbral leído EN VIVO de la tabla settings, que dice 5. El fichero config/hitrun.php dice 3 y no es el que manda: cablearlo daría otra lista."
+    },
+    {
+      "id": "bajo_ratio_minimo",
+      "etiqueta": "Por debajo del ratio mínimo",
+      "tipo": "bool",
+      "expr": "t.downloaded <> 0 AND ROUND(t.uploaded / t.downloaded, 2) < (SELECT CAST(s9.value AS DECIMAL(10,2)) FROM settings s9 WHERE s9.`key` = 'other.ratio')",
+      "nota": "Contra `other.ratio` de la tabla settings (0,40 ahora). Los 22 que no han bajado nada tienen ratio infinito y quedan fuera a propósito."
+    },
+    {
+      "id": "dias_sin_actividad",
+      "etiqueta": "Días sin actividad",
+      "tipo": "numero",
+      "expr": "TIMESTAMPDIFF(DAY, COALESCE(t.last_action, t.last_login, t.created_at), UTC_TIMESTAMP())",
+      "nota": "Cuenta desde la última acción; si nunca la hubo, desde el último acceso, y si tampoco, desde el alta. Así una cuenta recién creada no sale como inactiva de años."
+    },
+    {
+      "id": "nunca_ha_descargado",
+      "etiqueta": "Nunca ha descargado ni sembrado",
+      "tipo": "bool",
+      "expr": "NOT EXISTS (SELECT 1 FROM history h WHERE h.user_id = t.id)",
+      "nota": "Ni una sola fila de historial. Son 1.123 — cuentas que se registraron y no llegaron a usar el tracker."
+    },
+    {
+      "id": "seedtime_medio",
+      "etiqueta": "Seedtime medio",
+      "tipo": "numero",
+      "expr": "(SELECT IFNULL(ROUND(AVG(h.seedtime)),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL)",
+      "nota": "En SEGUNDOS, igual que lo compara AutoGroup. El mínimo de H&R son 345.600 (96 h). Media global del tracker: ~3,3 millones."
+    },
+    {
+      "id": "seedtime_bajo_minimo",
+      "etiqueta": "Seedea menos del mínimo",
+      "tipo": "bool",
+      "expr": "(SELECT IFNULL(AVG(h.seedtime),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL) < (SELECT CAST(s9.value AS SIGNED) FROM settings s9 WHERE s9.`key` = 'hitrun.seedtime')",
+      "nota": "Su seedtime medio no llega al mínimo de H&R leído de settings. Por sí solo no es infracción: mira también los avisos."
+    },
+    {
+      "id": "descargas_max_dia",
+      "etiqueta": "Máximo de descargas en un día",
+      "tipo": "numero",
+      "expr": "(SELECT IFNULL(MAX(n),0) FROM (SELECT COUNT(*) n FROM history h2 WHERE h2.user_id = t.id AND h2.deleted_at IS NULL GROUP BY DATE(h2.created_at)) x)",
+      "nota": "El día que más bajó. El récord del tracker son 1.543 en 24 h; 66 usuarios han pasado de 50 algún día."
+    },
+    {
+      "id": "ips_ultima_semana",
+      "etiqueta": "IPs distintas esta semana",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(DISTINCT p9.ip) FROM peers p9 WHERE p9.user_id = t.id AND p9.updated_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY)",
+      "nota": "Cambiar mucho de IP sugiere VPN o red móvil, no necesariamente nada malo. 17 usuarios pasan de 3; el máximo son 10."
+    },
+    {
+      "id": "usa_api",
+      "etiqueta": "Usa la API",
+      "tipo": "bool",
+      "expr": "t.api_token IS NOT NULL",
+      "nota": "Tiene token de API generado. 1.086 lo tienen, y 194 de ésos arrastran H&R."
     },
     {
       "id": "comparte_correo",
@@ -189,6 +301,48 @@
       "tipo": "bool",
       "expr": "EXISTS (SELECT 1 FROM seedboxes s1 JOIN seedboxes s2 ON s2.ip = s1.ip AND s2.user_id <> s1.user_id WHERE s1.user_id = t.id)",
       "nota": "Seedbox declarada con la misma IP exacta que otra cuenta."
+    },
+    {
+      "id": "pico_descarga",
+      "etiqueta": "Mayor descarga en un torrent",
+      "tipo": "bytes",
+      "expr": "(SELECT IFNULL(MAX(h.downloaded),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL)",
+      "nota": "El torrent que más le costó. El récord del tracker son 146,2 GiB en uno solo."
+    },
+    {
+      "id": "pico_subida",
+      "etiqueta": "Mayor subida en un torrent",
+      "tipo": "bytes",
+      "expr": "(SELECT IFNULL(MAX(h.uploaded),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL)",
+      "nota": "Lo más que ha servido de un solo torrent. El récord son 1.669,7 GiB."
+    },
+    {
+      "id": "velocidad_descarga",
+      "etiqueta": "Velocidad media de descarga (B/s)",
+      "tipo": "numero",
+      "expr": "(SELECT ROUND(AVG(h.downloaded / NULLIF(TIMESTAMPDIFF(SECOND, h.created_at, h.completed_at),0))) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL AND h.completed_at IS NOT NULL AND h.downloaded > 0)",
+      "nota": "Bytes por segundo entre que empieza y completa. Sólo cuenta lo que llegó a completarse: 53.486 registros. La media del tracker son ~12,25 MB/s y lo más rápido visto, 321 MB/s."
+    },
+    {
+      "id": "velocidad_subida",
+      "etiqueta": "Velocidad media al sembrar (B/s)",
+      "tipo": "numero",
+      "expr": "(SELECT ROUND(AVG(h.uploaded / NULLIF(h.seedtime,0))) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL AND h.seedtime > 0 AND h.uploaded > 0)",
+      "nota": "Subida repartida entre el tiempo sembrando. La media del tracker son ~76 KB/s: es un promedio largo, no un pico."
+    },
+    {
+      "id": "invitado_por_raiz",
+      "etiqueta": "Raíz de su familia",
+      "tipo": "texto",
+      "expr": "(WITH RECURSIVE sube AS ( SELECT t.id AS uid, 0 AS nivel UNION ALL SELECT i.user_id, sube.nivel + 1 FROM invites i JOIN sube ON i.accepted_by = sube.uid WHERE i.user_id IS NOT NULL AND sube.nivel < 20) SELECT (SELECT u8.username FROM users u8 WHERE u8.id = sube.uid) FROM sube ORDER BY nivel DESC LIMIT 1)",
+      "nota": "Subiendo por la cadena de invitaciones hasta el origen. Hay 8 raíces en todo el tracker y la profundidad máxima es 5. Si nadie le invitó, la raíz es él mismo."
+    },
+    {
+      "id": "nivel_en_el_arbol",
+      "etiqueta": "Nivel en su familia",
+      "tipo": "numero",
+      "expr": "(WITH RECURSIVE sube AS ( SELECT t.id AS uid, 0 AS nivel UNION ALL SELECT i.user_id, sube.nivel + 1 FROM invites i JOIN sube ON i.accepted_by = sube.uid WHERE i.user_id IS NOT NULL AND sube.nivel < 20) SELECT sube.nivel FROM sube ORDER BY nivel DESC LIMIT 1)",
+      "nota": "0 si es raíz; 1 si le invitó una raíz, y así. Máximo 5 en este tracker."
     },
     {
       "id": "invitado_por",

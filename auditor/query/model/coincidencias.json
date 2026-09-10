@@ -38,6 +38,11 @@
       "etiqueta": "Cliente de torrent (agente)",
       "nota": "Señal DÉBIL: media isla usa el mismo qBittorrent. Sólo vale combinada con otra, o si la cadena es rarísima.",
       "sql": "SELECT p.agent AS valor, COUNT(DISTINCT p.user_id) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(p.created_at) AS primera, MAX(p.updated_at) AS ultima FROM peers p JOIN users u ON u.id = p.user_id AND u.deleted_at IS NULL GROUP BY p.agent"
+    },
+    "nombre_normalizado": {
+      "etiqueta": "Nombre de usuario casi idéntico",
+      "nota": "Nombres iguales al quitar mayúsculas, dígitos y signos: «Pepe_2024» y «pepe» salen juntos. Da 24 racimos. SOUNDEX daba 392 y es ruido — media isla suena parecido en español.",
+      "sql": "SELECT LOWER(REGEXP_REPLACE(u.username,'[^A-Za-z]','')) AS valor, COUNT(*) AS usuarios, GROUP_CONCAT(DISTINCT u.username ORDER BY u.username SEPARATOR ', ') AS quienes, MIN(u.created_at) AS primera, MAX(u.created_at) AS ultima FROM users u WHERE u.deleted_at IS NULL AND LENGTH(REGEXP_REPLACE(u.username,'[^A-Za-z]','')) > 3 GROUP BY 1"
     }
   },
   "notas": [

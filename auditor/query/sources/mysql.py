@@ -67,10 +67,16 @@ class MySQLSource:
             cur.execute("SET SESSION time_zone='+00:00'")
         return conn
 
-    def run(self, sql, params=(), limit=None, redactar=()):
-        """Ejecuta una sentencia de lectura y devuelve un Result."""
+    def run(self, sql, params=(), limit=None, redactar=(), crudo=False):
+        """Ejecuta una sentencia de lectura y devuelve un Result.
+
+        `crudo` dice si el SQL lo escribió una persona (y por tanto sus `%` son
+        literales) o lo generó el compilador (y sus `%s` y `%%` ya son
+        correctos). Adivinarlo por «¿hay parámetros?» estaba mal: una consulta
+        compilada con DATE_FORMAT lleva `%%` y puede no llevar parámetros.
+        """
         limit = self.cfg.max_rows if limit is None else limit
-        sql_final, params_final = self._aplicar_limite(sql, params, limit)
+        sql_final, params_final = self._aplicar_limite(sql, params, limit, crudo)
 
         t0 = time.time()
         conn = None
@@ -118,7 +124,7 @@ class MySQLSource:
             redacted=redacted,
         )
 
-    def _aplicar_limite(self, sql, params, limit):
+    def _aplicar_limite(self, sql, params, limit, crudo=False):
         """Envuelve la consulta para pedir limit+1 filas.
 
         Envolver en lugar de añadir ` LIMIT n` respeta cualquier LIMIT que ya
@@ -127,7 +133,17 @@ class MySQLSource:
         """
         if not _ENVOLVIBLE.match(sql or ""):
             return sql, tuple(params)
-        envuelta = "SELECT * FROM (\n%s\n) AS _panel LIMIT %%s" % sql.rstrip().rstrip(";")
+
+        # En SQL escrito a mano los `%` son literales —un LIKE '%algo%'— y hay
+        # que escaparlos: al añadir aquí el parámetro del LIMIT, el driver pasa
+        # a interpretar toda la cadena y revienta con «%i format: a real number
+        # is required». En SQL compilado los `%s` y `%%` ya son correctos y
+        # tocarlos rompe cosas como DATE_FORMAT.
+        cuerpo = sql.rstrip().rstrip(";")
+        if crudo:
+            cuerpo = cuerpo.replace("%", "%%")
+
+        envuelta = "SELECT * FROM (\n%s\n) AS _panel LIMIT %%s" % cuerpo
         return envuelta, tuple(params) + (limit + 1,)
 
 

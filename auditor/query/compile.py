@@ -26,6 +26,28 @@ _COMPARADOR = {"=": "=", "≠": "<>", "<": "<", "≤": "<=", ">": ">", "≥": ">
 _UMBRAL = {"más de": ">", "al menos": ">=", "menos de": "<",
            "como mucho": "<=", "exactamente": "="}
 
+# Agrupar una fecha por tramos. Sin esto no hay «descargas al día», ni «cambios
+# de IP a la semana», ni franjas horarias.
+_GRANO = {
+    "hora":   ("DATE_FORMAT(%s, '%%%%Y-%%%%m-%%%%d %%%%H:00')", "por hora"),
+    "franja": ("DATE_FORMAT(%s, '%%%%H:00')", "por franja horaria del día"),
+    "dia":    ("DATE(%s)", "por día"),
+    "semana": ("DATE_FORMAT(%s, '%%%%x-S%%%%v')", "por semana"),
+    "mes":    ("DATE_FORMAT(%s, '%%%%Y-%%%%m')", "por mes"),
+}
+
+
+def _grupo(paso, i):
+    """Un agrupado puede ser el id del campo o {campo, granularidad}."""
+    g = (paso.get("agrupar") or [])[i]
+    if isinstance(g, dict):
+        return g.get("campo"), g.get("granularidad")
+    return g, None
+
+
+def _ids_agrupados(paso):
+    return [(_grupo(paso, i)[0]) for i in range(len(paso.get("agrupar") or []))]
+
 
 class CompileError(Exception):
     pass
@@ -51,7 +73,7 @@ def compilar(paso, entidades):
     if eid not in entidades:
         raise CompileError("entidad desconocida: %r" % eid)
     ent = entidades[eid]
-    if ent.fuente not in ("mysql", "ipstore"):
+    if ent.fuente not in ("mysql", "ipstore", "ipunion"):
         raise CompileError(
             "la entidad «%s» es de la fuente %s, que no se consulta con SQL"
             % (ent.nombre, ent.fuente))
@@ -75,7 +97,7 @@ def compilar(paso, entidades):
         avisos.append("Sin columnas elegidas: se muestran las primeras %d." % len(mostrar))
 
     # --- el candado, aquí: un secreto no se proyecta jamás -------------------
-    for cid in mostrar + agrupar + [c.get("campo") for c in calcular if c.get("campo")]:
+    for cid in mostrar + _ids_agrupados(paso) + [c.get("campo") for c in calcular if c.get("campo")]:
         if cid is None:
             continue
         campo = ent.campo(cid)
@@ -89,11 +111,25 @@ def compilar(paso, entidades):
     columnas = []
 
     if agrupar or calcular:
-        for cid in agrupar:
+        for k in range(len(agrupar)):
+            cid, grano = _grupo(paso, k)
             campo = ent.campo(cid)
             _registrar_join(campo, joins)
-            seleccion.append("%s AS %s" % (campo.sql_valor(), _ident(campo.etiqueta)))
-            columnas.append(campo.etiqueta)
+            expr, etiqueta = campo.sql_valor(), campo.etiqueta
+            if grano:
+                if grano not in _GRANO:
+                    raise CompileError(
+                        "granularidad desconocida: %r. Vale %s"
+                        % (grano, ", ".join(_GRANO)))
+                if campo.tipo != "fecha":
+                    raise CompileError(
+                        "«%s» no es una fecha: no se puede agrupar %s."
+                        % (campo.etiqueta, _GRANO[grano][1]))
+                expr = _GRANO[grano][0] % expr
+                etiqueta = "%s (%s)" % (campo.etiqueta, grano)
+                avisos.append("Agrupado %s." % _GRANO[grano][1])
+            seleccion.append("%s AS %s" % (expr, _ident(etiqueta)))
+            columnas.append(etiqueta)
         for calc in calcular:
             fn = (calc.get("fn") or "contar").lower()
             cid = calc.get("campo")
@@ -186,14 +222,14 @@ def compilar(paso, entidades):
             # aplicación): al agrupar sólo se puede ordenar por una columna
             # agrupada o por el cálculo. Se ordena por posición para no repetir
             # la expresión.
-            if cid in ("_calculo", None) or cid not in agrupar:
+            if cid in ("_calculo", None) or cid not in _ids_agrupados(paso):
                 if cid not in ("_calculo", None):
                     avisos.append(
                         "Al agrupar no se puede ordenar por «%s», que no está en el "
                         "agrupado: se ordena por el cálculo." % ent.campo(cid).etiqueta)
                 sql += "\nORDER BY %d %s" % (len(seleccion), sentido)
             else:
-                sql += "\nORDER BY %d %s" % (agrupar.index(cid) + 1, sentido)
+                sql += "\nORDER BY %d %s" % (_ids_agrupados(paso).index(cid) + 1, sentido)
         else:
             sql += "\nORDER BY %s %s" % (ent.campo(cid).sql_valor(), sentido)
 
