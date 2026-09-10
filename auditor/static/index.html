@@ -10,9 +10,13 @@
 <header>
   <h1>PANEL DE CONSULTAS</h1>
   <span class="muted" id="cabecera-info">cargando modelo…</span>
+  <form id="buscar-usuario" class="linea" style="gap:.3rem;margin:0">
+    <input id="usuario-q" placeholder="ficha de un usuario…" style="min-width:13rem" spellcheck="false">
+    <button type="submit" class="icono">Ficha</button>
+  </form>
   <form id="buscar-ip" class="linea" style="gap:.3rem;margin:0">
-    <input id="ip-q" placeholder="buscar una IP en todo el sistema…" style="min-width:19rem" spellcheck="false">
-    <button type="submit" class="icono">Buscar IP</button>
+    <input id="ip-q" placeholder="buscar una IP…" style="min-width:13rem" spellcheck="false">
+    <button type="submit" class="icono">IP</button>
   </form>
   <div class="actions">
     <a href="/manual.html"><button class="icono" title="Qué significa cada cosa y dónde están los límites">Manual</button></a>
@@ -23,6 +27,11 @@
 </header>
 
 <main>
+  <div id="usuario-caja" class="oculto">
+    <h2>Ficha del usuario</h2>
+    <div id="usuario-resultado"></div>
+  </div>
+
   <div id="ip-caja" class="oculto">
     <h2>Rastro de la IP</h2>
     <div id="ip-resultado"></div>

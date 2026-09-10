@@ -19,6 +19,7 @@ from query.guard import GuardError, revisar
 from query.modelo import ModeloError, cargar
 from query.sources.binlog import BinlogError, BinlogSource
 from query.ipfind import IpFindError, buscar as buscar_ip
+from query.userfind import UserFindError, buscar as buscar_usuario
 from query.sources.http_json import FuenteHTTPError
 from query.sources.ipstore import IpStore, IpStoreError
 from query.sources.ipunion import IpUnion, IpUnionError
@@ -114,6 +115,8 @@ class Handler(BaseHTTPRequestHandler):
                     "topes": {"filas": cfg.max_rows, "ms": cfg.max_exec_ms,
                               "claves_enlace": cfg.max_link_keys},
                 })
+            if ruta == "/api/usuario":
+                return self._json(buscar_usuario((q.get("q") or [""])[0]))
             if ruta == "/api/ip":
                 return self._json(buscar_ip(
                     (q.get("q") or [""])[0],
@@ -179,6 +182,8 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(e, MySQLError):
             return self._json({"error": "mysql", "codigo": e.code,
                                "mensaje": e.message, "sql": e.sql}, 502)
+        if isinstance(e, UserFindError):
+            return self._json({"error": "usuario", "mensaje": str(e)}, 404)
         if isinstance(e, IpFindError):
             return self._json({"error": "ip", "mensaje": str(e)}, 400)
         if isinstance(e, IpUnionError):

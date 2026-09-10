@@ -1,7 +1,7 @@
 {
   "nombre": "hr-activos",
-  "titulo": "Con hit and runs encima",
-  "porque": "251 usuarios arrastran H&R. El umbral de ban son 5 avisos, leído de la tabla settings — el fichero de configuración dice 3 y no es el que manda.",
+  "titulo": "Con hit and runs en su historial",
+  "porque": "251 usuarios con el contador histórico por encima de cero. NO significa que estén sancionados hoy: el contador acumula toda su vida. Para las sanciones vivas, mira «Con avisos activos ahora».",
   "pasos": [
     {
       "entidad": "usuarios",
@@ -19,7 +19,8 @@
         "grupo",
         "hitandruns",
         "avisos_activos",
-        "avisos_para_ban",
+        "avisos_desactivados",
+        "avisos_borrados",
         "ratio"
       ],
       "ordenar": {

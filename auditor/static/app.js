@@ -781,3 +781,56 @@ function bloqueIp(b) {
   caja.appendChild(cuerpo);
   return caja;
 }
+
+
+/* ------------------------------------------------------- ficha de usuario */
+/* La capa individual-total: todo lo que se sabe de alguien, de una vez. En
+   moderación es la pregunta que más se hace. */
+$('#buscar-usuario').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = $('#usuario-q').value.trim();
+  if (!q) return;
+  const caja = $('#usuario-caja'), out = $('#usuario-resultado');
+  caja.classList.remove('oculto');
+  out.textContent = '';
+  out.appendChild(el('div', { class: 'muted', text: 'reuniendo la ficha…' }));
+  try {
+    const d = await api('/api/usuario?q=' + encodeURIComponent(q));
+    out.textContent = '';
+    out.appendChild(el('div', { class: 'ip-veredicto', text: d.veredicto }));
+    for (const b of d.bloques) out.appendChild(bloqueFicha(b));
+    caja.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    out.textContent = '';
+    out.appendChild(el('div', { class: 'banda malo', text: err.message }));
+  }
+});
+
+function bloqueFicha(b) {
+  const caja = el('div', { class: 'ip-bloque' });
+  caja.appendChild(el('div', { class: 'cab' }, [
+    el('b', { text: b.bloque }),
+    el('span', { class: 'alcance', text: b.error ? 'error: ' + b.error : (b.alcance || '') }),
+  ]));
+  const cuerpo = el('div', { class: 'cuerpo' });
+  let algo = false;
+  for (const [k, v] of Object.entries(b.datos || {})) {
+    if (v === null || v === '' || v === undefined) continue;
+    algo = true;
+    cuerpo.appendChild(el('div', { class: 'ip-par' },
+      [el('span', { text: k }), el('span', { text: String(v) })]));
+  }
+  for (const h of b.hallazgos || []) {
+    algo = true;
+    const t = Object.entries(h).filter(([, v]) => v != null && v !== '')
+      .map(([k, v]) => k + ': ' + v).join('  ·  ');
+    cuerpo.appendChild(el('div', { class: 'ip-par' },
+      [el('span', { text: '•' }), el('span', { text: t })]));
+  }
+  if (b.nota) cuerpo.appendChild(el('div', { class: 'nota', text: b.nota }));
+  if (!algo && !b.error && !b.nota) {
+    cuerpo.appendChild(el('div', { class: 'ip-vacio', text: 'nada que contar aquí' }));
+  }
+  caja.appendChild(cuerpo);
+  return caja;
+}

@@ -200,16 +200,38 @@
     },
     {
       "id": "hitandruns",
-      "etiqueta": "Hit and runs",
+      "etiqueta": "Hit and runs (contador histórico)",
       "col": "hitandruns",
-      "tipo": "numero"
+      "tipo": "numero",
+      "nota": "CONTADOR ACUMULADO DE TODA SU VIDA, no sanciones vivas. Su suma (2.069) casi iguala el total de filas de `warnings` (2.082). Hay 251 usuarios con contador > 0 pero sólo 177 con un aviso ACTIVO: el resto ya los cumplió. Para saber quién está sancionado ahora, usar «Avisos activos»."
     },
     {
       "id": "avisos_activos",
       "etiqueta": "Avisos activos",
       "tipo": "numero",
       "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 1 AND w.deleted_at IS NULL)",
-      "nota": "Sólo los visibles y activos. Ojo: «Delete All Warnings» borra en lógico y deja al usuario sin descargas para siempre, con este contador a cero."
+      "nota": "Los que penalizan AHORA: activos y no borrados. Son 1.250, repartidos entre 177 usuarios. Un aviso tiene tres estados —activo, cumplido y borrado en lógico— y mezclarlos da informes torcidos."
+    },
+    {
+      "id": "avisos_desactivados",
+      "etiqueta": "Avisos cumplidos",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 0 AND w.deleted_at IS NULL)",
+      "nota": "Ya no penalizan pero siguen visibles. Son 218 en todo el tracker."
+    },
+    {
+      "id": "avisos_borrados",
+      "etiqueta": "Avisos borrados en lógico",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.deleted_at IS NOT NULL)",
+      "nota": "614 en todo el tracker. Ojo: es el rastro de «Delete All Warnings», que deja al usuario sin `can_download` PARA SIEMPRE porque el trabajo que lo devuelve no encuentra filas que desactivar."
+    },
+    {
+      "id": "avisos_historicos",
+      "etiqueta": "Avisos en total (histórico)",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND 1 = 1)",
+      "nota": "Los tres estados juntos. Es lo que se parece al contador users.hitandruns."
     },
     {
       "id": "avisos_para_ban",

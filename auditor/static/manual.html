@@ -51,6 +51,7 @@ construcción.
 <tr><td>Métricas (Prometheus)</td><td><strong>15 días</strong> o 5&nbsp;GB, lo que llegue antes</td><td><code>window_ok</code> a falso + aviso</td></tr>
 <tr><td>Logs de nginx (Loki)</td><td><strong>7 días</strong></td><td><code>window_ok</code> a falso + aviso</td></tr>
 <tr><td>IPs de la web (recolectadas)</td><td><strong>desde la primera pasada</strong> · se acumula</td><td>si está vacío, lo dice</td></tr>
+<tr><td>IPs (todas las procedencias)</td><td>la unión de las cinco</td><td>dice de qué está hecha</td></tr>
 <tr><td>Volcados de 4&nbsp;h</td><td>≈16 horas (4 ficheros)</td><td>no se consulta desde aquí</td></tr>
 </table>
 <div class="aviso">
@@ -83,6 +84,43 @@ está en falso, lo que buscas no es que no aparezca, es que <em>no existe</em>.<
 descargas e invitaciones excluyen las bajas lógicas por defecto, y el panel lo
 dice en un aviso cada vez.</li>
 </ul>
+
+<h2>Los presets y las tres capas</h2>
+<p>
+La pantalla de entrada es el catálogo. Cada preset dice para qué sirve, quién lo
+pidió y —del archivo— cuándo se ejecutó por última vez y cuántas filas dio. El
+compositor está debajo, plegado, para preguntar algo que no esté en el catálogo.
+</p>
+<table>
+<tr><th>Capa</th><th>Qué contesta</th></tr>
+<tr><td><strong>Global</strong></td><td>todo el padrón, cruzando fuentes: quiénes comparten IP</td></tr>
+<tr><td><strong>Ficha de usuario</strong></td><td>todo sobre un socio, de una vez — la caja de arriba</td></tr>
+<tr><td><strong>Con parámetro</strong></td><td>una pregunta sobre un socio; el panel pide el valor antes de ejecutar</td></tr>
+</table>
+<div class="aviso bien">
+Los valores que pides por parámetro viajan <strong>ligados</strong>, nunca
+pegados al SQL. Un nombre con comillas, o un intento de inyección, devuelve cero
+filas y no rompe nada.
+</div>
+
+<h2>Avisos y hit and runs: tres estados</h2>
+<div class="aviso malo">
+<strong><code>users.hitandruns</code> es un contador HISTÓRICO</strong>, no de
+sanciones vivas. Hay <strong>251 usuarios con contador</strong> y sólo
+<strong>177 con un aviso activo</strong>: el resto ya los cumplió.
+</div>
+<table>
+<tr><th>Estado</th><th>Cuántos</th><th>Qué significa</th></tr>
+<tr><td>activo</td><td>1.250</td><td>penaliza ahora — es el que importa para moderar</td></tr>
+<tr><td>cumplido</td><td>218</td><td>visible, ya no penaliza</td></tr>
+<tr><td>borrado en lógico</td><td>614</td><td>rastro de «Delete All Warnings», que deja sin descargas <strong>para siempre</strong></td></tr>
+</table>
+<p>
+Los umbrales salen de la tabla <code>settings</code> <strong>en vivo</strong>, no
+de <code>config/hitrun.php</code>, que dice otra cosa: el máximo de avisos es
+<strong>5</strong> y no 3, la gracia <strong>14</strong> días y no 7. Si cambias
+el ajuste, los presets cambian solos sin tocar código.
+</p>
 
 <h2>Cómo se compone</h2>
 <p>
