@@ -10,7 +10,8 @@
     "TRAMPA GRANDE: «Delete All Warnings» borra en lógico, y AutoDeactivateWarning recorre esta tabla para devolver `can_download`. Sin filas visibles el usuario NO LO RECUPERA NUNCA. El botón de al lado, «Deactivate», sí funciona.",
     "Hay 1.225 avisos activos y 607 con baja lógica. Ahora mismo hay 1 usuario sin descargas y sin ningún aviso visible: ése es el patrón del fallo.",
     "El vencimiento de hit and run a 1.100 días es DELIBERADO. No proponer bajarlo.",
-    "Con `hitrun.expire` a 1100 días y el tracker abierto en marzo, ningún aviso puede haber vencido solo. Los 159 desactivados con fecha de vencimiento aún por llegar son, por fuerza, desactivaciones A MANO."
+    "Un aviso se desactiva por DOS caminos, y `AutoDeactivateWarning` hace los dos: que llegue su `expires_on`, o que el usuario ARREGLE el hit and run seedeando hasta el mínimo. Medido: de los 218 desactivados, 159 lo arreglaron seedeando y 59 vencieron por fecha. Ninguno se desactivó a mano.",
+    "La intervención humana está en los BORRADOS, no en las desactivaciones: 614 avisos borrados en lógico, 533 por RawSmoke, 12 por CUNYAT y 9 por System."
   ],
   "campos": [
     {

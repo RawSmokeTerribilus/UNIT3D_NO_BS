@@ -1,7 +1,7 @@
 {
   "nombre": "avisos-tocados-a-mano",
-  "titulo": "Avisos desactivados o borrados a mano",
-  "porque": "Quién ha tocado avisos y a quién. Con expire a 1100 días ninguno vence solo, así que todo lo que no esté activo lo desactivó o lo borró alguien. Es el registro de indultos del tracker.",
+  "titulo": "Avisos BORRADOS: quién y cuántos",
+  "porque": "La intervención humana de verdad son los borrados, no las desactivaciones: un aviso se desactiva solo cuando el usuario reseedea o cuando vence. Borrar es otra cosa, y además deja al usuario sin `can_download` para siempre si no le quedan filas visibles.",
   "capa": "global",
   "familia": "ratio, H&R y avisos",
   "parametros": [],

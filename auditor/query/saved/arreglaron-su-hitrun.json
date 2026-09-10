@@ -1,0 +1,38 @@
+{
+  "nombre": "arreglaron-su-hitrun",
+  "titulo": "Arreglaron su hit and run seedeando",
+  "porque": "Los que se comieron un aviso y lo resolvieron sembrando hasta el mínimo, en vez de esperar a que venciera. Son 159 avisos. Es la señal POSITIVA del sistema: conviene mirarla antes de sacar conclusiones de los recuentos de H&R.",
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "pedido_por": "Trash (reincidencia)",
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "avisos_desactivados",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "avisos_desactivados",
+        "avisos_activos",
+        "avisos_borrados",
+        "seedtime_medio",
+        "ratio"
+      ],
+      "ordenar": {
+        "campo": "avisos_desactivados",
+        "sentido": "desc"
+      }
+    }
+  ]
+}

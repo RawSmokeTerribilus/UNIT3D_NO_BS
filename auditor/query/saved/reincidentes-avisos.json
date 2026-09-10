@@ -1,7 +1,7 @@
 {
   "nombre": "reincidentes-avisos",
   "titulo": "Reincidentes: quién acumula avisos",
-  "porque": "Cuántos avisos lleva cada uno y en qué estado. Con expire a 1100 días nadie los ve caducar, así que un total alto y cero activos significa que alguien intervino. DoxData llegó a 230, todos borrados.",
+  "porque": "Cuántos avisos lleva cada uno y en qué estado. «Resueltos» significa que los arregló seedeando o que vencieron; «borrados» significa que alguien los quitó. DoxData llegó a 230, los 230 borrados. El caso vivo es rubenrgr_, con 78 activos y sin poder descargar.",
   "capa": "global",
   "familia": "ratio, H&R y avisos",
   "parametros": [],

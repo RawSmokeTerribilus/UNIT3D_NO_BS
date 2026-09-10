@@ -214,10 +214,10 @@
     },
     {
       "id": "avisos_desactivados",
-      "etiqueta": "Avisos cumplidos",
+      "etiqueta": "Avisos ya resueltos",
       "tipo": "numero",
       "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 0 AND w.deleted_at IS NULL)",
-      "nota": "Ya no penalizan pero siguen visibles. Son 218 en todo el tracker."
+      "nota": "Ya no penalizan. Son 218: 159 porque el usuario ARREGLÓ el hit and run seedeando hasta el mínimo, y 59 porque venció la fecha. Esto es el sistema funcionando, no indultos."
     },
     {
       "id": "avisos_borrados",
