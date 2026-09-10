@@ -238,6 +238,8 @@ def compilar(paso, entidades):
 
 def _origen(ent, paso):
     """Devuelve (FROM, paso sin la condición de rasgo, avisos)."""
+    if ent.subconsulta:
+        return "(%s)" % ent.subconsulta, paso, []
     if not ent.rasgos:
         return _ident(ent.tabla), paso, []
 
@@ -322,6 +324,39 @@ def _condiciones(nodo, ent, joins, params):
         partes = [p for p in partes if p]
         return "(%s)" % " OR ".join(partes) if partes else ""
     return _hoja(nodo, ent, joins, params)
+
+
+def resolver_parametros(pasos, valores):
+    """Sustituye {"param": "usuario"} por el valor que dio el operador.
+
+    El valor entra en la composición como un valor normal, así que acaba
+    viajando LIGADO igual que cualquier otro: no se interpola en el SQL. Un
+    nombre con comilla no rompe nada.
+    """
+    valores = valores or {}
+    faltan = []
+
+    def rec(x):
+        if isinstance(x, dict):
+            if "param" in x and len(x) <= 2:
+                nombre = x["param"]
+                if nombre not in valores or valores[nombre] in (None, ""):
+                    if "defecto" in x:
+                        return x["defecto"]
+                    faltan.append(nombre)
+                    return None
+                return valores[nombre]
+            return {k: rec(v) for k, v in x.items()}
+        if isinstance(x, list):
+            return [rec(v) for v in x]
+        return x
+
+    resueltos = rec(pasos)
+    if faltan:
+        raise CompileError(
+            "falta%s por rellenar: %s"
+            % ("" if len(faltan) == 1 else "n", ", ".join(sorted(set(faltan)))))
+    return resueltos
 
 
 def _hoja(nodo, ent, joins, params):

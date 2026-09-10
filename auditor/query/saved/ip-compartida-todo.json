@@ -1,0 +1,33 @@
+{
+  "nombre": "ip-compartida-todo",
+  "titulo": "Comparten IP (todas las procedencias)",
+  "porque": "Mira las CINCO procedencias a la vez: cliente, navegación, login fallido, seedbox y lista negra. Salen 19; mirando sólo el cliente salían 8. Compartir IP NO prueba nada: CGNAT, piso compartido, VPN y seedbox dan la misma señal.",
+  "pasos": [
+    {
+      "entidad": "ips_todas",
+      "agrupar": [
+        "ip"
+      ],
+      "calcular": [
+        {
+          "fn": "distintos",
+          "campo": "usuario"
+        }
+      ],
+      "umbral": {
+        "op": "más de",
+        "valor": 1
+      },
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "multicuenta",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash y RawSmoke"
+}

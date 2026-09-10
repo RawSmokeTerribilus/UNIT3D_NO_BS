@@ -483,22 +483,97 @@ function pintarResultado(d) {
 /* ----------------------------------------------------------------- guardadas */
 let GUARDADA = null;   // nombre de la composición cargada, si la hay
 
+let PRESETS = [];
+
+const CAPAS = {
+  global: 'Todo el padrón',
+  'individual-parcial': 'Sobre un usuario',
+};
+
 async function pintarGuardadas() {
-  const cont = $('#guardadas');
+  try { PRESETS = (await api('/api/query/saved')).guardadas; } catch (e) { return; }
+  pintarPresets();
+}
+
+function pintarPresets() {
+  const cont = $('#presets');
+  const filtro = ($('#preset-q').value || '').toLowerCase().trim();
   cont.textContent = '';
-  let d;
-  try { d = await api('/api/query/saved'); } catch (e) { return; }
-  if (!d.guardadas.length) {
-    cont.appendChild(el('span', { class: 'muted', text: 'todavía ninguna.' }));
-    return;
+
+  const visibles = PRESETS.filter((g) => !filtro ||
+    (g.titulo + ' ' + g.nombre + ' ' + (g.porque || '') + ' ' + (g.familia || '') +
+     ' ' + (g.pedido_por || '')).toLowerCase().includes(filtro));
+
+  $('#preset-cuenta').textContent =
+    visibles.length + ' de ' + PRESETS.length + (filtro ? ' (filtrando)' : '');
+
+  // Agrupados por capa y, dentro, por familia. La capa dice a qué contesta:
+  // al padrón entero o a una persona.
+  const porCapa = {};
+  for (const g of visibles) {
+    const capa = g.capa || 'global';
+    (porCapa[capa] = porCapa[capa] || {});
+    const fam = g.familia || 'sin clasificar';
+    (porCapa[capa][fam] = porCapa[capa][fam] || []).push(g);
   }
-  for (const g of d.guardadas) {
-    cont.appendChild(el('span', {
-      class: 'chip' + (GUARDADA === g.nombre ? ' on' : ''),
-      text: g.titulo, title: g.porque || g.nombre,
-      onclick: () => cargarGuardada(g),
+  for (const capa of Object.keys(porCapa).sort()) {
+    cont.appendChild(el('h3', { class: 'capa', text: CAPAS[capa] || capa }));
+    for (const fam of Object.keys(porCapa[capa]).sort()) {
+      cont.appendChild(el('div', { class: 'familia', text: fam }));
+      const rejilla = el('div', { class: 'rejilla' });
+      for (const g of porCapa[capa][fam]) rejilla.appendChild(tarjetaPreset(g));
+      cont.appendChild(rejilla);
+    }
+  }
+  if (!visibles.length) cont.appendChild(el('div', { class: 'muted', text: 'nada coincide.' }));
+}
+
+function tarjetaPreset(g) {
+  const caja = el('div', { class: 'preset' + (GUARDADA === g.nombre ? ' on' : '') });
+  caja.appendChild(el('div', { class: 'preset-titulo', text: g.titulo || g.nombre }));
+  if (g.porque) caja.appendChild(el('div', { class: 'preset-porque', text: g.porque }));
+
+  const pie = el('div', { class: 'preset-pie' });
+  if (g.ultima) {
+    pie.appendChild(el('span', {
+      class: g.ultima.error ? 'malo' : '',
+      text: g.ultima.error ? 'la última vez falló'
+        : (g.ultima.filas + ' filas · ' + g.ultima.cuando.slice(0, 16).replace('T', ' ')),
     }));
+  } else {
+    pie.appendChild(el('span', { class: 'muted', text: 'sin ejecutar' }));
   }
+  if (g.pedido_por) pie.appendChild(el('span', { class: 'muted', text: 'pidió: ' + g.pedido_por }));
+  if ((g.parametros || []).length) {
+    pie.appendChild(el('span', { class: 'param', text: 'pide: ' + g.parametros.join(', ') }));
+  }
+  caja.appendChild(pie);
+
+  const botones = el('div', { class: 'linea', style: 'margin-top:.5rem;gap:.3rem' });
+  botones.appendChild(el('button', {
+    class: 'icono primario', text: 'Ejecutar',
+    onclick: (ev) => { ev.stopPropagation(); lanzarPreset(g); },
+  }));
+  botones.appendChild(el('button', {
+    class: 'icono', text: 'Abrir en el compositor',
+    onclick: (ev) => { ev.stopPropagation(); cargarGuardada(g); $('#compositor-caja').open = true; },
+  }));
+  caja.appendChild(botones);
+  return caja;
+}
+
+async function lanzarPreset(g) {
+  const valores = {};
+  for (const nombre of g.parametros || []) {
+    const v = prompt('Valor para «' + nombre + '»:', '');
+    if (v === null) return;
+    valores[nombre] = v;
+  }
+  GUARDADA = g.nombre;
+  await ejecutar({ pasos: g.pasos, valores }, g.nombre);
+  pintarPresets();
+  pintarSerie(g.nombre);
+  $('#resultado-caja').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function cargarGuardada(g) {
@@ -596,6 +671,7 @@ $('#btn-guardar').addEventListener('click', async () => {
 });
 $('#btn-ejecutar-crudo').addEventListener('click', () => ejecutar({ sql: $('#sql-crudo').value }));
 $('#btn-crudo').addEventListener('click', () => $('#crudo').classList.toggle('oculto'));
+$('#preset-q').addEventListener('input', () => pintarPresets());
 $('#btn-ips').addEventListener('click', async () => {
   // El hilo de fondo ya recolecta cada 3 h; esto es para forzarlo antes de
   // mirar algo concreto.

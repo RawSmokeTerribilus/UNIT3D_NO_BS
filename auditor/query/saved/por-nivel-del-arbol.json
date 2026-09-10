@@ -1,0 +1,28 @@
+{
+  "nombre": "por-nivel-del-arbol",
+  "titulo": "Reparto por nivel del árbol",
+  "porque": "Cuánta gente hay en cada nivel: 0 son las raíces, 1 los que invitaron ellas, y así hasta 5.",
+  "pasos": [
+    {
+      "entidad": "familias",
+      "agrupar": [
+        "nivel"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "nivel",
+        "sentido": "asc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "invitaciones",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

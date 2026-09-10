@@ -1,0 +1,42 @@
+{
+  "nombre": "torrents-muertos",
+  "titulo": "Torrents sin una sola semilla",
+  "porque": "Se descargaron alguna vez y hoy no los sirve nadie. Son 29. Candidatos a pedir reseed.",
+  "pasos": [
+    {
+      "entidad": "torrents",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "semillas",
+            "op": "=",
+            "valor": 0
+          },
+          {
+            "campo": "completados",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "subidor",
+        "tamano",
+        "completados",
+        "creado",
+        "bump"
+      ],
+      "ordenar": {
+        "campo": "completados",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "subidas",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

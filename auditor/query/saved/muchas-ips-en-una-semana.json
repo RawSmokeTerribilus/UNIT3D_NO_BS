@@ -1,0 +1,36 @@
+{
+  "nombre": "muchas-ips-en-una-semana",
+  "titulo": "Más de 3 IPs distintas en la semana",
+  "porque": "17 usuarios. Sugiere VPN o red móvil, que no es infracción por sí misma. El máximo del tracker son 10 IPs.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "ips_ultima_semana",
+            "op": ">",
+            "valor": 3
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "ips_ultima_semana",
+        "ratio",
+        "hitandruns"
+      ],
+      "ordenar": {
+        "campo": "ips_ultima_semana",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

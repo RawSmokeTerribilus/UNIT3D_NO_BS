@@ -118,3 +118,29 @@ details summary { cursor: pointer; color: var(--muted); font-size: .8rem; }
 .ip-vacio { color: var(--off); font-style: italic; font-size: .85rem; }
 .ip-par { display: flex; gap: .6rem; font-size: .85rem; padding: .12rem 0; }
 .ip-par span:first-child { color: var(--muted); min-width: 10rem; }
+
+/* ---- panel de presets ---- */
+h3.capa {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--accent); margin: 1.6rem 0 .2rem; padding-bottom: .3rem;
+  border-bottom: 1px solid var(--line);
+}
+.familia { color: var(--muted); font-size: .78rem; margin: .9rem 0 .35rem; letter-spacing: .04em; }
+.rejilla { display: grid; gap: .5rem; grid-template-columns: 1fr; }
+@media (min-width: 900px)  { .rejilla { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1400px) { .rejilla { grid-template-columns: repeat(3, 1fr); } }
+.preset {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: .7rem .9rem; display: flex; flex-direction: column;
+}
+.preset.on { border-color: var(--accent); }
+.preset-titulo { font-size: .92rem; margin-bottom: .25rem; }
+.preset-porque { color: var(--muted); font-size: .78rem; line-height: 1.45; flex: 1; }
+.preset-pie {
+  display: flex; flex-wrap: wrap; gap: .2rem .9rem; margin-top: .5rem;
+  font-size: .72rem; color: var(--ok);
+}
+.preset-pie .malo { color: var(--bad); }
+.preset-pie .param { color: var(--warn); }
+#compositor-caja { margin-top: 2rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+#compositor-caja summary { list-style: none; }

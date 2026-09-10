@@ -87,6 +87,10 @@ class Entidad:
         # Columna del RESULTADO contra la que se puede cruzar en memoria cuando
         # esta entidad recibe un enlace y su fuente no habla SQL.
         self.enlace_en = d.get("enlace_en")
+        # Entidad cuyo FROM es una subconsulta en vez de una tabla. Sirve para
+        # lo que hay que calcular UNA vez y no fila a fila — el árbol de
+        # invitaciones, por ejemplo.
+        self.subconsulta = d.get("subconsulta")
         self.campos = {}
         for c in d.get("campos", []):
             campo = Campo(c)

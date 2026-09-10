@@ -31,5 +31,8 @@
   ],
   "nombre": "multicuenta-dos-senales",
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "global",
+  "familia": "multicuenta",
+  "parametros": []
 }

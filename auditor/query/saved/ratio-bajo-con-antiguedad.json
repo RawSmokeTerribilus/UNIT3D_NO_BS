@@ -1,0 +1,42 @@
+{
+  "nombre": "ratio-bajo-con-antiguedad",
+  "titulo": "Ratio malo pese a llevar tiempo",
+  "porque": "Llevan más de 90 días y siguen por debajo del mínimo. Distinto del novato que aún no ha arrancado.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "bajo_ratio_minimo",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "alta",
+            "op": "hace más de",
+            "valor": 90
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "ratio",
+        "alta",
+        "dias_sin_actividad",
+        "hitandruns"
+      ],
+      "ordenar": {
+        "campo": "ratio",
+        "sentido": "asc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

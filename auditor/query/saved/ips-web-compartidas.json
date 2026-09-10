@@ -25,5 +25,8 @@
   ],
   "nombre": "ips-web-compartidas",
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "global",
+  "familia": "multicuenta",
+  "parametros": []
 }

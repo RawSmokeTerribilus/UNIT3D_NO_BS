@@ -1,0 +1,41 @@
+{
+  "nombre": "seedtime-bajo-minimo",
+  "titulo": "Siembran menos del mínimo",
+  "porque": "Su seedtime medio no llega al mínimo de H&R (345.600 s = 96 h). Por sí solo no es infracción: cruzarlo con los avisos.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "seedtime_bajo_minimo",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "nunca_ha_descargado",
+            "op": "es",
+            "valor": false
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "seedtime_medio",
+        "hitandruns",
+        "ratio"
+      ],
+      "ordenar": {
+        "campo": "seedtime_medio",
+        "sentido": "asc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

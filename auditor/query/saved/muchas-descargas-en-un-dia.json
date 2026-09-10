@@ -1,0 +1,37 @@
+{
+  "nombre": "muchas-descargas-en-un-dia",
+  "titulo": "Más de 50 descargas en un solo día",
+  "porque": "66 usuarios lo han hecho alguna vez. El récord son 1.543 en 24 h.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "descargas_max_dia",
+            "op": ">",
+            "valor": 50
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "descargas_max_dia",
+        "usa_api",
+        "ratio",
+        "hitandruns"
+      ],
+      "ordenar": {
+        "campo": "descargas_max_dia",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

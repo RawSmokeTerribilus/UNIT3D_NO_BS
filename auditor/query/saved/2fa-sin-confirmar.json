@@ -30,5 +30,8 @@
     }
   ],
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "global",
+  "familia": "seguridad",
+  "parametros": []
 }

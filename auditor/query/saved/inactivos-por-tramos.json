@@ -1,0 +1,37 @@
+{
+  "nombre": "inactivos-por-tramos",
+  "titulo": "Inactividad por tramos",
+  "porque": "Cuánta gente lleva sin aparecer 30, 60, 90 o 180 días. La foto del padrón dormido de un vistazo.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "agrupar": [
+        "grupo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "condiciones": {
+        "y": [
+          {
+            "campo": "dias_sin_actividad",
+            "op": ">",
+            "valor": 90
+          }
+        ]
+      },
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

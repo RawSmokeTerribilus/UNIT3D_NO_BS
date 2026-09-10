@@ -28,5 +28,8 @@
   ],
   "nombre": "multicuenta-ip-cliente",
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "global",
+  "familia": "multicuenta",
+  "parametros": []
 }

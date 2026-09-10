@@ -28,5 +28,8 @@
   ],
   "nombre": "espias-quien-invito",
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "global",
+  "familia": "invitaciones",
+  "parametros": []
 }

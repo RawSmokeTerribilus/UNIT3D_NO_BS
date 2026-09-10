@@ -1,0 +1,37 @@
+{
+  "nombre": "cerca-del-ban",
+  "titulo": "A un aviso o dos del ban",
+  "porque": "Les quedan 2 o menos avisos para llegar al máximo. El umbral sale VIVO de settings: si lo cambias, este preset cambia solo.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "avisos_para_ban",
+            "op": "≤",
+            "valor": 2
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "avisos_activos",
+        "avisos_para_ban",
+        "hitandruns",
+        "ratio"
+      ],
+      "ordenar": {
+        "campo": "avisos_para_ban",
+        "sentido": "asc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

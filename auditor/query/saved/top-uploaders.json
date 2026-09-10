@@ -1,0 +1,37 @@
+{
+  "nombre": "top-uploaders",
+  "titulo": "Quién sostiene el catálogo",
+  "porque": "Los 89 que han subido algo, con su volumen, su pico y de qué familia vienen. dimensia lleva 3.878 torrents.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "torrents_subidos",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "torrents_subidos",
+        "volumen_subido",
+        "pico_subida",
+        "velocidad_subida",
+        "invitado_por_raiz"
+      ],
+      "ordenar": {
+        "campo": "torrents_subidos",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "subidas",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

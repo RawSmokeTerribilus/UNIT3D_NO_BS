@@ -1,6 +1,6 @@
 {
   "titulo": "Traza de cambios de un usuario",
-  "porque": "Qué le cambió y desde qué valor. Es como se resolvió rt001ztp: el salto de subida era una compra, no seedeo. Pon el id en «Id de la fila» y acota la ventana — leer el binlog son 1,7 GB por día.",
+  "porque": "Qué le cambió a una fila de `users` y desde qué valor, leyendo el binlog. Es como se resolvió rt001ztp: el salto de subida era una compra, no seedeo. Pide el ID numérico, no el nombre. Acota la ventana: son 1,7 GB de binlog por día.",
   "pasos": [
     {
       "entidad": "cambios",
@@ -17,7 +17,9 @@
           {
             "campo": "fila",
             "op": "es",
-            "valor": 1
+            "valor": {
+              "param": "id_de_usuario"
+            }
           }
         ]
       }
@@ -25,5 +27,10 @@
   ],
   "nombre": "traza-de-un-usuario",
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "individual-parcial",
+  "familia": "rastro",
+  "parametros": [
+    "id_de_usuario"
+  ]
 }

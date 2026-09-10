@@ -1,6 +1,7 @@
 {
-  "titulo": "Una IP probando varios usuarios",
-  "porque": "Intentos de login fallidos agrupados por IP. Puede ser alguien con dos cuentas, o fuerza bruta desde fuera: mira los nombres.",
+  "nombre": "nombres-casi-identicos",
+  "titulo": "Nombres de usuario casi idénticos",
+  "porque": "Iguales al quitar mayúsculas, dígitos y signos. 24 racimos. Ojo: cinco Davides no son cinco cuentas del mismo — esto sólo vale cruzado con otra señal.",
   "pasos": [
     {
       "entidad": "coincidencias",
@@ -9,14 +10,13 @@
           {
             "campo": "rasgo",
             "op": "es",
-            "valor": "ip_login_fallido"
+            "valor": "nombre_normalizado"
           }
         ]
       },
       "mostrar": [
-        "valor",
-        "usuarios",
         "quienes",
+        "usuarios",
         "primera",
         "ultima"
       ],
@@ -26,10 +26,10 @@
       }
     }
   ],
-  "nombre": "logins-fallidos-por-ip",
+  "capa": "global",
+  "familia": "multicuenta",
+  "parametros": [],
   "guardada_por": "sembrada",
   "origen": "sembrada",
-  "capa": "global",
-  "familia": "seguridad",
-  "parametros": []
+  "pedido_por": "Trash"
 }

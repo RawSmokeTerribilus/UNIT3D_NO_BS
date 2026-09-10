@@ -1,0 +1,30 @@
+{
+  "nombre": "altas-por-mes",
+  "titulo": "Altas por mes",
+  "porque": "Cuánta gente entró cada mes. Mayo fue el pico con 964.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "agrupar": [
+        {
+          "campo": "alta",
+          "granularidad": "mes"
+        }
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada"
+}

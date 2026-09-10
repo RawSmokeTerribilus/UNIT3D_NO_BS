@@ -28,25 +28,30 @@
     <div id="ip-resultado"></div>
   </div>
 
-  <h2>Compositor</h2>
-  <div id="pasos"></div>
-  <div class="linea" style="margin-top:.6rem">
-    <button id="btn-ejecutar" class="primario">Ejecutar</button>
-    <button id="btn-ver">Ver la consulta</button>
-    <button id="btn-guardar">Guardar…</button>
-    <button id="btn-limpiar">Limpiar</button>
-    <span class="muted" id="estado"></span>
+  <h2>Presets</h2>
+  <div class="linea" style="margin:.2rem 0 .8rem">
+    <input id="preset-q" placeholder="filtrar presets…" style="min-width:20rem" spellcheck="false">
+    <span class="muted" id="preset-cuenta"></span>
   </div>
+  <div id="presets"></div>
 
-  <h2>Guardadas</h2>
-  <p class="muted" style="font-size:.8rem;margin:.2rem 0 .5rem">
-    El catálogo crece por uso: se guarda lo que se repite, no se diseña antes.
-  </p>
-  <div id="guardadas" class="chips"></div>
   <div id="serie-caja" class="oculto">
     <h2>Esta consulta en el tiempo</h2>
     <div id="serie"></div>
   </div>
+
+  <details id="compositor-caja">
+    <summary><h2 style="display:inline">Compositor</h2>
+      <span class="muted">— para preguntar algo que no esté en el catálogo</span></summary>
+    <div id="pasos"></div>
+    <div class="linea" style="margin-top:.6rem">
+      <button id="btn-ejecutar" class="primario">Ejecutar</button>
+      <button id="btn-ver">Ver la consulta</button>
+      <button id="btn-guardar">Guardar…</button>
+      <button id="btn-limpiar">Limpiar</button>
+      <span class="muted" id="estado"></span>
+    </div>
+  </details>
 
   <div id="crudo" class="oculto">
     <h2>SQL a mano</h2>

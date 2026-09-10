@@ -1,0 +1,36 @@
+{
+  "nombre": "inactivos-60-dias",
+  "titulo": "Sin actividad en más de 60 días",
+  "porque": "Cuenta desde la última acción; si nunca la hubo, desde el acceso o el alta, para que una cuenta recién creada no salga como inactiva de años. Son 429.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "dias_sin_actividad",
+            "op": ">",
+            "valor": 60
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "dias_sin_actividad",
+        "ultima_accion",
+        "invites_sin_usar"
+      ],
+      "ordenar": {
+        "campo": "dias_sin_actividad",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "RawSmoke"
+}

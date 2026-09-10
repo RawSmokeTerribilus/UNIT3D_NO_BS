@@ -20,5 +20,8 @@
   ],
   "nombre": "compras-en-el-binlog",
   "guardada_por": "sembrada",
-  "origen": "sembrada"
+  "origen": "sembrada",
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": []
 }

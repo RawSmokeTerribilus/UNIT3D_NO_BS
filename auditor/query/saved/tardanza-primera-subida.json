@@ -1,0 +1,35 @@
+{
+  "nombre": "tardanza-primera-subida",
+  "titulo": "Cuánto tardan en subir su primer torrent",
+  "porque": "Días entre el alta y la primera subida. La media del tracker son 14.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "dias_hasta_primera_subida",
+            "op": "no está vacío",
+            "valor": null
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "alta",
+        "dias_hasta_primera_subida",
+        "torrents_subidos"
+      ],
+      "ordenar": {
+        "campo": "dias_hasta_primera_subida",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "subidas",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

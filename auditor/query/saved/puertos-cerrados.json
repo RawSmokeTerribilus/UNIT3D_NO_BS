@@ -1,0 +1,36 @@
+{
+  "nombre": "puertos-cerrados",
+  "titulo": "Con el puerto cerrado",
+  "porque": "Ninguno de sus clientes activos acepta conexiones entrantes: suben peor y lastran al enjambre. Son 1.033. Sólo cuenta a quien tiene conexiones activas.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "puerto_cerrado",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "clientes_activos",
+        "ratio",
+        "velocidad_subida"
+      ],
+      "ordenar": {
+        "campo": "clientes_activos",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Hector"
+}

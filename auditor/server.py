@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlparse
 from config import cfg
 from query import archive
 from query.compile import (OPERADORES, CompileError, compilar, compilar_binlog,
-                           compilar_loki, compilar_prom)
+                           compilar_loki, compilar_prom, resolver_parametros)
 from query.guard import GuardError, revisar
 from query.modelo import ModeloError, cargar
 from query.sources.binlog import BinlogError, BinlogSource
@@ -200,7 +200,8 @@ class Handler(BaseHTTPRequestHandler):
 def _compilar(cuerpo):
     """Enseña la consulta sin ejecutarla. Una cadena devuelve una por paso."""
     ents = cargar()
-    pasos = cuerpo.get("pasos") or [cuerpo.get("paso") or cuerpo]
+    pasos = resolver_parametros(
+        cuerpo.get("pasos") or [cuerpo.get("paso") or cuerpo], cuerpo.get("valores"))
     salida = []
     for i, paso in enumerate(pasos):
         paso = dict(paso)
@@ -267,8 +268,9 @@ def _ejecutar_inner(cuerpo, identidad, guardada, procedencia="api"):
     else:
         ents = cargar()
         pasos = cuerpo.get("pasos") or [cuerpo.get("paso") or cuerpo]
+        pasos = resolver_parametros(pasos, cuerpo.get("valores"))
         r, tramos = _cadena(pasos, ents, origen, limite)
-        composicion = {"pasos": pasos}
+        composicion = {"pasos": pasos, "valores": cuerpo.get("valores") or {}}
 
     run_id = archive.registrar(r, composicion=composicion, guardada=guardada,
                                identidad=identidad, origen=procedencia)
@@ -525,6 +527,9 @@ def _guardar(cuerpo, identidad):
         "titulo": cuerpo.get("titulo") or nombre.replace("-", " "),
         "porque": cuerpo.get("porque") or "",
         "pasos": cuerpo.get("pasos") or [],
+        "parametros": cuerpo.get("parametros") or [],
+        "capa": cuerpo.get("capa") or "global",
+        "familia": cuerpo.get("familia") or "sin clasificar",
         "guardada_por": identidad,
         "guardada_en": archive.now_utc(),
     }
@@ -561,7 +566,21 @@ def _listar_guardadas():
                 continue
             d["origen"] = origen
             d["editable"] = origen == "propia"
+            d.setdefault("capa", "global")
+            d.setdefault("familia", "sin clasificar")
+            d.setdefault("parametros", [])
             por_nombre[d.get("nombre") or f[:-5]] = d
+
+    # Última ejecución de cada uno, del archivo. Es lo que convierte la lista en
+    # un panel: se ve de un vistazo qué se miró y cuándo.
+    ultimas = {}
+    for e in archive.historial(limite=4000):
+        n = e.get("guardada")
+        if n and n not in ultimas:
+            ultimas[n] = {"cuando": e.get("ts_utc"), "filas": e.get("row_count"),
+                          "error": bool(e.get("error"))}
+    for n, d in por_nombre.items():
+        d["ultima"] = ultimas.get(n)
     return [por_nombre[k] for k in sorted(por_nombre)]
 
 
