@@ -458,6 +458,11 @@ function pintarResultado(d) {
     }));
   }
 
+  const cab = $('#resultado-titulo');
+  cab.textContent = '';
+  cab.appendChild(el('div', { class: 'res-titulo', text: d.titulo || 'Resultado' }));
+  if (d.porque) cab.appendChild(el('div', { class: 'res-porque', text: d.porque }));
+
   $('#resumen').textContent =
     d.meta.row_count + ' filas · ' + d.meta.duration_ms + ' ms · ' + (d.run_id || '');
 
@@ -639,6 +644,52 @@ async function pintarHistorial() {
 }
 
 /* ----------------------------------------------------------------- exportar */
+/* Un nombre de fichero que se pueda reconocer sin abrirlo. Antes eran todos
+   `20260910T135236Z-igbowq.csv` y con tres exportados no había forma. */
+export function babosa(t) {
+  return String(t || 'consulta').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+/* El run_id es 20260910T135941Z-q4fogn. De ahí salen tanto la fecha legible
+   como el sufijo del nombre de fichero. */
+function fecha(runId) {
+  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/.exec(runId || '');
+  if (!m) return { fichero: '', legible: '?' };
+  return {
+    fichero: m[1] + '-' + m[2] + '-' + m[3] + '_' + m[4] + m[5],
+    legible: m[1] + '-' + m[2] + '-' + m[3] + ' ' + m[4] + ':' + m[5] + ':' + m[6],
+  };
+}
+
+export function nombreFichero(d, ext) {
+  const f = fecha(d.run_id).fichero;
+  return babosa(d.guardada || d.titulo) + (f ? '_' + f : '') + '.' + ext;
+}
+
+/* Cabecera dentro del fichero. Comentada con # para que se lea de un vistazo y
+   los programas de hoja de cálculo la puedan saltar. */
+export function cabecera(d) {
+  const l = [];
+  l.push('# NOBS — Panel de consultas para auditorías');
+  l.push('# Informe: ' + (d.titulo || '(sin título)'));
+  if (d.porque) l.push('# Para qué: ' + d.porque.replace(/\s+/g, ' '));
+  if (d.familia) l.push('# Familia: ' + d.familia);
+  l.push('# Ejecutado: ' + fecha(d.run_id).legible + ' UTC · por ' +
+         (d.identidad || '?') + ' desde ' + (d.origen || '?'));
+  l.push('# Filas: ' + (d.meta ? d.meta.row_count : '?') +
+         (d.meta && d.meta.truncated ? '  (RECORTADO: hay más)' : '') +
+         ' · id de ejecución: ' + (d.run_id || '?'));
+  for (const w of (d.meta && d.meta.warnings) || []) l.push('# Aviso: ' + w.replace(/\s+/g, ' '));
+  if (d.meta && d.meta.consulta_generada) {
+    l.push('# Consulta:');
+    for (const linea of d.meta.consulta_generada.split('\n')) l.push('#   ' + linea);
+  }
+  l.push('');
+  return l.join('\n');
+}
+
 function descargar(nombre, texto, tipo) {
   const a = el('a', { href: URL.createObjectURL(new Blob([texto], { type: tipo })), download: nombre });
   document.body.appendChild(a); a.click(); a.remove();
@@ -715,11 +766,13 @@ $('#btn-csv').addEventListener('click', () => {
   if (!ULTIMO) return;
   const filas = [ULTIMO.columns.map(csvCampo).join(',')]
     .concat(ULTIMO.rows.map((r) => r.map(csvCampo).join(',')));
-  descargar((ULTIMO.run_id || 'consulta') + '.csv', filas.join('\n'), 'text/csv');
+  descargar(nombreFichero(ULTIMO, 'csv'),
+            cabecera(ULTIMO) + filas.join('\n'), 'text/csv');
 });
 $('#btn-json').addEventListener('click', () => {
   if (!ULTIMO) return;
-  descargar((ULTIMO.run_id || 'consulta') + '.json', JSON.stringify(ULTIMO, null, 2), 'application/json');
+  descargar(nombreFichero(ULTIMO, 'json'), JSON.stringify(ULTIMO, null, 2),
+            'application/json');
 });
 
 arrancar().catch((e) => { $('#cabecera-info').textContent = 'error: ' + e.message; });

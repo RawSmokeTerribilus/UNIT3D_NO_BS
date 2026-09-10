@@ -282,6 +282,19 @@ quien no la tiene usa los valores por defecto. Contar ahí no es contar usuarios
 Además se cachea en Redis, así que un UPDATE a mano no se ve hasta purgar.</td></tr>
 </table>
 
+<h2>Exportar</h2>
+<p>
+El CSV y el JSON salen con el <strong>nombre del informe en el fichero</strong>
+—<code>hr-activos_2026-09-10_1401.csv</code>— y con una cabecera dentro que dice
+qué es, para qué sirve, cuándo se ejecutó, cuántas filas trae, los avisos que
+llevaba y la consulta exacta que se lanzó. Con tres informes abiertos, sin eso no
+hay forma de saber cuál es cuál.
+</p>
+<p>
+Las líneas de cabecera van con <code>#</code> delante: se leen de un vistazo y
+las hojas de cálculo las pueden saltar al importar.
+</p>
+
 <h2>El archivo</h2>
 <p>
 Cada ejecución se guarda: quién, cuándo, desde dónde (panel, api o cli), la

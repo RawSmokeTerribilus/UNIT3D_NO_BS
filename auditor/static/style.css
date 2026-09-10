@@ -144,3 +144,7 @@ h3.capa {
 .preset-pie .param { color: var(--warn); }
 #compositor-caja { margin-top: 2rem; border-top: 1px solid var(--line); padding-top: .6rem; }
 #compositor-caja summary { list-style: none; }
+
+/* ---- título del informe ---- */
+.res-titulo { font-size: 1.05rem; color: var(--fg); margin-bottom: .15rem; }
+.res-porque { color: var(--muted); font-size: .82rem; line-height: 1.45; margin-bottom: .5rem; max-width: 80ch; }

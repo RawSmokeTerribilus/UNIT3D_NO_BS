@@ -1,7 +1,7 @@
 {
   "nombre": "ip-compartida-todo",
   "titulo": "Comparten IP (todas las procedencias)",
-  "porque": "Mira las CINCO procedencias a la vez: cliente, navegación, login fallido, seedbox y lista negra. Salen 19; mirando sólo el cliente salían 8. Compartir IP NO prueba nada: CGNAT, piso compartido, VPN y seedbox dan la misma señal.",
+  "porque": "Mira las CUATRO procedencias a la vez —cliente, navegación, login fallido y lista de bloqueo— en vez de una cada vez. Salen 19; mirando sólo el cliente salían 8. Las seedboxes NO entran: su IP está cifrada en la base. Y compartir IP no prueba nada: CGNAT, piso compartido y VPN dan la misma señal.",
   "pasos": [
     {
       "entidad": "ips_todas",

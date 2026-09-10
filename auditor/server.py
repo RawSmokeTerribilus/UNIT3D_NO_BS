@@ -281,6 +281,23 @@ def _ejecutar_inner(cuerpo, identidad, guardada, procedencia="api"):
                                identidad=identidad, origen=procedencia)
     d = r.to_dict()
     d["run_id"] = run_id
+    # Título y contexto viajan con el resultado: sin esto, un CSV exportado es
+    # indistinguible de otro en cuanto tienes tres abiertos.
+    d["guardada"] = guardada
+    d["identidad"] = identidad
+    d["origen"] = procedencia
+    if guardada:
+        for g in _listar_guardadas():
+            if g.get("nombre") == guardada:
+                d["titulo"] = g.get("titulo") or guardada
+                d["porque"] = g.get("porque") or ""
+                d["familia"] = g.get("familia") or ""
+                break
+    if not d.get("titulo"):
+        ent = (composicion or {}).get("pasos", [{}])
+        ent = ent[-1].get("entidad") if ent else None
+        d["titulo"] = ("Consulta a mano" if (composicion or {}).get("modo") == "crudo"
+                       else "Consulta sobre %s" % (ent or "?"))
     if not cuerpo.get("sql"):
         d["pasos"] = tramos
     return d
