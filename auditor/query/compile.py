@@ -160,10 +160,17 @@ def compilar(paso, entidades):
 
     # --- condiciones ---------------------------------------------------------
     donde = []
-    if ent.ambito:
+    if ent.ambito and not paso.get("sin_ambito"):
         donde.append("(%s)" % _cualificar(ent.ambito))
         if ent.ambito_etiqueta:
             avisos.append("Ámbito aplicado: %s (%s)." % (ent.ambito_etiqueta, ent.ambito))
+    elif ent.ambito:
+        # Salirse del ámbito es legítimo —auditar lo borrado, por ejemplo— pero
+        # tiene que DECIRSE: si no, un recuento incluye bajas lógicas sin que
+        # nadie se entere.
+        avisos.append(
+            "SIN el ámbito habitual (%s): entran también las filas que "
+            "normalmente se excluyen." % ent.ambito)
 
     arbol = paso.get("condiciones")
     if arbol:

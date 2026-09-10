@@ -9,7 +9,8 @@
   "notas": [
     "TRAMPA GRANDE: «Delete All Warnings» borra en lógico, y AutoDeactivateWarning recorre esta tabla para devolver `can_download`. Sin filas visibles el usuario NO LO RECUPERA NUNCA. El botón de al lado, «Deactivate», sí funciona.",
     "Hay 1.225 avisos activos y 607 con baja lógica. Ahora mismo hay 1 usuario sin descargas y sin ningún aviso visible: ése es el patrón del fallo.",
-    "El vencimiento de hit and run a 1.100 días es DELIBERADO. No proponer bajarlo."
+    "El vencimiento de hit and run a 1.100 días es DELIBERADO. No proponer bajarlo.",
+    "Con `hitrun.expire` a 1100 días y el tracker abierto en marzo, ningún aviso puede haber vencido solo. Los 159 desactivados con fecha de vencimiento aún por llegar son, por fuerza, desactivaciones A MANO."
   ],
   "campos": [
     {
@@ -27,8 +28,15 @@
     {
       "id": "puesto_por",
       "etiqueta": "Puesto por",
-      "col": "warned_by",
-      "tipo": "numero"
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "users",
+        "alias": "wp",
+        "por": "warned_by",
+        "clave_remota": "id",
+        "muestra": "username",
+        "filtra": "username"
+      }
     },
     {
       "id": "torrent",
@@ -57,8 +65,16 @@
     {
       "id": "borrado_por",
       "etiqueta": "Borrado por",
-      "col": "deleted_by",
-      "tipo": "numero"
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "users",
+        "alias": "wb",
+        "por": "deleted_by",
+        "clave_remota": "id",
+        "muestra": "username",
+        "filtra": "username"
+      },
+      "nota": "Quién lo borró. 533 los borró RawSmoke, 12 CUNYAT y 9 System; 60 no tienen quién."
     },
     {
       "id": "baja",
