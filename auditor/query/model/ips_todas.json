@@ -1,0 +1,64 @@
+{
+  "id": "ips_todas",
+  "nombre": "IPs (todas las procedencias)",
+  "fuente": "ipunion",
+  "tabla": "ips",
+  "clave": "usuario_id",
+  "notas": [
+    "Une las CINCO procedencias en una sola tabla, que es lo que hace falta para «quiénes comparten IP» de verdad: quien comparte la IP de cliente con uno y la de navegación con otro no sale mirando una fuente cada vez.",
+    "Mirando sólo `peers` salen 8 IPs compartidas. Uniendo peers, logins fallidos y seedboxes salen 15, y eso antes de sumar las de navegación.",
+    "LAS PROCEDENCIAS NO VALEN LO MISMO. `cliente` es la más fiable y la que más lejos llega (desde abril). `web` es una muestra recolectada de los logs, no un censo. `login-fallido` puede ser el dueño o cualquier otro intentando entrar. `seedbox` la declara el propio usuario. `bloqueada` no tiene usuario.",
+    "Y sigue valiendo lo de siempre: compartir IP no prueba nada. CGNAT, piso compartido, VPN y proveedor de seedbox dan la misma señal.",
+    "Las SEEDBOXES no están: `seedboxes.ip` se guarda CIFRADA (Crypt de Laravel). Meterla aquí sólo aportaba 24 cadenas base64 que no son IPs, y como el IV es aleatorio, la misma IP cifra distinto cada vez: compararlas no casa jamás."
+  ],
+  "campos": [
+    {
+      "id": "usuario",
+      "etiqueta": "Usuario",
+      "col": "usuario",
+      "tipo": "texto"
+    },
+    {
+      "id": "usuario_id",
+      "etiqueta": "Id de usuario",
+      "col": "usuario_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "ip",
+      "etiqueta": "IP",
+      "col": "ip",
+      "tipo": "texto"
+    },
+    {
+      "id": "procedencia",
+      "etiqueta": "Procedencia",
+      "col": "procedencia",
+      "tipo": "catalogo_fijo",
+      "valores": [
+        "cliente",
+        "web",
+        "login-fallido",
+        "bloqueada"
+      ]
+    },
+    {
+      "id": "veces",
+      "etiqueta": "Veces vista",
+      "col": "veces",
+      "tipo": "numero"
+    },
+    {
+      "id": "primera",
+      "etiqueta": "Primera vez",
+      "col": "primera",
+      "tipo": "fecha"
+    },
+    {
+      "id": "ultima",
+      "etiqueta": "Última vez",
+      "col": "ultima",
+      "tipo": "fecha"
+    }
+  ]
+}

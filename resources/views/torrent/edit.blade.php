@@ -111,9 +111,9 @@
                         @change="
                             cats[cat].type = cats[$event.target.value].type;
                             // Quedarse con una opción oculta seleccionada
-                            // enviaría un tipo que no corresponde. Por la
-                            // variable del x-model, no por $refs: si no, Alpine
-                            // repone el valor viejo al siguiente render.
+                            // enviaría un tipo que no corresponde.
+                            // Por la variable del x-model, no por $refs: si no,
+                            // Alpine repone el valor viejo al siguiente render.
                             if (!tipoVale(types[type]?.meta)) {
                                 type = '';
                             }

@@ -1,0 +1,36 @@
+{
+  "nombre": "bonus-sin-gastar",
+  "titulo": "Bonus acumulado y nunca gastado",
+  "porque": "Tienen puntos y no han comprado nada jamás. 1.630 personas. Dice si la tienda se usa o es decorado.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "bonus_sin_gastar",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "bonus",
+        "alta",
+        "dias_sin_actividad"
+      ],
+      "ordenar": {
+        "campo": "bonus",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

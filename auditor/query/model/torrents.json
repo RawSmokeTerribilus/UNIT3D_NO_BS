@@ -1,0 +1,153 @@
+{
+  "id": "torrents",
+  "nombre": "Torrents",
+  "fuente": "mysql",
+  "tabla": "torrents",
+  "clave": "id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo torrents vivos",
+  "notas": [
+    "10.778 vivos y 1.313 con baja lógica. Contar en crudo mete los borrados.",
+    "`free` y `doubleup` son la promoción DE ESTE torrent. Las promociones globales NO viven aquí ni en las columnas de grupo: la palanca son DOWNLOAD_FACTOR y UPLOAD_FACTOR del announce en Rust.",
+    "Los ids de categoría, tipo y resolución NO coinciden entre staging y producción. Leerlos siempre de esta base, nunca copiarlos de la otra."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "nombre",
+      "etiqueta": "Nombre",
+      "col": "name",
+      "tipo": "texto"
+    },
+    {
+      "id": "subidor",
+      "etiqueta": "Subido por",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "tamano",
+      "etiqueta": "Tamaño",
+      "col": "size",
+      "tipo": "bytes"
+    },
+    {
+      "id": "semillas",
+      "etiqueta": "Semillas",
+      "col": "seeders",
+      "tipo": "numero"
+    },
+    {
+      "id": "pares",
+      "etiqueta": "Sanguijuelas",
+      "col": "leechers",
+      "tipo": "numero"
+    },
+    {
+      "id": "completados",
+      "etiqueta": "Veces completado",
+      "col": "times_completed",
+      "tipo": "numero"
+    },
+    {
+      "id": "estado",
+      "etiqueta": "Estado",
+      "col": "status",
+      "tipo": "numero",
+      "nota": "0 pendiente · 1 aprobado · 2 rechazado · 3 aplazado. Vivos: 10.772 aprobados, 4 rechazados, 3 aplazados."
+    },
+    {
+      "id": "categoria",
+      "etiqueta": "Categoría",
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "categories",
+        "alias": "cat",
+        "por": "category_id",
+        "clave_remota": "id",
+        "muestra": "name",
+        "filtra": "name"
+      }
+    },
+    {
+      "id": "tipo",
+      "etiqueta": "Tipo",
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "types",
+        "alias": "ty",
+        "por": "type_id",
+        "clave_remota": "id",
+        "muestra": "name",
+        "filtra": "name"
+      },
+      "nota": "La tabla `types` es GLOBAL: no sabe a qué clase de obra pertenece cada tipo. Mezcla tipos de película con tipos de libro, y eso ya rompió /missing una vez."
+    },
+    {
+      "id": "gratis",
+      "etiqueta": "Freeleech",
+      "col": "free",
+      "tipo": "numero",
+      "nota": "Porcentaje de descarga perdonada SOLO de este torrent. Una promoción global no se ve aquí."
+    },
+    {
+      "id": "doble",
+      "etiqueta": "Doble subida",
+      "col": "doubleup",
+      "tipo": "bool"
+    },
+    {
+      "id": "interno",
+      "etiqueta": "Interno",
+      "col": "internal",
+      "tipo": "bool"
+    },
+    {
+      "id": "anonimo",
+      "etiqueta": "Anónimo",
+      "col": "anon",
+      "tipo": "bool"
+    },
+    {
+      "id": "moderado",
+      "etiqueta": "Moderado",
+      "col": "moderated_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "creado",
+      "etiqueta": "Subido",
+      "col": "created_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "bump",
+      "etiqueta": "Último bump",
+      "col": "bumped_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "baja",
+      "etiqueta": "Baja lógica",
+      "col": "deleted_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    },
+    {
+      "entidad": "descargas",
+      "por": "id",
+      "hacia": "torrent_id"
+    }
+  ]
+}

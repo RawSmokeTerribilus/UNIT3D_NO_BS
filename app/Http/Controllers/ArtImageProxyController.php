@@ -82,7 +82,13 @@ class ArtImageProxyController extends Controller
         'poster_small' => ['width' => 92,   'tmdb' => 'w92'],
     ];
 
-    public function show(Request $request, string $size): BinaryFileResponse
+    /**
+     * @param null|string $hash sha1 del origen. Sólo viaja en la ruta para que
+     *                          nginx sepa qué fichero servir sin ejecutar PHP;
+     *                          aquí se comprueba por coherencia y nada más — la
+     *                          autoridad sigue siendo la firma de la URL.
+     */
+    public function show(Request $request, string $size, ?string $hash = null): BinaryFileResponse
     {
         $sizes = self::SIZES;
         abort_unless(isset($sizes[$size]), 404);
@@ -92,6 +98,11 @@ class ArtImageProxyController extends Controller
 
         abort_if($url === '' || $host === '', 404);
         abort_unless(\in_array($host, self::HOSTS, true), 404);
+
+        // Si la ruta trae hash, tiene que ser el del origen. No aporta
+        // seguridad —la firma ya la aporta— pero evita que una URL mal formada
+        // acabe escribiendo la imagen en un fichero que nginx nunca buscara.
+        abort_if($hash !== null && !hash_equals(sha1($url), $hash), 404);
 
         $width     = $sizes[$size]['width'];
         $cacheDir  = storage_path('app/art-proxy/'.$size);

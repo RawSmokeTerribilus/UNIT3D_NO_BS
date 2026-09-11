@@ -124,9 +124,14 @@ if (!\function_exists('tmdb_image')) {
                 true
             )
         ) {
+            // El sha1 va en la RUTA, no sólo en el query: asi nginx encuentra
+            // el fichero ya cacheado (storage/app/art-proxy/{size}/{sha1}.jpg)
+            // y lo sirve sin arrancar PHP. Si falta, cae a Laravel, que lo
+            // genera. El query `u` sigue siendo la fuente de verdad y la firma
+            // sigue cubriendo la URL entera.
             return \Illuminate\Support\Facades\URL::signedRoute(
-                'authenticated_images.art_proxy',
-                ['size' => $type, 'u' => $original],
+                'authenticated_images.art_proxy_hashed',
+                ['size' => $type, 'hash' => sha1($original), 'u' => $original],
             );
         }
 

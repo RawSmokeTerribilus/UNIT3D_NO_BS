@@ -110,6 +110,16 @@ class TopTorrents extends Component
                                         ->whereRelation('category', 'tv_meta', '=', true)
                                         ->whereRelation('tv', 'adult', '=', false)
                                 )
+                                // Sin esta rama, ocultar el contenido adulto
+                                // escondia todo lo que no es pelicula ni serie:
+                                // libros, audiolibros, juegos y musica no tienen
+                                // ficha de TMDB que mirar. Mismo patron que
+                                // TorrentSearchFiltersDTO::toSqlQueryBuilder().
+                                ->orWhere(
+                                    fn ($query) => $query
+                                        ->whereRelation('category', 'movie_meta', '=', false)
+                                        ->whereRelation('category', 'tv_meta', '=', false)
+                                )
                         )
                 )
                 ->take(10)

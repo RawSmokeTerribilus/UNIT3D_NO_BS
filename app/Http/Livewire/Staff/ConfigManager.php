@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Staff;
 
 use App\Models\Setting;
-use App\Services\LeechAmnesty;
+use App\Services\PromoState;
 use Livewire\Component;
 
 class ConfigManager extends Component
@@ -31,6 +31,7 @@ class ConfigManager extends Component
             'icon'  => 'fa-globe',
             'settings' => [
                 'other.invite-only'                => ['label' => 'Solo por invitación',         'hint' => 'Los nuevos usuarios solo pueden registrarse con invitación',          'type' => 'boolean'],
+                'other.openreg_until'              => ['label' => 'Registro abierto hasta (UTC)', 'hint' => 'Cuándo se vuelve a cerrar el registro. Vacío = sin fecha de fin y sin reloj en el banner. La hora es UTC, no peninsular', 'type' => 'datetime'],
                 'other.default_style'              => ['label' => 'Tema por defecto',             'hint' => 'Tema que verán los nuevos usuarios al registrarse',                  'type' => 'theme'],
                 'services.telegram.instance_label' => ['label' => 'Etiqueta Telegram',            'hint' => 'Nombre identificador del sitio en las notificaciones de Telegram',   'type' => 'text'],
             ],
@@ -40,10 +41,11 @@ class ConfigManager extends Component
             'icon'  => 'fa-gift',
             'settings' => [
                 'other.freeleech'       => ['label' => 'Freeleech global',        'hint' => 'Todos los torrents son freeleech para todos los usuarios',             'type' => 'boolean'],
-                'other.freeleech_until' => ['label' => 'Freeleech hasta',         'hint' => 'Fecha y hora de fin del freeleech — formato: MM/DD/YYYY H:MM AM/PM TZ', 'type' => 'text'],
+                'other.freeleech_until' => ['label' => 'Freeleech hasta (UTC)',   'hint' => 'Cuándo se apaga el freeleech global. Vacío = sin fecha de fin y sin reloj en el banner. La hora es UTC, no peninsular', 'type' => 'datetime'],
                 'other.freeleech_leech_amnesty' => ['label' => 'Amnistía de descarga en freeleech', 'hint' => 'Mientras haya freeleech global, los Sanguijuela recuperan la descarga para poder reponer ratio. NO afecta a quien tiene la descarga revocada por Hit & Run. Al apagar el freeleech se revierte solo. Ojo: si revocas la descarga a mano a un Sanguijuela con pocos avisos, esto se la devuelve — para castigarlo de verdad, muévelo a Castigados', 'type' => 'boolean'],
                 'other.freeleech_leech_slots'   => ['label' => 'Slots durante la amnistía',       'hint' => 'Descargas simultáneas que se le conceden a Sanguijuela mientras dura la amnistía. Fuera de ella el grupo vuelve a 0, que no es un tope sino un bloqueo', 'type' => 'integer'],
                 'other.doubleup'        => ['label' => 'Double upload global',    'hint' => 'Todas las descargas cuentan el doble para el upload',                  'type' => 'boolean'],
+                'other.doubleup_until'  => ['label' => 'Double upload hasta (UTC)', 'hint' => 'Cuándo se apaga la doble subida global. Vacío = sin fecha de fin y sin reloj en el banner. La hora es UTC, no peninsular', 'type' => 'datetime'],
                 'other.refundable'      => ['label' => 'Ratio reembolsable',      'hint' => 'El ratio puede ser reembolsado al eliminar torrents propios',          'type' => 'boolean'],
             ],
         ],
@@ -63,7 +65,7 @@ class ConfigManager extends Component
             'icon'  => 'fa-envelope',
             'settings' => [
                 'other.invite_expire'           => ['label' => 'Expiración de invitación (días)',  'hint' => 'Días antes de que una invitación enviada expire',              'type' => 'integer'],
-                'other.max_unused_user_invites' => ['label' => 'Máx. invitaciones sin usar',       'hint' => 'Invitaciones pendientes máximas permitidas por usuario',      'type' => 'integer'],
+                'other.max_unused_user_invites' => ['label' => 'Tope al comprar invitaciones con BON', 'hint' => 'Si el usuario ya tiene este número de invitaciones sin gastar, la tienda de BON le deja de vender más. NO es un tope global: los packs de donación y las que regala el staff se lo saltan a propósito', 'type' => 'integer'],
             ],
         ],
         [
@@ -109,6 +111,48 @@ class ConfigManager extends Component
     // Keys stored internally in seconds but displayed/edited in hours
     private const HOUR_FIELDS = ['hitrun.seedtime'];
 
+    /**
+     * Fechas de fin de promo. Se guardan como 'Y-m-d H:i:s' en UTC y se editan
+     * con <input type="datetime-local">, que habla 'Y-m-d\TH:i'.
+     *
+     * Antes eran texto libre y nadie las validaba ni las parseaba en servidor:
+     * el reloj del banner era el unico que las leia, y en el navegador. Una
+     * cadena como '09/07/2026 3:00 PM EST' cabia igual que 'cuando yo diga'.
+     */
+    private const DATETIME_FIELDS = [
+        'other.freeleech_until',
+        'other.doubleup_until',
+        'other.openreg_until',
+    ];
+
+    private const DATETIME_INPUT_FORMAT = 'Y-m-d\TH:i';
+
+    private const DATETIME_STORAGE_FORMAT = 'Y-m-d H:i:s';
+
+    /**
+     * Interpreta lo que venga del formulario. Devuelve la cadena lista para la
+     * tabla, '' si el campo esta vacio, o null si no hay forma de entenderlo —
+     * y en ese caso no se guarda nada, que es mejor que guardar basura.
+     */
+    public static function parseDatetime(string $value): ?string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        foreach ([self::DATETIME_INPUT_FORMAT, 'Y-m-d\TH:i:s', self::DATETIME_STORAGE_FORMAT, 'Y-m-d H:i'] as $format) {
+            $parsed = \DateTimeImmutable::createFromFormat('!'.$format, $value, new \DateTimeZone('UTC'));
+
+            if ($parsed !== false) {
+                return $parsed->format(self::DATETIME_STORAGE_FORMAT);
+            }
+        }
+
+        return null;
+    }
+
     public function loadSettings(): void
     {
         $all = Setting::all();
@@ -125,12 +169,62 @@ class ConfigManager extends Component
             }
         }
 
+        foreach (self::DATETIME_FIELDS as $key) {
+            if (isset($this->idByKey[$key])) {
+                $id = $this->idByKey[$key];
+
+                if (isset($data[$id])) {
+                    $stored    = self::parseDatetime((string) $data[$id]);
+                    $data[$id] = $stored === null || $stored === ''
+                        ? ''
+                        : \DateTimeImmutable::createFromFormat(
+                            '!'.self::DATETIME_STORAGE_FORMAT,
+                            $stored,
+                            new \DateTimeZone('UTC')
+                        )->format(self::DATETIME_INPUT_FORMAT);
+                }
+            }
+        }
+
         $this->settingsData = $data;
     }
 
     public function save(): void
     {
         try {
+            // Las fechas se validan antes de tocar la tabla: si una no se
+            // entiende se aborta el guardado entero y se dice cual. Guardar
+            // media configuracion es peor que no guardar ninguna.
+            $invalid = [];
+
+            foreach (self::DATETIME_FIELDS as $key) {
+                if (!isset($this->idByKey[$key])) {
+                    continue;
+                }
+
+                $id = $this->idByKey[$key];
+
+                if (!isset($this->settingsData[$id])) {
+                    continue;
+                }
+
+                $parsed = self::parseDatetime((string) $this->settingsData[$id]);
+
+                if ($parsed === null) {
+                    $invalid[] = $key;
+
+                    continue;
+                }
+
+                $this->settingsData[$id] = $parsed;
+            }
+
+            if ($invalid !== []) {
+                session()->flash('error', 'Fecha no válida en: '.implode(', ', $invalid).'. No se ha guardado nada.');
+
+                return;
+            }
+
             // Convert hours → seconds before persisting
             foreach (self::HOUR_FIELDS as $key) {
                 if (isset($this->idByKey[$key])) {
@@ -141,55 +235,28 @@ class ConfigManager extends Component
                 }
             }
 
+            // Estado de las promos ANTES de escribir, para anunciar despues solo
+            // lo que ha cambiado de verdad.
+            $promosAntes = PromoState::states();
+
             foreach ($this->settingsData as $id => $value) {
                 Setting::where('id', $id)->update(['value' => (string) $value]);
             }
 
-            // Write JSON snapshot so the seeder restores live values after container rebuilds
-            $snapshot = Setting::all()->pluck('value', 'key')->toArray();
-            file_put_contents(
-                storage_path('app/settings.json'),
-                json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-            );
+            // Volcado a settings.json (lo que restaura el seeder tras un rebuild)
+            // + proyeccion sobre el tracker Rust + reconciliacion de la amnistia.
+            // Encender o apagar una promo tiene que surtir efecto ya, no en la
+            // siguiente pasada del comando periodico.
+            PromoState::persist();
 
-            $this->resyncLeechAmnesty();
+            // Encender o apagar una promo es un evento del sitio: se anuncia a
+            // los miembros en el topic de noticias.
+            PromoState::announceTransitions($promosAntes, PromoState::states());
 
             session()->flash('message', 'Configuración guardada correctamente.');
             $this->loadSettings();
         } catch (\Throwable) {
             session()->flash('error', 'Error al guardar. Revisa los logs.');
-        }
-    }
-
-    /**
-     * Encender o apagar el freeleech (o su amnistía) tiene que surtir efecto
-     * ya, no en la siguiente pasada del comando periódico.
-     *
-     * `Config::set` a mano porque SettingServiceProvider lee la tabla en el
-     * boot de la petición: los valores que acabamos de guardar todavía no
-     * están en `config()` dentro de esta misma request.
-     *
-     * Se traga sus propios errores: el guardado de la configuración no puede
-     * fracasar porque el announce esté caído. Si esto no corre, el comando
-     * `auto:leech-amnesty` lo arregla en menos de diez minutos.
-     */
-    private function resyncLeechAmnesty(): void
-    {
-        try {
-            $fresh = Setting::all()->pluck('value', 'key');
-
-            foreach (['other.freeleech', 'other.freeleech_leech_amnesty', 'other.freeleech_leech_slots'] as $key) {
-                if ($fresh->has($key)) {
-                    $value = $fresh[$key];
-                    config([$key => is_numeric($value) ? (int) $value : filter_var($value, FILTER_VALIDATE_BOOLEAN)]);
-                }
-            }
-
-            LeechAmnesty::sync();
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('ConfigManager: fallo al resincronizar la amnistía de Sanguijuela.', [
-                'error' => $e->getMessage(),
-            ]);
         }
     }
 

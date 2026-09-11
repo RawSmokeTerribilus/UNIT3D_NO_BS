@@ -49,6 +49,25 @@
                 @endforelse
 
                 @break
+            @case($torrent->category->book_meta)
+            @case($torrent->category->audiobook_meta)
+                {{-- El controlador devuelve libros o audiolibros según la
+                     categoría; los dos los pinta la misma portada. --}}
+                @forelse ($alsoDownloaded ?? [] as $work)
+                    <figure class="trending-poster">
+                        <x-book.poster :$work :categoryId="$work->category_id" />
+                        <figcaption
+                            class="trending-poster__download-count"
+                            title="Times downloaded"
+                        >
+                            {{ $work->total }}
+                        </figcaption>
+                    </figure>
+                @empty
+                    No other downloads found!
+                @endforelse
+
+                @break
             @default
                 No other downloads found!
         @endswitch

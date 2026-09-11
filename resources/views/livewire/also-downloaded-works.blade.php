@@ -20,12 +20,12 @@
         style="max-height: 330px !important"
     >
         {{-- La categoría la pone cada obra, no la página: "TV" y "Anime TV
-             Shows" (o "Movies" y "Anime Movies") comparten meta, así que
-             heredar la de la ficha actual componía enlaces como
-             /torrents/similar/5.48891 para una serie que sólo vive en la
-             categoría 2 --404 seguro--. `category_id` viene del MIN() de la
-             subconsulta, y por construcción es una categoría en la que esa
-             obra sí tiene torrents. --}}
+             Shows" (o "Movies" y "Anime Movies", o "E-Books" y "Audiobooks")
+             comparten meta, así que heredar la de la ficha actual componía
+             enlaces como /torrents/similar/5.48891 para una serie que sólo
+             vive en la categoría 2 --404 seguro--. `category_id` viene del
+             MIN() de la subconsulta, y por construcción es una categoría en
+             la que esa obra sí tiene torrents. --}}
         @foreach ($alsoDownloadedWorks as $alsoDownloadedWork)
             <figure class="trending-poster">
                 @switch($alsoDownloadedWork::class)
@@ -39,6 +39,11 @@
                         @break
                     @case(\App\Models\IgdbGame::class)
                         <x-game.poster :game="$alsoDownloadedWork" :categoryId="$alsoDownloadedWork->category_id ?? $categoryId" />
+
+                        @break
+                    @case(\App\Models\Book::class)
+                    @case(\App\Models\Audiobook::class)
+                        <x-book.poster :work="$alsoDownloadedWork" :categoryId="$alsoDownloadedWork->category_id ?? $categoryId" />
 
                         @break
                 @endswitch

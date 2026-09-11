@@ -1,0 +1,39 @@
+{
+  "nombre": "reincidentes-avisos",
+  "titulo": "Reincidentes: quién acumula avisos",
+  "porque": "Cuántos avisos lleva cada uno y en qué estado. «Resueltos» significa que los arregló seedeando o que vencieron; «borrados» significa que alguien los quitó. DoxData llegó a 230, los 230 borrados. El caso vivo es rubenrgr_, con 78 activos y sin poder descargar.",
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "pedido_por": "Trash",
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "avisos_historicos",
+            "op": "≥",
+            "valor": 5
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "avisos_historicos",
+        "avisos_activos",
+        "avisos_desactivados",
+        "avisos_borrados",
+        "hitandruns",
+        "puede_descargar"
+      ],
+      "ordenar": {
+        "campo": "avisos_historicos",
+        "sentido": "desc"
+      }
+    }
+  ]
+}

@@ -32,6 +32,8 @@ use App\DTO\TorrentSearchFiltersDTO;
 use App\Models\Category;
 use App\Models\Distributor;
 use App\Models\History;
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\IgdbGame;
 use App\Models\PlaylistCategory;
 use App\Models\TmdbMovie;
@@ -47,6 +49,7 @@ use App\Services\Unit3dAnnounce;
 use App\Traits\CastLivewireProperties;
 use App\Traits\LivewireSort;
 use App\Traits\TorrentMeta;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -59,11 +62,19 @@ class SimilarTorrent extends Component
 
     public Category $category;
 
-    public TmdbMovie|TmdbTv|IgdbGame $work;
+    public TmdbMovie|TmdbTv|IgdbGame|Book|Audiobook $work;
 
     public ?int $tmdbId;
 
     public ?int $igdbId;
+
+    /**
+     * El ISBN-13 de la obra, para agrupar libros y audiolibros.
+     *
+     * Va como cadena y no como entero a propósito: son trece dígitos con
+     * ceros que importan, y un `int` se comería un ISBN que empiece por cero.
+     */
+    public ?string $isbn13 = null;
 
     public string $reason;
 
@@ -220,6 +231,11 @@ class SimilarTorrent extends Component
             TmdbMovie::class => 'movie',
             TmdbTv::class    => 'tv',
             IgdbGame::class  => 'game',
+            // Los dos comparten etiqueta: se agrupan por el ISBN de la obra,
+            // así que el e-book y el audiolibro del mismo libro caen en el
+            // mismo cajón, que es justo lo que se quiere.
+            Book::class      => 'book',
+            Audiobook::class => 'book',
         });
     }
 
@@ -302,6 +318,15 @@ class SimilarTorrent extends Component
                         ->where('igdb', '=', $this->igdbId)
                         ->selectRaw("'game' as meta"),
                 )
+                // Libros y audiolibros se agrupan por el ISBN de la OBRA, así
+                // que un audiolibro que lo lleve sale junto al e-book del
+                // mismo libro. Es lo que uno espera de "similares".
+                ->when(
+                    $this->category->book_meta || $this->category->audiobook_meta,
+                    fn ($query) => $query
+                        ->where('isbn13', '=', $this->isbn13)
+                        ->selectRaw("'book' as meta"),
+                )
                 ->where((new TorrentSearchFiltersDTO(
                     name: $this->name,
                     description: $this->description,
@@ -352,6 +377,8 @@ class SimilarTorrent extends Component
                 TmdbMovie::class => self::groupTorrents($torrents)['movie'][$this->tmdbId]['Movie'] ?? [],
                 TmdbTv::class    => self::groupTorrents($torrents)['tv'][$this->tmdbId] ?? [],
                 IgdbGame::class  => self::groupTorrents($torrents)['game'][$this->igdbId]['Game'] ?? [],
+                Book::class      => self::groupTorrents($torrents)['book'][$this->isbn13] ?? [],
+                Audiobook::class => self::groupTorrents($torrents)['book'][$this->isbn13] ?? [],
             };
         }
     }
@@ -366,6 +393,10 @@ class SimilarTorrent extends Component
             ->when($this->category->movie_meta, fn ($query) => $query->where('tmdb_movie_id', '=', $this->tmdbId))
             ->when($this->category->tv_meta, fn ($query) => $query->where('tmdb_tv_id', '=', $this->tmdbId))
             ->when($this->category->game_meta, fn ($query) => $query->where('igdb', '=', $this->igdbId))
+            ->when(
+                $this->category->book_meta || $this->category->audiobook_meta,
+                fn ($query) => $query->where('isbn13', '=', $this->isbn13)
+            )
             ->where('category_id', '=', $this->category->id)
             ->when(
                 $this->hideFilledRequests,
@@ -414,6 +445,128 @@ class SimilarTorrent extends Component
         get => $this->work instanceof TmdbMovie
             ? $this->work->collections()->first()?->movies()->withMin('torrents', 'category_id')->has('torrents')->get()
             : null;
+    }
+
+    /**
+     * Las demás obras del mismo autor o de la misma saga, con torrent.
+     *
+     * El equivalente de `collectionMovies` para libros. En vídeo la colección
+     * la da TMDB ya montada; aquí hay que cruzarla, porque la saga y el autor
+     * viven en dos tablas distintas y ninguna de las dos es obligatoria.
+     *
+     * Se cruza por las DOS y se unen los resultados: la saga es lo que uno
+     * espera --abrir «Alas de fuego» y ver «Alas negras»-- pero está vacía en
+     * casi todo el catálogo, porque ni Audnexus ni Google Books la devuelven
+     * para las ediciones en castellano (medido: `seriesPrimary: null` en los
+     * tres audiolibros de prod). El autor sí llega siempre, así que es el
+     * cruce que de verdad sostiene el bloque hoy.
+     *
+     * Sólo salen obras que tengan torrent: el destino es la página de
+     * similares y ésa aborta con 404 cuando no hay ninguno, así que sin este
+     * filtro el bloque pintaría enlaces muertos.
+     *
+     * @var \Illuminate\Support\Collection<string, Audiobook|Book>
+     */
+    final protected \Illuminate\Support\Collection $relatedWorks {
+        get {
+            if (!($this->category->book_meta || $this->category->audiobook_meta)) {
+                return collect();
+            }
+
+            /** @var array<int, string> $olids */
+            $olids = $this->work->bookAuthors()->pluck('book_authors.olid')->all();
+            $seriesId = $this->work->book_series_id;
+
+            if ($olids === [] && $seriesId === null) {
+                return collect();
+            }
+
+            $porAutorOSaga = function ($query, string $tablaPivote, string $clave) use ($olids, $seriesId) {
+                $query->where(function ($query) use ($olids, $seriesId, $tablaPivote, $clave): void {
+                    if ($olids !== []) {
+                        $query->orWhereIn(
+                            $clave,
+                            DB::table($tablaPivote)->select($clave)->whereIn('author_olid', $olids)
+                        );
+                    }
+
+                    if ($seriesId !== null) {
+                        $query->orWhere('book_series_id', '=', $seriesId);
+                    }
+                });
+            };
+
+            $isbn13s = Book::query()->tap(fn ($q) => $porAutorOSaga($q, 'book_author', 'isbn13'))->pluck('isbn13')->all();
+            $asins = Audiobook::query()->tap(fn ($q) => $porAutorOSaga($q, 'audiobook_author', 'asin'))->pluck('asin')->all();
+
+            if ($isbn13s === [] && $asins === []) {
+                return collect();
+            }
+
+            // Se parte de los TORRENTS y no de las obras porque de aquí salen
+            // las tres cosas que hacen falta: que la obra exista en el
+            // tracker, en qué categoría vive --un e-book y su audiolibro no
+            // están en la misma-- y a dónde enlazar.
+            $torrents = Torrent::query()
+                ->select('id', 'category_id', 'isbn13', 'asin')
+                ->with('category:id,book_meta,audiobook_meta')
+                ->where(function ($query) use ($isbn13s, $asins): void {
+                    if ($isbn13s !== []) {
+                        $query->orWhereIn('isbn13', $isbn13s);
+                    }
+
+                    if ($asins !== []) {
+                        $query->orWhereIn('asin', $asins);
+                    }
+                })
+                ->oldest('id')
+                ->get();
+
+            $libros = $isbn13s === [] ? collect() : Book::query()->whereIn('isbn13', $isbn13s)->get()->keyBy('isbn13');
+            $audiolibros = $asins === [] ? collect() : Audiobook::query()->whereIn('asin', $asins)->get()->keyBy('asin');
+
+            $actual = $this->work instanceof Audiobook
+                ? 'a:'.$this->work->asin
+                : 'b:'.$this->work->isbn13;
+
+            $obras = collect();
+
+            foreach ($torrents as $torrent) {
+                $esAudio = (bool) $torrent->category?->audiobook_meta;
+
+                // La obra se resuelve igual que en la ficha del torrent:
+                // primero el audiolibro por su ASIN y, si no hay, el libro
+                // por el ISBN. Un audiolibro de lectura libre no tiene fila
+                // en `audiobooks` --no tiene ASIN, sólo el ISBN de la obra--
+                // y buscarlo únicamente por ASIN lo dejaba fuera del bloque.
+                $obra = null;
+                $clave = null;
+
+                if ($esAudio && $torrent->asin !== null && isset($audiolibros[$torrent->asin])) {
+                    $obra = $audiolibros[$torrent->asin];
+                    $clave = 'a:'.$torrent->asin;
+                } elseif ($torrent->isbn13 !== null && isset($libros[$torrent->isbn13])) {
+                    $obra = $libros[$torrent->isbn13];
+                    $clave = 'b:'.$torrent->isbn13;
+                }
+
+                if ($obra === null || $clave === $actual || $obras->has($clave)) {
+                    continue;
+                }
+
+                // Un audiolibro sin ISBN de obra no tiene página de similares
+                // --ésa agrupa por ISBN-- así que se enlaza su torrent, que es
+                // mejor que esconderlo. Es el caso de los que vienen de
+                // Audible con ASIN y nada más.
+                $obra->setAttribute('enlace', $torrent->isbn13 === null
+                    ? route('torrents.show', ['id' => $torrent->id])
+                    : route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->isbn13]));
+
+                $obras->put($clave, $obra);
+            }
+
+            return $obras;
+        }
     }
 
     final public function alertConfirm(): void
@@ -570,6 +723,7 @@ class SimilarTorrent extends Component
             'distributors'       => $this->distributors,
             'playlistCategories' => $this->playlistCategories,
             'collectionMovies'   => $this->collectionMovies,
+            'relatedWorks'       => $this->relatedWorks,
         ]);
     }
 }

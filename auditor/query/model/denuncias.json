@@ -1,0 +1,91 @@
+{
+  "id": "denuncias",
+  "nombre": "Denuncias",
+  "fuente": "mysql",
+  "tabla": "reports",
+  "clave": "id",
+  "notas": [
+    "14 sin resolver ahora mismo. `solved_at` vacío es el criterio, no `verdict`."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "tipo",
+      "etiqueta": "Tipo",
+      "col": "type",
+      "tipo": "texto"
+    },
+    {
+      "id": "titulo",
+      "etiqueta": "Título",
+      "col": "title",
+      "tipo": "texto"
+    },
+    {
+      "id": "denunciante",
+      "etiqueta": "Denunciante",
+      "col": "reporter_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "denunciado",
+      "etiqueta": "Usuario denunciado",
+      "col": "reported_user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "torrent",
+      "etiqueta": "Torrent denunciado",
+      "col": "reported_torrent_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "asignada_a",
+      "etiqueta": "Asignada a",
+      "col": "assigned_to",
+      "tipo": "numero"
+    },
+    {
+      "id": "veredicto",
+      "etiqueta": "Veredicto",
+      "col": "verdict",
+      "tipo": "texto"
+    },
+    {
+      "id": "resuelta_por",
+      "etiqueta": "Resuelta por",
+      "col": "solved_by",
+      "tipo": "numero"
+    },
+    {
+      "id": "resuelta",
+      "etiqueta": "Resuelta",
+      "col": "solved_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "aplazada_hasta",
+      "etiqueta": "Aplazada hasta",
+      "col": "snoozed_until",
+      "tipo": "fecha"
+    },
+    {
+      "id": "creada",
+      "etiqueta": "Creada",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "reported_user_id",
+      "hacia": "id"
+    }
+  ]
+}

@@ -21,6 +21,31 @@ if [ -z "${TRACKER_KEY:-}" ]; then
     exit 1
 fi
 
+# Las promos globales las gobierna el dashboard (settings `other.freeleech` y
+# `other.doubleup`), que reescribe DOWNLOAD_FACTOR / UPLOAD_FACTOR en este mismo
+# fichero y llama a /config/reload. /app es un bind mount del host, asi que el
+# fichero sobrevive al contenedor: aqui hay que conservar esos valores o cada
+# reinicio apagaria la promo en silencio.
+#
+# Las TRACKER_*_FACTOR quedan solo como semilla del primer arranque, cuando el
+# fichero todavia no existe.
+preserved_factor() {
+    # $1 = nombre de la variable, $2 = valor por defecto
+    if [ -f /app/.env ]; then
+        persisted="$(sed -n "s/^$1=\([0-9]\{1,3\}\)\$/\1/p" /app/.env | head -1)"
+
+        if [ -n "$persisted" ]; then
+            printf '%s' "$persisted"
+            return 0
+        fi
+    fi
+
+    printf '%s' "$2"
+}
+
+download_factor="$(preserved_factor DOWNLOAD_FACTOR "${TRACKER_DOWNLOAD_FACTOR:-100}")"
+upload_factor="$(preserved_factor UPLOAD_FACTOR "${TRACKER_UPLOAD_FACTOR:-100}")"
+
 db_user_encoded="$(urlencode "$db_user")"
 db_password_encoded="$(urlencode "$db_password")"
 db_name_encoded="$(urlencode "$db_name")"
@@ -35,8 +60,8 @@ NUMWANT_MAX=${TRACKER_NUMWANT_MAX:-15}
 ANNOUNCE_MIN=${TRACKER_ANNOUNCE_MIN:-1800}
 ANNOUNCE_MIN_ENFORCED=${TRACKER_ANNOUNCE_MIN_ENFORCED:-1740}
 ANNOUNCE_MAX=${TRACKER_ANNOUNCE_MAX:-3600}
-UPLOAD_FACTOR=${TRACKER_UPLOAD_FACTOR:-100}
-DOWNLOAD_FACTOR=${TRACKER_DOWNLOAD_FACTOR:-100}
+UPLOAD_FACTOR=${upload_factor}
+DOWNLOAD_FACTOR=${download_factor}
 PEER_EXPIRY_INTERVAL=${TRACKER_PEER_EXPIRY_INTERVAL:-1800}
 ACTIVE_PEER_TTL=${TRACKER_ACTIVE_PEER_TTL:-7200}
 INACTIVE_PEER_TTL=${TRACKER_INACTIVE_PEER_TTL:-1814400}
@@ -52,5 +77,10 @@ REVERSE_PROXY_CLIENT_IP_HEADER_NAME=${TRACKER_REVERSE_PROXY_CLIENT_IP_HEADER_NAM
 USER_RECEIVE_SEED_LIST_RATE_LIMITS="${TRACKER_USER_RECEIVE_SEED_LIST_RATE_LIMITS:-60=10;900=25;7200=125;86400=500;604800=2500}"
 USER_RECEIVE_LEECH_LIST_RATE_LIMITS="${TRACKER_USER_RECEIVE_LEECH_LIST_RATE_LIMITS:-60=20;900=50;7200=250;86400=1000;604800=5000}"
 EOF
+
+# www-data (uid 82) reescribe DOWNLOAD_FACTOR desde el panel de configuracion.
+# El announce corre como root, asi que sigue leyendolo sin problema.
+chown 82:82 /app/.env 2>/dev/null || true
+chmod 640 /app/.env
 
 exec /usr/local/bin/unit3d-announce

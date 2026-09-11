@@ -143,3 +143,11 @@ vendor.bak*
 
 # Cache de PHPStan (tmpDir en phpstan.neon)
 /.phpstan.cache
+
+# Estado vivo del announce: contiene DATABASE_URL, nunca al repositorio.
+.docker/announce/runtime/
+
+# panel de consultas para auditorías — config local + archivo de ejecuciones
+auditor/auditor.env
+auditor/run/
+auditor/**/__pycache__/

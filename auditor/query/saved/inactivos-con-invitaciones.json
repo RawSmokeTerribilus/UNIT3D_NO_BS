@@ -1,0 +1,40 @@
+{
+  "nombre": "inactivos-con-invitaciones",
+  "titulo": "Inactivos que acaparan invitaciones",
+  "porque": "Llevan más de 60 días sin aparecer y siguen teniendo invitaciones disponibles. Son 41.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "dias_sin_actividad",
+            "op": ">",
+            "valor": 60
+          },
+          {
+            "campo": "invites_sin_usar",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "invites_sin_usar",
+        "dias_sin_actividad"
+      ],
+      "ordenar": {
+        "campo": "invites_sin_usar",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

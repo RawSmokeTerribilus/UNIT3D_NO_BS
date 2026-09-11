@@ -1,0 +1,31 @@
+{
+  "nombre": "franjas-horarias",
+  "titulo": "A qué hora se descarga",
+  "porque": "Reparto de descargas por hora del día, en UTC. El pico de NOBS son las 14:00.",
+  "pasos": [
+    {
+      "entidad": "descargas",
+      "agrupar": [
+        {
+          "campo": "creado",
+          "granularidad": "franja"
+        }
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

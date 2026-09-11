@@ -35,6 +35,7 @@ use App\Console\Commands\AutoCorrectHistory;
 use App\Console\Commands\AutoDeactivateWarning;
 use App\Console\Commands\AutoDeleteStoppedPeers;
 use App\Console\Commands\AutoDisableInactiveUsers;
+use App\Console\Commands\AutoExpirePromos;
 use App\Console\Commands\AutoFlushPeers;
 use App\Console\Commands\AutoGroup;
 use App\Console\Commands\AutoLeechAmnesty;
@@ -59,6 +60,7 @@ use App\Console\Commands\AutoSyncTorrentsToMeilisearch;
 use App\Console\Commands\AutoTorrentBalance;
 use App\Console\Commands\AutoUnbookmarkCompletedTorrents;
 use App\Console\Commands\AutoUpdateUserLastActions;
+use App\Console\Commands\StaffDigestCommand;
 use App\Console\Commands\AutoUpsertAnnounces;
 use App\Console\Commands\AutoUpsertHistories;
 use App\Console\Commands\AutoUpsertPeers;
@@ -67,6 +69,7 @@ use App\Console\Commands\DeleteUnparticipatedConversations;
 use App\Console\Commands\DispatchMetaRefresh;
 use App\Console\Commands\EmailBlacklistUpdate;
 use App\Console\Commands\SyncDisposableEmailDomains;
+use App\Console\Commands\PruneDescriptionImageCache;
 use App\Console\Commands\SyncPeers;
 use Illuminate\Auth\Console\ClearResetsCommand;
 use Illuminate\Console\Scheduling\Schedule;
@@ -94,6 +97,16 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoDeleteStoppedPeers::class)->everyTwoMinutes();
         $schedule->command(AutoUnbookmarkCompletedTorrents::class)->everyFifteenMinutes();
         $schedule->command(AutoGroup::class)->daily();
+        // Resumen operativo al grupo de staff. El diario se manda SIEMPRE, aunque
+        // este todo a cero: sirve de latido, y si un dia no llega es que el cron
+        // se ha muerto. El --watch solo habla cuando una metrica CRUZA su umbral
+        // y no repite hasta que baje.
+        $schedule->command(StaffDigestCommand::class)->dailyAt('08:00');
+        $schedule->command(StaffDigestCommand::class, ['--watch'])->everyFifteenMinutes()->withoutOverlapping();
+        // Caducidad de las promos globales. Va ANTES de la amnistia a proposito:
+        // si apaga el freeleech, la amnistia que corre a continuacion ya lo ve y
+        // revierte los slots de Sanguijuela en la misma pasada.
+        $schedule->command(AutoExpirePromos::class)->everyTenMinutes()->withoutOverlapping();
         // La amnistia tiene que reaccionar al interruptor del freeleech sin
         // esperar a la madrugada. Son ~40 filas: el coste es nulo.
         $schedule->command(AutoLeechAmnesty::class)->everyTenMinutes()->withoutOverlapping();
@@ -127,6 +140,10 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoSyncPeopleToMeilisearch::class)->daily();
         $schedule->command(AutoRemoveExpiredDonors::class)->daily();
         $schedule->command(AutoRemoveReseeds::class)->daily();
+        // La caché del proxy de imágenes de descripción crece con cada imagen
+        // servida y no se borraba nunca. Poda diaria hasta el tope, tirando
+        // primero de lo menos pedido.
+        $schedule->command(PruneDescriptionImageCache::class)->dailyAt('05:00')->withoutOverlapping(30);
         // withoutOverlapping(10) — auto-release the lock after 10 minutes.
         // Default TTL is 24h; if the 06:00 server-wide backup nukes a running
         // command mid-execution, the leaked lock would silently block the next

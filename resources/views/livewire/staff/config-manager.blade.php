@@ -157,6 +157,18 @@
                                                 </div>
                                                 @break
 
+                                            @case('datetime')
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <input
+                                                        type="datetime-local"
+                                                        class="form__input"
+                                                        wire:model="settingsData.{{ $id }}"
+                                                        style="max-width: 260px;"
+                                                    />
+                                                    <small style="color: var(--color-text-muted, #888);">UTC</small>
+                                                </div>
+                                                @break
+
                                             @default
                                                 <input
                                                     type="text"

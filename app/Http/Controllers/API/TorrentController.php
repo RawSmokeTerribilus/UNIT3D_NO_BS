@@ -41,6 +41,8 @@ use App\Models\FeaturedTorrent;
 use App\Models\IgdbGame;
 use App\Models\Keyword;
 use App\Models\TmdbMovie;
+use App\Enums\ModerationStatus;
+use Closure;
 use App\Models\Torrent;
 use App\Models\TorrentFile;
 use App\Models\TmdbTv;
@@ -168,6 +170,7 @@ class TorrentController extends BaseController
         $torrent->mediainfo = TorrentTools::anonymizeMediainfo($request->filled('mediainfo') ? $request->string('mediainfo') : null);
         $torrent->bdinfo = $request->input('bdinfo');
         $torrent->info_hash = $infohash;
+        $torrent->content_hash = TorrentTools::contentHash($decodedTorrent);
         $torrent->file_name = $fileName;
         $torrent->num_file = $meta['count'];
         $torrent->folder = Bencode::get_name($decodedTorrent);
@@ -250,6 +253,45 @@ class TorrentController extends BaseController
             'info_hash' => [
                 'required',
                 Rule::unique('torrents')->whereNull('deleted_at'),
+            ],
+            // La huella del contenido es lo que de verdad dice "esto ya esta
+            // subido": el info_hash cambia con el piece length, la fecha de
+            // creacion y la entropia del .torrent regenerado, asi que dos copias
+            // identicas byte a byte pasaban el filtro sin despeinarse.
+            //
+            // No vale un Rule::unique() con mensaje fijo: el que choca puede
+            // estar pendiente o aplazado, y entonces el ApprovedScope lo esconde
+            // del catalogo. El uploader recibia "duplicado" y no encontraba nada
+            // al buscarlo. Hay que decirle CUAL es y en que estado esta.
+            'content_hash' => [
+                'required',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $gemelo = Torrent::withoutGlobalScopes()
+                        ->where('content_hash', '=', $value)
+                        ->whereNull('deleted_at')
+                        ->first();
+
+                    if ($gemelo === null) {
+                        return;
+                    }
+
+                    // withoutGlobalScopes() se lleva por delante el de borrado
+                    // logico tambien, de ahi el whereNull explicito: un torrent
+                    // retirado tiene que poder volver a subirse.
+                    $estado = match ($gemelo->status) {
+                        ModerationStatus::PENDING   => 'pendiente de moderar, por eso no aparece en el catalogo',
+                        ModerationStatus::APPROVED  => 'ya publicado',
+                        ModerationStatus::REJECTED  => 'rechazado por el staff',
+                        ModerationStatus::POSTPONED => 'aplazado por el staff, por eso no aparece en el catalogo',
+                    };
+
+                    $fail(sprintf(
+                        'Ya existe un torrent con este mismo contenido: #%d - %s (%s). Mismos ficheros y mismos tamanos, aunque el .torrent sea otro.',
+                        $gemelo->id,
+                        $gemelo->name,
+                        $estado,
+                    ));
+                },
             ],
             'file_name' => [
                 'required',
@@ -798,7 +840,15 @@ class TorrentController extends BaseController
         // Auth keys must not be cached
         $torrents->through(function ($torrent) {
             $torrent['attributes']['download_link'] = route('torrent.download.rsskey', ['id' => $torrent['id'], 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]);
-            $torrent['attributes']['magnet_link'] = config('torrent.magnet') ? 'magnet:?dn='.$torrent['attributes']['name'].'&xt=urn:btih:'.$torrent['attributes']['info_hash'].'&as='.route('torrent.download.rsskey', ['id' => $torrent['id'], 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]).'&tr='.route('announce', ['passkey' => auth(AuthGuard::API->value)->user()->passkey]).'&xl='.$torrent['attributes']['size'] : null;
+            $torrent['attributes']['magnet_link'] = config('torrent.magnet')
+                ? \App\Services\MagnetLink::build(
+                    (int) $torrent['id'],
+                    (string) $torrent['attributes']['name'],
+                    (string) $torrent['attributes']['info_hash'],
+                    auth(AuthGuard::API->value)->user(),
+                    (int) $torrent['attributes']['size'],
+                )
+                : null;
 
             return $torrent;
         });

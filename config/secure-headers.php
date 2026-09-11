@@ -471,7 +471,10 @@ return [
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content
-        'block-all-mixed-content' => true,
+        // Obsoleto y fuera de la especificacion: lo sustituye por completo
+        // `upgrade-insecure-requests`, que esta activo mas abajo. Los navegadores
+        // lo ignoran y ademas lo avisan por consola, asi que solo aportaba ruido.
+        'block-all-mixed-content' => false,
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/upgrade-insecure-requests
         'upgrade-insecure-requests' => true,

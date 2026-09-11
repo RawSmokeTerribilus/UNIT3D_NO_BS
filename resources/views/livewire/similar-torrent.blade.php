@@ -1110,6 +1110,43 @@
             </section>
         @endif
 
+        {{-- La "colección" de un libro se cruza, no viene dada: TMDB entrega
+             la de una peli ya montada y aquí hay que unir saga y autor. El
+             componente decide a dónde enlaza cada obra --a similares o al
+             torrent-- porque un audiolibro sin ISBN no tiene página propia. --}}
+        @if ($relatedWorks->isNotEmpty())
+            <section class="panelV2">
+                <header class="panel__header">
+                    <h2 class="panel__heading">{{ __('mediahub.collection') }}</h2>
+                    <div class="panel__actions" x-data="posterRow">
+                        <div class="panel__action">
+                            <button class="form__standard-icon-button" x-bind="scrollLeft">
+                                <i class="{{ \config('other.font-awesome') }} fa-angle-left"></i>
+                            </button>
+                        </div>
+                        <div class="panel__action">
+                            <button class="form__standard-icon-button" x-bind="scrollRight">
+                                <i class="{{ \config('other.font-awesome') }} fa-angle-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+                <div
+                    class="panel__body collection-posters"
+                    x-ref="posters"
+                    style="max-height: 330px !important"
+                >
+                    @foreach ($relatedWorks as $relatedWork)
+                        <x-book.poster :work="$relatedWork" />
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        {{-- "Tambien descargaron" ya conoce las cinco clases. Se dejó guardado
+             un tiempo porque su `$work` estaba tipada sólo a pelis, series y
+             juegos y pasarle un Book reventaba con "Cannot assign", tumbando
+             la página ENTERA de similares y no sólo este bloque. --}}
         <livewire:also-downloaded-works
             :work="$work->withoutRelations()"
             :categoryId="$category->id"

@@ -21,14 +21,14 @@
             @foreach($torrents as $torrent)
                 <item>
                     <title>{{ $torrent['name'] }}</title>
-                    <category>{{ $torrent['category']['name'] }}</category>
+                    <category>{{ $torrent['category']['name'] ?? '?' }}</category>
                     <contentlength>{{ $torrent['size'] }}</contentlength>
                     <link>{{ route('torrent.download.rsskey', ['id' => $torrent['id'], 'rsskey' => $user->rsskey ]) }}</link>
                     <guid>{{ $torrent['id'] }}</guid>
                     <description>
                         <![CDATA[<p>
                             <strong>Name</strong>: {{ $torrent['name'] }}<br>
-                            <strong>Category</strong>: {{ $torrent['category']['name'] }}<br>
+                            <strong>Category</strong>: {{ $torrent['category']['name'] ?? '?' }}<br>
                             <strong>Type</strong>: {{ $torrent['type']['name'] }}<br>
                             <strong>Resolution</strong>: {{ $torrent['resolution']['name'] ?? 'No res' }}<br>
                             <strong>Size</strong>: {{ App\Helpers\StringHelper::formatBytes($torrent['size'], 2) }}<br>
@@ -42,39 +42,50 @@
                             @else
                                 {{ __('common.anonymous') }} {{ __('torrent.uploader') }}
                             @endif<br>
-                            @if (($torrent['category']['movie_meta'] || $torrent['category']['tv_meta']) && $torrent['imdb'] != 0)
+                            {{-- Estos hits vienen CRUDOS de Meilisearch, y un
+                                 documento indexado antes de que existiera una
+                                 columna no la trae. `book_meta` tumbaba el feed
+                                 ENTERO por dos documentos rancios de 6.727.
+                                 Con defaults, una clave que falte deja de pintar
+                                 su bloque en vez de romper la página. --}}
+                            @php($meta = ($torrent['category'] ?? []) + [
+                                'movie_meta' => false, 'tv_meta' => false, 'game_meta' => false,
+                                'book_meta' => false, 'audiobook_meta' => false,
+                                'music_meta' => false, 'no_meta' => false,
+                            ])
+                            @if (($meta['movie_meta'] || $meta['tv_meta']) && ($torrent['imdb'] ?? 0) != 0)
                                 IMDB link:<a href="https://anon.to?http://www.imdb.com/title/tt{{ \str_pad((string) $torrent['imdb'], 7, '0', STR_PAD_LEFT) }}"
                                              target="_blank">tt{{ $torrent['imdb'] }}</a><br>
                             @endif
-                            @if ($torrent['category']['movie_meta'] && $torrent['tmdb_movie_id'] > 0)
+                            @if ($meta['movie_meta'] && ($torrent['tmdb_movie_id'] ?? 0) > 0)
                                 TMDB link: <a href="https://anon.to?https://www.themoviedb.org/movie/{{ $torrent['tmdb_movie_id'] }}"
                                               target="_blank">{{ $torrent['tmdb_movie_id'] }}</a><br>
-                            @elseif ($torrent['category']['tv_meta'] && $torrent['tmdb_tv_id'] > 0)
+                            @elseif ($meta['tv_meta'] && ($torrent['tmdb_tv_id'] ?? 0) > 0)
                                 TMDB link: <a href="https://anon.to?https://www.themoviedb.org/tv/{{ $torrent['tmdb_tv_id'] }}"
                                               target="_blank">{{ $torrent['tmdb_tv_id'] }}</a><br>
                             @endif
-                            @if (($torrent['category']['tv_meta']) && $torrent['tvdb'] != 0)
+                            @if ($meta['tv_meta'] && ($torrent['tvdb'] ?? 0) != 0)
                                 TVDB link:<a href="https://anon.to?https://www.thetvdb.com/?tab=series&id={{ $torrent['tvdb'] }}"
                                              target="_blank">{{ $torrent['tvdb'] }}</a><br>
                             @endif
-                            @if (($torrent['category']['movie_meta'] || $torrent['category']['tv_meta']) && $torrent['mal'] != 0)
+                            @if (($meta['movie_meta'] || $meta['tv_meta']) && ($torrent['mal'] ?? 0) != 0)
                                 MAL link:<a href="https://anon.to?https://myanimelist.net/anime/{{ $torrent['mal'] }}"
                                              target="_blank">{{ $torrent['mal'] }}</a><br>
                             @endif
-                            @if ($torrent['category']['book_meta'] && !empty($torrent['isbn13']))
+                            @if ($meta['book_meta'] && !empty($torrent['isbn13']))
                                 ISBN-13: <a href="https://anon.to?https://books.google.com/books?vid=ISBN{{ $torrent['isbn13'] }}"
                                             target="_blank">{{ $torrent['isbn13'] }}</a><br>
                                 @if (!empty($torrent['book']['authors']))
                                     {{ __('common.author') }}: {{ implode(', ', (array) $torrent['book']['authors']) }}<br>
                                 @endif
                             @endif
-                            @if ($torrent['category']['audiobook_meta'] && !empty($torrent['asin']))
+                            @if ($meta['audiobook_meta'] && !empty($torrent['asin']))
                                 Audible ASIN: {{ $torrent['asin'] }}<br>
                                 @if (!empty($torrent['audiobook']['narrators']))
                                     {{ __('torrent.narrator') }}: {{ implode(', ', (array) $torrent['audiobook']['narrators']) }}<br>
                                 @endif
                             @endif
-                            @if ($torrent['internal'] == 1)
+                            @if (($torrent['internal'] ?? 0) == 1)
                                 <comments>This is a high quality internal release!</comments>
                             @endif
                         </p>]]>

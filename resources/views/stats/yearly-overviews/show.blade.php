@@ -248,6 +248,54 @@
             @endforeach
         </div>
     </section>
+    {{-- Las tres clases nuevas usan el mismo panel que las de vídeo, y sólo
+         aparecen si el año trae filas: un tracker sin juegos no gana nada con
+         dos paneles vacíos. La portada la elige `<x-work.poster>`, el mismo
+         componente que usa la página de tendencias. --}}
+    @foreach ([
+        ['titulo' => 'juegos', 'meta' => 'game_meta', 'top' => $topGames, 'peores' => $bottomGames],
+        ['titulo' => 'libros', 'meta' => 'book_meta', 'top' => $topBooks, 'peores' => $bottomBooks],
+        ['titulo' => 'audiolibros', 'meta' => 'audiobook_meta', 'top' => $topAudiobooks, 'peores' => $bottomAudiobooks],
+    ] as $clase)
+        @if ($clase['top']->isNotEmpty())
+            <section class="panelV2">
+                <h2 class="panel__heading">Top 10 {{ $clase['titulo'] }} (por descargas)</h2>
+                <div class="panel__body overview__poster-grid">
+                    @foreach ($clase['top'] as $work)
+                        <figure class="trending-poster overview__poster">
+                            <x-work.poster :fila="$work" :metaType="$clase['meta']" />
+                            <figcaption
+                                class="trending-poster__download-count"
+                                title="{{ __('torrent.completed-times') }}"
+                            >
+                                {{ $work->download_count }}
+                            </figcaption>
+                        </figure>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        @if ($clase['peores']->isNotEmpty())
+            <section class="panelV2">
+                <h2 class="panel__heading">5 peores {{ $clase['titulo'] }} (por descargas)</h2>
+                <div class="panel__body overview__poster-grid">
+                    @foreach ($clase['peores'] as $work)
+                        <figure class="trending-poster overview__poster">
+                            <x-work.poster :fila="$work" :metaType="$clase['meta']" />
+                            <figcaption
+                                class="trending-poster__download-count"
+                                title="{{ __('torrent.completed-times') }}"
+                            >
+                                {{ $work->download_count }}
+                            </figcaption>
+                        </figure>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+    @endforeach
+
     <section class="panelV2">
         <h2 class="panel__heading">Resumen</h2>
         <dl class="key-value">
@@ -263,6 +311,27 @@
                 <dt>Series subidas este año</dt>
                 <dd>{{ $tvUploads }}</dd>
             </div>
+            @if ($gameUploads > 0)
+                <div class="key-value__group">
+                    <dt>Juegos subidos este año</dt>
+                    <dd>{{ $gameUploads }}</dd>
+                </div>
+            @endif
+
+            @if ($bookUploads > 0)
+                <div class="key-value__group">
+                    <dt>Libros subidos este año</dt>
+                    <dd>{{ $bookUploads }}</dd>
+                </div>
+            @endif
+
+            @if ($audiobookUploads > 0)
+                <div class="key-value__group">
+                    <dt>Audiolibros subidos este año</dt>
+                    <dd>{{ $audiobookUploads }}</dd>
+                </div>
+            @endif
+
             <div class="key-value__group">
                 <dt>Total de torrents subidos este año</dt>
                 <dd>{{ $totalUploads }}</dd>

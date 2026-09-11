@@ -15,6 +15,12 @@
     <span id="health" class="muted"></span>
   </div>
   <div class="actions">
+    <!-- El panel de consultas es OTRO servicio, en el 8781. Sin este enlace no
+         hay forma de volver a él si se cierra la pestaña. -->
+    <a href="http://127.0.0.1:8781" target="_blank" rel="noopener"
+       title="Panel de consultas para auditorías (servicio aparte, puerto 8781)">
+      <button type="button">Panel de consultas ↗</button>
+    </a>
     <button id="btn-wake">Wake lab</button>
     <button id="btn-sleep">Sleep lab</button>
   </div>

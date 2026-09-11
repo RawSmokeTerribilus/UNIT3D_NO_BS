@@ -47,6 +47,55 @@ class YearlyOverviewController extends Controller
     }
 
     /**
+     * El ranking anual de una clase de obra, por descargas del año.
+     *
+     * Las cuatro listas de vídeo estaban escritas a mano con `tmdb_movie_id` y
+     * `tmdb_tv_id` incrustados, así que libros, audiolibros y juegos no podían
+     * salir: su id es `isbn13`, `asin` o `igdb`. Es la misma consulta con otra
+     * columna, otra relación y otra bandera de categoría.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Torrent>
+     */
+    private function rankingAnual(int $year, string $columna, string $relacion, string $meta, bool $peores): \Illuminate\Database\Eloquent\Collection
+    {
+        return Torrent::with($relacion)
+            ->select([
+                $columna,
+                DB::raw('COUNT(h.user_id) as download_count'),
+                DB::raw('MIN(category_id) as category_id'),
+            ])
+            ->leftJoinSub(
+                History::query()
+                    ->whereNotNull('completed_at')
+                    ->where('history.created_at', '>=', $year.'-01-01 00:00:00')
+                    ->where('history.created_at', '<=', $year.'-12-31 23:59:59'),
+                'h',
+                fn ($join) => $join->on('torrents.id', '=', 'h.torrent_id')
+            )
+            // `!= 0` no filtra un ISBN ni un ASIN, que son texto.
+            ->where($columna, '!=', 0)
+            ->where($columna, '!=', '')
+            ->whereNotNull($columna)
+            ->whereRelation('category', $meta, '=', true)
+            ->groupBy($columna)
+            ->when($peores, fn ($query) => $query->orderBy('download_count')->take(5))
+            ->when(!$peores, fn ($query) => $query->orderByDesc('download_count')->take(10))
+            ->get();
+    }
+
+    /**
+     * Cuántos torrents de esta clase de obra se subieron en el año.
+     */
+    private function subidasAnuales(int $year, string $meta): int
+    {
+        return Torrent::query()
+            ->where('created_at', '>=', $year.'-01-01 00:00:00')
+            ->where('created_at', '<=', $year.'-12-31 23:59:59')
+            ->whereRelation('category', $meta, '=', true)
+            ->count();
+    }
+
+    /**
      * Get All Overviews.
      */
     public function index(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
@@ -173,6 +222,33 @@ class YearlyOverviewController extends Controller
                     ->take(5)
                     ->get()
             ),
+            // Las tres clases nuevas, con el mismo formato que las de vídeo. La
+            // vista sólo pinta las que traen filas: un año sin libros no gana
+            // nada con dos paneles vacíos.
+            'topGames' => $this->recordar(
+                'yearly-overview:'.$year.':top-games',
+                fn () => $this->rankingAnual((int) $year, 'igdb', 'game', 'game_meta', false)
+            ),
+            'bottomGames' => $this->recordar(
+                'yearly-overview:'.$year.':bottom-games',
+                fn () => $this->rankingAnual((int) $year, 'igdb', 'game', 'game_meta', true)
+            ),
+            'topBooks' => $this->recordar(
+                'yearly-overview:'.$year.':top-books',
+                fn () => $this->rankingAnual((int) $year, 'isbn13', 'book', 'book_meta', false)
+            ),
+            'bottomBooks' => $this->recordar(
+                'yearly-overview:'.$year.':bottom-books',
+                fn () => $this->rankingAnual((int) $year, 'isbn13', 'book', 'book_meta', true)
+            ),
+            'topAudiobooks' => $this->recordar(
+                'yearly-overview:'.$year.':top-audiobooks',
+                fn () => $this->rankingAnual((int) $year, 'asin', 'audiobook', 'audiobook_meta', false)
+            ),
+            'bottomAudiobooks' => $this->recordar(
+                'yearly-overview:'.$year.':bottom-audiobooks',
+                fn () => $this->rankingAnual((int) $year, 'asin', 'audiobook', 'audiobook_meta', true)
+            ),
             'uploaders' => cache()->remember(
                 'yearly-overview:'.$year.':uploaders',
                 3600,
@@ -275,6 +351,18 @@ class YearlyOverviewController extends Controller
                     ->where('created_at', '<=', $year.'-12-31 23:59:59')
                     ->whereRelation('category', 'tv_meta', '=', true)
                     ->count()
+            ),
+            'gameUploads' => $this->recordar(
+                'yearly-overview:'.$year.':game-uploads',
+                fn () => $this->subidasAnuales((int) $year, 'game_meta')
+            ),
+            'bookUploads' => $this->recordar(
+                'yearly-overview:'.$year.':book-uploads',
+                fn () => $this->subidasAnuales((int) $year, 'book_meta')
+            ),
+            'audiobookUploads' => $this->recordar(
+                'yearly-overview:'.$year.':audiobook-uploads',
+                fn () => $this->subidasAnuales((int) $year, 'audiobook_meta')
             ),
             'totalUploads' => $this->recordar(
                 'yearly-overview:'.$year.':total-uploads',

@@ -1,0 +1,37 @@
+{
+  "nombre": "bajo-el-ratio-minimo",
+  "titulo": "Por debajo del ratio mínimo",
+  "porque": "Contra `other.ratio` de settings (0,40). El Ratio del modelo ya va redondeado a 2 como el código: sin redondear el recuento sale distinto.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "bajo_ratio_minimo",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "ratio",
+        "subido",
+        "bajado",
+        "puede_descargar"
+      ],
+      "ordenar": {
+        "campo": "ratio",
+        "sentido": "asc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

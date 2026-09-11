@@ -1,0 +1,28 @@
+{
+  "nombre": "familias-de-invitacion",
+  "titulo": "Familias de invitación",
+  "porque": "Cuántos árboles hay, de quién cuelga cada uno y cuánta gente tiene. 8 raíces y profundidad máxima 5. El árbol dibujado se ve en la web del tracker.",
+  "pasos": [
+    {
+      "entidad": "familias",
+      "agrupar": [
+        "raiz"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "invitaciones",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

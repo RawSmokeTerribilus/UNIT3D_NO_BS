@@ -59,6 +59,11 @@
                         $torrent->tmdb_movie_id !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb_movie_id]),
                         $torrent->tmdb_tv_id !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb_tv_id]),
                         $torrent->igdb !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->igdb]),
+                        // Los libros se agrupan por su ISBN-13, que es lo más
+                        // parecido a un id de obra que hay. Un audiolibro entra
+                        // por aquí cuando lleva el de la obra, y así sale junto
+                        // al e-book del mismo libro.
+                        $torrent->isbn13 !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->isbn13]),
                         default => '#',
                     }
                 }}"
@@ -410,7 +415,7 @@
             @if (config('torrent.magnet'))
                 <a
                     class="torrent-search--list__magnet form__contained-icon-button form__contained-icon-button--filled"
-                    href="magnet:?dn={{ $torrent->name }}&xt=urn:btih:{{ bin2hex($torrent->info_hash) }}&as={{ route('torrent.download.rsskey', ['id' => $torrent->id, 'rsskey' => auth()->user()->rsskey]) }}&tr={{ route('announce', ['passkey' => auth()->user()->passkey]) }}&xl={{ $torrent->size }}"
+                    href="{{ \App\Services\MagnetLink::forTorrent($torrent, auth()->user()) }}"
                     download
                     title="{{ __('common.magnet') }}"
                 >
@@ -457,10 +462,14 @@
                                                 x-on:click="playing = true"
                                             >
                                                 <img
-                                                    src="https://i.ytimg.com/vi/{{ $trailerKey }}/maxresdefault.jpg"
+                                                    {{-- hqdefault y no maxresdefault: YouTube solo genera la
+                                                         maxres para parte de los videos, asi que pedirla primero
+                                                         se comia un 404 por miniatura antes de caer al respaldo.
+                                                         La hqdefault existe siempre. Si algun dia se prefiere la
+                                                         calidad al ruido en consola, se revierte esta linea. --}}
+                                                    src="https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg"
                                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
                                                     alt="Trailer thumbnail"
-                                                    x-on:error="$el.src = 'https://i.ytimg.com/vi/{{ $trailerKey }}/hqdefault.jpg'"
                                                 />
                                                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
                                                     <svg width="68" height="48" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">

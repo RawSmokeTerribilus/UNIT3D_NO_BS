@@ -159,6 +159,7 @@ final class Group extends Model
         return $this->hasMany(ForumPermission::class);
     }
 
+
     /**
      * Normaliza `effect` al atajo `background` COMPLETO en el momento de leerlo.
      *

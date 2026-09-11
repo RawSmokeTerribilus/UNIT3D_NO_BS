@@ -354,7 +354,7 @@ final class User extends Authenticatable implements MustVerifyEmail
             'fx_glow'                           => false,
             'fx_grid'                           => false,
             'fx_vignette'                       => false,
-            'lateral_fx'                        => 'off',
+            'lateral_fx'                        => 'rising',
             'lateral_fx_hue'                    => 322,
             'lateral_fx_density'                => 1.00,
             'lateral_fx_speed'                  => 1.00,

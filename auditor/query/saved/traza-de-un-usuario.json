@@ -1,0 +1,36 @@
+{
+  "titulo": "Traza de cambios de un usuario",
+  "porque": "Qué le cambió a una fila de `users` y desde qué valor, leyendo el binlog. Es como se resolvió rt001ztp: el salto de subida era una compra, no seedeo. Pide el ID numérico, no el nombre. Acota la ventana: son 1,7 GB de binlog por día.",
+  "pasos": [
+    {
+      "entidad": "cambios",
+      "ventana": {
+        "ultimas_horas": 6
+      },
+      "condiciones": {
+        "y": [
+          {
+            "campo": "tabla",
+            "op": "es",
+            "valor": "users"
+          },
+          {
+            "campo": "fila",
+            "op": "es",
+            "valor": {
+              "param": "id_de_usuario"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "nombre": "traza-de-un-usuario",
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "capa": "individual-parcial",
+  "familia": "rastro",
+  "parametros": [
+    "id_de_usuario"
+  ]
+}

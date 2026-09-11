@@ -64,6 +64,18 @@ final class LeechAmnesty
         return (bool) config('other.freeleech') && self::isEnabled();
     }
 
+    /**
+     * Fin del freeleech en texto legible con la zona dicha, o null si no hay
+     * fecha puesta (o si no se entiende, que para un aviso al usuario es lo
+     * mismo: mejor no decir nada que decir una hora inventada).
+     */
+    public static function untilLegible(): ?string
+    {
+        $until = PromoState::until('freeleech');
+
+        return $until === null ? null : $until->format('d/m/Y H:i').' UTC';
+    }
+
     public static function slots(): int
     {
         return max(0, (int) config('other.freeleech_leech_slots'));

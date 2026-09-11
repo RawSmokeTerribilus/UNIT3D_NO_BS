@@ -1,0 +1,36 @@
+{
+  "nombre": "cuentas-fantasma",
+  "titulo": "Se registraron y nunca usaron el tracker",
+  "porque": "Ni una sola fila de historial: ni descargaron ni sembraron jamás. Son 1.123, el 42% del padrón.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "nunca_ha_descargado",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "alta",
+        "dias_sin_actividad",
+        "invites_sin_usar"
+      ],
+      "ordenar": {
+        "campo": "alta",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

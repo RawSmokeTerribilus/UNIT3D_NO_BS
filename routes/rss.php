@@ -37,6 +37,15 @@ if (config('unit3d.root_url_override')) {
     URL::forceRootUrl(config('unit3d.root_url_override'));
 }
 
+// Fuente de un enlace magnet. La identidad va DENTRO de la firma, no en un
+// rsskey pegado a la URL, y la firma caduca: ver App\Services\MagnetLink.
+// Sin guard de auth a proposito — el que la firma identifica al usuario — pero
+// el controlador repite a mano las comprobaciones que harian los middlewares.
+Route::get('/torrent/download/magnet/{id}/{user}', [App\Http\Controllers\TorrentDownloadController::class, 'magnet'])
+    ->middleware('signed')
+    ->where(['id' => '[0-9]+', 'user' => '[0-9]+'])
+    ->name('torrent.download.magnet');
+
 Route::middleware(['auth:rss', 'banned', 'verified', 'security.requirements'])->group(function (): void {
     // RSS (RSS Key Auth)
     Route::get('/rss/{id}.{rsskey}', [App\Http\Controllers\RssController::class, 'show'])->name('rss.show.rsskey');

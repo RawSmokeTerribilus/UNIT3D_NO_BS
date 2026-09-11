@@ -1,0 +1,38 @@
+{
+  "nombre": "hr-activos",
+  "titulo": "Con hit and runs en su historial",
+  "porque": "251 usuarios con el contador histórico por encima de cero. NO significa que estén sancionados hoy: el contador acumula toda su vida. Para las sanciones vivas, mira «Con avisos activos ahora».",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "hitandruns",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "hitandruns",
+        "avisos_activos",
+        "avisos_desactivados",
+        "avisos_borrados",
+        "ratio"
+      ],
+      "ordenar": {
+        "campo": "hitandruns",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

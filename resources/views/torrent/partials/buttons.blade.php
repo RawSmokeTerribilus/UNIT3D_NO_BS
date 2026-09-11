@@ -32,7 +32,7 @@
             @endif
         @elseif (config('torrent.magnet'))
             <a
-                href="magnet:?dn={{ $torrent->name }}&xt=urn:btih:{{ bin2hex($torrent->info_hash) }}&as={{ route('torrent.download.rsskey', ['id' => $torrent->id, 'rsskey' => $user->rsskey]) }}&tr={{ route('announce', ['passkey' => $user->passkey]) }}&xl={{ $torrent->size }}"
+                href="{{ \App\Services\MagnetLink::forTorrent($torrent, $user) }}"
                 class="form__button form__button--filled form__button--centered"
             >
                 <i class="{{ config('other.font-awesome') }} fa-magnet"></i>

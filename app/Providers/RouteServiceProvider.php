@@ -101,7 +101,13 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for(GlobalRateLimit::API, fn (Request $request) => Limit::perMinute(30)->by('api'.$request->user()->id));
         RateLimiter::for(GlobalRateLimit::ANNOUNCE, fn (Request $request) => Limit::perMinute(500)->by('announce'.$request->ip()));
         RateLimiter::for(GlobalRateLimit::CHAT, fn (Request $request) => Limit::perMinute(60)->by('chat'.$request->user()->id));
-        RateLimiter::for(GlobalRateLimit::RSS, fn (Request $request) => Limit::perMinute(30)->by('rss'.$request->user()->id));
+        // Sin usuario autenticado se cuenta por IP en vez de reventar: la ruta
+        // del magnet firmado vive en routes/rss.php y lleva su identidad DENTRO
+        // de la firma, no en un guard. Antes esto era un 500 seco.
+        RateLimiter::for(
+            GlobalRateLimit::RSS,
+            fn (Request $request): Limit => Limit::perMinute(30)->by('rss'.($request->user()?->id ?? $request->ip()))
+        );
         RateLimiter::for(GlobalRateLimit::AUTHENTICATED_IMAGES, fn (Request $request): Limit => Limit::perMinute(200)->by('authenticated-images:'.($request->user()?->id ?? $request->ip())));
         RateLimiter::for(GlobalRateLimit::GAMING_SAVES, fn (Request $request): Limit => Limit::perMinute(120)->by('gaming-saves:'.$request->user()->id));
         RateLimiter::for(GlobalRateLimit::SEARCH, fn (Request $request): Limit => Limit::perMinute(100)->by('search:'.$request->user()->id));

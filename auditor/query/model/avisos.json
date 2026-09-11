@@ -1,0 +1,101 @@
+{
+  "id": "avisos",
+  "nombre": "Avisos",
+  "fuente": "mysql",
+  "tabla": "warnings",
+  "clave": "id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo avisos visibles",
+  "notas": [
+    "TRAMPA GRANDE: «Delete All Warnings» borra en lógico, y AutoDeactivateWarning recorre esta tabla para devolver `can_download`. Sin filas visibles el usuario NO LO RECUPERA NUNCA. El botón de al lado, «Deactivate», sí funciona.",
+    "Hay 1.225 avisos activos y 607 con baja lógica. Ahora mismo hay 1 usuario sin descargas y sin ningún aviso visible: ése es el patrón del fallo.",
+    "El vencimiento de hit and run a 1.100 días es DELIBERADO. No proponer bajarlo.",
+    "Un aviso se desactiva por DOS caminos, y `AutoDeactivateWarning` hace los dos: que llegue su `expires_on`, o que el usuario ARREGLE el hit and run seedeando hasta el mínimo. Medido: de los 218 desactivados, 159 lo arreglaron seedeando y 59 vencieron por fecha. Ninguno se desactivó a mano.",
+    "La intervención humana está en los BORRADOS, no en las desactivaciones: 614 avisos borrados en lógico, 533 por RawSmoke, 12 por CUNYAT y 9 por System."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "usuario",
+      "etiqueta": "Usuario",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "puesto_por",
+      "etiqueta": "Puesto por",
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "users",
+        "alias": "wp",
+        "por": "warned_by",
+        "clave_remota": "id",
+        "muestra": "username",
+        "filtra": "username"
+      }
+    },
+    {
+      "id": "torrent",
+      "etiqueta": "Torrent",
+      "col": "torrent_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "motivo",
+      "etiqueta": "Motivo",
+      "col": "reason",
+      "tipo": "texto"
+    },
+    {
+      "id": "activo",
+      "etiqueta": "Activo",
+      "col": "active",
+      "tipo": "bool"
+    },
+    {
+      "id": "vence",
+      "etiqueta": "Vence",
+      "col": "expires_on",
+      "tipo": "fecha"
+    },
+    {
+      "id": "borrado_por",
+      "etiqueta": "Borrado por",
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "users",
+        "alias": "wb",
+        "por": "deleted_by",
+        "clave_remota": "id",
+        "muestra": "username",
+        "filtra": "username"
+      },
+      "nota": "Quién lo borró. 533 los borró RawSmoke, 12 CUNYAT y 9 System; 60 no tienen quién."
+    },
+    {
+      "id": "baja",
+      "etiqueta": "Baja lógica",
+      "col": "deleted_at",
+      "tipo": "fecha",
+      "nota": "Que esto tenga valor es lo que deja al usuario sin descargas para siempre."
+    },
+    {
+      "id": "creado",
+      "etiqueta": "Creado",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}

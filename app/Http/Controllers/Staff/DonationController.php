@@ -238,6 +238,18 @@ class DonationController extends Controller
             ? 'se compra en la tienda'
             : 'se compra en la tienda por '.number_format((float) $costeBarraLibre, 0, ',', '.').' BON';
 
+        // Igual que arriba: el tramo mas barato de subida sale de la tienda y no
+        // escrito a mano, para que el mensaje no mienta si se reajustan precios.
+        $subidaBarata = BonExchange::query()
+            ->where('upload', '=', true)
+            ->orderBy('cost')
+            ->first();
+
+        $comprarSubida = $subidaBarata === null
+            ? 'puedes cambiarlos por subida en la tienda'
+            : 'el tramo más barato son '.StringHelper::formatBytes((int) $subidaBarata->value)
+                .' de subida por '.number_format((float) $subidaBarata->cost, 0, ',', '.').' BON';
+
         $texto = '[b]Gracias por sostener '.config('app.name').'.[/b]'."\n\n"
             .'Tu donación queda aprobada. '
             .($deporvida
@@ -283,6 +295,21 @@ class DonationController extends Controller
             .'Mientras seas donante [b]no verás ese botón[/b], y es a propósito: ya bajas sin que '
             .'te cuente, así que gastarlo sería tirarlo. Tus cupones te esperan para el día que se '
             .'acabe la donación.'."\n\n"
+            .'[b]El ratio sigue siendo cosa tuya[/b] — y esto conviene leerlo entero, porque '
+            .'es lo que más sorprende:'."\n"
+            .'[list]'."\n"
+            .'[*]Donar [b]no te exime del ratio mínimo[/b]. Si baja del mínimo, el sistema te '
+            .'mueve de grupo automáticamente igual que a cualquiera, seas donante o no. No es un '
+            .'castigo ni te lo hace nadie a mano: es una revisión que corre sola cada noche.'."\n"
+            .'[*]El freeleech [b]evita que empeore, pero no repara lo de antes[/b]. Mientras dure '
+            .'la donación no te cuenta nada de lo que bajes, así que tu ratio se queda quieto. Lo '
+            .'que bajaste antes de donar sigue contando.'."\n"
+            .'[*]Se arregla de dos maneras: [b]sembrando[/b], o [b]con los BON[/b] que acabas de '
+            .'recibir. En la tienda se cambian por subida — '.$comprarSubida.'. Para eso están.'."\n"
+            .'[/list]'."\n"
+            .'Si te ves apurado, míralo antes de que te baje de grupo. Y si ya te ha pasado, se '
+            .'sale igual: en cuanto el ratio vuelve al mínimo, la revisión nocturna te devuelve '
+            .'sola a tu sitio.'."\n\n"
             .'Y que quede dicho: aquí no se vende ratio. El dinero va a mantener los cacharros '
             .'encendidos, y los premios son el chiste. Gracias de verdad.';
 

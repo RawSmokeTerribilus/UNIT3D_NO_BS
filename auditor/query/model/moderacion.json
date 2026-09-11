@@ -1,0 +1,55 @@
+{
+  "id": "moderacion",
+  "nombre": "Moderación de torrents",
+  "fuente": "mysql",
+  "tabla": "torrent_moderations",
+  "clave": "id",
+  "notas": [
+    "El historial de qué se aprobó o rechazó y quién lo hizo. Es la tabla que responde «¿por qué se rechazó esto?»."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "torrent",
+      "etiqueta": "Torrent",
+      "col": "torrent_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "moderador",
+      "etiqueta": "Moderador",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "estado",
+      "etiqueta": "Estado",
+      "col": "status",
+      "tipo": "texto"
+    },
+    {
+      "id": "mensaje",
+      "etiqueta": "Mensaje",
+      "col": "message",
+      "tipo": "texto"
+    },
+    {
+      "id": "cuando",
+      "etiqueta": "Cuándo",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "torrents",
+      "por": "torrent_id",
+      "hacia": "id"
+    }
+  ]
+}

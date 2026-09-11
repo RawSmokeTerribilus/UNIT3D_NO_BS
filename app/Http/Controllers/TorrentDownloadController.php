@@ -42,6 +42,32 @@ class TorrentDownloadController extends Controller
     /**
      * Download A Torrent.
      */
+    /**
+     * Descarga desde un enlace magnet: la identidad viene de la firma de la URL,
+     * que ademas caduca (App\Services\MagnetLink).
+     *
+     * La firma la valida el middleware `signed`. Como la ruta no lleva guard de
+     * auth, aqui se repite a mano lo unico que hacia falta de los middlewares
+     * que si tiene la ruta con rsskey: dejar fuera a los baneados. El resto de
+     * candados (ratio, can_download, torrent rechazado) los aplica store(), que
+     * es a donde se delega para no tener dos copias de las mismas reglas.
+     */
+    public function magnet(Request $request, int $id, int $user): \Illuminate\Http\RedirectResponse|\Symfony\Component\HttpFoundation\Response|\Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $downloader = User::findOrFail($user);
+
+        $bannedGroupId = (int) cache()->rememberForever(
+            'group:banned:id',
+            fn () => \App\Models\Group::where('slug', '=', 'banned')->soleValue('id')
+        );
+
+        abort_if($downloader->group_id === $bannedGroupId, 403);
+
+        $request->setUserResolver(static fn (): User => $downloader);
+
+        return $this->store($request, $id);
+    }
+
     public function store(Request $request, int $id, ?string $rsskey = null): \Illuminate\Http\RedirectResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $user = $request->user();

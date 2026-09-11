@@ -1,0 +1,17 @@
+{
+  "id": "ajustes",
+  "nombre": "Ajustes del tracker",
+  "fuente": "mysql",
+  "tabla": "settings",
+  "clave": "id",
+  "notas": [
+    "ESTA TABLA ES LA FUENTE DE VERDAD, no los ficheros de config/*.php. No coinciden: el fichero dice max_warnings=3, grace=7 y expire=7, y lo que se aplica de verdad es 5, 14 y 1100.",
+    "Cualquier consulta sobre avisos, H&R o ratio mínimo tiene que leer de aquí. Un preset que cablee «3 avisos» devuelve una lista de gente equivocada.",
+    "Son 33 ajustes. `hitrun.seedtime` va en SEGUNDOS: 345600 son 96 h, o sea 4 días."
+  ],
+  "campos": [
+    {"id": "clave", "etiqueta": "Ajuste", "col": "key", "tipo": "texto"},
+    {"id": "valor", "etiqueta": "Valor", "col": "value", "tipo": "texto"},
+    {"id": "cambiado", "etiqueta": "Cambiado", "col": "updated_at", "tipo": "fecha"}
+  ]
+}

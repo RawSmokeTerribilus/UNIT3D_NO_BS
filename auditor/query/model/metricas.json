@@ -1,0 +1,16 @@
+{
+  "id": "metricas",
+  "nombre": "Métricas",
+  "fuente": "prom",
+  "notas": [
+    "Prometheus guarda 15 días O 5 GB, lo que llegue antes. Si el disco se llenó, la ventana real es más corta que 15 días.",
+    "Hay 1.793 métricas. Las familias útiles aquí son node_ (la máquina), container_ (cAdvisor), mysql_ (el exportador de la base) y redis_."
+  ],
+  "campos": [
+    {"id": "metrica", "etiqueta": "Métrica", "tipo": "metrica",
+     "nota": "El nombre exacto de la métrica de Prometheus. El desplegable las busca por texto."},
+    {"id": "instancia", "etiqueta": "Instancia", "tipo": "texto", "prom": "instance"},
+    {"id": "trabajo", "etiqueta": "Trabajo", "tipo": "texto", "prom": "job"},
+    {"id": "contenedor", "etiqueta": "Contenedor", "tipo": "texto", "prom": "name"}
+  ]
+}

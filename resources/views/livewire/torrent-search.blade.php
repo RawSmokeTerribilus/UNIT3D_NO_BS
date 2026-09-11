@@ -851,7 +851,10 @@
                                 />
                             @empty
                                 <tr>
-                                    <td colspan="10">{{ __('common.no-result') }}</td>
+                                    <td colspan="10">
+                                        {{ __('common.no-result') }}
+                                        @include('partials.torrent-search-tip', ['tipQuery' => $name])
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -922,6 +925,7 @@
                         <x-torrent.card :meta="$torrent->meta" :torrent="$torrent" />
                     @empty
                         {{ __('common.no-result') }}
+                        @include('partials.torrent-search-tip', ['tipQuery' => $name])
                     @endforelse
                 </div>
 
@@ -972,6 +976,7 @@
                         @endisset
                     @empty
                         {{ __('common.no-result') }}
+                        @include('partials.torrent-search-tip', ['tipQuery' => $name])
                     @endforelse
                 </div>
 
@@ -1022,6 +1027,7 @@
                         @endswitch
                     @empty
                         {{ __('common.no-result') }}
+                        @include('partials.torrent-search-tip', ['tipQuery' => $name])
                     @endforelse
                 </div>
 

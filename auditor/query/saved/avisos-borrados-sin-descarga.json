@@ -1,0 +1,46 @@
+{
+  "nombre": "avisos-borrados-sin-descarga",
+  "titulo": "Víctimas del borrado de avisos",
+  "porque": "Tienen avisos borrados en lógico y siguen sin poder descargar. Es el patrón exacto del fallo de «Delete All Warnings»: el trabajo que devuelve can_download recorre la tabla y no encuentra filas que desactivar, así que no lo devuelve nunca.",
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "puede_descargar",
+            "op": "es",
+            "valor": false
+          },
+          {
+            "campo": "avisos_borrados",
+            "op": ">",
+            "valor": 0
+          },
+          {
+            "campo": "avisos_activos",
+            "op": "=",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "avisos_borrados",
+        "avisos_activos",
+        "hitandruns",
+        "ultima_accion"
+      ],
+      "ordenar": {
+        "campo": "avisos_borrados",
+        "sentido": "desc"
+      }
+    }
+  ]
+}

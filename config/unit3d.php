@@ -75,6 +75,26 @@ return [
 
     // If using a Reverse Proxy for HTTPS set the 'PROXY_SCHEME' value in your .env file to `https` or adjust the below value
     'proxy_scheme'      => env('PROXY_SCHEME', false),
+
+    /*
+     * Sirve por nuestro propio origen las imagenes de las DESCRIPCIONES cuyo
+     * host no esta en la lista blanca. Con esto a false se vuelve al
+     * comportamiento anterior: esas imagenes salen por images.weserv.nl, un
+     * tercero gratuito que devuelve 404 con algunos origenes y deja el hueco
+     * en blanco sin decir por que.
+     *
+     * Es un interruptor y no una constante para poder volver atras con un
+     * cambio de .env y `config:cache`, sin desplegar codigo.
+     */
+    'description_image_proxy' => env('DESCRIPTION_IMAGE_PROXY', false),
+
+    /*
+     * Tope en GB de la cache en disco de ese proxy. Al pasarse, la tarea
+     * `images:prune-description-cache` borra lo MENOS usado hasta volver por
+     * debajo. Medido: solo las capturas de ptscreens que hay en descripciones
+     * son ~19.900 imagenes de ~2 MB, o sea ~40 GB si se vieran todas.
+     */
+    'description_cache_cap_gb' => env('DESCRIPTION_CACHE_CAP_GB', 10),
     'root_url_override' => env('FORCE_ROOT_URL', false),
 
     // Global Rate Limit for Comments - X Per Minute

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de consultas — auditorías</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>PANEL DE CONSULTAS</h1>
+  <span class="muted" id="cabecera-info">cargando modelo…</span>
+  <form id="buscar-usuario" class="linea" style="gap:.3rem;margin:0">
+    <input id="usuario-q" placeholder="ficha de un usuario…" style="min-width:13rem" spellcheck="false">
+    <button type="submit" class="icono">Ficha</button>
+  </form>
+  <form id="buscar-ip" class="linea" style="gap:.3rem;margin:0">
+    <input id="ip-q" placeholder="buscar una IP…" style="min-width:13rem" spellcheck="false">
+    <button type="submit" class="icono">IP</button>
+  </form>
+  <div class="actions">
+    <a href="/manual.html"><button class="icono" title="Qué significa cada cosa y dónde están los límites">Manual</button></a>
+    <button id="btn-ips" class="icono" title="Leer los logs ahora y acumular pares IP↔usuario">Recolectar IPs</button>
+    <button id="btn-crudo" class="icono" title="Escribir la consulta a mano">SQL a mano</button>
+    <a href="http://127.0.0.1:8780" target="_blank"><button class="icono">Cockpit forense</button></a>
+  </div>
+</header>
+
+<main>
+  <div id="usuario-caja" class="oculto">
+    <h2>Ficha del usuario</h2>
+    <div id="usuario-resultado"></div>
+  </div>
+
+  <div id="ip-caja" class="oculto">
+    <h2>Rastro de la IP</h2>
+    <div id="ip-resultado"></div>
+  </div>
+
+  <h2>Presets</h2>
+  <div class="linea" style="margin:.2rem 0 .8rem">
+    <input id="preset-q" placeholder="filtrar presets…" style="min-width:20rem" spellcheck="false">
+    <span class="muted" id="preset-cuenta"></span>
+  </div>
+  <div id="presets"></div>
+
+  <div id="serie-caja" class="oculto">
+    <h2>Esta consulta en el tiempo</h2>
+    <div id="serie"></div>
+  </div>
+
+  <details id="compositor-caja">
+    <summary><h2 style="display:inline">Compositor</h2>
+      <span class="muted">— para preguntar algo que no esté en el catálogo</span></summary>
+    <div id="pasos"></div>
+    <div class="linea" style="margin-top:.6rem">
+      <button id="btn-ejecutar" class="primario">Ejecutar</button>
+      <button id="btn-ver">Ver la consulta</button>
+      <button id="btn-guardar">Guardar…</button>
+      <button id="btn-limpiar">Limpiar</button>
+      <span class="muted" id="estado"></span>
+    </div>
+  </details>
+
+  <div id="crudo" class="oculto">
+    <h2>SQL a mano</h2>
+    <p class="muted" style="font-size:.8rem;margin:.2rem 0 .5rem">
+      Sólo lectura. El valor de un secreto no sale por pantalla: se puede
+      interrogar en el <code>WHERE</code> o contar con <code>COUNT()</code>.
+    </p>
+    <textarea id="sql-crudo" spellcheck="false"
+      placeholder="SELECT COUNT(*) FROM users WHERE deleted_at IS NULL"></textarea>
+    <div class="linea" style="margin-top:.4rem">
+      <button id="btn-ejecutar-crudo" class="primario">Ejecutar SQL</button>
+    </div>
+  </div>
+
+  <div id="consulta-caja" class="oculto">
+    <h2>Consulta generada</h2>
+    <pre class="sql" id="consulta"></pre>
+  </div>
+
+  <div id="resultado-caja" class="oculto">
+    <h2>Resultado</h2>
+    <div id="resultado-titulo"></div>
+    <div id="bandas"></div>
+    <div class="linea">
+      <button id="btn-csv" class="icono">Exportar CSV</button>
+      <button id="btn-json" class="icono">Exportar JSON</button>
+      <span class="muted" id="resumen"></span>
+    </div>
+    <div id="grafica"></div>
+    <div class="tablawrap"><table id="tabla"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <h2>Historial</h2>
+  <div class="tablawrap"><table id="historial"><thead></thead><tbody></tbody></table></div>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

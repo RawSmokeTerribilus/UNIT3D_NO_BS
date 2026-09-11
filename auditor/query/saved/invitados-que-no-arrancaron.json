@@ -1,0 +1,40 @@
+{
+  "nombre": "invitados-que-no-arrancaron",
+  "titulo": "Invitados que nunca usaron la cuenta",
+  "porque": "Alguien gastó una invitación en ellos y no llegaron a descargar nada. Sirve para saber quién invita bien y quién regala plazas.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "nunca_ha_descargado",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "invitado_por",
+            "op": "no está vacío",
+            "valor": null
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "invitado_por",
+        "alta",
+        "dias_sin_actividad"
+      ],
+      "ordenar": {
+        "campo": "alta",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "invitaciones",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "NoSoyAni"
+}

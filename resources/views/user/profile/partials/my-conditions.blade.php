@@ -22,7 +22,10 @@
         $groupFreeleech                   => 'grupo',
         default                           => null,
     };
-    $freeleechUntil = $siteFreeleech ? config('other.freeleech_until') : null;
+    // La fecha se guarda en UTC. Se imprime formateada y CON la zona dicha en
+    // voz alta: antes salia la cadena cruda '06/15/2026 3:00 PM EST' en mitad
+    // de una frase en espanol, y nadie sabia a que hora era eso.
+    $freeleechUntil = $siteFreeleech ? \App\Services\PromoState::until('freeleech')?->format('d/m/Y H:i') : null;
 
     // Double upload
     $siteDouble  = (bool) config('other.doubleup');
@@ -74,7 +77,7 @@
                     <i class="{{ config('other.font-awesome') }} fa-check text-green"></i>
                     <span class="text-green" style="font-size:.8em">{{ $freeleechSrc }}</span>
                     @if ($freeleechUntil)
-                        <span style="font-size:.75em; opacity:.7"> hasta {{ $freeleechUntil }}</span>
+                        <span style="font-size:.75em; opacity:.7"> hasta {{ $freeleechUntil }} UTC</span>
                     @endif
                 @else
                     <i class="{{ config('other.font-awesome') }} fa-times text-red"></i>

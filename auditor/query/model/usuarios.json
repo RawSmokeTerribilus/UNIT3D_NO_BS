@@ -1,0 +1,440 @@
+{
+  "id": "usuarios",
+  "nombre": "Usuarios",
+  "fuente": "mysql",
+  "tabla": "users",
+  "clave": "id",
+  "ambito": "deleted_at IS NULL",
+  "ambito_etiqueta": "sólo cuentas vivas",
+  "notas": [
+    "El padrón vivo son 2.642. En crudo la tabla tiene 2.660: 18 son bajas lógicas (deleted_at). Contarlas cambia el resultado — el caso del 2FA da 317 vivos y 318 con las bajas dentro.",
+    "information_schema.table_rows da 1.911. Es una estimación de InnoDB, no un recuento. Aquí siempre se cuenta con COUNT(*)."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "nombre",
+      "etiqueta": "Usuario",
+      "col": "username",
+      "tipo": "texto"
+    },
+    {
+      "id": "correo",
+      "etiqueta": "Correo",
+      "col": "email",
+      "tipo": "texto"
+    },
+    {
+      "id": "grupo",
+      "etiqueta": "Grupo",
+      "tipo": "catalogo",
+      "via": {
+        "tabla": "groups",
+        "alias": "g",
+        "por": "group_id",
+        "clave_remota": "id",
+        "muestra": "name",
+        "filtra": "slug"
+      },
+      "nota": "Los ids de grupo van +2 respecto al enum de la aplicación. Aquí se filtra por slug, nunca por id."
+    },
+    {
+      "id": "subido",
+      "etiqueta": "Subido",
+      "col": "uploaded",
+      "tipo": "bytes"
+    },
+    {
+      "id": "bajado",
+      "etiqueta": "Bajado",
+      "col": "downloaded",
+      "tipo": "bytes"
+    },
+    {
+      "id": "ratio",
+      "etiqueta": "Ratio",
+      "tipo": "numero",
+      "expr": "CASE WHEN t.downloaded = 0 THEN NULL ELSE ROUND(t.uploaded / t.downloaded, 2) END",
+      "nota": "Redondeado a 2 decimales igual que User::getRatioAttribute() (User.php:1176), que es contra lo que compara AutoGroup: sin redondear el recuento cambia — bajo 0,40 hay 32 redondeando y 34 sin redondear. OJO con los 22 usuarios que no han bajado nada: el código les da ratio INFINITO y aquí salen vacíos, así que ninguna comparación numérica los coge. Para incluirlos, usa «Ratio infinito»."
+    },
+    {
+      "id": "ratio_infinito",
+      "etiqueta": "Ratio infinito",
+      "tipo": "bool",
+      "expr": "t.downloaded = 0",
+      "nota": "No ha bajado nada. El código le da ratio INF, así que cumple cualquier ratio mínimo. Son 22, y 18 están en grupos automáticos."
+    },
+    {
+      "id": "grupo_que_tocaria",
+      "etiqueta": "Grupo que le tocaría",
+      "tipo": "texto",
+      "expr": "(SELECT g2.name FROM `groups` g2 WHERE g2.autogroup = 1 AND (g2.min_uploaded IS NULL OR t.uploaded >= g2.min_uploaded) AND (g2.min_ratio IS NULL OR t.downloaded = 0      OR ROUND(t.uploaded / t.downloaded, 2) >= g2.min_ratio) AND (g2.min_age IS NULL OR TIMESTAMPDIFF(SECOND, t.created_at, UTC_TIMESTAMP()) >= g2.min_age) AND (g2.min_avg_seedtime IS NULL OR (SELECT IFNULL(AVG(h.seedtime),0) FROM history h      WHERE h.user_id = t.id AND h.deleted_at IS NULL) >= g2.min_avg_seedtime) AND (g2.min_seedsize IS NULL OR (SELECT IFNULL(SUM(tt.size),0) FROM history h      JOIN torrents tt ON tt.id = h.torrent_id AND tt.deleted_at IS NULL      WHERE h.user_id = t.id AND h.active = 1 AND h.seeder = 1 AND h.deleted_at IS NULL)      >= g2.min_seedsize) AND (g2.min_uploads IS NULL OR (SELECT COUNT(*) FROM torrents tt      WHERE tt.user_id = t.id AND tt.deleted_at IS NULL) >= g2.min_uploads) ORDER BY g2.position DESC LIMIT 1)",
+      "nota": "Replica AutoGroup.php entero: grupos con autogroup=1 por posición descendente, y el primero que cumple los SEIS criterios. Un mínimo a NULL significa «sin requisito» y pasa — los ocho grupos tienen min_uploads a NULL. `min_age` va en SEGUNDOS, no en días."
+    },
+    {
+      "id": "en_autogroup",
+      "etiqueta": "En grupo automático",
+      "tipo": "bool",
+      "expr": "(SELECT g4.autogroup FROM `groups` g4 WHERE g4.id = t.group_id) = 1",
+      "nota": "La pasada programada de `auto:group` SÓLO evalúa a quien ya está en uno de los 8 grupos automáticos. Sin este filtro, «Desviado» mete a Semilla, Validando, Admin y Druida, a los que el comando ni mira."
+    },
+    {
+      "id": "desviado",
+      "etiqueta": "Desviado de AutoGroup",
+      "tipo": "bool",
+      "expr": "(SELECT g3.name FROM `groups` g3 WHERE g3.id = t.group_id) <> (SELECT g2.name FROM `groups` g2 WHERE g2.autogroup = 1 AND (g2.min_uploaded IS NULL OR t.uploaded >= g2.min_uploaded) AND (g2.min_ratio IS NULL OR t.downloaded = 0      OR ROUND(t.uploaded / t.downloaded, 2) >= g2.min_ratio) AND (g2.min_age IS NULL OR TIMESTAMPDIFF(SECOND, t.created_at, UTC_TIMESTAMP()) >= g2.min_age) AND (g2.min_avg_seedtime IS NULL OR (SELECT IFNULL(AVG(h.seedtime),0) FROM history h      WHERE h.user_id = t.id AND h.deleted_at IS NULL) >= g2.min_avg_seedtime) AND (g2.min_seedsize IS NULL OR (SELECT IFNULL(SUM(tt.size),0) FROM history h      JOIN torrents tt ON tt.id = h.torrent_id AND tt.deleted_at IS NULL      WHERE h.user_id = t.id AND h.active = 1 AND h.seeder = 1 AND h.deleted_at IS NULL)      >= g2.min_seedsize) AND (g2.min_uploads IS NULL OR (SELECT COUNT(*) FROM torrents tt      WHERE tt.user_id = t.id AND tt.deleted_at IS NULL) >= g2.min_uploads) ORDER BY g2.position DESC LIMIT 1)",
+      "nota": "El grupo actual no es el que le tocaría. Combínalo SIEMPRE con «En grupo automático es sí»: el comando sólo mira a quien ya está en uno de los ocho. Y recuerda que corre una vez al día, así que una desviación puede ser sólo un ascenso que aún no ha pasado por medianoche."
+    },
+    {
+      "id": "tfa_abierto",
+      "etiqueta": "2FA abierto",
+      "tipo": "bool",
+      "expr": "t.two_factor_secret IS NOT NULL",
+      "nota": "Se rellena al ABRIR la página de 2FA, antes de confirmar nada. NO significa que el 2FA esté activo. El middleware miraba este campo y dejó pasar a 317 cuentas (2026-09-02)."
+    },
+    {
+      "id": "tfa_confirmado",
+      "etiqueta": "2FA confirmado",
+      "tipo": "bool",
+      "expr": "t.two_factor_confirmed_at IS NOT NULL",
+      "nota": "Esto sí es 2FA activo de verdad."
+    },
+    {
+      "id": "puede_descargar",
+      "etiqueta": "Puede descargar",
+      "col": "can_download",
+      "tipo": "bool"
+    },
+    {
+      "id": "tg_vinculado",
+      "etiqueta": "Telegram vinculado",
+      "tipo": "bool",
+      "expr": "t.telegram_chat_id IS NOT NULL",
+      "nota": "Vinculación TERMINADA: hay chat_id. 2.225 cuentas. Es el único estado que significa «le llegan los avisos»."
+    },
+    {
+      "id": "tg_pendiente",
+      "etiqueta": "Telegram a medias",
+      "tipo": "bool",
+      "expr": "t.telegram_token IS NOT NULL AND t.telegram_chat_id IS NULL",
+      "nota": "Pidió vincular y no lo completó: tiene token de enlace y no tiene chat_id. Son 164, y los 164 que tienen token están en este estado. El campo es secreto porque el token es una credencial de un solo uso: se puede interrogar, no se puede mostrar."
+    },
+    {
+      "id": "tg_en_grupo",
+      "etiqueta": "En el grupo de Telegram",
+      "tipo": "bool",
+      "expr": "t.telegram_group_joined_at IS NOT NULL",
+      "nota": "2.128 cuentas. Estar en el grupo y estar vinculado son cosas distintas: se puede tener una sin la otra."
+    },
+    {
+      "id": "tg_usuario",
+      "etiqueta": "Usuario de Telegram",
+      "tipo": "texto",
+      "col": "telegram_username",
+      "nota": "Puede estar vacío aunque la cuenta esté vinculada — 319 así — porque en Telegram el alias es opcional. Para saber si está vinculado, mirar el chat_id, nunca esto."
+    },
+    {
+      "id": "tg_alta_grupo",
+      "etiqueta": "Entró al grupo",
+      "tipo": "fecha",
+      "col": "telegram_group_joined_at"
+    },
+    {
+      "id": "es_donante",
+      "etiqueta": "Es donante",
+      "col": "is_donor",
+      "tipo": "bool"
+    },
+    {
+      "id": "bonus",
+      "etiqueta": "Bonus",
+      "col": "seedbonus",
+      "tipo": "numero"
+    },
+    {
+      "id": "puerto_cerrado",
+      "etiqueta": "Puerto cerrado",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM peers pc WHERE pc.user_id = t.id AND pc.active = 1 AND pc.connectable = 0) AND NOT EXISTS (SELECT 1 FROM peers pc2 WHERE pc2.user_id = t.id AND pc2.active = 1 AND pc2.connectable = 1)",
+      "nota": "Ninguno de sus clientes activos acepta conexiones entrantes. Sube peor y arrastra al enjambre. Se mira sobre conexiones ACTIVAS: quien no tiene ninguna no sale ni a favor ni en contra."
+    },
+    {
+      "id": "torrents_subidos",
+      "etiqueta": "Torrents subidos",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM torrents tu WHERE tu.user_id = t.id AND tu.deleted_at IS NULL)",
+      "nota": "Sólo los vivos. En todo el tracker hay 89 personas que han subido algo."
+    },
+    {
+      "id": "volumen_subido",
+      "etiqueta": "Volumen subido (sus torrents)",
+      "tipo": "bytes",
+      "expr": "(SELECT IFNULL(SUM(tu.size),0) FROM torrents tu WHERE tu.user_id = t.id AND tu.deleted_at IS NULL)",
+      "nota": "Suma del tamaño de sus torrents. No es lo mismo que «Subido», que es tráfico acreditado."
+    },
+    {
+      "id": "dias_hasta_primera_subida",
+      "etiqueta": "Días hasta su primera subida",
+      "tipo": "numero",
+      "expr": "(SELECT TIMESTAMPDIFF(DAY, t.created_at, MIN(tu.created_at)) FROM torrents tu WHERE tu.user_id = t.id AND tu.deleted_at IS NULL)",
+      "nota": "Vacío si nunca subió nada. La media del tracker son 14 días."
+    },
+    {
+      "id": "bonus_sin_gastar",
+      "etiqueta": "Bonus sin gastar nunca",
+      "tipo": "bool",
+      "expr": "t.seedbonus > 0 AND NOT EXISTS (SELECT 1 FROM bon_transactions b WHERE b.sender_id = t.id)",
+      "nota": "Tiene puntos y no ha comprado nada jamás. Son 894 por encima de 100.000. Útil para saber si la tienda se usa."
+    },
+    {
+      "id": "invites_sin_usar",
+      "etiqueta": "Invitaciones sin usar",
+      "tipo": "numero",
+      "col": "invites",
+      "nota": "Las que tiene disponibles, no las que ha enviado. Cruzado con inactividad sale quién acapara invitaciones sin estar."
+    },
+    {
+      "id": "hitandruns",
+      "etiqueta": "Hit and runs (contador histórico)",
+      "col": "hitandruns",
+      "tipo": "numero",
+      "nota": "CONTADOR ACUMULADO DE TODA SU VIDA, no sanciones vivas. Su suma (2.069) casi iguala el total de filas de `warnings` (2.082). Hay 251 usuarios con contador > 0 pero sólo 177 con un aviso ACTIVO: el resto ya los cumplió. Para saber quién está sancionado ahora, usar «Avisos activos»."
+    },
+    {
+      "id": "avisos_activos",
+      "etiqueta": "Avisos activos",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 1 AND w.deleted_at IS NULL)",
+      "nota": "Los que penalizan AHORA: activos y no borrados. Son 1.250, repartidos entre 177 usuarios. Un aviso tiene tres estados —activo, cumplido y borrado en lógico— y mezclarlos da informes torcidos."
+    },
+    {
+      "id": "avisos_desactivados",
+      "etiqueta": "Avisos ya resueltos",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 0 AND w.deleted_at IS NULL)",
+      "nota": "Ya no penalizan. Son 218: 159 porque el usuario ARREGLÓ el hit and run seedeando hasta el mínimo, y 59 porque venció la fecha. Esto es el sistema funcionando, no indultos."
+    },
+    {
+      "id": "avisos_borrados",
+      "etiqueta": "Avisos borrados en lógico",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.deleted_at IS NOT NULL)",
+      "nota": "614 en todo el tracker. Ojo: es el rastro de «Delete All Warnings», que deja al usuario sin `can_download` PARA SIEMPRE porque el trabajo que lo devuelve no encuentra filas que desactivar."
+    },
+    {
+      "id": "avisos_historicos",
+      "etiqueta": "Avisos en total (histórico)",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND 1 = 1)",
+      "nota": "Los tres estados juntos. Es lo que se parece al contador users.hitandruns."
+    },
+    {
+      "id": "avisos_para_ban",
+      "etiqueta": "Avisos que le faltan para el ban",
+      "tipo": "numero",
+      "expr": "((SELECT CAST(s9.value AS SIGNED) FROM settings s9 WHERE s9.`key` = 'hitrun.max_warnings') - (SELECT COUNT(*) FROM warnings w WHERE w.user_id = t.id AND w.active = 1 AND w.deleted_at IS NULL))",
+      "nota": "Umbral leído EN VIVO de la tabla settings, que dice 5. El fichero config/hitrun.php dice 3 y no es el que manda: cablearlo daría otra lista."
+    },
+    {
+      "id": "bajo_ratio_minimo",
+      "etiqueta": "Por debajo del ratio mínimo",
+      "tipo": "bool",
+      "expr": "t.downloaded <> 0 AND ROUND(t.uploaded / t.downloaded, 2) < (SELECT CAST(s9.value AS DECIMAL(10,2)) FROM settings s9 WHERE s9.`key` = 'other.ratio')",
+      "nota": "Contra `other.ratio` de la tabla settings (0,40 ahora). Los 22 que no han bajado nada tienen ratio infinito y quedan fuera a propósito."
+    },
+    {
+      "id": "dias_sin_actividad",
+      "etiqueta": "Días sin actividad",
+      "tipo": "numero",
+      "expr": "TIMESTAMPDIFF(DAY, COALESCE(t.last_action, t.last_login, t.created_at), UTC_TIMESTAMP())",
+      "nota": "Cuenta desde la última acción; si nunca la hubo, desde el último acceso, y si tampoco, desde el alta. Así una cuenta recién creada no sale como inactiva de años."
+    },
+    {
+      "id": "nunca_ha_descargado",
+      "etiqueta": "Nunca ha descargado ni sembrado",
+      "tipo": "bool",
+      "expr": "NOT EXISTS (SELECT 1 FROM history h WHERE h.user_id = t.id)",
+      "nota": "Ni una sola fila de historial. Son 1.123 — cuentas que se registraron y no llegaron a usar el tracker."
+    },
+    {
+      "id": "seedtime_medio",
+      "etiqueta": "Seedtime medio",
+      "tipo": "numero",
+      "expr": "(SELECT IFNULL(ROUND(AVG(h.seedtime)),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL)",
+      "nota": "En SEGUNDOS, igual que lo compara AutoGroup. El mínimo de H&R son 345.600 (96 h). Media global del tracker: ~3,3 millones."
+    },
+    {
+      "id": "seedtime_bajo_minimo",
+      "etiqueta": "Seedea menos del mínimo",
+      "tipo": "bool",
+      "expr": "(SELECT IFNULL(AVG(h.seedtime),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL) < (SELECT CAST(s9.value AS SIGNED) FROM settings s9 WHERE s9.`key` = 'hitrun.seedtime')",
+      "nota": "Su seedtime medio no llega al mínimo de H&R leído de settings. Por sí solo no es infracción: mira también los avisos."
+    },
+    {
+      "id": "descargas_max_dia",
+      "etiqueta": "Máximo de descargas en un día",
+      "tipo": "numero",
+      "expr": "(SELECT IFNULL(MAX(n),0) FROM (SELECT COUNT(*) n FROM history h2 WHERE h2.user_id = t.id AND h2.deleted_at IS NULL GROUP BY DATE(h2.created_at)) x)",
+      "nota": "El día que más bajó. El récord del tracker son 1.543 en 24 h; 66 usuarios han pasado de 50 algún día."
+    },
+    {
+      "id": "ips_ultima_semana",
+      "etiqueta": "IPs distintas esta semana",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(DISTINCT p9.ip) FROM peers p9 WHERE p9.user_id = t.id AND p9.updated_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY)",
+      "nota": "Cambiar mucho de IP sugiere VPN o red móvil, no necesariamente nada malo. 17 usuarios pasan de 3; el máximo son 10."
+    },
+    {
+      "id": "usa_api",
+      "etiqueta": "Usa la API",
+      "tipo": "bool",
+      "expr": "t.api_token IS NOT NULL",
+      "nota": "Tiene token de API generado. 1.086 lo tienen, y 194 de ésos arrastran H&R."
+    },
+    {
+      "id": "comparte_correo",
+      "etiqueta": "Comparte correo con otro",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM users u9 WHERE u9.id <> t.id AND u9.deleted_at IS NULL AND CONCAT(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(LOWER(u9.email),'@',1),'+',1),'.',''),'@',SUBSTRING_INDEX(LOWER(u9.email),'@',-1)) = CONCAT(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(LOWER(t.email),'@',1),'+',1),'.',''),'@',SUBSTRING_INDEX(LOWER(t.email),'@',-1)))",
+      "nota": "El correo NORMALIZADO —sin «+etiqueta» y sin los puntos del nombre— coincide con el de otra cuenta viva. Es la señal más fuerte de multicuenta que hay en la base."
+    },
+    {
+      "id": "comparte_ip_cliente",
+      "etiqueta": "Comparte IP de cliente",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM peers p1 JOIN peers p2 ON p2.ip = p1.ip AND p2.user_id <> p1.user_id WHERE p1.user_id = t.id)",
+      "nota": "Alguna de sus IPs de cliente la usa también otra cuenta. Por sí sola NO prueba nada: CGNAT del operador, piso compartido, salida de VPN y proveedor de seedbox dan exactamente esta señal."
+    },
+    {
+      "id": "ips_compartidas",
+      "etiqueta": "Cuántas IPs comparte",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(DISTINCT p1.ip) FROM peers p1 WHERE p1.user_id = t.id AND EXISTS (SELECT 1 FROM peers p2 WHERE p2.ip = p1.ip AND p2.user_id <> p1.user_id))",
+      "nota": "Cuántas IPs distintas suyas aparecen también en otra cuenta."
+    },
+    {
+      "id": "pico_descarga",
+      "etiqueta": "Mayor descarga en un torrent",
+      "tipo": "bytes",
+      "expr": "(SELECT IFNULL(MAX(h.downloaded),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL)",
+      "nota": "El torrent que más le costó. El récord del tracker son 146,2 GiB en uno solo."
+    },
+    {
+      "id": "pico_subida",
+      "etiqueta": "Mayor subida en un torrent",
+      "tipo": "bytes",
+      "expr": "(SELECT IFNULL(MAX(h.uploaded),0) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL)",
+      "nota": "Lo más que ha servido de un solo torrent. El récord son 1.669,7 GiB."
+    },
+    {
+      "id": "velocidad_descarga",
+      "etiqueta": "Velocidad media de descarga (B/s)",
+      "tipo": "numero",
+      "expr": "(SELECT ROUND(AVG(h.downloaded / NULLIF(TIMESTAMPDIFF(SECOND, h.created_at, h.completed_at),0))) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL AND h.completed_at IS NOT NULL AND h.downloaded > 0)",
+      "nota": "Bytes por segundo entre que empieza y completa. Sólo cuenta lo que llegó a completarse: 53.486 registros. La media del tracker son ~12,25 MB/s y lo más rápido visto, 321 MB/s."
+    },
+    {
+      "id": "velocidad_subida",
+      "etiqueta": "Velocidad media al sembrar (B/s)",
+      "tipo": "numero",
+      "expr": "(SELECT ROUND(AVG(h.uploaded / NULLIF(h.seedtime,0))) FROM history h WHERE h.user_id = t.id AND h.deleted_at IS NULL AND h.seedtime > 0 AND h.uploaded > 0)",
+      "nota": "Subida repartida entre el tiempo sembrando. La media del tracker son ~76 KB/s: es un promedio largo, no un pico."
+    },
+    {
+      "id": "invitado_por_raiz",
+      "etiqueta": "Raíz de su familia",
+      "tipo": "texto",
+      "expr": "(WITH RECURSIVE sube AS ( SELECT t.id AS uid, 0 AS nivel UNION ALL SELECT i.user_id, sube.nivel + 1 FROM invites i JOIN sube ON i.accepted_by = sube.uid WHERE i.user_id IS NOT NULL AND sube.nivel < 20) SELECT (SELECT u8.username FROM users u8 WHERE u8.id = sube.uid) FROM sube ORDER BY nivel DESC LIMIT 1)",
+      "nota": "Subiendo por la cadena de invitaciones hasta el origen. Hay 8 raíces en todo el tracker y la profundidad máxima es 5. Si nadie le invitó, la raíz es él mismo."
+    },
+    {
+      "id": "nivel_en_el_arbol",
+      "etiqueta": "Nivel en su familia",
+      "tipo": "numero",
+      "expr": "(WITH RECURSIVE sube AS ( SELECT t.id AS uid, 0 AS nivel UNION ALL SELECT i.user_id, sube.nivel + 1 FROM invites i JOIN sube ON i.accepted_by = sube.uid WHERE i.user_id IS NOT NULL AND sube.nivel < 20) SELECT sube.nivel FROM sube ORDER BY nivel DESC LIMIT 1)",
+      "nota": "0 si es raíz; 1 si le invitó una raíz, y así. Máximo 5 en este tracker."
+    },
+    {
+      "id": "invitado_por",
+      "etiqueta": "Invitado por",
+      "tipo": "texto",
+      "expr": "(SELECT u2.username FROM invites i JOIN users u2 ON u2.id = i.user_id WHERE i.accepted_by = t.id ORDER BY i.accepted_at LIMIT 1)",
+      "nota": "Quién le trajo. 189 invitaciones aceptadas en total. El árbol entero se ve en la web del tracker (/users/<nombre>/invite-tree); aquí está sólo el dato, para poder cruzarlo con lo demás."
+    },
+    {
+      "id": "invitados",
+      "etiqueta": "A cuántos ha invitado",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM invites i WHERE i.user_id = t.id AND i.accepted_by IS NOT NULL)",
+      "nota": "Sólo las aceptadas. Un número alto no es sospechoso por sí solo: cruzarlo con qué han hecho los invitados."
+    },
+    {
+      "id": "alta",
+      "etiqueta": "Alta",
+      "col": "created_at",
+      "tipo": "fecha"
+    },
+    {
+      "id": "ultimo_acceso",
+      "etiqueta": "Último acceso",
+      "col": "last_login",
+      "tipo": "fecha"
+    },
+    {
+      "id": "ultima_accion",
+      "etiqueta": "Última acción",
+      "col": "last_action",
+      "tipo": "fecha",
+      "nota": "Junto con las conexiones y las descargas, una de las tres señales para saber si alguien está vivo. `peers` por sí sola sólo dice conexión ACTUAL."
+    },
+    {
+      "id": "tiene_cliente",
+      "etiqueta": "Tiene cliente conectado",
+      "tipo": "bool",
+      "expr": "EXISTS (SELECT 1 FROM peers p WHERE p.user_id = t.id AND p.active = 1)",
+      "nota": "Dice si AHORA MISMO hay algún cliente anunciando. No es lo mismo que estar vivo: quien seedea desde un seedbox apagado esta semana sale que no, y quien dejó el cliente abierto sin actividad sale que sí. Para «¿está vivo?» hay que mirar además las descargas y la última acción."
+    },
+    {
+      "id": "clientes_activos",
+      "etiqueta": "Clientes conectados",
+      "tipo": "numero",
+      "expr": "(SELECT COUNT(*) FROM peers p WHERE p.user_id = t.id AND p.active = 1)",
+      "nota": "Cuenta filas de peers, o sea torrent×cliente, no personas ni máquinas."
+    },
+    {
+      "id": "ultimo_anuncio",
+      "etiqueta": "Último anuncio",
+      "tipo": "fecha",
+      "expr": "(SELECT MAX(p.updated_at) FROM peers p WHERE p.user_id = t.id)",
+      "nota": "La última vez que cualquier cliente suyo anunció, aunque ya no esté activo."
+    },
+    {
+      "id": "baja",
+      "etiqueta": "Baja lógica",
+      "col": "deleted_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "descargas",
+      "por": "id",
+      "hacia": "user_id"
+    },
+    {
+      "entidad": "grupos",
+      "por": "group_id",
+      "hacia": "id"
+    },
+    {
+      "entidad": "conexiones",
+      "por": "id",
+      "hacia": "user_id"
+    }
+  ]
+}

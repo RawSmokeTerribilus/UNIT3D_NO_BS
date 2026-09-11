@@ -132,7 +132,35 @@ Route::middleware('language')->group(function (): void {
     | Website (When Authorized) (Alpha Ordered)
     |---------------------------------------------------------------------------------
     */
-    Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->group(function (): void {
+    // ── Arte de catálogo: público, gobernado por la firma de la URL ──────────
+//
+// Sale del grupo `authenticated-images` A PROPÓSITO. Son posters y backdrops
+// re-servidos de TMDB/Amazon/TVmaze: arte público que cualquiera puede bajar del
+// propio TMDB. Lo que cambia es quién pone los bytes — con el sha1 del origen en
+// la ruta, nginx encuentra el fichero ya cacheado y lo sirve SIN arrancar PHP.
+//
+// Medido antes de hacerlo: 484.442 peticiones de carátula en 10 días, de las que
+// 37.876 (7,8%) morían en un 429 porque el limitador estaba en 200/min y un
+// usuario navegando pide 800/min. Y cada una ocupaba uno de los 5 hijos de
+// php-fpm para mandar un JPEG que ya estaba en disco.
+//
+// Lo que NO sale de la sesión: avatares, portadas de torrent, imágenes de
+// descripción, iconos. Eso sigue exigiendo sesión, y esta ruta no los toca — el
+// `where` sólo admite los cinco tamaños del proxy de arte.
+//
+// La firma sigue siendo la autoridad: sin ella no se puede pedir una imagen
+// arbitraria, así que el proxy no se puede usar de relé para descargar de
+// terceros. El throttle cubre sólo el fallo de caché, que es lo único que llega
+// a PHP.
+Route::get('/authenticated-images/art/{size}/{hash}.jpg', [App\Http\Controllers\ArtImageProxyController::class, 'show'])
+    ->name('authenticated_images.art_proxy_hashed')
+    ->middleware(['signed', 'throttle:'.GlobalRateLimit::AUTHENTICATED_IMAGES->value])
+    ->where([
+        'size' => '^(poster_big|poster_mid|poster_small|back_big|back_small)$',
+        'hash' => '^[0-9a-f]{40}$',
+    ]);
+
+Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->group(function (): void {
         // General
         Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
 
@@ -164,6 +192,15 @@ Route::middleware('language')->group(function (): void {
                 ->where('size', '^(original|[wh][0-9]{2,4})$')
                 ->where('file', '^[A-Za-z0-9]+\.(jpg|jpeg|png|webp)$');
 
+            // Proxy de imagenes de DESCRIPCION — re-emite same-origin las que el
+            // uploader escribe en su BBCode y cuyo host no esta en la lista
+            // blanca. Sustituye a images.weserv.nl. Va FIRMADA: la URL de
+            // origen la elige un usuario, asi que solo valen las que genero el
+            // propio servidor al renderizar un BBCode.
+            Route::get('/description-image', [App\Http\Controllers\DescriptionImageProxyController::class, 'show'])
+                ->name('description_image_proxy')
+                ->middleware('signed');
+
             // Art proxy — normaliza (redimensiona) + cachea posters/backdrops de
             // todos los proveedores (TMDB/Amazon/TVmaze/MAL/AniList) y los re-emite
             // same-origin. La URL de origen viaja firmada en el query `u`.
@@ -171,6 +208,7 @@ Route::middleware('language')->group(function (): void {
                 ->name('art_proxy')
                 ->middleware('signed')
                 ->where('size', '^(poster_big|poster_mid|poster_small|back_big|back_small)$');
+
         });
 
         // Donation System

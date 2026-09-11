@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\View\Composers;
 
 use App\Models\Torrent;
+use App\Services\PromoState;
 use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 
@@ -64,8 +65,13 @@ class AlertsComposer
                 ->all(),
         );
 
+        // Las promos encendidas, con su fecha de fin en ISO-8601 UTC o null. El
+        // predicado del banner vivia duplicado palabra por palabra en la vista y
+        // en el layout, y por eso el registro abierto heredaba el reloj del
+        // freeleech. Se calcula aqui una sola vez.
         $view->with([
             'backdrops' => $backdrops,
+            'promos'    => PromoState::active(),
         ]);
     }
 }

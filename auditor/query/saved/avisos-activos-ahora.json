@@ -1,0 +1,38 @@
+{
+  "nombre": "avisos-activos-ahora",
+  "titulo": "Con avisos activos ahora",
+  "porque": "Los 177 que tienen algún aviso penalizando en este momento — activo y no borrado. Es el número que importa para moderar, no el contador histórico.",
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "pedido_por": "NoSoyAni",
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "avisos_activos",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "avisos_activos",
+        "avisos_para_ban",
+        "hitandruns",
+        "ratio",
+        "puede_descargar"
+      ],
+      "ordenar": {
+        "campo": "avisos_activos",
+        "sentido": "desc"
+      }
+    }
+  ]
+}

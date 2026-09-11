@@ -1,0 +1,42 @@
+{
+  "nombre": "hr-que-usan-la-api",
+  "titulo": "Con H&R y usando la API",
+  "porque": "194 usuarios con hit and runs tienen token de API. Automatizar la descarga y no sembrar es la combinación que interesa.",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "usa_api",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "hitandruns",
+            "op": ">",
+            "valor": 0
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "hitandruns",
+        "descargas_max_dia",
+        "seedtime_medio",
+        "ratio"
+      ],
+      "ordenar": {
+        "campo": "hitandruns",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "uso y abuso",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

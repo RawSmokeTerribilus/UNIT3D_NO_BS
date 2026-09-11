@@ -73,9 +73,14 @@
                 Refrescar metadata solo tiene sentido en la primera: en una
                 peticion, $torrent->id es de la tabla `requests` y la ruta
                 apuntaria a otro torrent. --}}
-            @if ($asin && $torrent instanceof \App\Models\Torrent && (auth()->user()->group->is_modo || (auth()->id() === $torrent?->user_id && $torrent?->created_at?->gt(now()->subDay()))))
+            {{-- Igual que en book-meta: este parcial lo incluye también la vista
+                 de similares, que encabeza un GRUPO y no tiene torrent. Una
+                 variable indefinida revienta antes de que `instanceof` la
+                 mire. --}}
+            @php($torrentActual = $torrent ?? null)
+            @if ($asin && $torrentActual instanceof \App\Models\Torrent && (auth()->user()->group->is_modo || (auth()->id() === $torrentActual->user_id && $torrentActual->created_at?->gt(now()->subDay()))))
                 <li>
-                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrent->id]) }}" method="post">
+                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrentActual->id]) }}" method="post">
                         @csrf
 
                         <button
@@ -108,7 +113,11 @@
             </li>
         @endif
     </ul>
-    <p class="meta__description">{{ $meta?->description ?? '' }}</p>
+    <x-meta.translated-description
+        :texto="$meta?->description ?? ''"
+        :original="$meta?->description_original"
+        :idioma="$meta?->description_source_language"
+    />
     <div class="meta__chips">
         <section class="meta__chip-container">
             <h2 class="meta__heading">Esta grabación</h2>

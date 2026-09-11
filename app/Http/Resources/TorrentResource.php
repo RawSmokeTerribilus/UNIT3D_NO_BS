@@ -164,7 +164,13 @@ class TorrentResource extends JsonResource
                 'region_id'        => $this->when($this->region_id !== null, $this->region_id),
                 'created_at'       => $this->created_at,
                 'download_link'    => route('torrent.download.rsskey', ['id' => $this->id, 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]),
-                'magnet_link'      => $this->when(config('torrent.magnet') === true, 'magnet:?dn='.$this->name.'&xt=urn:btih:'.bin2hex($this->info_hash).'&as='.route('torrent.download.rsskey', ['id' => $this->id, 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]).'&tr='.route('announce', ['passkey' => auth('api')->user()->passkey]).'&xl='.$this->size),
+                'magnet_link'      => $this->when((bool) config('torrent.magnet'), fn (): string => \App\Services\MagnetLink::build(
+                    (int) $this->id,
+                    (string) $this->name,
+                    bin2hex((string) $this->info_hash),
+                    auth(AuthGuard::API->value)->user(),
+                    (int) $this->size,
+                )),
                 'details_link'     => route('torrents.show', ['id' => $this->id]),
             ],
         ];

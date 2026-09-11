@@ -1,0 +1,38 @@
+{
+  "nombre": "avisos-tocados-a-mano",
+  "titulo": "Avisos BORRADOS: quién y cuántos",
+  "porque": "La intervención humana de verdad son los borrados, no las desactivaciones: un aviso se desactiva solo cuando el usuario reseedea o cuando vence. Borrar es otra cosa, y además deja al usuario sin `can_download` para siempre si no le quedan filas visibles.",
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "pedido_por": "Trash y RawSmoke",
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pasos": [
+    {
+      "entidad": "avisos",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "baja",
+            "op": "no está vacío",
+            "valor": null
+          }
+        ]
+      },
+      "agrupar": [
+        "borrado_por"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      },
+      "sin_ambito": true
+    }
+  ]
+}

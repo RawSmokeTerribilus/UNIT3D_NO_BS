@@ -82,9 +82,15 @@
                  Refrescar metadata sólo tiene sentido en la primera: en una
                  petición, $torrent->id es de la tabla `requests` y la ruta
                  apuntaría a otro torrent. --}}
-            @if ($isbn13 && $torrent instanceof \App\Models\Torrent && (auth()->user()->group->is_modo || (auth()->id() === $torrent?->user_id && $torrent?->created_at?->gt(now()->subDay()))))
+            {{-- `$torrent ?? null`: este parcial lo incluye también la vista de
+                 similares, que encabeza un GRUPO y no tiene un torrent concreto.
+                 La guarda `instanceof` no salvaba de eso -- una variable
+                 indefinida revienta antes de llegar a comprobarla-- y la página
+                 daba 500. --}}
+            @php($torrentActual = $torrent ?? null)
+            @if ($isbn13 && $torrentActual instanceof \App\Models\Torrent && (auth()->user()->group->is_modo || (auth()->id() === $torrentActual->user_id && $torrentActual->created_at?->gt(now()->subDay()))))
                 <li>
-                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrent->id]) }}" method="post">
+                    <form action="{{ route('torrents.refresh_meta', ['id' => $torrentActual->id]) }}" method="post">
                         @csrf
 
                         <button
@@ -160,20 +166,11 @@
         @endif
     </ul>
 
-    <p class="meta__description">
-        {{-- El aviso va DELANTE del texto a proposito: .meta__description
-             tiene max-height 150px con scroll, asi que al final quedaba fuera
-             de la parte visible y habia que bajar con la rueda para verlo.
-             Un aviso que no se ve no avisa. --}}
-        @if ($meta?->description_source_language)
-            <small
-                title="{{ $meta->description_original }}"
-            >{{ __('torrent.auto-translated', ['idioma' => strtoupper($meta->description_source_language)]) }}</small>
-            <br />
-        @endif
-
-        {{ $meta?->description ?? '' }}
-    </p>
+    <x-meta.translated-description
+        :texto="$meta?->description ?? ''"
+        :original="$meta?->description_original"
+        :idioma="$meta?->description_source_language"
+    />
 
     <div class="meta__chips">
         <section class="meta__chip-container" title="{{ __('torrent.authorship') }}">

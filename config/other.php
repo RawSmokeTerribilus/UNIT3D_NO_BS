@@ -104,7 +104,16 @@ return [
     */
     'freeleech' => true,
 
-    'freeleech_until' => '06/15/2026 3:00 PM EST',
+    /*
+    | Fin de la promo, 'Y-m-d H:i:s' en UTC. Vacio = sin fecha de fin: la
+    | promo no caduca sola y el banner no pinta reloj. Lo consume
+    | App\Console\Commands\AutoExpirePromos, que la apaga al vencer.
+    */
+    'freeleech_until' => '',
+
+    'doubleup_until' => '',
+
+    'openreg_until' => '',
 
     /*
     | Amnistia de descarga para Sanguijuela mientras dura el freeleech global.
@@ -264,7 +273,12 @@ return [
     |--------------------------------------------------------------------------
     | Example: 4
     */
-    'upload-guide_url' => env('APP_URL').'/pages/4',
+    // Apuntaba a /pages/4, que no existe: sólo hay páginas estáticas 1, 2 y 6,
+    // así que el enlace "¿Teniendo problemas? Vea nuestra guía" del formulario
+    // de subida daba 404. Va al índice del wiki, que es donde viven las cuatro
+    // guías de subida --creación del torrent, guía general, nombrado, y libros
+    // audiolibros y juegos-- en vez de a una sola.
+    'upload-guide_url' => env('UPLOAD_GUIDE_URL', env('APP_URL').'/wikis'),
 
     /*
     |--------------------------------------------------------------------------

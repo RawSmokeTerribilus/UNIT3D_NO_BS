@@ -48,6 +48,7 @@ use AllowDynamicProperties;
  * App\Models\Torrent.
  *
  * @property string                          $info_hash
+ * @property string|null                     $content_hash
  * @property int                             $id
  * @property string                          $name
  * @property string                          $description
@@ -153,6 +154,7 @@ final class Torrent extends Model
      */
     protected $discarded = [
         'info_hash',
+        'content_hash',
     ];
 
     /**
@@ -763,6 +765,30 @@ final class Torrent extends Model
     }
 
     /**
+     * Las decisiones de moderación de este torrent, en orden.
+     *
+     * Un torrent se modera varias veces --se aplaza, el uploader corrige, se
+     * aprueba o se rechaza-- y `moderated_by`/`moderated_at` sólo guardan la
+     * última, y sin el motivo. Aquí está la secuencia entera con su porqué.
+     *
+     * @return HasMany<TorrentModeration, $this>
+     */
+    public function moderations(): HasMany
+    {
+        return $this->hasMany(TorrentModeration::class)->oldest();
+    }
+
+    /**
+     * La última decisión de moderación, para listarla sin traer el historial.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<TorrentModeration, $this>
+     */
+    public function latestModeration(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TorrentModeration::class)->latestOfMany();
+    }
+
+    /**
      * Get the e-book edition associated with the torrent.
      *
      * Both sides are keyed by the ISBN-13, so the local and foreign key have
@@ -1139,7 +1165,11 @@ final class Torrent extends Model
             'distributor_id'     => $torrent->distributor_id,
             'region_id'          => $torrent->region_id,
             'personal_release'   => (bool) $torrent->personal_release,
-            'info_hash'          => bin2hex($torrent->info_hash),
+            // SEARCHABLE ya lo entrega como LOWER(HEX(torrents.info_hash)): 40
+            // caracteres en hex. El bin2hex() que habia aqui lo hexeaba OTRA VEZ y
+            // dejaba 80 en el indice, que es lo que /api/torrents/filter devolvia a
+            // Prowlarr y Jackett.
+            'info_hash'          => $torrent->info_hash,
             'rating'             => (float) $torrent->rating, /** @phpstan-ignore property.notFound (This property is selected in the query but doesn't exist on the model) */
             'trumpable'          => (bool) $torrent->trumpable, /** @phpstan-ignore property.notFound (This property is selected in the query but doesn't exist on the model) */
             'user'               => json_decode($torrent->json_user ?? 'null'),

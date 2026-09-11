@@ -29,6 +29,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\IgdbGame;
 use App\Models\TmdbMovie;
 use App\Models\Torrent;
@@ -93,6 +95,46 @@ class SimilarTorrentController extends Controller
                 $igdb = $tmdbId;
 
                 break;
+            case $category->book_meta:
+            case $category->audiobook_meta:
+                // Los libros se agrupan por su ISBN-13, que es lo más parecido
+                // a un id de obra que hay y encaja en la ruta numérica que ya
+                // usan las demás categorías.
+                //
+                // Un audiolibro entra por aquí cuando lleva el ISBN de la obra
+                // --el caso de una lectura libre-- y así sale junto al e-book
+                // del mismo libro, que es justo lo que uno espera de
+                // "similares". El que sólo tiene ASIN no ofrece el enlace,
+                // igual que antes.
+                $isbn13 = (string) $tmdbId;
+
+                $hasTorrents = Torrent::query()
+                    ->where('category_id', '=', $categoryId)
+                    ->where('isbn13', '=', $isbn13)
+                    ->exists();
+
+                abort_unless($hasTorrents, 404, 'No Similar Torrents Found');
+
+                // La ficha de un audiolibro vive en `audiobooks`, no en
+                // `books`: buscarla siempre en la de libros daba 404 en los
+                // que vienen de Audible, que tienen ISBN de obra pero ninguna
+                // fila de libro. Se prueba la propia y se cae a la de la obra,
+                // que es lo mismo que hacen la vista del torrent y el listado.
+                $meta = null;
+
+                if ($category->audiobook_meta) {
+                    $meta = Audiobook::where('isbn13', '=', $isbn13)->first();
+                }
+
+                $meta ??= Book::with(['genres', 'bookAuthors'])
+                    ->where('isbn13', '=', $isbn13)
+                    ->first();
+
+                abort_unless($meta !== null, 404, 'No Similar Torrents Found');
+
+                $isbn = $isbn13;
+
+                break;
             default:
                 abort(404, 'No Similar Torrents Found');
         }
@@ -105,12 +147,14 @@ class SimilarTorrentController extends Controller
             'category'           => $category,
             'tmdb'               => $tmdb ?? null,
             'igdb'               => $igdb ?? null,
+            'isbn13'             => $isbn ?? null,
         ]);
     }
 
     public function update(Request $request, Category $category, int $metaId): \Illuminate\Http\RedirectResponse
     {
-        if (!($category->movie_meta || $category->tv_meta || $category->game_meta)) {
+        if (!($category->movie_meta || $category->tv_meta || $category->game_meta
+                || $category->book_meta || $category->audiobook_meta)) {
             return to_route('torrents.similar', ['category_id' => $category->id, 'tmdb' => $metaId])
                 ->withErrors('This meta type can not be updated.');
         }

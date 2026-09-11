@@ -689,11 +689,21 @@ readonly class TorrentSearchFiltersDTO
             }
         }
 
-        if ($this->adult !== null) {
+        if ($this->adult === true) {
             $filters[] = [
-                'tmdb_movie.adult = '.($this->adult ? 'true' : 'false'),
-                'tmdb_tv.adult = '.($this->adult ? 'true' : 'false'),
+                'tmdb_movie.adult = true',
+                'tmdb_tv.adult = true',
             ];
+        }
+
+        if ($this->adult === false) {
+            // `!= true` casa tambien los documentos sin ficha de TMDB (libros,
+            // audiolibros, juegos, musica). Con `= false` desaparecian: el campo
+            // no existe en el documento y el OR no casaba, asi que ocultar el
+            // contenido adulto escondia de paso el 14% del catalogo. Equivale a
+            // la rama movie_meta/tv_meta = false que ya tiene toSqlQueryBuilder().
+            $filters[] = 'tmdb_movie.adult != true';
+            $filters[] = 'tmdb_tv.adult != true';
         }
 
         if ($this->tmdbId !== null) {

@@ -1,0 +1,58 @@
+{
+  "id": "tienda",
+  "nombre": "Tienda (bonus)",
+  "fuente": "mysql",
+  "tabla": "bon_transactions",
+  "clave": "id",
+  "notas": [
+    "Aquí está la explicación de los saltos redondos en la subida de un usuario. El caso `rt001ztp`: +107.374.182.400 bytes clavados a las 08:27:28 eran «100GB de subida», no seedeo.",
+    "Los artículos más comprados son «100GB de subida» (1.944), «100 gr» (1.616) y «Operación bikini» (85), que baja la descarga en vez de subir la subida."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "articulo",
+      "etiqueta": "Artículo",
+      "col": "name",
+      "tipo": "texto"
+    },
+    {
+      "id": "coste",
+      "etiqueta": "Coste",
+      "col": "cost",
+      "tipo": "numero",
+      "nota": "En «100GB de subida» el coste coincide al byte con lo que se añade a `uploaded`. Por eso cuadra la traza."
+    },
+    {
+      "id": "comprador",
+      "etiqueta": "Comprador",
+      "col": "sender_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "receptor",
+      "etiqueta": "Receptor",
+      "col": "receiver_id",
+      "tipo": "numero",
+      "nota": "Distinto del comprador cuando es un regalo."
+    },
+    {
+      "id": "cuando",
+      "etiqueta": "Cuándo",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "sender_id",
+      "hacia": "id"
+    }
+  ]
+}

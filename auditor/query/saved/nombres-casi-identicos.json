@@ -1,0 +1,35 @@
+{
+  "nombre": "nombres-casi-identicos",
+  "titulo": "Nombres de usuario casi idénticos",
+  "porque": "Iguales al quitar mayúsculas, dígitos y signos. 24 racimos. Ojo: cinco Davides no son cinco cuentas del mismo — esto sólo vale cruzado con otra señal.",
+  "pasos": [
+    {
+      "entidad": "coincidencias",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "rasgo",
+            "op": "es",
+            "valor": "nombre_normalizado"
+          }
+        ]
+      },
+      "mostrar": [
+        "quienes",
+        "usuarios",
+        "primera",
+        "ultima"
+      ],
+      "ordenar": {
+        "campo": "usuarios",
+        "sentido": "desc"
+      }
+    }
+  ],
+  "capa": "global",
+  "familia": "multicuenta",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pedido_por": "Trash"
+}

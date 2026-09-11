@@ -1,0 +1,61 @@
+{
+  "id": "comentarios",
+  "nombre": "Comentarios",
+  "fuente": "mysql",
+  "tabla": "comments",
+  "clave": "id",
+  "notas": [
+    "`commentable_type` dice sobre qué se comentó: torrent, artículo, petición… Es polimórfico, así que filtrar sin esa columna mezcla cosas distintas."
+  ],
+  "campos": [
+    {
+      "id": "id",
+      "etiqueta": "Id",
+      "col": "id",
+      "tipo": "numero"
+    },
+    {
+      "id": "autor",
+      "etiqueta": "Autor",
+      "col": "user_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "texto",
+      "etiqueta": "Texto",
+      "col": "content",
+      "tipo": "texto"
+    },
+    {
+      "id": "anonimo",
+      "etiqueta": "Anónimo",
+      "col": "anon",
+      "tipo": "bool"
+    },
+    {
+      "id": "sobre",
+      "etiqueta": "Sobre qué",
+      "col": "commentable_type",
+      "tipo": "texto"
+    },
+    {
+      "id": "objeto",
+      "etiqueta": "Id del objeto",
+      "col": "commentable_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "creado",
+      "etiqueta": "Creado",
+      "col": "created_at",
+      "tipo": "fecha"
+    }
+  ],
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "user_id",
+      "hacia": "id"
+    }
+  ]
+}

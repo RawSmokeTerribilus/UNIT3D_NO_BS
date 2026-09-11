@@ -35,6 +35,8 @@ use App\Helpers\TorrentHelper;
 use App\Helpers\TorrentTools;
 use App\Http\Requests\StoreTorrentRequest;
 use App\Http\Requests\UpdateTorrentRequest;
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\Category;
 use App\Models\Distributor;
 use App\Models\History;
@@ -321,6 +323,65 @@ class TorrentController extends Controller
                                 ->limit(30),
                             'also_downloaded',
                             fn ($join) => $join->on('igdb_games.id', '=', 'also_downloaded.igdb')
+                        )
+                        ->orderByDesc('total')
+                        ->get(),
+                    // Libro y audiolibro se agrupan por la clave que los
+                    // identifica --ISBN-13 la edición, ASIN la grabación--, que
+                    // es lo mismo que hace `AlsoDownloadedWorks` en la página de
+                    // similares. Sin estas dos ramas la pestaña salía vacía en
+                    // toda ficha de libro, porque caía en el `default`.
+                    $torrent->category->book_meta && $torrent->isbn13 !== null => fn () => Book::query()
+                        ->joinSub(
+                            Torrent::query()
+                                ->select([
+                                    'isbn13',
+                                    DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                    DB::raw('MIN(category_id) AS category_id')
+                                ])
+                                ->join('history', 'torrents.id', '=', 'history.torrent_id')
+                                ->whereIn(
+                                    'history.user_id',
+                                    History::query()
+                                        ->select('user_id')
+                                        ->where('torrent_id', '=', $torrent->id)
+                                        ->where('history.created_at', '>', $torrent->created_at->addMinutes(30))
+                                )
+                                ->whereNotNull('isbn13')
+                                ->where('isbn13', '!=', $torrent->isbn13)
+                                ->whereRaw('history.created_at > torrents.created_at + INTERVAL 30 MINUTE')
+                                ->groupBy('isbn13')
+                                ->orderByDesc('total')
+                                ->limit(30),
+                            'also_downloaded',
+                            fn ($join) => $join->on('books.isbn13', '=', 'also_downloaded.isbn13')
+                        )
+                        ->orderByDesc('total')
+                        ->get(),
+                    $torrent->category->audiobook_meta && $torrent->asin !== null => fn () => Audiobook::query()
+                        ->joinSub(
+                            Torrent::query()
+                                ->select([
+                                    'asin',
+                                    DB::raw('COUNT(DISTINCT history.user_id) AS total'),
+                                    DB::raw('MIN(category_id) AS category_id')
+                                ])
+                                ->join('history', 'torrents.id', '=', 'history.torrent_id')
+                                ->whereIn(
+                                    'history.user_id',
+                                    History::query()
+                                        ->select('user_id')
+                                        ->where('torrent_id', '=', $torrent->id)
+                                        ->where('history.created_at', '>', $torrent->created_at->addMinutes(30))
+                                )
+                                ->whereNotNull('asin')
+                                ->where('asin', '!=', $torrent->asin)
+                                ->whereRaw('history.created_at > torrents.created_at + INTERVAL 30 MINUTE')
+                                ->groupBy('asin')
+                                ->orderByDesc('total')
+                                ->limit(30),
+                            'also_downloaded',
+                            fn ($join) => $join->on('audiobooks.asin', '=', 'also_downloaded.asin')
                         )
                         ->orderByDesc('total')
                         ->get(),
@@ -658,6 +719,7 @@ class TorrentController extends Controller
         $torrent = Torrent::create([
             'mediainfo'    => TorrentTools::anonymizeMediainfo($request->filled('mediainfo') ? $request->string('mediainfo') : null),
             'info_hash'    => Bencode::get_infohash($decodedTorrent),
+            'content_hash' => TorrentTools::contentHash($decodedTorrent),
             'file_name'    => $fileName,
             'num_file'     => $meta['count'],
             'folder'       => Bencode::get_name($decodedTorrent),
