@@ -70,33 +70,70 @@ $line: color-mix(in srgb, currentColor 12%, transparent);
         }
     }
 
+    // The whole header row is the button: the name underneath is a link to
+    // the section's main page, which is also the first option inside the menu,
+    // so tapping the row folds instead of navigating. The row is 44px tall
+    // (the label's 12px padding around a 20px line).
+    .nav-tabsV2:has(> .nav-tab-menu) > .nav-tab-menu {
+        position: relative;
+    }
+
     .nav-tab-menu__toggle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 44px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        width: 36px;
-        height: 36px;
-        margin: 4px;
-        padding: 0;
+        justify-content: flex-end;
+        margin: 0;
+        padding: 0 4px;
         border: none;
-        border-radius: 8px;
         cursor: pointer;
         color: var(--secondary-nav-tab-fg);
-        background: $tint;
+        background: transparent;
+        -webkit-tap-highlight-color: transparent;
 
+        // Chevron in a tinted square at the right end of the row.
         &::after {
             content: '\f054';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: $tint;
             font-family: 'Font Awesome 6 Pro';
             font-weight: 900;
             font-size: 12px;
             opacity: 0.6;
             transition: transform 0.2s ease;
         }
+
+        &:focus:not(:focus-visible) {
+            outline: none;
+        }
     }
 
-    .nav-tab-menu:focus-within > .nav-tab-menu__toggle::after {
+    .nav-tab-menu:focus-within > .nav-tab-menu__toggle::after,
+    .nav-tab-menu.is-open > .nav-tab-menu__toggle::after {
         transform: rotate(90deg);
         opacity: 0.9;
+    }
+
+    // Stock opens these on :hover too; on a touch screen :hover sticks after
+    // the tap and the menu would not close. `is-open` comes from
+    // menu-toggle.js; :focus-within stays for the keyboard.
+    @media (hover: none) {
+        .nav-tabsV2 .nav-tab-menu:hover > .nav-tab-menu__items {
+            display: none;
+        }
+    }
+
+    .nav-tabsV2 .nav-tab-menu.is-open > .nav-tab-menu__items,
+    .nav-tabsV2 .nav-tab-menu:focus-within > .nav-tab-menu__items {
+        display: flex;
     }
 }
