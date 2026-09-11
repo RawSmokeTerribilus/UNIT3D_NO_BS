@@ -47,6 +47,7 @@
             imdb_title_exists: {{ Js::from(old('title_exists_on_imdb', $torrent->imdb) !== null) }},
             tvdb_tv_exists: {{ Js::from(old('tv_exists_on_tvdb', $torrent->tvdb) !== null) }},
             mal_anime_exists: {{ Js::from(old('anime_exists_on_mal', $torrent->mal) !== null) }},
+            mal_previo: {{ Js::from((int) $torrent->mal > 0) }},
             igdb_game_exists: {{ Js::from(old('game_exists_on_igdb', $torrent->igdb) !== null) }},
             google_book_exists: {{ Js::from(old('book_exists_on_google', $torrent->isbn13) !== null) }},
             audible_audiobook_exists:
@@ -476,7 +477,7 @@
                     </div>
                     <div
                         class="form__group--vertical"
-                        x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
+                        x-show="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && (cats[cat].anime || mal_previo)"
                     >
                         <p class="form__group">
                             <input
@@ -487,6 +488,7 @@
                                 value="1"
                                 @checked(old('anime_exists_on_mal', true))
                                 x-model="mal_anime_exists"
+                                x-bind:disabled="!(cats[cat].anime || mal_previo)"
                             />
                             <label class="form__label" for="anime_exists_on_mal">
                                 This anime exists on MAL
@@ -504,11 +506,11 @@
                                 type="text"
                                 value="{{ old('mal', $torrent->mal) }}"
                                 x-bind:value="
-                                    (cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists
+                                    (cats[cat].type === 'movie' || cats[cat].type === 'tv') && (cats[cat].anime || mal_previo) && mal_anime_exists
                                         ? '{{ old('mal', $torrent->mal) }}'
                                         : ''
                                 "
-                                x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists"
+                                x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && (cats[cat].anime || mal_previo) && mal_anime_exists"
                             />
                             <label class="form__label form__label--floating" for="mal">
                                 MAL ID

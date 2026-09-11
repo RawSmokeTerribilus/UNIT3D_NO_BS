@@ -38,6 +38,7 @@
                 imdb_title_exists: {{ Js::from(old('title_exists_on_imdb', $torrentRequest->imdb) !== null) }},
                 tvdb_tv_exists: {{ Js::from(old('tv_exists_on_tvdb', $torrentRequest->tvdb) !== null) }},
                 mal_anime_exists: {{ Js::from(old('anime_exists_on_mal', $torrentRequest->mal) !== null) }},
+                mal_previo: {{ Js::from((int) $torrentRequest->mal > 0) }},
                 igdb_game_exists: {{ Js::from(old('game_exists_on_igdb', $torrentRequest->igdb) !== null) }},
                 book_isbn_exists: {{ Js::from(old('book_exists_on_google', $torrentRequest->isbn13) !== null) }},
                 audiobook_asin_exists:
@@ -325,7 +326,7 @@
                         </div>
                         <div
                             class="form__group--vertical"
-                            x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
+                            x-show="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && (cats[cat].anime || mal_previo)"
                         >
                             <p class="form__group">
                                 <input
@@ -335,6 +336,7 @@
                                     name="anime_exists_on_mal"
                                     value="1"
                                     x-model:checked="mal_anime_exists"
+                                    x-bind:disabled="!(cats[cat].anime || mal_previo)"
                                 />
                                 <label class="form__label" for="anime_exists_on_mal">
                                     This anime exists on MAL
@@ -352,11 +354,11 @@
                                     type="text"
                                     value="{{ old('mal', $torrentRequest->mal) }}"
                                     x-bind:value="
-                                        (cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists
+                                        (cats[cat].type === 'movie' || cats[cat].type === 'tv') && (cats[cat].anime || mal_previo) && mal_anime_exists
                                             ? '{{ old('mal', $torrentRequest->mal) }}'
                                             : ''
                                     "
-                                    x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists"
+                                    x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && (cats[cat].anime || mal_previo) && mal_anime_exists"
                                 />
                                 <label class="form__label form__label--floating" for="automal">
                                     MAL ID

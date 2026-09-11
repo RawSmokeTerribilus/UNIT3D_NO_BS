@@ -123,6 +123,7 @@ class RequestController extends Controller
                         $category->no_meta    => 'no',
                         default               => 'no',
                     },
+                    'anime' => $category->isAnime(),
                 ]])
                 ->toArray(),
             'types'       => Type::orderBy('position')->get(),
@@ -201,6 +202,7 @@ class RequestController extends Controller
                             $cat->no_meta    => 'no',
                             default          => 'no',
                         },
+                        'anime' => $cat->isAnime(),
                     ]
                 ]),
             'types'          => Type::orderBy('position')->get(),
