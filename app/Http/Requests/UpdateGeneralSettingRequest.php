@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Helpers\Language;
+use App\Rules\CssPermitido;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -121,10 +122,12 @@ class UpdateGeneralSettingRequest extends FormRequest
             'custom_css' => [
                 'nullable',
                 'url',
+                new CssPermitido(),
             ],
             'standalone_css' => [
                 'nullable',
                 'url',
+                new CssPermitido(),
             ],
             'theme_accent' => [
                 'nullable',
