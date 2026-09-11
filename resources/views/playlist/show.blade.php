@@ -317,6 +317,7 @@
     </section>
     <section class="panelV2" id="playlist_suggestions">
         <h2 class="panel__heading">Suggestions</h2>
+        <div class="data-table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
@@ -449,6 +450,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </section>
 
     <livewire:comments :model="$playlist" />

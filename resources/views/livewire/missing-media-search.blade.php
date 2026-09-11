@@ -36,6 +36,7 @@
             </div>
         </div>
     </header>
+    <div class="data-table-wrapper">
     <table class="data-table" id="missing-media-table">
         <thead>
             <tr>
@@ -100,5 +101,6 @@
             @endforeach
         </tbody>
     </table>
+    </div>
     {{ $medias->links('partials.pagination') }}
 </section>

@@ -37,6 +37,7 @@
                     {{ $group['title'] }}
                 </h2>
                 <div class="panel__body">
+                    <div class="data-table-wrapper">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -171,6 +172,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </section>
         @endforeach

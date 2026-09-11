@@ -84,6 +84,7 @@
             </div>
         </div>
     </header>
+    <div class="data-table-wrapper">
     <table class="data-table">
         <thead>
             <tr>
@@ -166,5 +167,6 @@
             @endforelse
         </tbody>
     </table>
+    </div>
     {{ $warnings->links('partials.pagination') }}
 </section>
