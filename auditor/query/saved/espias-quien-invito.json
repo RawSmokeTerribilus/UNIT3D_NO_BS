@@ -1,6 +1,6 @@
 {
-  "titulo": "Espías: quién trajo a quién",
-  "porque": "Cuentas que entraron por la misma persona. El árbol completo se ve en la web del tracker; esto sirve para cruzarlo con el resto de señales.",
+  "titulo": "Quién ha traído a más gente",
+  "porque": "Invitadores con dos o más invitados aceptados. No es una acusación: es el reparto de quién sostiene el padrón. Para el árbol completo con raíces y niveles, mira «Familias de invitación».",
   "pasos": [
     {
       "entidad": "coincidencias",

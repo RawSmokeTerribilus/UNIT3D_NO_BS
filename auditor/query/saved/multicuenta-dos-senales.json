@@ -1,6 +1,6 @@
 {
   "titulo": "Multicuenta: correo Y IP a la vez",
-  "porque": "El cruce, que es donde está el valor. Un rasgo solo da candidatos; dos a la vez ya cuesta explicarlo por casualidad.",
+  "porque": "El cruce, que es donde está el valor: comparten el correo normalizado Y además una IP de cliente. Un rasgo solo da candidatos; dos a la vez ya cuesta explicarlo por casualidad. Va en dos pasos porque comprobar las dos señales sobre el padrón entero se pasa del tiempo máximo.",
   "pasos": [
     {
       "entidad": "usuarios",
@@ -10,7 +10,21 @@
             "campo": "comparte_correo",
             "op": "es",
             "valor": true
-          },
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre"
+      ]
+    },
+    {
+      "entidad": "usuarios",
+      "enlace": {
+        "campo": "id",
+        "desde_campo": "id"
+      },
+      "condiciones": {
+        "y": [
           {
             "campo": "comparte_ip_cliente",
             "op": "es",

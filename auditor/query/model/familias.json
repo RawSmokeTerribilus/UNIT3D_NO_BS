@@ -3,19 +3,50 @@
   "nombre": "Familias de invitación",
   "fuente": "mysql",
   "clave": "usuario_id",
-  "subconsulta": "WITH RECURSIVE arbol AS ( SELECT i.accepted_by AS uid, i.user_id AS padre, i.user_id AS raiz, 1 AS nivel FROM invites i WHERE i.accepted_by IS NOT NULL AND i.user_id IS NOT NULL UNION ALL SELECT a.uid, i.user_id, i.user_id, a.nivel + 1 FROM arbol a JOIN invites i ON i.accepted_by = a.padre WHERE i.accepted_by IS NOT NULL AND i.user_id IS NOT NULL AND a.nivel < 20 ) SELECT u.id AS usuario_id, u.username AS usuario, ur.username AS raiz, MAX(a.nivel) AS nivel, up.username AS padre FROM arbol a JOIN users u ON u.id = a.uid AND u.deleted_at IS NULL JOIN users ur ON ur.id = a.raiz LEFT JOIN users up ON up.id = a.padre GROUP BY u.id, u.username, ur.username, up.username",
+  "subconsulta": "WITH RECURSIVE arbol AS ( SELECT i.accepted_by AS uid, i.user_id AS ancestro, 1 AS nivel FROM invites i WHERE i.accepted_by IS NOT NULL AND i.user_id IS NOT NULL UNION ALL SELECT a.uid, i.user_id, a.nivel + 1 FROM arbol a JOIN invites i ON i.accepted_by = a.ancestro WHERE i.accepted_by IS NOT NULL AND i.user_id IS NOT NULL AND a.nivel < 20), rankeado AS ( SELECT uid, ancestro, nivel,  ROW_NUMBER() OVER (PARTITION BY uid ORDER BY nivel DESC) AS desde_arriba,  ROW_NUMBER() OVER (PARTITION BY uid ORDER BY nivel ASC)  AS desde_abajo FROM arbol) SELECT u.id AS usuario_id, u.username AS usuario,  (SELECT ur.username FROM rankeado r2 JOIN users ur ON ur.id = r2.ancestro   WHERE r2.uid = u.id AND r2.desde_arriba = 1) AS raiz,  (SELECT up.username FROM rankeado r3 JOIN users up ON up.id = r3.ancestro   WHERE r3.uid = u.id AND r3.desde_abajo = 1) AS padre,  MAX(r.nivel) AS nivel FROM rankeado r JOIN users u ON u.id = r.uid AND u.deleted_at IS NULL GROUP BY u.id, u.username",
   "notas": [
-    "El árbol de invitaciones calculado de una vez, con CTE recursivo. Hay 8 raíces y la profundidad máxima es 5.",
+    "UNA fila por usuario. La raíz es el ancestro de MÁS ARRIBA de su cadena, no cualquier ancestro: la primera versión de esta consulta marcaba como raíz a cada eslabón, así que un usuario del nivel 3 salía tres veces y los recuentos se solapaban — daba 28 «raíces» cuando son 8.",
     "El campo «Raíz de su familia» de Usuarios sirve para MOSTRAR, pero no para agrupar: MySQL no admite un CTE correlacionado con la fila de fuera bajo un GROUP BY. Para contar por familia se usa esta entidad.",
     "El árbol dibujado ya existe en el tracker, en /users/<nombre>/invite-tree. Esto es el dato para cruzarlo con lo demás."
   ],
   "campos": [
-    {"id": "usuario", "etiqueta": "Usuario", "col": "usuario", "tipo": "texto"},
-    {"id": "usuario_id", "etiqueta": "Id de usuario", "col": "usuario_id", "tipo": "numero"},
-    {"id": "raiz", "etiqueta": "Raíz de la familia", "col": "raiz", "tipo": "texto"},
-    {"id": "padre", "etiqueta": "Quién le invitó", "col": "padre", "tipo": "texto"},
-    {"id": "nivel", "etiqueta": "Nivel", "col": "nivel", "tipo": "numero",
-     "nota": "1 si le invitó una raíz directamente. El máximo del tracker es 5."}
+    {
+      "id": "usuario",
+      "etiqueta": "Usuario",
+      "col": "usuario",
+      "tipo": "texto"
+    },
+    {
+      "id": "usuario_id",
+      "etiqueta": "Id de usuario",
+      "col": "usuario_id",
+      "tipo": "numero"
+    },
+    {
+      "id": "raiz",
+      "etiqueta": "Raíz de la familia",
+      "col": "raiz",
+      "tipo": "texto"
+    },
+    {
+      "id": "padre",
+      "etiqueta": "Quién le invitó",
+      "col": "padre",
+      "tipo": "texto"
+    },
+    {
+      "id": "nivel",
+      "etiqueta": "Nivel",
+      "col": "nivel",
+      "tipo": "numero",
+      "nota": "1 si le invitó una raíz directamente. El máximo del tracker es 5."
+    }
   ],
-  "cruces": [{"entidad": "usuarios", "por": "usuario_id", "hacia": "id"}]
+  "cruces": [
+    {
+      "entidad": "usuarios",
+      "por": "usuario_id",
+      "hacia": "id"
+    }
+  ]
 }

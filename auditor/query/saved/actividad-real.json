@@ -1,7 +1,7 @@
 {
   "nombre": "actividad-real",
-  "titulo": "Actividad real: las tres señales",
-  "porque": "`peers` sólo dice conexión ACTUAL. Quien no tiene cliente puede estar perfectamente vivo: hay 311 sin cliente que han estado en la web esta semana.",
+  "titulo": "Vivos en la web pero sin cliente conectado",
+  "porque": "Han estado en la web esta semana y ahora mismo no tienen ningún cliente anunciando. Es el contraejemplo de mirar sólo `peers`: esa tabla dice conexión ACTUAL, así que por sí sola daría por muerta a esta gente. Las tres señales son peers, el historial y la última acción — aquí se cruzan dos.",
   "pasos": [
     {
       "entidad": "usuarios",

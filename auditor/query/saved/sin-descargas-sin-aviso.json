@@ -1,7 +1,7 @@
 {
   "nombre": "sin-descargas-sin-aviso",
-  "titulo": "Sin descargas y sin aviso visible",
-  "porque": "El patrón del fallo de «Delete All Warnings»: el borrado lógico deja al usuario sin `can_download` para siempre, porque AutoDeactivateWarning no encuentra filas que desactivar.",
+  "titulo": "Sin poder descargar (por lo que sea)",
+  "porque": "Todos los que tienen `can_download` a cero, sea por avisos, por ratio o por mano de staff. Son 89. Para el caso concreto del bug de «Delete All Warnings» —borrados en lógico, ninguno activo y sin descargas— mira «Víctimas del borrado de avisos», que da 3.",
   "pasos": [
     {
       "entidad": "usuarios",
@@ -17,8 +17,11 @@
       "mostrar": [
         "nombre",
         "grupo",
-        "ultima_accion",
-        "alta"
+        "avisos_activos",
+        "avisos_borrados",
+        "hitandruns",
+        "ratio",
+        "ultima_accion"
       ],
       "ordenar": {
         "campo": "ultima_accion",
