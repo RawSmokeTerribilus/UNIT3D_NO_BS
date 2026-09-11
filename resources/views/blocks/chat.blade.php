@@ -251,13 +251,17 @@
                                                         />
                                                     </i>
                                                 </template>
-                                                <img
-                                                    x-show="message.user?.donor_badge_icon?.endsWith('.svg')"
-                                                    :src="'/img/insignias/' + message.user?.donor_badge_icon"
-                                                    :alt="message.user?.donor_badge_title"
-                                                    :title="message.user?.donor_badge_title"
-                                                    style="max-height: 17px; vertical-align: text-bottom"
-                                                />
+                                                {{-- x-if y no x-show: con x-show el <img> se queda en el DOM y el
+                                                     navegador descarga el src igualmente, pidiendo
+                                                     /img/insignias/null cuando el usuario no tiene insignia. --}}
+                                                <template x-if="message.user?.donor_badge_icon?.endsWith('.svg')">
+                                                    <img
+                                                        :src="'/img/insignias/' + message.user.donor_badge_icon"
+                                                        :alt="message.user?.donor_badge_title"
+                                                        :title="message.user?.donor_badge_title"
+                                                        style="max-height: 17px; vertical-align: text-bottom"
+                                                    />
+                                                </template>
                                                 <i
                                                     x-show="message.user?.donor_badge_icon && ! message.user?.donor_badge_icon?.endsWith('.svg')"
                                                     :class="message.user?.donor_badge_icon"
