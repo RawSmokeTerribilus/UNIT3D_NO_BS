@@ -18,7 +18,9 @@
         ]);
 @endphp
 
-    <section class="alert special-event-alert"
+    {{-- Estilos en components/_promo-banner.scss (antes, todos en linea: en
+         movil no habia forma de pisarlos sin !important). --}}
+    <section class="alert special-event-alert promo-banner"
              x-data="{
                 images: @js($alertBackdropImages),
                 currentIndex: 0,
@@ -29,18 +31,16 @@
                 }
              }" 
              x-init="initBanner()" 
-             style="display: grid; grid-template-columns: 1fr auto 1fr; align-content: stretch; min-height: 148px; align-items: center; background: #0a0a0a; overflow: hidden; border-radius: 8px; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: 0 4px 20px rgba(0,0,0,0.7);"
              x-cloak>
 
         <!-- Lateral Izquierdo (Enjaulado) -->
-        <div style="position: relative; width: 100%; height: 100%; -webkit-mask-image: linear-gradient(to right, black 30%, transparent 100%); mask-image: linear-gradient(to right, black 30%, transparent 100%);">
-            <img x-bind:src="images[currentIndex]" 
-                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center left; pointer-events: none; opacity: 0.8;" />
+        <div class="promo-banner__side promo-banner__side--left">
+            <img class="promo-banner__img" x-bind:src="images[currentIndex]" />
         </div>
 
         <!-- Centro: una promo por bloque, cada una con SU reloj (o sin reloj si no tiene fecha) -->
         @if (!empty($promos))
-        <div style="padding: 1.8rem; display: flex; flex-direction: column; align-items: center; gap: 1.4rem; z-index: 10;">
+        <div class="promo-banner__center">
             @foreach ($promos as $promo)
                 @php
                     $promoEstilo = [
@@ -50,44 +50,47 @@
                     ][$promo['key']] ?? ['color' => '#fff', 'sombra' => 'rgba(255,255,255,0.4)', 'texto' => $promo['label']];
                 @endphp
 
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.8rem;">
-                    <div style="font-weight: 900; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 2px; text-align: center; color: {{ $promoEstilo['color'] }}; text-shadow: 0 0 15px {{ $promoEstilo['sombra'] }};">
+                <div class="promo-banner__promo">
+                    <div
+                        class="promo-banner__title"
+                        style="--promo-color: {{ $promoEstilo['color'] }}; --promo-glow: {{ $promoEstilo['sombra'] }};"
+                    >
                         {{ $promoEstilo['texto'] }}
                     </div>
 
                     @if ($promo['until'] !== null)
                         <div
+                            class="promo-banner__clock"
                             x-data="promoTimer('{{ $promo['until'] }}')"
                             x-init="start()"
                             x-show="!terminado"
-                            style="display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace;"
                         >
                             <!-- DÍAS: destacado en el color de la promo -->
-                            <div style="background: rgba(147, 51, 234, 0.2); padding: 12px 18px; border-radius: 8px; text-align: center; min-width: 85px; border: 1px solid rgba(147, 51, 234, 0.4); backdrop-filter: blur(8px);">
-                                <div style="font-size: 2.2rem; font-weight: 900; line-height: 1; color: #d8b4fe;" x-text="days">00</div>
-                                <div style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.8; margin-top: 5px; color: #d8b4fe; font-weight: bold;">{{ __('common.day') }}</div>
+                            <div class="promo-banner__unit promo-banner__unit--days">
+                                <div class="promo-banner__num" x-text="days">00</div>
+                                <div class="promo-banner__label">{{ __('common.day') }}</div>
                             </div>
 
-                            <div style="font-size: 1.5rem; font-weight: bold; opacity: 0.3; color: #fff;">:</div>
+                            <div class="promo-banner__sep">:</div>
 
-                            <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 6px; text-align: center; min-width: 75px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">
-                                <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; color: #fff;" x-text="hours">00</div>
-                                <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.5; margin-top: 5px; color: #fff;">{{ __('common.hour') }}</div>
+                            <div class="promo-banner__unit">
+                                <div class="promo-banner__num" x-text="hours">00</div>
+                                <div class="promo-banner__label">{{ __('common.hour') }}</div>
                             </div>
 
-                            <div style="font-size: 1.5rem; font-weight: bold; opacity: 0.3; color: #fff;">:</div>
+                            <div class="promo-banner__sep">:</div>
 
-                            <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 6px; text-align: center; min-width: 75px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">
-                                <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; color: #fff;" x-text="minutes">00</div>
-                                <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.5; margin-top: 5px; color: #fff;">{{ __('common.minute') }}</div>
+                            <div class="promo-banner__unit">
+                                <div class="promo-banner__num" x-text="minutes">00</div>
+                                <div class="promo-banner__label">{{ __('common.minute') }}</div>
                             </div>
 
                             <!-- Separador reactivo -->
-                            <div style="font-size: 1.5rem; font-weight: bold; transition: opacity 0.2s; color: #fff;" x-bind:style="tick ? 'opacity: 1' : 'opacity: 0.1'">:</div>
+                            <div class="promo-banner__sep promo-banner__sep--tick" x-bind:style="tick ? 'opacity: 1' : 'opacity: 0.1'">:</div>
 
-                            <div style="background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 6px; text-align: center; min-width: 75px; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(4px);">
-                                <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; color: #666;" x-text="seconds">00</div>
-                                <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.4; margin-top: 5px; color: #fff;">{{ __('common.second') }}</div>
+                            <div class="promo-banner__unit promo-banner__unit--seconds">
+                                <div class="promo-banner__num" x-text="seconds">00</div>
+                                <div class="promo-banner__label">{{ __('common.second') }}</div>
                             </div>
                         </div>
                     @endif
@@ -96,13 +99,12 @@
         </div>
         @else
             <!-- Sin promo: las dos imágenes laterales se funden en el centro (sus máscaras ya difuminan hacia dentro); espaciador transparente, sin neón -->
-            <div aria-hidden="true" style="width: 80px; align-self: stretch;"></div>
+            <div class="promo-banner__spacer" aria-hidden="true"></div>
         @endif
 
         <!-- Lateral Derecho (Enjaulado) -->
-        <div style="position: relative; width: 100%; height: 100%; -webkit-mask-image: linear-gradient(to left, black 30%, transparent 100%); mask-image: linear-gradient(to left, black 30%, transparent 100%);">
-            <img x-bind:src="images[(currentIndex + 1) % images.length]" 
-                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center right; pointer-events: none; opacity: 0.8;" />
+        <div class="promo-banner__side promo-banner__side--right">
+            <img class="promo-banner__img" x-bind:src="images[(currentIndex + 1) % images.length]" />
         </div>
 
     </section>
