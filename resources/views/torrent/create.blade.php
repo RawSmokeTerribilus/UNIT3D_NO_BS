@@ -563,7 +563,7 @@
                     </div>
                     <div
                         class="form__group--vertical"
-                        x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
+                        x-show="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && cats[cat].anime"
                     >
                         <p class="form__group">
                             <input
@@ -574,6 +574,7 @@
                                 value="1"
                                 @checked(old('anime_exists_on_mal', true))
                                 x-model="mal_anime_exists"
+                                x-bind:disabled="!cats[cat].anime"
                             />
                             <label class="form__label" for="anime_exists_on_mal">
                                 This anime exists on MAL
@@ -588,11 +589,11 @@
                                 inputmode="numeric"
                                 pattern="[0-9]*"
                                 x-bind:value="
-                                    (cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists
+                                    (cats[cat].type === 'movie' || cats[cat].type === 'tv') && cats[cat].anime && mal_anime_exists
                                         ? '{{ old('mal', $mal) }}'
                                         : ''
                                 "
-                                x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists"
+                                x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && cats[cat].anime && mal_anime_exists"
                                 class="form__text"
                                 placeholder=" "
                             />

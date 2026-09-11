@@ -418,6 +418,7 @@ class TorrentController extends Controller
                             $cat->no_meta        => 'no',
                             default              => 'no',
                         },
+                        'anime' => $cat->isAnime(),
                     ]
                 ]),
             'types'        => Type::orderBy('position')->get()->mapWithKeys(fn ($type) => [$type['id'] => ['name' => $type['name'], 'meta' => $type['meta']]]),
@@ -675,6 +676,7 @@ class TorrentController extends Controller
                         $category->no_meta        => 'no',
                         default                   => 'no',
                     },
+                    'anime' => $category->isAnime(),
                 ]])
                 ->toArray(),
             'types'        => Type::orderBy('position')->get(),

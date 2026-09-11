@@ -120,4 +120,16 @@ final class Category extends Model
     {
         return $this->hasMany(TorrentRequest::class);
     }
+
+    /**
+     * Whether the category holds anime, which is what the MAL fields are for.
+     *
+     * There is no column for it and the ids differ between installs (staging
+     * 7/8, prod 4/5), so it goes by name, same rule MetaSync uses for its MAL
+     * hint.
+     */
+    public function isAnime(): bool
+    {
+        return str_contains(strtolower((string) $this->name), 'anime');
+    }
 }
