@@ -637,42 +637,18 @@
         white-space: nowrap;
     }
 
-    // 1900 -> 2100: el nick solo cabe en la maqueta de UNA fila.
-    //
-    // De 767 a 2099 la barra usa la variante de dos filas, y ahi
-    // `.top-nav__right` es `display: contents` para que las stats puedan
-    // escaparse a su propia area. Sus hijos pasan a ser elementos de la rejilla
-    // del nav: `.top-nav__ratio-bar` y `.top-nav__icon-bar` tienen `grid-area`
-    // propia, pero el nick no, asi que se autocolocaba en la primera celda
-    // libre — la del menu — y se pintaba ENCIMA de «Torrents».
-    //
-    // Se ata al mismo corte que la maqueta de una fila. Entre 1900 y 2099 se
-    // pierde el nick escrito; el avatar sigue ahi al lado y lo lleva dentro.
+    // Desde 2100 la barra es de UNA fila y el nick va en ella.
     @media screen and (min-width: 2100px) {
         display: flex;
     }
 
-    // De 1400 a 2099 vuelve, en la FILA DEL MENU y dentro del area de los iconos.
-    //
-    // Aqui `.top-nav__right` es `display: contents`, asi que el nick es un
-    // elemento suelto de la rejilla del nav. Sin `grid-area` se autocolocaba en
-    // la primera celda libre — la del menu — y se pintaba ENCIMA de «Torrents».
-    // Con area explicita tiene sitio propio y no puede invadir nada.
-    //
-    // `justify-self: start` contra el `justify-content: end` de la barra de
-    // iconos: el nick al principio del area, los iconos al final, y el hueco de
-    // en medio hace de separacion entre el nombre y los controles. El area es
-    // 1fr, asi que esa distancia crece con la pantalla en vez de ir clavada en
-    // pixeles. Por debajo de 1400 px el area ya no da de si y se oculta.
-    //
-    // 17px, el mismo cuerpo que las entradas del menu: a 14 se leia como una
-    // nota al pie al lado de iconos de 32.
-    // 900 -> 2099 (two-row bar): the name goes to the stats row, whose stats
-    // are aligned to the right and leave the left side free. It used to sit in
-    // the menu row inside the icon-bar area (from 1400), where a long name ran
-    // into the icons; below 1400 it was meant to be hidden (see the doubled
-    // class above). Measured with a 22-character name: fits from 900px; below
-    // that it would touch the stats, so it stays hidden.
+    // De 900 a 2099 la barra tiene DOS filas y `.top-nav__right` es
+    // `display: contents`: el nick es un elemento suelto de la rejilla del nav
+    // y, sin area propia, se autocolocaba en la celda de los menus, encima de
+    // «Torrents». Va a la fila de las stats, a la izquierda (las stats van
+    // alineadas a la derecha). Antes iba junto a los iconos desde 1400, donde un
+    // nick largo los pisaba. Medido con un nick de 22 caracteres: cabe desde
+    // 900; por debajo tocaria las stats y se queda oculto.
     @media screen and (min-width: 900px) and (max-width: 2099px) {
         display: flex;
         grid-row: 1;
