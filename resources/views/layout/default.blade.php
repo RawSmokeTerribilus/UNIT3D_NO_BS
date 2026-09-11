@@ -98,6 +98,8 @@
         @include('partials.footer')
 
         @vite('resources/js/app.js')
+        {{-- Menus tactiles: tocar abre, volver a tocar cierra (cajon movil y pestanas del perfil). --}}
+        @vite('resources/js/unit3d/menu-toggle.js')
 
 
         @foreach (['warning', 'success', 'info'] as $key)

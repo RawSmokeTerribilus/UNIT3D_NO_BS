@@ -31,6 +31,7 @@ export default defineConfig({
         'resources/js/unit3d/auth-hint.js',
         'resources/js/unit3d/chat.js',
         'resources/js/unit3d/upload-invalid-notice.js',
+        'resources/js/unit3d/menu-toggle.js',
         'resources/js/vendor/chart.js',
       ],
       refresh: true,

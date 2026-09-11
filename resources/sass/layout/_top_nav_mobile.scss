@@ -290,7 +290,8 @@ $chevron-font: 'Font Awesome 6 Pro';
             }
         }
 
-        > .top-nav__dropdown:focus-within > a::after {
+        > .top-nav__dropdown:focus-within > a::after,
+        > .top-nav__dropdown.is-open > a::after {
             transform: rotate(180deg);
         }
 
@@ -304,10 +305,20 @@ $chevron-font: 'Font Awesome 6 Pro';
             border-radius: 12px;
         }
 
-        > .top-nav__dropdown:hover > ul,
+        // `is-open` comes from menu-toggle.js (tap to open, tap again to close);
+        // :focus-within stays for the keyboard, :hover only with a mouse (on a
+        // touch screen it sticks after the tap and the menu would not close).
+        > .top-nav__dropdown.is-open > ul,
         > .top-nav__dropdown:focus-within > ul {
             display: flex;
             flex-direction: column;
+        }
+
+        @media (hover: hover) {
+            > .top-nav__dropdown:hover > ul {
+                display: flex;
+                flex-direction: column;
+            }
         }
     }
 
@@ -349,7 +360,8 @@ $chevron-font: 'Font Awesome 6 Pro';
             }
         }
 
-        > li:focus-within > a::after {
+        > li:focus-within > a::after,
+        > li.is-open > a::after {
             transform: rotate(180deg);
         }
 
@@ -364,12 +376,21 @@ $chevron-font: 'Font Awesome 6 Pro';
             border-radius: 12px;
         }
 
-        // :hover too: with a mouse (narrow desktop window) Torrents and
-        // Community use the plain link, which never takes focus.
-        .top-nav__dropdown:hover > ul,
+        // `is-open` from menu-toggle.js; :focus-within for the keyboard.
+        .top-nav__dropdown.is-open > ul,
         .top-nav__dropdown:focus-within > ul {
             display: flex;
             flex-direction: column;
+        }
+
+        // :hover only with a mouse (narrow desktop window, where Torrents and
+        // Community use the plain link, which never takes focus). On a touch
+        // screen it sticks after the tap and the menu would not close.
+        @media (hover: hover) {
+            .top-nav__dropdown:hover > ul {
+                display: flex;
+                flex-direction: column;
+            }
         }
     }
 
@@ -413,5 +434,12 @@ $chevron-font: 'Font Awesome 6 Pro';
             display: flex;
             flex-direction: column;
         }
+    }
+
+    // A tap focuses the trigger and the browser drew a focus box around it
+    // (an outlined «Torrents» while its menu was open). Keyboard focus keeps
+    // its outline.
+    .top-nav.mobile .top-nav__dropdown > a:focus:not(:focus-visible) {
+        outline: none;
     }
 }
