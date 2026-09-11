@@ -241,4 +241,5 @@ return [
     'your' => 'Your',
     'your-comment' => 'Your comment',
     'test' => 'test',
+    'show-options' => 'Show options',
 ];
