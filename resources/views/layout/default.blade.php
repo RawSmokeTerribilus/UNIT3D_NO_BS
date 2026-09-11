@@ -24,6 +24,9 @@
         {{-- NOBS Lateral FX (PoC): animated canvas behind content, clipped to the empty sides of <main> --}}
         <style>
             #nobs-fx { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; display: block; }
+            /* Desktop only: on a phone <main> takes the full width, there are no side
+               strips to draw in, and nobs-fx.js stops its loop. */
+            @media (max-width: 767px) { #nobs-fx { display: none; } }
         </style>
         @if (auth()->user()->settings->lateral_fx !== 'off')
             <canvas
@@ -34,7 +37,7 @@
                 data-density="{{ auth()->user()->settings->lateral_fx_density }}"
                 data-hue="{{ auth()->user()->settings->lateral_fx_hue }}"
             ></canvas>
-            <script src="{{ asset('js/nobs-fx.js') }}?v=5" defer></script>
+            <script src="{{ asset('js/nobs-fx.js') }}?v=6" defer></script>
         @endif
 
         {{-- NOBS Perspective Grid: animated floor+ceiling neon grid, gated on the

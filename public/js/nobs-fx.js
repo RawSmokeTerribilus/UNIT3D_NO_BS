@@ -50,6 +50,7 @@
     R = { x: right, w: Math.max(0, vw - right) };
     stripW = Math.max(L.w, R.w);
     if (effects[cfg.fx]) effects[cfg.fx].init();
+    start();
   }
 
   function clipStrips() {
@@ -451,13 +452,28 @@
   }
 
   /* ---------------- loop ---------------- */
+  // No strips (phone, narrow window): clear once and stop the loop instead of
+  // clearing a full-viewport canvas 60 times a second for nothing. geom()
+  // restarts it when a resize makes room for the strips again.
   let last = performance.now();
+  let running = false;
+  const hasStrips = () => L.w > 4 || R.w > 4;
   function frame(now) {
     let dt = (now - last) / 1000; last = now;
     if (dt > 0.05) dt = 0.05;          // clamp after tab switch
     const fx = effects[cfg.fx];
-    if (fx && (L.w > 4 || R.w > 4)) fx.draw(dt);
-    else ctx.clearRect(0, 0, vw, vh);
+    if (!fx || !hasStrips()) {
+      ctx.clearRect(0, 0, vw, vh);
+      running = false;
+      return;
+    }
+    fx.draw(dt);
+    requestAnimationFrame(frame);
+  }
+  function start() {
+    if (running || reduce || !hasStrips()) return;
+    running = true;
+    last = performance.now();
     requestAnimationFrame(frame);
   }
 
@@ -470,7 +486,6 @@
   window.addEventListener('load', geom);  // re-measure once layout settles
   if (reduce) {
     if (effects[cfg.fx]) effects[cfg.fx].draw(0.016);
-  } else {
-    requestAnimationFrame(frame);
   }
+  // Otherwise geom() above already called start().
 })();
