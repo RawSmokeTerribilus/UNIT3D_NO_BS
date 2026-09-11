@@ -6,3 +6,13 @@ body > header {
     z-index: 10;
     margin-bottom: 16px;
 }
+
+// On a phone the header scrolls away with the page instead of following it. The
+// closed bar plus the search row, and on profile pages the tab list, took half
+// the screen while reading; the drawer is `position: fixed` on its own and is
+// not affected. To get the header back, scroll to the top.
+@media screen and (max-width: 767px) {
+    body > header {
+        position: static;
+    }
+}
