@@ -14,7 +14,9 @@
 <link rel="shortcut icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
 <link rel="icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
 
-@if (auth()->user()->settings->standalone_css === null)
+@php($cssPropio = \App\Helpers\CssPermitido::limpia(auth()->user()->settings->custom_css))
+@php($cssEntero = \App\Helpers\CssPermitido::limpia(auth()->user()->settings->standalone_css))
+@if ($cssEntero === null)
     @vite('resources/sass/main.scss')
 
     @switch(auth()->user()->settings->style)
@@ -104,8 +106,11 @@
             @break
     @endswitch
 
-    @if (isset(auth()->user()->settings->custom_css))
-        <link rel="stylesheet" href="{{ auth()->user()->settings->custom_css }}" />
+    {{-- Se pinta la URL ya filtrada por la lista blanca, no el valor de la
+         base: si sólo se validara al guardar, lo que ya estuviera guardado
+         seguiría cargándose. --}}
+    @if ($cssPropio !== null)
+        <link rel="stylesheet" href="{{ $cssPropio }}" />
     @endif
 
     @if (auth()->user()->settings->theme_accent !== null)
@@ -118,7 +123,7 @@
         </style>
     @endif
 @else
-    <link rel="stylesheet" href="{{ auth()->user()->settings->standalone_css }}" />
+    <link rel="stylesheet" href="{{ $cssEntero }}" />
 @endif
 
 @livewireStyles
