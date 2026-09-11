@@ -1,0 +1,57 @@
+/*
+ * Chatbox on mobile.
+ *
+ * Based on nobs-mobile-fix by NoSoyAni (https://github.com/NoSoyAni/nobs-css),
+ * AGPL-3.0-or-later, adapted to the tracker: no !important, and the online
+ * users list moves below the messages instead of being hidden.
+ *
+ * Stock layout is a grid with the users list as a fixed column next to the
+ * messages; at 390px that column squeezes the messages to a strip.
+ */
+
+@media screen and (max-width: 767px) {
+    .chatbox__chatroom {
+        grid-template-areas: 'messages' 'whispers' 'new-message' 'users';
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto auto auto;
+    }
+
+    // Fullscreen mode sizes itself; only the embedded chat gets a phone height.
+    .chatbox:not(.chatbox--fullscreen) .chatbox__chatroom {
+        height: 75vh;
+        height: 75dvh;
+    }
+
+    .chatroom__users {
+        max-height: 25vh;
+    }
+
+    .chatroom__messages {
+        padding: 0 6px 5px;
+    }
+
+    // The avatar sits in a 40px gutter to the left of each bubble; on a phone
+    // that gutter is width the text needs. 10px are kept for the bubble's tail.
+    .chatbox-message {
+        margin-left: 10px;
+        max-width: calc(100% - 10px);
+    }
+
+    .chatbox-message__aside {
+        display: none;
+    }
+
+    .chatbox-message__header {
+        flex-wrap: wrap;
+    }
+
+    .chatbox-message__content {
+        min-width: 0;
+        font-size: 15px;
+        overflow-wrap: anywhere;
+    }
+
+    .chatroom__new-message {
+        margin: 0 6px 8px;
+    }
+}
