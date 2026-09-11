@@ -99,6 +99,7 @@
 @section('sidebar')
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('torrent.categories') }}</h2>
+        <div class="data-table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
@@ -115,5 +116,6 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </section>
 @endsection

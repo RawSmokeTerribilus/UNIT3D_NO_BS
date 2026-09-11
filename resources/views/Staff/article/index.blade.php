@@ -30,6 +30,7 @@
                 </a>
             </div>
         </header>
+        <div class="data-table-wrapper">
         <table class="data-table articles-table">
             <thead>
                 <tr>
@@ -103,6 +104,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
         {{ $articles->links('partials.pagination') }}
     </section>
 @endsection

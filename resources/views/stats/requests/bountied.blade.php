@@ -25,6 +25,7 @@
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('stat.top-bountied') }}</h2>
         <div class="panelV2">
+            <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -68,6 +69,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </section>
 @endsection
