@@ -1,0 +1,197 @@
+/*
+ * nobs-mobile-fix.css
+ *
+ * Copia LOCAL de https://nosoyani.github.io/nobs-css/nobs-mobile-fix.css
+ * Autor: NoSoyAni. Revisado y alojado en el tracker el 2026-09-11.
+ *
+ * Se sirve desde aquí y no desde GitHub para que la hoja de estilo de
+ * cada usuario no dependa de un dominio de terceros ni le mande su IP a
+ * un tercero en cada carga de página.
+ *
+ * Revisión: sin @import, sin url() de ningún tipo, sin @font-face, sin
+ * attr() y sin base64. No puede sacar nada de la página hacia fuera.
+ *
+ * Para actualizarlo: volver a bajarlo del origen, pasar la misma
+ * revisión y sustituir este fichero.
+ */
+
+/* ==UserStyle==
+@name           NOBS MOBILE APP-LIKE REDESIGN
+@namespace      nobs.local
+@version        23.4.0
+@description    Drawer scoped to mobile, no duplicate avatar/ghost, home banner removed, edge-to-edge blocks, readable chat. FIX: banner side images visible.
+@author         NoSoyAni (Copyright (c) 2026)
+@license        AGPL-3.0-or-later
+==/UserStyle== */
+    
+@media (max-width: 768px) {
+
+    /* ---------- BASE ---------- */
+    html, body {
+        overflow-x: hidden !important;
+    }
+    /* #nobs-fx: el tracker ya lo oculta en movil (y para su bucle). */
+    main, .panelV2, .footer__wrapper {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        box-sizing: border-box !important;
+    }
+    body {
+        padding-bottom: 60px !important;
+    }
+
+    /* ---------- BARRA SUPERIOR Y CAJON ----------
+       Integrado en el tracker el 2026-09-11 (layout/_top_nav_mobile.scss).
+       El original completo esta en deprecated/. No volver a meterlo aqui:
+       con los !important se pisaria con el del tracker. */
+
+    /* ---------- PESTANAS ----------
+       Integrado en el tracker el 2026-09-11 (layout/_secondary_nav_mobile.scss).
+       Versiones anteriores completas en deprecated/. No volver a meterlo aqui:
+       con los !important se pisaria con el del tracker. */
+
+    /* ---------- COUNTDOWN / EVENT BANNER ----------
+       FIX v23.1: se restauran las imágenes laterales
+       (antes ocultas con display:none en primer/último hijo).
+       Ahora se mantienen visibles, apiladas detrás/alrededor
+       del bloque central del cronómetro en layout de móvil. */
+    .special-event-alert {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+        min-height: auto !important;
+        border-radius: 10px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+    }
+    .special-event-alert > div:first-child,
+    .special-event-alert > div:last-child {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 50% !important;
+        height: 100% !important;
+        z-index: 1 !important;
+    }
+    .special-event-alert > div:first-child {
+        left: 0 !important;
+    }
+    .special-event-alert > div:last-child {
+        right: 0 !important;
+    }
+    .special-event-alert > div:first-child img,
+    .special-event-alert > div:last-child img {
+        display: block !important;
+        visibility: visible !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .special-event-alert [x-data^="timer"] {
+        position: relative !important;
+        z-index: 2 !important;
+        padding: 14px 8px !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:first-child {
+        font-size: 0.95rem !important;
+        text-align: center !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) > div {
+        min-width: 0 !important;
+        padding: 8px 4px !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) > div div:first-child {
+        font-size: 1.3rem !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) > div[style*="opacity"] {
+        display: none !important;
+    }
+
+    /* ---------- QUICK ACCESS GRID ---------- */
+    .nobs-quick-access {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin: 10px 0 16px 0 !important;
+        padding: 0 4px !important;
+    }
+    .nobs-quick-access a {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        padding: 10px 4px !important;
+        font-size: 0.68rem !important;
+        text-align: center !important;
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+    .nobs-quick-access a i {
+        font-size: 1.1rem !important;
+    }
+
+    /* ---------- PANELES, CHAT, FORMULARIOS, TABLAS Y PIE ----------
+       Integrado en el tracker el 2026-09-11 (components/_chatbox_mobile.scss; paneles, formularios, tablas y pie ya los adaptaba el tracker).
+       Versiones anteriores completas en deprecated/. No volver a meterlo aqui:
+       con los !important se pisaria con el del tracker. */
+
+    /* ---------- BOTTOM APP NAV ---------- */
+    .nobs-bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 999 !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        background: rgba(10,10,10,0.95) !important;
+        backdrop-filter: blur(8px) !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 8px 0 !important;
+    }
+    .nobs-bottom-nav a {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+        font-size: 0.65rem !important;
+        color: inherit !important;
+        text-decoration: none !important;
+        opacity: 0.85 !important;
+    }
+    .nobs-bottom-nav a i {
+        font-size: 1.2rem !important;
+    }
+
+    /* ---------- MARCADOR DE VERSION ---------- */
+    body::before {
+        content: "nobs-mobile-fix v23.4" !important;
+        position: fixed !important;
+        bottom: 4px !important;
+        left: 4px !important;
+        z-index: 99999 !important;
+        font-family: monospace !important;
+        font-size: 9px !important;
+        color: rgba(255,255,255,0.35) !important;
+        background: rgba(0,0,0,0.4) !important;
+        padding: 2px 5px !important;
+        border-radius: 3px !important;
+        pointer-events: none !important;
+    }
+}

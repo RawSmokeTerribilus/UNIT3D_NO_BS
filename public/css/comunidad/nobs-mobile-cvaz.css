@@ -1,0 +1,1095 @@
+/*
+ * nobs-mobile-cvaz.css
+ *
+ * Copia LOCAL de https://cristianvaz.github.io/nobs-css/nobs-mobile-fix.css
+ * Autor: cristianvaz. Revisado y alojado en el tracker el 2026-09-11.
+ *
+ * Se sirve desde aquí y no desde GitHub para que la hoja de estilo de
+ * cada usuario no dependa de un dominio de terceros ni le mande su IP a
+ * un tercero en cada carga de página.
+ *
+ * Revisión: sin @import, sin url() de ningún tipo, sin @font-face, sin
+ * attr() y sin base64. No puede sacar nada de la página hacia fuera.
+ *
+ * Para actualizarlo: volver a bajarlo del origen, pasar la misma
+ * revisión y sustituir este fichero.
+ */
+
+/* ==UserStyle==
+@name           NOBS MOBILE APP-LIKE REDESIGN
+@namespace      nobs.local
+@version        25.0.0
+@description    Drawer scoped to mobile, no duplicate avatar/ghost, home banner removed, edge-to-edge blocks, readable chat.
+@author         NoSoyAni (Copyright (c) 2026)
+@license        Custom - Personal & Non-Commercial Use Only
+==/UserStyle== */
+/* ===================================================================
+   NOBS MOBILE APP-LIKE REDESIGN v25
+   Copyright (c) 2026 NoSoyAni. Todos los derechos reservados.
+   LICENCIA Y CONDICIONES DE USO:
+   - Se concede permiso gratuito a los miembros de la comunidad de NOBS 
+     para instalar, ejecutar y utilizar este trabajo para uso personal.
+   - Queda estrictamente prohibida la copia, redistribución, modificación,
+     sublicencia o comercialización de este código fuente sin el 
+     consentimiento previo por escrito del autor original.
+   =================================================================== */
+
+@media (max-width: 768px) {
+
+    /* ---------- BASE ---------- */
+    html, body {
+        overflow-x: hidden !important;
+    }
+    #nobs-fx {
+        display: none !important;
+    }
+    /* stark-nobs.css deja una scanline recorriendo la pantalla en bucle
+       infinito (animacion de 8s sobre body::after). En escritorio es
+       parte del efecto HUD, pero en movil es una capa fija repintandose
+       para siempre: gasta bateria y no se agradece. Ya ocultamos
+       #nobs-fx por lo mismo, esto es la pieza que faltaba. */
+    body::after {
+        animation: none !important;
+        display: none !important;
+    }
+    main, .panelV2, .footer__wrapper {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        box-sizing: border-box !important;
+    }
+    body {
+        padding-bottom: 60px !important;
+        /* mismo motivo: el colchon que reserva la bottom nav tiene que
+           contar tambien la franja de gestos, si no el ultimo bloque de
+           la pagina queda tapado por la barra. */
+        padding-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .top-nav {
+        display: flex !important;
+        grid-template: none !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        padding: 8px 10px !important;
+        gap: 10px !important;
+        position: relative !important;
+    }
+    /* el toggle es hermano de .top-nav__left y .top-nav__right dentro
+       de .top-nav (flex). Lo dejamos fluir normal en la fila, alineado
+       por altura con el logo/titulo, en vez de sacarlo con
+       position:absolute (eso lo dejaba "flotando" en linea aparte). */
+    .top-nav__toggle {
+        order: 1 !important;
+        flex: 0 0 auto !important;
+        align-self: flex-start !important;
+        margin-top: 6px !important;
+    }
+    .top-nav__left {
+        order: 2 !important;
+        width: auto !important;
+        flex: 1 1 auto !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        min-width: 0 !important;
+    }
+    .top-nav__branding {
+        flex: 0 0 auto !important;
+        order: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .top-nav__branding img {
+        height: 24px !important;
+    }
+    .top-nav__site-logo {
+        display: block !important;
+        order: 2 !important;
+        /* ocupa el resto de la PRIMERA fila (junto al logo pequeño),
+           nunca crece a 100% para no empujar al buscador a compartir
+           esa misma fila */
+        flex: 1 1 auto !important;
+        min-width: 60px !important;
+        font-size: 1.1rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.02em !important;
+        line-height: 1.15 !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin: 0 !important;
+        /* --accent lo define UNIT3D (es el acento que elige cada usuario
+           en su perfil) y stark-nobs.css lo pisa a cian. Usandolo con
+           fallback, el logo sigue al tema que haya cargado en vez de
+           llevar un morado fijo que choca con el tema Stark. */
+        background: linear-gradient(90deg, var(--accent, #d080ff), var(--color-light-blue, #00e5ff)) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+    /* buscador: SIEMPRE fuerza su propia fila completa DENTRO de
+       .top-nav__left (no del .top-nav padre), asi el toggle -que
+       vive fuera de .top-nav__left- no se ve afectado */
+    .quick-search,
+    .quick-search.sf-hidden,
+    .quick-search__inputs,
+    .quick-search__inputs.sf-hidden {
+        display: block !important;
+    }
+    .quick-search {
+        order: 3 !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        /* tira del buscador hacia la izquierda para que arranque
+           alineado con la hamburguesa, dejando un pequeño respiro
+           en vez de tocar el borde de la pantalla */
+        margin-left: -28px !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-left: 28px !important;
+        padding-right: 12px !important;
+        box-sizing: border-box !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        position: relative !important;
+        min-height: 46px !important;
+    }
+    /* el tema pone .quick-search__inputs en position:absolute con
+       width fijo de 400px SOLO al enfocar, y sin left/right definidos
+       en reposo -> por eso "width:100%" no se notaba. Lo anclamos
+       explicitamente a todo el ancho del padre relativo. */
+    .quick-search__inputs {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        justify-content: flex-start !important;
+    }
+    .quick-search__input {
+        width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        font-size: 0.95rem !important;
+        padding: 10px 14px !important;
+        border-radius: 8px !important;
+    }
+    /* boton Arcade sale de la barra superior; se reubica dentro del
+       panel hamburguesa, ver seccion mas abajo */
+    .top-nav__left > a[href*="/gaming"] {
+        display: none !important;
+    }
+
+    /* =================================================================
+       PANEL HAMBURGUESA COMPLETO
+       Fusiona: icon-bar (perfil/correo/notis) + main-menus (Torrents,
+       Comunidad, Soporte, Otro) en un unico panel a pantalla completa
+       con acordeon. Usamos order sobre EL PROPIO .top-nav (flex
+       container) en vez de depender de :has(), que es mas fragil.
+       ================================================================= */
+
+    .top-nav__main-menus {
+        display: none !important;
+    }
+
+    .top-nav.mobile,
+    .top-nav:has(> .top-nav__main-menus.mobile) {
+        position: fixed !important;
+        inset: 0 !important;
+        /* 100vh en movil NO es el area visible: incluye la barra del
+           navegador, asi que el final del menu quedaba fuera de pantalla
+           y las ultimas opciones eran inalcanzables. dvh mide el viewport
+           real; el 100vh de arriba queda como fallback para navegadores
+           que no soporten dvh. */
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch !important;
+        background: #0a0a0a !important;
+        z-index: 9998 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        /* CRITICO: .top-nav lleva flex-wrap:wrap para la barra colapsada.
+           Con flex-direction:column + altura fija, ese wrap NO hace scroll:
+           parte el contenido en una SEGUNDA COLUMNA fuera del viewport
+           (x = ancho de pantalla), asi que el menu principal desaparecia
+           literalmente por la derecha en cuanto pasaba de alto. */
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        /* colchon inferior generoso: con los submenus desplegados el
+           ultimo item tiene que quedar por encima de la barra del
+           navegador y de la safe-area del movil */
+        padding: 0 0 96px 0 !important;
+        padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+        box-sizing: border-box !important;
+        gap: 0 !important;
+    }
+    .top-nav.mobile > .top-nav__left,
+    .top-nav:has(> .top-nav__main-menus.mobile) > .top-nav__left {
+        display: flex !important;
+        order: 2 !important;
+        width: 100% !important;
+        padding: 0 16px !important;
+        box-sizing: border-box !important;
+        margin: 4px 0 8px 0 !important;
+        /* sin esto el flex column del drawer lo comprime cuando el
+           contenido total supera la altura de la pantalla */
+        flex: 0 0 auto !important;
+    }
+    /* dentro del panel expandido, ocultamos todo lo que NO sea el
+       boton Arcade (logo, buscador ya estan arriba en su propio sitio) */
+    .top-nav.mobile > .top-nav__left > *:not(a[href*="/gaming"]),
+    .top-nav:has(> .top-nav__main-menus.mobile) > .top-nav__left > *:not(a[href*="/gaming"]) {
+        display: none !important;
+    }
+    .top-nav.mobile > .top-nav__left > a[href*="/gaming"],
+    .top-nav:has(> .top-nav__main-menus.mobile) > .top-nav__left > a[href*="/gaming"] {
+        display: flex !important;
+        width: 100% !important;
+        justify-content: center !important;
+        font-size: 1rem !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+    }
+    .top-nav.mobile > .top-nav__toggle,
+    .top-nav:has(> .top-nav__main-menus.mobile) > .top-nav__toggle {
+        position: fixed !important;
+        /* respeta el notch / barra de estado en pantallas con recorte */
+        top: 14px !important;
+        top: max(14px, env(safe-area-inset-top)) !important;
+        right: 14px !important;
+        z-index: 10000 !important;
+        font-size: 1.3rem !important;
+        color: #fff !important;
+        /* va fixed sobre un panel que scrollea, asi que acaba flotando
+           encima del texto del menu. Con un fondo casi translucido la X
+           se confundia con las opciones de debajo: fondo solido, borde
+           y sombra para que siempre se lea como boton. */
+        background: rgba(255,255,255,0.08) !important;
+        background: rgba(10,10,10,0.92) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.55) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        backdrop-filter: blur(6px) !important;
+        border-radius: 50% !important;
+        width: 38px !important;
+        height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Orden explicito de los 3 hijos directos de .top-nav cuando esta
+       expandido: 1) perfil (top-nav__right), 2) menu principal
+       (top-nav__main-menus), 3) toggle (fixed, no cuenta en flow) */
+    .top-nav.mobile > .top-nav__right,
+    .top-nav:has(> .top-nav__main-menus.mobile) > .top-nav__right {
+        order: 1 !important;
+    }
+    .top-nav__main-menus.mobile {
+        order: 3 !important;
+    }
+
+    .top-nav__right {
+        grid-area: unset !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        column-gap: 0 !important;
+    }
+    /* NOTA: el order de .top-nav__left ya se define arriba (order:2),
+       aqui solo quitamos el grid-area heredado del layout desktop */
+    .top-nav__left {
+        grid-area: unset !important;
+    }
+
+    .top-nav__right.mobile {
+        /* mismo criterio que el logo: seguir --accent en vez de morado
+           fijo. La primera declaracion es el fallback para navegadores
+           sin color-mix(); la segunda gana donde si esta soportado. */
+        background: linear-gradient(180deg, rgba(191,85,236,0.10), rgba(191,85,236,0.02)) !important;
+        background: linear-gradient(180deg,
+            color-mix(in srgb, var(--accent, #bf55ec) 10%, transparent),
+            color-mix(in srgb, var(--accent, #bf55ec) 2%, transparent)) !important;
+        padding: 60px 16px 14px 16px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        flex-shrink: 0 !important;
+    }
+
+    .top-nav__ratio-bar {
+        justify-content: flex-start !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        overflow-x: visible !important;
+        gap: 8px !important;
+        width: 100% !important;
+        font-size: 1rem !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 6px !important;
+    }
+    .top-nav__ratio-bar li {
+        flex: 0 1 auto !important;
+        white-space: nowrap !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+    }
+    .top-nav__ratio-bar li a {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+
+    .top-nav__username--highresolution {
+        display: block !important;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        margin: 6px 0 14px 0 !important;
+    }
+
+    /* correo + notificaciones: fila compacta, uno junto al otro, no
+       apiladas con hueco enorme entre medias */
+    .top-nav__icon-bar {
+        width: 100% !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        margin-bottom: 10px !important;
+    }
+    .top-nav__icon-bar > li {
+        border-top: none !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+    .top-nav__icon-bar .top-nav--right__icon-link {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        padding: 9px 10px !important;
+        font-size: 0.82rem !important;
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .top-nav__icon-bar li:has(.fa-envelope) .top-nav--right__icon-link::after {
+        content: "Bandeja";
+    }
+    .top-nav__icon-bar li:has(.fa-bell) .top-nav--right__icon-link::after {
+        content: "Notis";
+    }
+    /* punto/badge de actividad: pegado a la esquina del propio icono.
+       Cubrimos cualquier elemento hijo del link que no sea el icono <i>
+       principal, ya que el badge puede venir como span/small/em/dot
+       segun el tema */
+    .top-nav__icon-bar .top-nav--right__icon-link {
+        position: relative !important;
+    }
+    .top-nav__icon-bar .top-nav--right__icon-link > *:not(:first-child) {
+        position: absolute !important;
+        top: 2px !important;
+        left: 18px !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        width: 9px !important;
+        height: 9px !important;
+        min-width: 9px !important;
+        max-width: 9px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 50% !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        overflow: hidden !important;
+        text-indent: -9999px !important;
+        border: 2px solid #0a0a0a !important;
+        box-sizing: content-box !important;
+    }
+
+    .top-nav__icon-bar .top-nav__dropdown {
+        position: static !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        /* mismo motivo que en el menu principal: el <li> viene como flex
+           en fila con alto fijo de la barra de escritorio, y eso dejaba
+           el submenu del perfil al lado del avatar en vez de debajo */
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+    .top-nav__icon-bar .top-nav__dropdown > a.top-nav__dropdown--nontouch {
+        display: none !important;
+    }
+    /* El <a class="top-nav__dropdown--touch"> del tema NO tiene href:
+       es solo un tabindex="0" que servia de disparador de :focus-within.
+       Como aqui el submenu va siempre desplegado, lo convertimos en
+       cabecera de seccion y le quitamos la interaccion (si no, tocarlo
+       parece que deberia hacer algo y no hace nada). */
+    .top-nav__icon-bar .top-nav__dropdown > a.top-nav__dropdown--touch {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        width: 100% !important;
+        padding: 10px 12px !important;
+        font-weight: 600 !important;
+        background: rgba(255,255,255,0.04) !important;
+        border-radius: 10px !important;
+        box-sizing: border-box !important;
+    }
+    .top-nav__icon-bar.mobile .top-nav__dropdown > a.top-nav__dropdown--touch,
+    .top-nav.mobile .top-nav__icon-bar .top-nav__dropdown > a.top-nav__dropdown--touch {
+        pointer-events: none !important;
+        cursor: default !important;
+        /* en el markup real este <a> contiene UNICAMENTE el avatar (el
+           nombre de usuario va como primer <li> del submenu). Con el
+           fondo de tarjeta y width:100% quedaba un recuadro vacio a todo
+           el ancho con un avatar pequeno perdido dentro. Lo dejamos como
+           cabecera compacta: solo el avatar, sin caja. */
+        background: none !important;
+        border-radius: 0 !important;
+        width: auto !important;
+        padding: 6px 2px 2px 2px !important;
+    }
+    .top-nav__icon-bar.mobile .top-nav__dropdown > a.top-nav__dropdown--touch .top-nav__profile-image,
+    .top-nav.mobile .top-nav__icon-bar .top-nav__dropdown > a.top-nav__dropdown--touch .top-nav__profile-image {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .top-nav__profile-image {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        flex: 0 0 auto !important;
+    }
+
+    /* submenu del perfil: TARJETA que empuja el contenido hacia abajo,
+       nunca position:absolute flotando encima de otras cosas.
+       SIEMPRE desplegado dentro del drawer (display:flex, no none).
+
+       Se sube la especificidad y se anulan TODAS las propiedades de
+       anclaje, no solo position. El tema ancla este submenu con
+       right/top + min-width propio; con solo "position:static" bastaba
+       en teoria, pero si alguna de esas reglas gana por especificidad
+       el panel se queda flotando encima del ratio bar y del boton
+       Arcade, y entonces los toques caen sobre el elemento de arriba
+       en vez de sobre la opcion. Anulamos inset, transform, float,
+       min-width y margins laterales de una vez. */
+    .top-nav .top-nav__icon-bar.mobile .top-nav__dropdown > ul,
+    .top-nav.mobile .top-nav__icon-bar .top-nav__dropdown > ul,
+    .top-nav__icon-bar.mobile .top-nav__dropdown ul,
+    .top-nav.mobile .top-nav__icon-bar .top-nav__dropdown ul {
+        position: static !important;
+        inset: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        transform: none !important;
+        float: none !important;
+        clear: both !important;
+        z-index: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin: 6px 0 4px 0 !important;
+        padding: 6px !important;
+        background: rgba(255,255,255,0.045) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 12px !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+    }
+    .top-nav__icon-bar .top-nav__dropdown ul li {
+        width: 100% !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .top-nav__icon-bar .top-nav__dropdown ul li:first-child {
+        border-top: none !important;
+    }
+    .top-nav__icon-bar .top-nav__dropdown ul li a,
+    .top-nav__icon-bar .top-nav__dropdown ul li button {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        width: 100% !important;
+        min-height: 44px !important;
+        padding: 11px 8px !important;
+        font-size: 0.92rem !important;
+        opacity: 0.92 !important;
+        box-sizing: border-box !important;
+        border-radius: 6px !important;
+        -webkit-tap-highlight-color: rgba(255,255,255,0.12) !important;
+        touch-action: manipulation !important;
+    }
+    .top-nav__icon-bar .top-nav__dropdown ul li a:active,
+    .top-nav__icon-bar .top-nav__dropdown ul li button:active {
+        background: rgba(255,255,255,0.06) !important;
+    }
+    .top-nav__icon-bar .top-nav__dropdown ul li i {
+        width: 18px !important;
+        text-align: center !important;
+        opacity: 0.7 !important;
+        flex: 0 0 auto !important;
+    }
+
+    /* =================================================================
+       MENU PRINCIPAL (Torrents / Comunidad / Soporte / Otro)
+       Acordeon vertical: el submenu empuja el contenido hacia abajo.
+       NO usar position:absolute/flyout lateral aqui: el panel padre
+       tiene overflow-y:auto para el scroll general del menu, y eso
+       RECORTA cualquier hijo absoluto que se salga hacia los lados
+       (por eso el flyout a la derecha no se veia -> quedaba fuera del
+       area recortada por el overflow del contenedor scrollable).
+       ================================================================= */
+    .top-nav__main-menus.mobile {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        padding: 4px 16px 0 16px !important;
+        box-sizing: border-box !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        min-height: min-content !important;
+        flex-shrink: 0 !important;
+    }
+    .top-nav__main-menus.mobile > li {
+        width: 100% !important;
+        position: static !important;
+        /* CRITICO: el tema deja este <li> como flex EN FILA, que es como
+           funciona la barra de escritorio, y le da un alto fijo de 60px
+           (el alto de esa barra). Sus dos hijos son el <a> del titulo y
+           el <ul> del submenu, asi que en fila el submenu se colocaba AL
+           LADO del titulo, como columna estrecha pegada a la derecha y
+           encima del resto del menu; y el alto fijo impedia ademas que
+           el <li> creciera para dejarle sitio. Como bloque, el <ul> cae
+           debajo del <a> y a ancho completo. */
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    .top-nav__main-menus.mobile > li:last-child {
+        border-bottom: none !important;
+    }
+
+    .top-nav__main-menus.mobile > li > a.top-nav__dropdown--nontouch {
+        display: none !important;
+    }
+
+    /* CABECERA DE SECCION (Torrents / Comunidad / Soporte / Otro).
+       El <a class="top-nav__dropdown--touch"> del tema no tiene href:
+       es un tabindex="0" cuyo unico proposito era disparar :focus-within.
+       Como el submenu ya va siempre desplegado, aqui es solo una
+       etiqueta, asi que le quitamos la flecha y la interaccion. */
+    .top-nav__main-menus.mobile > li > a.top-nav__dropdown--touch {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        padding: 18px 4px 8px 4px !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.14em !important;
+        text-transform: uppercase !important;
+        opacity: 0.55 !important;
+        pointer-events: none !important;
+        cursor: default !important;
+    }
+    .top-nav__main-menus.mobile > li > a.top-nav__dropdown--touch::after {
+        content: none !important;
+    }
+    /* el texto real vive en un div interior; hay que neutralizar el
+       padding/tamano que el tema le da para la barra horizontal */
+    .top-nav__main-menus.mobile > li > a.top-nav__dropdown--touch .top-nav--left__container {
+        font-size: inherit !important;
+        font-weight: inherit !important;
+        letter-spacing: inherit !important;
+        text-transform: inherit !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+        width: 100% !important;
+    }
+
+    /* ENLACE DIRECTO (li de primer nivel sin submenu): sigue siendo una
+       fila navegable normal, con chevron a la derecha. */
+    .top-nav__main-menus.mobile > li > a:not(.top-nav__dropdown--nontouch):not(.top-nav__dropdown--touch) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        min-height: 48px !important;
+        padding: 14px 4px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+    }
+    .top-nav__main-menus.mobile > li > a:not(.top-nav__dropdown--nontouch):not(.top-nav__dropdown--touch)::after {
+        content: "\f054"; /* fa-chevron-right: navega a otra pagina */
+        font-family: "Font Awesome 5 Free", "Font Awesome 6 Free", FontAwesome;
+        font-weight: 900;
+        font-size: 0.75rem;
+        opacity: 0.4;
+        margin-left: 8px;
+    }
+
+    .top-nav__main-menus.mobile .top-nav__dropdown {
+        position: static !important;
+        width: 100% !important;
+    }
+
+    /* submenu como TARJETA que empuja el contenido de abajo hacia
+       abajo, en vez de flotar encima o a un lado.
+       SIEMPRE VISIBLE: el acordeon dependia de :focus-within sobre un
+       <a> sin href (y de una clase .open que no pone nadie), y en tactil
+       eso no se puede garantizar. Sin JS la unica forma fiable de que
+       las opciones sean seleccionables es dejarlas desplegadas. */
+    .top-nav__main-menus.mobile .top-nav__dropdown ul {
+        position: static !important;
+        list-style: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 4px 0 14px 0 !important;
+        padding: 6px !important;
+        /* era casi opaco porque antes flotaba por encima del contenido y
+           tenia que taparlo. Ahora va en flujo, asi que un negro macizo
+           sobre el fondo negro del drawer solo marcaba una costura: se
+           iguala a la tarjeta del submenu de perfil. */
+        background: rgba(255,255,255,0.045) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 12px !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+        inset: auto !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        z-index: auto !important;
+        float: none !important;
+        clear: both !important;
+        min-width: 0 !important;
+    }
+    .top-nav__main-menus.mobile .top-nav__dropdown ul li {
+        width: 100% !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .top-nav__main-menus.mobile .top-nav__dropdown ul li:first-child {
+        border-top: none !important;
+    }
+    .top-nav__main-menus.mobile .top-nav__dropdown ul li a {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        width: 100% !important;
+        /* 44px es el minimo tactil recomendado; antes eran ~38px y con
+           el submenu recien abierto se fallaba el toque con facilidad */
+        min-height: 44px !important;
+        padding: 11px 8px !important;
+        font-size: 0.92rem !important;
+        opacity: 0.92 !important;
+        box-sizing: border-box !important;
+        border-radius: 6px !important;
+        -webkit-tap-highlight-color: rgba(255,255,255,0.12) !important;
+        touch-action: manipulation !important;
+    }
+    .top-nav__main-menus.mobile .top-nav__dropdown ul li a:active {
+        background: rgba(255,255,255,0.06) !important;
+    }
+    .top-nav__main-menus.mobile .top-nav__dropdown ul li i {
+        width: 18px !important;
+        text-align: center !important;
+        opacity: 0.65 !important;
+        flex: 0 0 auto !important;
+    }
+
+    /* ---------- SECONDARY NAV / TABS (Perfil/Configuracion/Torrents...) ---------- */
+    .secondary-nav {
+        padding: 4px 8px !important;
+        overflow: visible !important;
+    }
+    .breadcrumbsV2 {
+        font-size: 0.75rem !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+    }
+    .nav-tabsV2 {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+        flex-wrap: nowrap !important;
+        gap: 0 !important;
+        width: 100% !important;
+    }
+    .nav-tab-menu {
+        position: relative !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        font-size: 0.95rem !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 0 8px !important;
+        box-sizing: border-box !important;
+    }
+    .nav-tab-menu:last-child {
+        border-bottom: none !important;
+    }
+    /* flecha en el LI, no en el link: apunta a la derecha cuando esta
+       cerrado (sugiere "toca aqui para desplegar") y rota hacia abajo
+       al abrirse. Cubre visualmente toda la fila aunque el <a> real
+       solo ocupe el ancho de su texto a la izquierda */
+    .nav-tab-menu::before {
+        content: "";
+        position: absolute !important;
+        right: 4px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 8px !important;
+        background: rgba(255,255,255,0.05) !important;
+        pointer-events: none !important;
+    }
+    .nav-tab-menu::after {
+        content: "\f054"; /* fa-chevron-right */
+        font-family: "Font Awesome 5 Free", "Font Awesome 6 Free", FontAwesome;
+        font-weight: 900;
+        font-size: 0.75rem;
+        opacity: 0.55;
+        position: absolute !important;
+        right: 10px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        transition: transform 0.2s ease, opacity 0.2s ease !important;
+        pointer-events: none !important;
+    }
+    .nav-tab-menu:focus-within::before,
+    .nav-tab-menu.open::before {
+        background: rgba(255,255,255,0.1) !important;
+    }
+    .nav-tab-menu:focus-within::after,
+    .nav-tab-menu.open::after {
+        transform: translateY(-50%) rotate(90deg) !important;
+        opacity: 0.9 !important;
+    }
+    .nav-tab-menu > a {
+        display: inline-flex !important;
+        align-items: center !important;
+        width: auto !important;
+        max-width: calc(100% - 44px) !important;
+        padding: 12px 8px 12px 0 !important;
+        box-sizing: border-box !important;
+    }
+    .nav-tab-menu__items {
+        display: none !important;
+    }
+    .nav-tab-menu:focus-within > .nav-tab-menu__items,
+    .nav-tab-menu.open > .nav-tab-menu__items {
+        display: flex !important;
+        flex-direction: column !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 0 10px 0 !important;
+        padding: 6px !important;
+        background: rgba(255,255,255,0.045) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+    }
+    .nav-tab-menu__items li {
+        width: 100% !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .nav-tab-menu__items li:first-child {
+        border-top: none !important;
+    }
+    .nav-tab-menu__items li a {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        padding: 10px 8px !important;
+        font-size: 0.88rem !important;
+        opacity: 0.9 !important;
+        box-sizing: border-box !important;
+    }
+    .nav-tab-menu__items li a:active {
+        background: rgba(255,255,255,0.06) !important;
+    }
+
+    /* ---------- COUNTDOWN / EVENT BANNER ---------- */
+    .special-event-alert {
+        grid-template-columns: 1fr !important;
+        min-height: auto !important;
+        border-radius: 10px !important;
+    }
+    .special-event-alert > div:first-child,
+    .special-event-alert > div:last-child {
+        display: none !important;
+    }
+    .special-event-alert [x-data^="timer"] {
+        padding: 14px 8px !important;
+        gap: 10px !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:first-child {
+        font-size: 0.95rem !important;
+        text-align: center !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) > div {
+        min-width: 0 !important;
+        padding: 8px 4px !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) > div div:first-child {
+        font-size: 1.3rem !important;
+    }
+    .special-event-alert [x-data^="timer"] > div:nth-child(2) > div[style*="opacity"] {
+        display: none !important;
+    }
+
+    /* ---------- QUICK ACCESS GRID ---------- */
+    .nobs-quick-access {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin: 10px 0 16px 0 !important;
+        padding: 0 4px !important;
+    }
+    .nobs-quick-access a {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        padding: 10px 4px !important;
+        font-size: 0.68rem !important;
+        text-align: center !important;
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+    .nobs-quick-access a i {
+        font-size: 1.1rem !important;
+    }
+
+    /* ---------- PANELS ---------- */
+    .panelV2 {
+        margin: 0 0 12px 0 !important;
+        border-radius: 8px !important;
+    }
+    .panel__heading, .panel__body {
+        padding: 10px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* ---------- CHAT FIX ---------- */
+    .chatroom__messages {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .chatbox-message {
+        display: block !important;
+        padding: 6px 4px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    }
+    .chatbox-message__header {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: baseline !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    .chatbox-message__address,
+    .user-tag__link {
+        white-space: nowrap !important;
+        overflow-wrap: normal !important;
+        word-break: keep-all !important;
+        flex: 0 0 auto !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .chatbox-message__time {
+        font-size: 0.7rem !important;
+        opacity: 0.6 !important;
+        white-space: nowrap !important;
+        flex: 0 0 auto !important;
+    }
+    .chatbox-message__content,
+    .bot-message {
+        display: block !important;
+        width: 100% !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        white-space: normal !important;
+        font-size: 0.85rem !important;
+        margin-top: 2px !important;
+    }
+    .chatbox-message__aside,
+    .chatbox-message__figure {
+        display: none !important;
+    }
+    .chatbox__chatroom {
+        max-height: 340px !important;
+    }
+    .panel__tabs {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        white-space: nowrap !important;
+    }
+    #chatbox_header {
+        flex-wrap: wrap !important;
+    }
+    #chatbox_header .panel__actions {
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+    }
+
+    /* ---------- FORMS ---------- */
+    .form__select,
+    .form__text,
+    .form__textarea,
+    input[type="url"],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        font-size: 0.9rem !important;
+    }
+    .form__fieldset {
+        padding: 8px !important;
+    }
+    .accent-swatches {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    .order__list {
+        font-size: 0.85rem !important;
+    }
+    .order__item {
+        padding: 10px 6px !important;
+    }
+
+    /* ---------- TABLES ---------- */
+    table {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-width: 100% !important;
+    }
+
+    /* ---------- FOOTER ---------- */
+    .footer__wrapper {
+        grid-template-columns: 1fr !important;
+        text-align: center !important;
+        gap: 16px !important;
+    }
+    .footer__section-list {
+        padding: 0 !important;
+    }
+    .footer__stats {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        font-size: 0.75rem !important;
+        gap: 4px !important;
+    }
+    .footer__copyright {
+        font-size: 0.7rem !important;
+    }
+
+    /* ---------- BOTTOM APP NAV ---------- */
+    .nobs-bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 999 !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        background: rgba(10,10,10,0.95) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        backdrop-filter: blur(8px) !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+        /* en moviles con indicador de inicio (sin boton fisico) la franja
+           de gestos se come la fila de iconos: se anade la safe-area al
+           padding inferior para que queden por encima. */
+        padding: 8px 0 !important;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    }
+    .nobs-bottom-nav a {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+        font-size: 0.65rem !important;
+        color: inherit !important;
+        text-decoration: none !important;
+        opacity: 0.85 !important;
+    }
+    .nobs-bottom-nav a i {
+        font-size: 1.2rem !important;
+    }
+
+    /* ---------- MARCADOR DE VERSION (debug/cache-check) ----------
+       Esquina inferior-izquierda, discreto. Sirve para confirmar que
+       el navegador esta cargando la version actualizada del CSS y no
+       una copia cacheada. Subir el numero en cada cambio futuro. */
+    body::before {
+        content: "nobs-mobile-fix v25" !important;
+        position: fixed !important;
+        bottom: 4px !important;
+        left: 4px !important;
+        z-index: 99999 !important;
+        font-family: monospace !important;
+        font-size: 9px !important;
+        color: rgba(255,255,255,0.35) !important;
+        background: rgba(0,0,0,0.4) !important;
+        padding: 2px 5px !important;
+        border-radius: 3px !important;
+        pointer-events: none !important;
+    }
+}

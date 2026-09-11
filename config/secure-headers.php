@@ -697,10 +697,12 @@ return [
             ],
 
             'allow' => [
-                'gitcdn.xyz',
-                'github.io',
-                "*.github.io",
-                'github.com'
+                // Antes esto era gitcdn.xyz, github.io, *.github.io y github.com:
+                // cualquier GitHub Pages del mundo podía inyectar CSS en el
+                // tracker. Las hojas de la comunidad ya se sirven desde
+                // /css/comunidad/, así que sólo queda el dominio de Ani, donde
+                // vive su tema en desarrollo.
+                'nosoyani.github.io',
             ],
         ],
 

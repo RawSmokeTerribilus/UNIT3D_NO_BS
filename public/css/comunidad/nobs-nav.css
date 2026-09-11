@@ -1,0 +1,496 @@
+/*
+ * nobs-nav.css
+ *
+ * Copia LOCAL de https://joelkobjoll.github.io/unit3d-custom-css/nobs-nav.css
+ * Autor: joelkobjoll. Revisado y alojado en el tracker el 2026-09-11.
+ *
+ * Se sirve desde aquí y no desde GitHub para que la hoja de estilo de
+ * cada usuario no dependa de un dominio de terceros ni le mande su IP a
+ * un tercero en cada carga de página.
+ *
+ * Revisión: sin @import, sin url() de ningún tipo, sin @font-face, sin
+ * attr() y sin base64. No puede sacar nada de la página hacia fuera.
+ *
+ * Para actualizarlo: volver a bajarlo del origen, pasar la misma
+ * revisión y sustituir este fichero.
+ */
+
+/* =====================================================================
+   NOBS (nobs.rawsmoke.net) - navigation + mobile UI fixes
+   ---------------------------------------------------------------------
+   Loaded via Settings -> custom_css. That field ADDS a stylesheet, it
+   does not replace the theme, so there is no @import here.
+
+   DELIVERY: the authenticated pages send
+       style-src 'self' 'unsafe-inline' gitcdn.xyz github.io
+                 *.github.io github.com
+   so the URL must be GitHub PAGES. raw.githubusercontent.com, jsDelivr,
+   GitLab and statically are all blocked. Live URL:
+       https://joelkobjoll.github.io/unit3d-custom-css/nobs-nav.css
+
+   The header is ALREADY position:sticky - deliberately not touched.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. Sideways scroll. The real causes are fixed in section 7; this is
+   only a backstop. overflow-x: clip (not hidden) does not create a
+   scroll container, so the sticky header keeps working.
+   --------------------------------------------------------------------- */
+html,
+body {
+  overflow-x: clip !important;
+  max-width: 100% !important;
+}
+
+/* ---------------------------------------------------------------------
+   2. Hamburger: real touch target (was 26x18).
+   --------------------------------------------------------------------- */
+.top-nav__toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+}
+
+/* =====================================================================
+   DRAWER SCOPE: every .top-nav.mobile rule lives inside this media
+   query. The theme adds the .mobile class whenever the hamburger is
+   used - INCLUDING on desktop, where that button still exists. Scoped
+   by class alone, the mobile drawer design took over a 1900px screen.
+   ===================================================================== */
+@media screen and (max-width: 900px) {
+
+  /* ---------------------------------------------------------------------
+     3. MOBILE DRAWER - structure.
+     Scoped to .top-nav.mobile, the class the site's own JS toggles.
+
+     The theme lays the nav out as CSS grid. In the drawer that grid lets
+     a too-tall submenu escape its row and paint over its neighbours - the
+     profile submenu rendered 546px tall inside a 124px icon bar. Flex
+     column + everything full width + static positioning makes every item
+     reserve its own space.
+     --------------------------------------------------------------------- */
+  .top-nav.mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    background: #0a0a0f !important;
+    padding: 0 0 18px !important;
+    row-gap: 0 !important;
+  }
+
+  .top-nav.mobile > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+  }
+
+  .top-nav.mobile > .top-nav__toggle {
+    width: 44px !important;
+    max-width: 44px !important;
+    flex: 0 0 44px !important;
+    align-self: flex-end !important;
+    order: -1 !important;
+    margin: 6px 10px 0 auto !important;
+  }
+
+  .top-nav.mobile .top-nav__left {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 4px 14px 12px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .top-nav.mobile .top-nav__main-menus,
+  .top-nav.mobile .top-nav__right {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* Nested lists flow in place instead of floating over siblings.
+     This is the rule that actually fixes the overlap. */
+  .top-nav.mobile ul {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    box-shadow: none !important;
+  }
+
+  .top-nav.mobile .top-nav__main-menus > li,
+  .top-nav.mobile .top-nav__dropdown {
+    display: block !important;
+    width: 100% !important;
+    position: static !important;
+    /* theme pins these to height:60px, which clips the submenu */
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* The theme ships TWO anchors per dropdown - one for hover devices, one
+     for touch - and hides whichever does not apply. The display rule in
+     section 4 un-hides both, stacking 88px of links into one row.
+     Re-assert exactly one (0,4,0 beats 0,3,1). */
+  @media (hover: hover) {
+    .top-nav.mobile .top-nav__dropdown--touch {
+      display: none !important;
+    }
+  }
+
+  @media (hover: none) {
+    .top-nav.mobile .top-nav__dropdown--nontouch {
+      display: none !important;
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     4. MOBILE DRAWER - visual design.
+     --------------------------------------------------------------------- */
+  .top-nav.mobile .top-nav__main-menus {
+    padding: 6px 8px !important;
+  }
+
+  .top-nav.mobile .top-nav__main-menus > li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    padding: 2px 0 !important;
+  }
+
+  .top-nav.mobile .top-nav__main-menus > li:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .top-nav.mobile .top-nav__main-menus > li > a {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    opacity: 0.95 !important;
+  }
+
+  .top-nav.mobile .top-nav__dropdown > ul {
+    padding: 2px 0 8px 12px !important;
+    margin: 0 0 4px 10px !important;
+    border-left: 2px solid rgba(217, 70, 239, 0.5) !important;
+  }
+
+  .top-nav.mobile .top-nav__dropdown > ul a {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 8px 10px !important;
+    border-radius: 6px !important;
+    gap: 10px !important;
+    opacity: 0.9 !important;
+  }
+
+  .top-nav.mobile .top-nav__dropdown > ul a:hover {
+    background: rgba(217, 70, 239, 0.14) !important;
+    opacity: 1 !important;
+  }
+
+  /* 44px touch targets for anything tappable in the drawer. */
+  .top-nav.mobile .top-nav__main-menus a,
+  .top-nav.mobile .top-nav__right a,
+  .top-nav.mobile .top-nav__main-menus button {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 44px !important;
+    padding-block: 2px !important;
+  }
+
+  /* Icons and avatars must never stretch. The min-height above turns
+     them into flex items that otherwise render as tall ellipses. */
+  .top-nav.mobile img {
+    flex: 0 0 auto !important;
+    width: 26px !important;
+    height: 26px !important;
+    aspect-ratio: 1 !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+  }
+
+  .top-nav.mobile .top-nav__branding img {
+    width: auto !important;
+    height: 30px !important;
+    aspect-ratio: auto !important;
+    border-radius: 0 !important;
+  }
+
+  .top-nav.mobile i {
+    flex: 0 0 auto !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-height: 0 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Stats: 2 readable columns. auto-fit with a px minimum forces 5
+     columns wider than the drawer and clips the first off the left. */
+  .top-nav.mobile .top-nav__ratio-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    justify-items: start !important;
+    gap: 10px !important;
+    margin-top: 6px !important;
+    padding: 12px 14px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .top-nav.mobile .top-nav__ratio-bar li {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+
+  .top-nav.mobile .top-nav__icon-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    padding: 12px 14px 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .top-nav.mobile .top-nav__icon-bar > li {
+    width: auto !important;
+  }
+
+  .top-nav.mobile .top-nav__icon-bar > li.top-nav__dropdown {
+    width: 100% !important;
+  }
+
+}
+
+/* ---------------------------------------------------------------------
+   5. Quick search: a resting width you can actually hit.
+   At >=1200px the wrapper computes to width:0 with a 10px input. It
+   expands to 400px on focus, but you must hit a 10px sliver first.
+   180px renders ~115px at rest and still expands on focus.
+   Below 1100px the theme sets display:none on purpose - leave it.
+
+   The ratio-bar gap comes down with it: at >=1500px the nav content
+   area is capped ~1429px and already full, so a search box alone
+   overflows by 81px; the tighter gap buys back the ~48px. Paired
+   numbers - changing one needs the other re-measured.
+   --------------------------------------------------------------------- */
+@media screen and (min-width: 1100px) {
+  .quick-search {
+    width: 180px !important;
+  }
+
+  .quick-search__inputs,
+  .quick-search__input {
+    width: 100% !important;
+  }
+
+  .top-nav__ratio-bar {
+    column-gap: 6px !important;
+    min-width: 0 !important;
+  }
+}
+
+/* The theme already overflows its own nav by 32px/12px at 1420/1440
+   before any of this loads. 180px re-triggers it; 140px clears it. */
+@media screen and (min-width: 1390px) and (max-width: 1459px) {
+  .quick-search {
+    width: 140px !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   6. Wordmark. Theme ships 22px Impact, which dominates the bar.
+   --------------------------------------------------------------------- */
+.top-nav__site-logo {
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+}
+
+.top-nav__branding {
+  align-items: center !important;
+}
+
+/* Mobile: the branding box collapses to 0px with overflow:visible, so
+   the wordmark spills out and paints over the Arcade button. There is
+   no room for it next to Arcade + hamburger - the NOBS icon stays as
+   the home link. (This block must come AFTER the base rule above:
+   same specificity, later wins.) */
+@media screen and (max-width: 767px) {
+  .top-nav__site-logo {
+    display: none !important;
+  }
+
+  .top-nav__branding {
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+  }
+
+  .top-nav__left {
+    gap: 10px !important;
+    align-items: center !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7. MOBILE CONTENT - not navigation, but it is what makes the site
+   look broken on a phone. Verified with overflow-x:clip disabled:
+   36px document overflow -> 0, 0 elements crossing the right edge.
+   --------------------------------------------------------------------- */
+
+/* Chat: bot-message links carried white-space:nowrap up to 830px wide,
+   so every line needed sideways scrolling.
+   Only the message BODY may break - applying overflow-wrap:anywhere to
+   the whole message shreds the username into one letter per line. */
+.chatroom__messages--wrapper {
+  overflow-x: hidden !important;
+}
+
+.chatbox-message,
+.chatroom__messages--wrapper li {
+  overflow-wrap: normal !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.chatbox-message__address,
+.chatbox-message__address *,
+.chatbox-message__time {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
+
+.chatbox-message__header {
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  column-gap: 6px !important;
+  row-gap: 2px !important;
+}
+
+.chatbox-message__header .bbcode-rendered {
+  flex: 1 1 100% !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+@media screen and (max-width: 767px) {
+  /* Full-width blocks go edge to edge. Rounded corners plus side
+     margins on a phone just look unfinished. */
+  .alerts,
+  .alert,
+  .special-event-alert,
+  .panelV2,
+  .panel,
+  .chatroom,
+  .chatroom__messages--wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .special-event-alert img,
+  .panelV2 > img,
+  .panel > img {
+    border-radius: 0 !important;
+  }
+
+  .chatbox-message {
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Countdown banner: a flex item at min-width:auto refusing to shrink. */
+  .alerts *,
+  .special-event-alert * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .special-event-alert div {
+    flex-wrap: wrap !important;
+  }
+
+  /* Panel tab strips - the last 36px of document overflow. */
+  .panel__tabs {
+    flex-wrap: wrap !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .panel__tab {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .random__media a,
+  .random__media .media__title {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   8. Desktop polish. The nav shipped no hover or focus feedback.
+   --------------------------------------------------------------------- */
+.top-nav__main-menus > li > a {
+  border-radius: 6px !important;
+  padding-inline: 10px !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.top-nav__main-menus > li > a:hover {
+  background-color: rgba(217, 70, 239, 0.18) !important;
+}
+
+.top-nav__icon-bar a:hover,
+.top-nav__icon-bar span:hover {
+  filter: brightness(1.25) !important;
+}
+
+.quick-search__input {
+  border-radius: 6px !important;
+}
+
+.top-nav a:focus-visible,
+.top-nav button:focus-visible,
+.quick-search__input:focus-visible {
+  outline: 2px solid #d946ef !important;
+  outline-offset: 2px !important;
+  border-radius: 4px !important;
+}
+
+/* ---------------------------------------------------------------------
+   9. Home banner. Decorative NOBS artwork that costs ~235px of desktop
+   and half a phone screen before any content. It carries no
+   information, so it goes. Delete this block to bring it back.
+   --------------------------------------------------------------------- */
+main.page__home > article > div:has(> img) {
+  display: none !important;
+}

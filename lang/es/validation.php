@@ -1,7 +1,7 @@
 <?php
 return [
-    'css-solo-local'       => 'El tema completo sólo puede ser una hoja de estilo del propio tracker: una ruta que empiece por / y acabe en .css.',
-    'css-no-permitido'     => 'Sólo se admite una hoja de estilo del propio tracker (una ruta que empiece por / y acabe en .css) o de estos dominios: :dominios',
+    'css-solo-local'         => 'El tema completo sustituye al del tracker, así que sólo puede ser una hoja alojada aquí. Escribe a un admin para que revise la tuya y la suba.',
+    'css-no-permitido'       => 'Esa hoja de estilo no está aprobada. Las de la comunidad se sirven desde el propio tracker (/css/comunidad/…). Si quieres usar otra, escribe a un admin para que la revise y la aloje.',
     /**
  * NOTICE OF LICENSE.
  *
