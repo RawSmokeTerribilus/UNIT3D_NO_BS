@@ -79,6 +79,8 @@
                 name="upload"
                 class="upload-form form"
                 id="upload-form"
+                data-invalid-title="{{ __('torrent.upload-invalid-title') }}"
+                data-invalid-hidden="{{ __('torrent.upload-invalid-hidden') }}"
                 method="POST"
                 action="{{ route('torrents.store') }}"
                 enctype="multipart/form-data"
@@ -827,6 +829,7 @@
     <script src="{{ asset('build/unit3d/parser.js') }}" crossorigin="anonymous"></script>
     <script src="{{ asset('build/unit3d/helper.js') }}" crossorigin="anonymous"></script>
     <script src="{{ asset('build/unit3d/imgbb.js') }}" crossorigin="anonymous"></script>
+    @vite('resources/js/unit3d/upload-invalid-notice.js')
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
         document.addEventListener('alpine:init', () => {
             Alpine.data('upload', () => ({
