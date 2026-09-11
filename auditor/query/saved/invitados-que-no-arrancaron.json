@@ -1,7 +1,7 @@
 {
   "nombre": "invitados-que-no-arrancaron",
-  "titulo": "Invitados que nunca usaron la cuenta",
-  "porque": "Alguien gastó una invitación en ellos y no llegaron a descargar nada. Sirve para saber quién invita bien y quién regala plazas.",
+  "titulo": "Invitados que nunca han seedeado",
+  "porque": "Alguien gastó una invitación en ellos y no han llegado a poner un torrent a descargar. OJO al leerlo: `history` la escribe el announce, así que esto NO dice que no usen la web ni el Telegram — la mayoría sí. Para saber quién regala plazas de verdad, cruzarlo con Telegram y con la inactividad.",
   "pasos": [
     {
       "entidad": "usuarios",
@@ -23,7 +23,8 @@
         "nombre",
         "invitado_por",
         "alta",
-        "dias_sin_actividad"
+        "dias_sin_actividad",
+        "tg_vinculado"
       ],
       "ordenar": {
         "campo": "alta",

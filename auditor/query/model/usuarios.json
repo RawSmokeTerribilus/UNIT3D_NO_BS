@@ -256,10 +256,10 @@
     },
     {
       "id": "nunca_ha_descargado",
-      "etiqueta": "Nunca ha descargado ni sembrado",
+      "etiqueta": "Nunca ha usado un cliente de torrent",
       "tipo": "bool",
       "expr": "NOT EXISTS (SELECT 1 FROM history h WHERE h.user_id = t.id)",
-      "nota": "Ni una sola fila de historial. Son 1.123 — cuentas que se registraron y no llegaron a usar el tracker."
+      "nota": "Ni una fila en `history`, y `history` la escribe el ANNOUNCE: mide que nunca metió un torrent en un cliente, NO que no use el sitio. Comprobado: cero usuarios tienen `peers` sin `history`. De los 1.119 así, 1.119 se han logueado, 721 tienen Telegram vinculado, 651 están en el grupo y 385 han estado activos este mes. Para cuentas de verdad muertas hay que cruzarlo con Telegram y con la inactividad: quedan 114."
     },
     {
       "id": "seedtime_medio",

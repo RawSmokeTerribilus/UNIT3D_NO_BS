@@ -1,0 +1,47 @@
+{
+  "nombre": "cuentas-realmente-muertas",
+  "titulo": "Cuentas realmente muertas",
+  "porque": "Las tres señales a la vez: nunca han anunciado un torrent, no tienen Telegram vinculado y llevan más de 60 días sin aparecer. Quedan 114 de 2.646. El preset de «nunca han usado un cliente» da 1.119, pero de ésos la mayoría está viva en la web o en el grupo — sólo que no seedea.",
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "pedido_por": "NoSoyAni y RawSmoke",
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "nunca_ha_descargado",
+            "op": "es",
+            "valor": true
+          },
+          {
+            "campo": "tg_vinculado",
+            "op": "es",
+            "valor": false
+          },
+          {
+            "campo": "dias_sin_actividad",
+            "op": ">",
+            "valor": 60
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "alta",
+        "dias_sin_actividad",
+        "invites_sin_usar",
+        "usa_api"
+      ],
+      "ordenar": {
+        "campo": "dias_sin_actividad",
+        "sentido": "desc"
+      }
+    }
+  ]
+}

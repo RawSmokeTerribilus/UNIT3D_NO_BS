@@ -1,7 +1,7 @@
 {
   "nombre": "cuentas-fantasma",
-  "titulo": "Se registraron y nunca usaron el tracker",
-  "porque": "Ni una sola fila de historial: ni descargaron ni sembraron jamás. Son 1.123, el 42% del padrón.",
+  "titulo": "Nunca han usado un cliente de torrent",
+  "porque": "1.119 cuentas sin una sola fila de `history`, que la escribe el announce. NO son cuentas muertas: las 1.119 se han logueado, 721 tienen Telegram vinculado, 651 están en el grupo y 385 estuvieron activas este mes. Son gente que usa la web y el Telegram pero no ha llegado a poner un torrent a descargar. Para las muertas de verdad, mira «Cuentas realmente muertas».",
   "pasos": [
     {
       "entidad": "usuarios",
@@ -19,6 +19,9 @@
         "grupo",
         "alta",
         "dias_sin_actividad",
+        "tg_vinculado",
+        "tg_en_grupo",
+        "usa_api",
         "invites_sin_usar"
       ],
       "ordenar": {
