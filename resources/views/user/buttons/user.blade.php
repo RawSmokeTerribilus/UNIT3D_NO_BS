@@ -12,6 +12,7 @@
     >
         {{ __('user.profile') }}
     </a>
+    <button type="button" class="nav-tab-menu__toggle" aria-label="{{ __('common.show-options') }}"></button>
     <ul class="nav-tab-menu__items">
         <li class="{{ Route::is('users.show') ? 'nav-tab--active' : 'nav-tavV2' }}">
             <a
@@ -115,6 +116,7 @@
         >
             {{ __('user.settings') }}
         </a>
+        <button type="button" class="nav-tab-menu__toggle" aria-label="{{ __('common.show-options') }}"></button>
         <ul class="nav-tab-menu__items">
             @if ($isProfileOwner)
                 <li
@@ -219,6 +221,7 @@
                 {{ __('torrent.torrents') }}
             </span>
         @endif
+        <button type="button" class="nav-tab-menu__toggle" aria-label="{{ __('common.show-options') }}"></button>
         <ul class="nav-tab-menu__items">
             @if ($isProfileOwner || $isModo)
                 <li
@@ -367,6 +370,7 @@
     >
         {{ __('forum.activity') }}
     </span>
+    <button type="button" class="nav-tab-menu__toggle" aria-label="{{ __('common.show-options') }}"></button>
     <ul class="nav-tab-menu__items">
         @if (auth()->user()->isAllowed($user, 'achievement', 'show_achievement'))
             <li
@@ -444,6 +448,7 @@
         >
             {{ __('bon.bonus') }} {{ __('bon.points') }}
         </a>
+        <button type="button" class="nav-tab-menu__toggle" aria-label="{{ __('common.show-options') }}"></button>
         <ul class="nav-tab-menu__items">
             <li class="{{ Route::is('users.earnings.index') ? 'nav-tab--active' : 'nav-tavV2' }}">
                 <a
@@ -504,6 +509,7 @@
         >
             {{ __('common.other') }}
         </span>
+        <button type="button" class="nav-tab-menu__toggle" aria-label="{{ __('common.show-options') }}"></button>
         <ul class="nav-tab-menu__items">
             @if ($isProfileOwner || $isModo)
                 <li

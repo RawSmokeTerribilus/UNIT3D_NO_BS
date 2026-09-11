@@ -1,0 +1,102 @@
+/*
+ * Secondary nav (tabs) on mobile.
+ *
+ * Based on nobs-mobile-fix by NoSoyAni (https://github.com/NoSoyAni/nobs-css),
+ * AGPL-3.0-or-later, adapted: her version turned every tab row into a vertical
+ * list. Here plain tabs keep the stock scrolling row (four tabs fit, and a list
+ * would eat ~180px on every page); only rows with tab MENUS (the profile) become
+ * a list, because their menus open `position: absolute` inside the scrolling
+ * row and get clipped.
+ *
+ * Unlike the top bar, this area follows the theme background, so tints are
+ * mixed from currentColor instead of white overlays: they work on light themes
+ * too.
+ */
+
+$tint: color-mix(in srgb, currentColor 8%, transparent);
+$line: color-mix(in srgb, currentColor 12%, transparent);
+
+// Fold-out button for tab menus. The menu trigger is a link to another page, so
+// on a touch screen tapping it navigates before the menu can open; this button
+// takes focus instead. Mobile only.
+.nav-tab-menu__toggle {
+    display: none;
+}
+
+@media screen and (max-width: 767px) {
+    .nav-tabsV2:has(> .nav-tab-menu) {
+        flex-direction: column;
+        align-self: stretch;
+        width: 100%;
+        overflow: visible;
+
+        > li {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
+            border-bottom: 1px solid $line;
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        > li > .nav-tab__link,
+        > li > .nav-tab--active__link {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 12px 8px;
+        }
+
+        .nav-tab-menu__items {
+            position: static;
+            flex-basis: 100%;
+            width: 100%;
+            margin: 0 0 10px;
+            padding: 6px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            box-shadow: none;
+        }
+
+        .nav-tab-menu__items .nav-tab__link,
+        .nav-tab-menu__items .nav-tab--active__link {
+            display: flex;
+            width: 100%;
+            padding: 10px 8px;
+            box-sizing: border-box;
+            white-space: normal;
+        }
+    }
+
+    .nav-tab-menu__toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        margin: 4px;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--secondary-nav-tab-fg);
+        background: $tint;
+
+        &::after {
+            content: '\f054';
+            font-family: 'Font Awesome 6 Pro';
+            font-weight: 900;
+            font-size: 12px;
+            opacity: 0.6;
+            transition: transform 0.2s ease;
+        }
+    }
+
+    .nav-tab-menu:focus-within > .nav-tab-menu__toggle::after {
+        transform: rotate(90deg);
+        opacity: 0.9;
+    }
+}

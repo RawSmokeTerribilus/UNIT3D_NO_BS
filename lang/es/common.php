@@ -242,4 +242,5 @@ return [
     'total' => 'Total',
     'trending' => 'Tendencia',
     'deleted_at' => 'Eliminado el',
+    'show-options' => 'Ver opciones',
 ];
