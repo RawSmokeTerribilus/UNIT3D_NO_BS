@@ -150,8 +150,11 @@
    on .top-nav__main-menus), leaving a dead gap between trigger and menu. Crossing
    that gap dropped :hover and collapsed the menu mid-move. Stretching the trigger
    to the full bar height makes the hover zone reach the menu — no gap, hover
-   stays through the move to an option. */
-.top-nav__main-menus > .top-nav__dropdown {
+   stays through the move to an option.
+   Desktop bar only: in the mobile drawer (.mobile) the <ul> is static and must
+   push the next items down; pinning the li to 44px made it overflow on top of
+   its siblings (or above the viewport) instead. */
+.top-nav__main-menus:not(.mobile) > .top-nav__dropdown {
     height: 44px;
     display: flex;
     align-items: center;
