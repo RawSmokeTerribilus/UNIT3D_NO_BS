@@ -166,6 +166,8 @@ return [
     'request-reseed' => 'Solicitud de resiembra',
     'required-anime' => 'Requerido para anime',
     'required-games' => 'Requerido para juegos',
+    'upload-invalid-title' => 'No se ha enviado. Revisa:',
+    'upload-invalid-hidden' => 'campo oculto',
     'requires-reseed' => 'Requiere resiembra',
     'resolution' => 'Resolución',
     'resolutions' => 'Resoluciones',

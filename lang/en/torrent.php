@@ -169,6 +169,8 @@ return [
     'request-reseed'           => 'Request reseed',
     'required-anime'           => 'Required for anime',
     'required-games'           => 'Required for games',
+    'upload-invalid-title'     => 'Not sent. Check:',
+    'upload-invalid-hidden'    => 'hidden field',
     'requires-reseed'          => 'Requires reseed',
     'reseed-requests'          => 'Reseed requests',
     'resolution'               => 'Resolution',
