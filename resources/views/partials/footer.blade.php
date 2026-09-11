@@ -274,6 +274,9 @@
                 +
                 <a href="https://github.com/HDInnovations/UNIT3D-Announce">NOBS-Announce</a>
             @endif
+            |
+            Diseño móvil:
+            <a href="https://github.com/NoSoyAni/nobs-css">NoSoyAni</a>
         </p>
     </div>
 </footer>
