@@ -1,12 +1,15 @@
 <nav class="top-nav" x-data="{ expanded: false }" x-bind:class="expanded && 'mobile'">
     <div class="top-nav__left">
         <a class="top-nav__branding" href="{{ route('home.index') }}">
-            <img src="{{ url('/favicon.ico') }}" style="height: 35px" />
+            <img class="top-nav__favicon" src="{{ url('/favicon.ico') }}" />
             <span class="top-nav__site-logo">{{ \config('other.title') }}</span>
         </a>
         @include('partials.quick-search-dropdown')
-        <a href="{{ route('gaming.index') }}" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b006e,#6b00c9);color:#e0b0ff;border-radius:5px;box-shadow:0 0 8px #a020f088,0 0 2px #c060ff88;padding:4px 12px;font-weight:700;font-size:1.5rem;letter-spacing:.03em;text-decoration:none;flex-shrink:0">
-            <i class="{{ config('other.font-awesome') }} fa-gamepad" style="color:#d080ff"></i>
+        {{-- Los estilos iban en linea; pasan a .top-nav__arcade para que el
+             movil pueda moverlo al cajon (un style en linea solo se pisa con
+             !important). En escritorio se ve igual. --}}
+        <a class="top-nav__arcade" href="{{ route('gaming.index') }}">
+            <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>
             Arcade
         </a>
     </div>
@@ -352,6 +355,7 @@
                         title="{{ __('staff.staff-dashboard') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-cogs"></i>
+                        <span class="top-nav__icon-label">{{ __('staff.staff-dashboard') }}</span>
                         {{-- Un solo punto para todo lo que espera en el panel de
                              staff: reportes sin resolver y donaciones pendientes.
                              Dos puntos pegados en el mismo icono no se distinguen. --}}
@@ -370,6 +374,7 @@
                         title="{{ __('staff.torrent-moderation') }}"
                     >
                         <i class="{{ config('other.font-awesome') }} fa-tasks"></i>
+                        <span class="top-nav__icon-label">{{ __('staff.torrent-moderation') }}</span>
 
                         @if ($hasUnmoderatedTorrent)
                             <x-animation.notification />
@@ -385,6 +390,7 @@
                     title="{{ __('pm.inbox') }}"
                 >
                     <i class="{{ config('other.font-awesome') }} fa-envelope"></i>
+                    <span class="top-nav__icon-label">{{ __('pm.inbox') }}</span>
                     @if ($hasUnreadPm)
                         <x-animation.notification />
                     @endif
@@ -397,6 +403,7 @@
                     title="{{ __('user.notifications') }}"
                 >
                     <i class="{{ config('other.font-awesome') }} fa-bell"></i>
+                    <span class="top-nav__icon-label">{{ __('user.notifications') }}</span>
                     @if ($hasUnreadNotification)
                         <x-animation.notification />
                     @endif
@@ -431,6 +438,7 @@
                             title="{{ __('user.profile-is-private') }}"
                         ></i>
                     @endif
+                    <span class="top-nav__icon-label">{{ __('user.my-profile') }}</span>
                 </a>
                 <ul>
                     <li>

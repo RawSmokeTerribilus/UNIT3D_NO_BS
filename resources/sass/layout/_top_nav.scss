@@ -105,6 +105,32 @@
     filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.5));
 }
 
+// Favicon and Arcade button: these were inline styles in the blade. Moved here
+// unchanged so the mobile bar can resize/move them (_top_nav_mobile.scss).
+.top-nav__favicon {
+    height: 35px;
+}
+
+.top-nav__arcade {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #3b006e, #6b00c9);
+    color: #e0b0ff;
+    border-radius: 5px;
+    box-shadow: 0 0 8px #a020f088, 0 0 2px #c060ff88;
+    padding: 4px 12px;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    flex-shrink: 0;
+
+    > i {
+        color: #d080ff;
+    }
+}
+
 /* Main menus
 ******************************************************************************/
 
@@ -441,42 +467,20 @@
         display: none;
     }
 
-    &.mobile {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        column-gap: 0;
-        width: 100%;
+    // The mobile drawer layout (.mobile) lives in _top_nav_mobile.scss.
+}
 
-        & > li:not(& > li:last-child) {
-            width: 32px;
-            margin: 16px;
-        }
-
-        & > li:last-child {
-            width: 100%;
-
-            & > a,
-            & > ul > li > a > i,
-            & > ul > li > form > button > i {
-                display: none;
-            }
-
-            & > ul > li > a,
-            & > ul > li > form > button {
-                text-align: center;
-                padding: 12px 10px;
-                grid-template-columns: auto;
-            }
-        }
-    }
+// Text next to each icon: only shown in the mobile drawer.
+.top-nav__icon-label {
+    display: none;
 }
 
 /* Avatar/user dropdown: same full-height-trigger fix as the main menus. The
    icon-bar icons are 32px, centred in the 44px bar, so the avatar trigger left a
    dead gap above its menu (opens ~55px) that collapsed on hover-move. Stretch the
-   avatar's dropdown li to full bar height so hover carries into the menu. */
-.top-nav__icon-bar > .top-nav__dropdown {
+   avatar's dropdown li to full bar height so hover carries into the menu.
+   Desktop bar only, same as the main menus. */
+.top-nav__icon-bar:not(.mobile) > .top-nav__dropdown {
     height: 44px;
     display: flex;
     align-items: center;

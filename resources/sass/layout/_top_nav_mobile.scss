@@ -1,0 +1,417 @@
+/*
+ * Top bar on mobile: a compact closed bar and a full-screen drawer.
+ *
+ * Based on nobs-mobile-fix by NoSoyAni (https://github.com/NoSoyAni/nobs-css),
+ * AGPL-3.0-or-later. Rewritten without !important so themes and user CSS can
+ * still style on top of it; the colours are neutral overlays because the top
+ * bar is forced black on every theme (_top_nav.scss).
+ *
+ * Everything hangs off `.top-nav.mobile` (drawer open) or
+ * `.top-nav:not(.mobile)` (closed bar). That prefix is what outranks the stock
+ * rules in _top_nav.scss, so no !important is needed.
+ */
+
+$chevron-font: 'Font Awesome 6 Pro';
+
+@mixin chevron($size) {
+    content: '\f078';
+    font-family: $chevron-font;
+    font-weight: 900;
+    font-size: $size;
+    opacity: 0.5;
+    margin-left: auto;
+    padding-left: 8px;
+    transition: transform 0.2s ease;
+}
+
+@media screen and (max-width: 767px) {
+    /* Closed bar
+    **************************************************************************/
+
+    // Menu button on the left, brand next to it, search on its own full row.
+    .top-nav:not(.mobile) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        padding: 8px 10px;
+
+        > .top-nav__toggle {
+            order: -1;
+            align-self: flex-start;
+            margin-top: 6px;
+        }
+
+        // display set explicitly: themes may flatten it (revel uses
+        // `display: contents`), which scatters brand and search across the bar.
+        > .top-nav__left {
+            display: flex;
+            flex: 1 1 0;
+            min-width: 0;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        // Stats and icons live in the drawer; the empty wrapper would still
+        // take a slot in the bar.
+        > .top-nav__right {
+            display: none;
+        }
+
+        .top-nav__arcade {
+            display: none;
+        }
+    }
+
+    .top-nav__branding {
+        min-width: 0;
+    }
+
+    .top-nav__favicon {
+        height: 24px;
+    }
+
+    .top-nav__site-logo {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // Stock hides the search below 940px; on a phone it gets its own row.
+    .top-nav:not(.mobile) .quick-search {
+        display: block;
+        flex: 1 0 100%;
+        max-width: none;
+        height: 40px;
+    }
+
+    // Positioned explicitly for the same reason (revel makes it static).
+    .top-nav:not(.mobile) .quick-search__inputs {
+        position: absolute;
+        inset: 0;
+    }
+
+    .top-nav:not(.mobile) .quick-search__input {
+        // 16px or iOS zooms the page when the field takes focus.
+        font-size: 16px;
+        padding: 8px 12px;
+    }
+
+    /* Drawer
+    **************************************************************************/
+
+    .top-nav.mobile {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        display: flex;
+        flex-direction: column;
+        // Never wrap: a column flex box with a fixed height and wrap sends
+        // whatever does not fit to a second column, off screen.
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0;
+        padding: 0 0 40px;
+
+        // Order in the drawer: user block, Arcade, menus.
+        > .top-nav__right {
+            order: 1;
+        }
+
+        > .top-nav__left {
+            order: 2;
+            display: flex;
+            width: 100%;
+            padding: 0 16px;
+            margin: 4px 0 8px;
+            box-sizing: border-box;
+
+            // Brand and search stay in the closed bar; only Arcade comes along.
+            > :not(.top-nav__arcade) {
+                display: none;
+            }
+        }
+
+        > .top-nav__main-menus {
+            order: 3;
+        }
+
+        > .top-nav__toggle {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 20px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .top-nav__arcade {
+            width: 100%;
+            justify-content: center;
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+    }
+
+    /* Drawer: user block (stats, name, icons)
+    **************************************************************************/
+
+    .top-nav.mobile > .top-nav__right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex-shrink: 0;
+        width: 100%;
+        column-gap: 0;
+        // Room for the close button, which is fixed at the top right.
+        padding: 60px 16px 14px;
+        box-sizing: border-box;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .top-nav.mobile .top-nav__ratio-bar.mobile {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 8px;
+        width: 100%;
+        font-size: 14px;
+        padding-bottom: 8px;
+        margin-bottom: 6px;
+
+        > li {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        > li > a {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    }
+
+    .top-nav.mobile .top-nav__username--highresolution {
+        display: flex;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 6px 0 14px;
+    }
+
+    .top-nav.mobile .top-nav__icon-bar.mobile {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+        margin: 0 0 10px;
+
+        > li {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        > li > .top-nav--right__icon-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 9px 10px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #e6e6e6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        > li > .top-nav--right__icon-link > i {
+            height: auto;
+            line-height: 1;
+            background: none;
+        }
+
+        // Unread marker: next to the icon instead of floating above the chip.
+        > li > .top-nav--right__icon-link > svg {
+            top: 2px;
+            right: auto;
+            left: 22px;
+            width: 12px;
+            height: 12px;
+        }
+
+        .top-nav__icon-label {
+            display: inline;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        // Profile: a full row that folds out below itself.
+        > .top-nav__dropdown {
+            flex: 1 1 100%;
+            display: block;
+        }
+
+        > .top-nav__dropdown > a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin: 0;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.04);
+
+            &::after {
+                @include chevron(11px);
+            }
+        }
+
+        > .top-nav__dropdown:focus-within > a::after {
+            transform: rotate(180deg);
+        }
+
+        > .top-nav__dropdown > ul {
+            display: none;
+            position: static;
+            width: 100%;
+            margin: 6px 0 4px;
+            padding: 6px;
+            box-sizing: border-box;
+            border-radius: 12px;
+        }
+
+        > .top-nav__dropdown:hover > ul,
+        > .top-nav__dropdown:focus-within > ul {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    /* Drawer: main menus
+    **************************************************************************/
+
+    .top-nav.mobile .top-nav__main-menus.mobile {
+        flex-direction: column;
+        align-items: stretch;
+        flex-shrink: 0;
+        width: 100%;
+        margin: 0;
+        padding: 4px 16px 0;
+        box-sizing: border-box;
+
+        > li {
+            display: block;
+            width: 100%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        > li > a {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+            padding: 16px 4px;
+            box-sizing: border-box;
+            border-radius: 0;
+            font-size: 16px;
+            font-weight: 600;
+
+            &::after {
+                @include chevron(12px);
+            }
+        }
+
+        > li:focus-within > a::after {
+            transform: rotate(180deg);
+        }
+
+        // Folds out in place and pushes the next entries down.
+        .top-nav__dropdown > ul {
+            display: none;
+            position: static;
+            width: 100%;
+            margin: 4px 0 14px;
+            padding: 6px;
+            box-sizing: border-box;
+            border-radius: 12px;
+        }
+
+        // :hover too: with a mouse (narrow desktop window) Torrents and
+        // Community use the plain link, which never takes focus.
+        .top-nav__dropdown:hover > ul,
+        .top-nav__dropdown:focus-within > ul {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    // Menu entries, in both the profile menu and the main menus.
+    .top-nav.mobile .top-nav__dropdown > ul {
+        row-gap: 0;
+        box-shadow: none;
+
+        > li {
+            width: 100%;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+            &:first-child {
+                border-top: none;
+            }
+        }
+
+        > li > a,
+        > li > form > button {
+            padding: 8px;
+            font-size: 14px;
+            white-space: normal;
+            grid-template-columns: 24px auto;
+        }
+
+        > li > a > i,
+        > li > form > button > i {
+            font-size: 13px;
+            line-height: 24px;
+        }
+
+        // Nested submenus: in place too, never to the side.
+        > li ul {
+            display: none;
+            position: static;
+            width: 100%;
+            margin: 4px 0 0;
+        }
+
+        > li:focus-within ul {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+}
