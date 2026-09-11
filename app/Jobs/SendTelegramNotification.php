@@ -34,6 +34,29 @@ class SendTelegramNotification implements ShouldQueue
     public $backoff = [10, 60, 300];
     public $timeout = 30;
 
+    /**
+     * Línea de relleno invisible que va bajo el título del caption.
+     *
+     * Telegram calcula el ancho de la burbuja como el mayor entre el ancho
+     * natural de la foto y el que pide el caption. Un póster 2:3 pide poco,
+     * así que con un título corto la burbuja se queda estrecha y la foto sale
+     * pelada; con un título largo la burbuja se ensancha, la foto pasa a
+     * caber en un área cuadrada y el cliente rellena los lados con una copia
+     * desenfocada de la propia imagen. O sea que la MISMA subida salía con
+     * fondo difuminado o sin él según lo largo que fuera el nombre del
+     * torrent — no según cómo se hubiera subido.
+     *
+     * `U+2800` (braille en blanco) es un carácter real y visible para el
+     * cálculo de ancho, pero no pinta nada, así que fuerza la burbuja ancha
+     * sin añadir texto. Un espacio normal no vale: Telegram recorta los
+     * espacios al final de línea y el ancho se perdería.
+     *
+     * 40 es lo medido contra Telegram Desktop: pasa del ancho del póster sin
+     * llegar a partirse en dos líneas. Si algún día se parte, bajarlo.
+     */
+    private const RELLENO_CARACTER = "\u{2800}";
+    private const RELLENO_REPETICIONES = 40;
+
     public function __construct(public Torrent $torrent, public User $user)
     {
     }
@@ -292,7 +315,8 @@ class SendTelegramNotification implements ShouldQueue
      */
     private function captionHeader(string $emoji, string $name, string $category, string $size, string $type, string $tipoEtiqueta = 'Calidad'): string
     {
-        return $emoji.' <b>'.$this->esc($name)."</b>\n\n"
+        return $emoji.' <b>'.$this->esc($name)."</b>\n"
+            .str_repeat(self::RELLENO_CARACTER, self::RELLENO_REPETICIONES)."\n\n"
             .'📂 <b>Categoría:</b> '.$this->esc($category)."\n"
             .'💾 <b>Tamaño:</b> '.$size."\n"
             .'⭐ <b>'.$tipoEtiqueta.':</b> '.$this->esc($type)."\n";
