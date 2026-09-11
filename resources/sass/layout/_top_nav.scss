@@ -105,6 +105,58 @@
     filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.5));
 }
 
+// Narrow desktop bar (767-1499, also a phone in "desktop mode" at ~980): the
+// full site title (~390px, nowrap) took the whole `left` column and the search,
+// the only item allowed to shrink, collapsed to a 0-5px pink sliver under the
+// Arcade button. Below 1500 the title gives way (ellipsis) so the search keeps
+// its room; below 1100 there is no room for all three, so the title goes (the
+// favicon stays as the brand) and Arcade keeps only its icon.
+@media screen and (min-width: 767px) and (max-width: 1499px) {
+    // A grid item never shrinks below its content unless told to.
+    .top-nav__left {
+        min-width: 0;
+    }
+
+    .top-nav__branding {
+        min-width: 0;
+        flex-shrink: 1;
+    }
+
+    .top-nav__site-logo {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .top-nav__left .quick-search {
+        min-width: 160px;
+    }
+}
+
+@media screen and (min-width: 767px) and (max-width: 1099px) {
+    .top-nav__site-logo {
+        display: none;
+    }
+
+    .top-nav__left .quick-search {
+        min-width: 120px;
+    }
+
+    // Icon only: the label is a bare text node, so it is hidden with the font
+    // size and the icon gets its size back. Two classes: the base rule for
+    // .top-nav__arcade comes later in this file.
+    .top-nav__left .top-nav__arcade {
+        font-size: 0;
+        gap: 0;
+        padding: 4px 8px;
+
+        > i {
+            font-size: 16px;
+        }
+    }
+}
+
 // Favicon and Arcade button: these were inline styles in the blade. Moved here
 // unchanged so the mobile bar can resize/move them (_top_nav_mobile.scss).
 .top-nav__favicon {
@@ -572,7 +624,11 @@
     justify-content: center;
 }
 
-.top-nav__username--highresolution {
+// Class doubled (0,2,0): `.user-tag` (0,1,0) sets `display: inline-flex` and is
+// imported later in main.scss, so a single class lost and the name showed up
+// below 1400px with no grid area — autoplaced into the menus cell, on top of
+// «Torrents». Same trick as `.top-nav__username` above.
+.top-nav__username--highresolution.top-nav__username--highresolution {
     display: none;
     align-items: center;
     font-size: 14px;
@@ -581,46 +637,25 @@
         white-space: nowrap;
     }
 
-    // 1900 -> 2100: el nick solo cabe en la maqueta de UNA fila.
-    //
-    // De 767 a 2099 la barra usa la variante de dos filas, y ahi
-    // `.top-nav__right` es `display: contents` para que las stats puedan
-    // escaparse a su propia area. Sus hijos pasan a ser elementos de la rejilla
-    // del nav: `.top-nav__ratio-bar` y `.top-nav__icon-bar` tienen `grid-area`
-    // propia, pero el nick no, asi que se autocolocaba en la primera celda
-    // libre — la del menu — y se pintaba ENCIMA de «Torrents».
-    //
-    // Se ata al mismo corte que la maqueta de una fila. Entre 1900 y 2099 se
-    // pierde el nick escrito; el avatar sigue ahi al lado y lo lleva dentro.
+    // Desde 2100 la barra es de UNA fila y el nick va en ella.
     @media screen and (min-width: 2100px) {
         display: flex;
     }
 
-    // De 1400 a 2099 vuelve, en la FILA DEL MENU y dentro del area de los iconos.
-    //
-    // Aqui `.top-nav__right` es `display: contents`, asi que el nick es un
-    // elemento suelto de la rejilla del nav. Sin `grid-area` se autocolocaba en
-    // la primera celda libre — la del menu — y se pintaba ENCIMA de «Torrents».
-    // Con area explicita tiene sitio propio y no puede invadir nada.
-    //
-    // `justify-self: start` contra el `justify-content: end` de la barra de
-    // iconos: el nick al principio del area, los iconos al final, y el hueco de
-    // en medio hace de separacion entre el nombre y los controles. El area es
-    // 1fr, asi que esa distancia crece con la pantalla en vez de ir clavada en
-    // pixeles. Por debajo de 1400 px el area ya no da de si y se oculta.
-    //
-    // 17px, el mismo cuerpo que las entradas del menu: a 14 se leia como una
-    // nota al pie al lado de iconos de 32.
-    @media screen and (min-width: 1400px) and (max-width: 2099px) {
+    // De 900 a 2099 la barra tiene DOS filas y `.top-nav__right` es
+    // `display: contents`: el nick es un elemento suelto de la rejilla del nav
+    // y, sin area propia, se autocolocaba en la celda de los menus, encima de
+    // «Torrents». Va a la fila de las stats, a la izquierda (las stats van
+    // alineadas a la derecha). Antes iba junto a los iconos desde 1400, donde un
+    // nick largo los pisaba. Medido con un nick de 22 caracteres: cabe desde
+    // 900; por debajo tocaria las stats y se queda oculto.
+    @media screen and (min-width: 900px) and (max-width: 2099px) {
         display: flex;
-        grid-area: icon-bar;
-        // `start` y no `end`: comparte area con la barra de iconos, que va a
-        // `justify-content: end`. Anclar el nombre tambien al final lo mete
-        // EN el mismo sitio que los iconos y se solapan — probado el
-        // 2026-08-29, el nombre salia por detras de ellos.
+        grid-row: 1;
+        grid-column: 1 / 4;
         justify-self: start;
         align-self: center;
-        font-size: 17px;
+        font-size: 13px;
     }
 }
 
