@@ -105,6 +105,58 @@
     filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.5));
 }
 
+// Narrow desktop bar (767-1499, also a phone in "desktop mode" at ~980): the
+// full site title (~390px, nowrap) took the whole `left` column and the search,
+// the only item allowed to shrink, collapsed to a 0-5px pink sliver under the
+// Arcade button. Below 1500 the title gives way (ellipsis) so the search keeps
+// its room; below 1100 there is no room for all three, so the title goes (the
+// favicon stays as the brand) and Arcade keeps only its icon.
+@media screen and (min-width: 767px) and (max-width: 1499px) {
+    // A grid item never shrinks below its content unless told to.
+    .top-nav__left {
+        min-width: 0;
+    }
+
+    .top-nav__branding {
+        min-width: 0;
+        flex-shrink: 1;
+    }
+
+    .top-nav__site-logo {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .top-nav__left .quick-search {
+        min-width: 160px;
+    }
+}
+
+@media screen and (min-width: 767px) and (max-width: 1099px) {
+    .top-nav__site-logo {
+        display: none;
+    }
+
+    .top-nav__left .quick-search {
+        min-width: 120px;
+    }
+
+    // Icon only: the label is a bare text node, so it is hidden with the font
+    // size and the icon gets its size back. Two classes: the base rule for
+    // .top-nav__arcade comes later in this file.
+    .top-nav__left .top-nav__arcade {
+        font-size: 0;
+        gap: 0;
+        padding: 4px 8px;
+
+        > i {
+            font-size: 16px;
+        }
+    }
+}
+
 // Favicon and Arcade button: these were inline styles in the blade. Moved here
 // unchanged so the mobile bar can resize/move them (_top_nav_mobile.scss).
 .top-nav__favicon {
@@ -572,7 +624,11 @@
     justify-content: center;
 }
 
-.top-nav__username--highresolution {
+// Class doubled (0,2,0): `.user-tag` (0,1,0) sets `display: inline-flex` and is
+// imported later in main.scss, so a single class lost and the name showed up
+// below 1400px with no grid area — autoplaced into the menus cell, on top of
+// «Torrents». Same trick as `.top-nav__username` above.
+.top-nav__username--highresolution.top-nav__username--highresolution {
     display: none;
     align-items: center;
     font-size: 14px;
@@ -611,16 +667,19 @@
     //
     // 17px, el mismo cuerpo que las entradas del menu: a 14 se leia como una
     // nota al pie al lado de iconos de 32.
-    @media screen and (min-width: 1400px) and (max-width: 2099px) {
+    // 900 -> 2099 (two-row bar): the name goes to the stats row, whose stats
+    // are aligned to the right and leave the left side free. It used to sit in
+    // the menu row inside the icon-bar area (from 1400), where a long name ran
+    // into the icons; below 1400 it was meant to be hidden (see the doubled
+    // class above). Measured with a 22-character name: fits from 900px; below
+    // that it would touch the stats, so it stays hidden.
+    @media screen and (min-width: 900px) and (max-width: 2099px) {
         display: flex;
-        grid-area: icon-bar;
-        // `start` y no `end`: comparte area con la barra de iconos, que va a
-        // `justify-content: end`. Anclar el nombre tambien al final lo mete
-        // EN el mismo sitio que los iconos y se solapan — probado el
-        // 2026-08-29, el nombre salia por detras de ellos.
+        grid-row: 1;
+        grid-column: 1 / 4;
         justify-self: start;
         align-self: center;
-        font-size: 17px;
+        font-size: 13px;
     }
 }
 
