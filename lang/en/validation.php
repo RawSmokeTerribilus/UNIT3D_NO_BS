@@ -14,8 +14,8 @@ declare(strict_types=1);
  */
 
 return [
-    'css-solo-local'       => 'A full theme can only be a stylesheet from this tracker: a path starting with / and ending in .css.',
-    'css-no-permitido'     => 'Only a stylesheet from this tracker (a path starting with / and ending in .css) or from these domains is allowed: :dominios',
+    'css-solo-local'         => 'A full theme replaces the tracker\'s own, so it can only be a stylesheet hosted here. Contact an admin to review yours and upload it.',
+    'css-no-permitido'       => 'That stylesheet is not approved. Community ones are served from the tracker itself (/css/comunidad/…). If you want a different one, contact an admin to review and host it.',
     /*
     |--------------------------------------------------------------------------
     | Validation language lines
