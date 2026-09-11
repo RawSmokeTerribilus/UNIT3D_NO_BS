@@ -39,7 +39,13 @@ return [
     'telegram' => [
         'token'             => env('TELEGRAM_BOT_TOKEN'),
         'chat_id'           => env('TELEGRAM_GROUP_ID'),
+        // Grupo interno del staff. Si esta vacio, los avisos internos NO caen
+        // al grupo de miembros: se saltan y se registran en el log.
+        'staff_chat_id'     => env('TELEGRAM_STAFF_GROUP_ID'),
         'topic_id'          => env('TELEGRAM_TOPIC_NOVEDADES'),
+        // Topic de noticias del grupo de miembros: es donde se anuncian los
+        // eventos del sitio (promos que empiezan y terminan).
+        'topic_noticias'    => env('TELEGRAM_TOPIC_NOTICIAS'),
         'bot_username'      => env('TELEGRAM_BOT_USERNAME'),
         'group_invite_link' => env('TELEGRAM_GROUP_INVITE_LINK'),
         'instance_label'    => env('TELEGRAM_INSTANCE_LABEL', env('APP_ENV', 'tracker')),

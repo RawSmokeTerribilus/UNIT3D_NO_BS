@@ -214,8 +214,13 @@ class FortifyServiceProvider extends ServiceProvider
             $user = User::query()->where('username', $request->username)->first();
 
             if ($user === null) {
+                // A username is alpha_dash, so it can never contain an "@". Keying
+                // off the shape of the input tells email-typers what went wrong
+                // without revealing whether that address belongs to an account.
                 throw ValidationException::withMessages([
-                    Fortify::username() => __('auth.failed'),
+                    Fortify::username() => str_contains($request->username, '@')
+                        ? __('auth.email-not-username')
+                        : __('auth.failed'),
                 ]);
             }
 

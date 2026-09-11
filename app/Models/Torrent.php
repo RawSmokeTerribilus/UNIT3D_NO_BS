@@ -1165,7 +1165,11 @@ final class Torrent extends Model
             'distributor_id'     => $torrent->distributor_id,
             'region_id'          => $torrent->region_id,
             'personal_release'   => (bool) $torrent->personal_release,
-            'info_hash'          => bin2hex($torrent->info_hash),
+            // SEARCHABLE ya lo entrega como LOWER(HEX(torrents.info_hash)): 40
+            // caracteres en hex. El bin2hex() que habia aqui lo hexeaba OTRA VEZ y
+            // dejaba 80 en el indice, que es lo que /api/torrents/filter devolvia a
+            // Prowlarr y Jackett.
+            'info_hash'          => $torrent->info_hash,
             'rating'             => (float) $torrent->rating, /** @phpstan-ignore property.notFound (This property is selected in the query but doesn't exist on the model) */
             'trumpable'          => (bool) $torrent->trumpable, /** @phpstan-ignore property.notFound (This property is selected in the query but doesn't exist on the model) */
             'user'               => json_decode($torrent->json_user ?? 'null'),

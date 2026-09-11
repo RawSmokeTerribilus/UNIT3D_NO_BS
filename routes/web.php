@@ -132,7 +132,35 @@ Route::middleware('language')->group(function (): void {
     | Website (When Authorized) (Alpha Ordered)
     |---------------------------------------------------------------------------------
     */
-    Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->group(function (): void {
+    // ── Arte de catálogo: público, gobernado por la firma de la URL ──────────
+//
+// Sale del grupo `authenticated-images` A PROPÓSITO. Son posters y backdrops
+// re-servidos de TMDB/Amazon/TVmaze: arte público que cualquiera puede bajar del
+// propio TMDB. Lo que cambia es quién pone los bytes — con el sha1 del origen en
+// la ruta, nginx encuentra el fichero ya cacheado y lo sirve SIN arrancar PHP.
+//
+// Medido antes de hacerlo: 484.442 peticiones de carátula en 10 días, de las que
+// 37.876 (7,8%) morían en un 429 porque el limitador estaba en 200/min y un
+// usuario navegando pide 800/min. Y cada una ocupaba uno de los 5 hijos de
+// php-fpm para mandar un JPEG que ya estaba en disco.
+//
+// Lo que NO sale de la sesión: avatares, portadas de torrent, imágenes de
+// descripción, iconos. Eso sigue exigiendo sesión, y esta ruta no los toca — el
+// `where` sólo admite los cinco tamaños del proxy de arte.
+//
+// La firma sigue siendo la autoridad: sin ella no se puede pedir una imagen
+// arbitraria, así que el proxy no se puede usar de relé para descargar de
+// terceros. El throttle cubre sólo el fallo de caché, que es lo único que llega
+// a PHP.
+Route::get('/authenticated-images/art/{size}/{hash}.jpg', [App\Http\Controllers\ArtImageProxyController::class, 'show'])
+    ->name('authenticated_images.art_proxy_hashed')
+    ->middleware(['signed', 'throttle:'.GlobalRateLimit::AUTHENTICATED_IMAGES->value])
+    ->where([
+        'size' => '^(poster_big|poster_mid|poster_small|back_big|back_small)$',
+        'hash' => '^[0-9a-f]{40}$',
+    ]);
+
+Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->group(function (): void {
         // General
         Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
 
@@ -180,6 +208,7 @@ Route::middleware('language')->group(function (): void {
                 ->name('art_proxy')
                 ->middleware('signed')
                 ->where('size', '^(poster_big|poster_mid|poster_small|back_big|back_small)$');
+
         });
 
         // Donation System

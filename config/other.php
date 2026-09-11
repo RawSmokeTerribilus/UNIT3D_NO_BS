@@ -104,7 +104,16 @@ return [
     */
     'freeleech' => true,
 
-    'freeleech_until' => '06/15/2026 3:00 PM EST',
+    /*
+    | Fin de la promo, 'Y-m-d H:i:s' en UTC. Vacio = sin fecha de fin: la
+    | promo no caduca sola y el banner no pinta reloj. Lo consume
+    | App\Console\Commands\AutoExpirePromos, que la apaga al vencer.
+    */
+    'freeleech_until' => '',
+
+    'doubleup_until' => '',
+
+    'openreg_until' => '',
 
     /*
     | Amnistia de descarga para Sanguijuela mientras dura el freeleech global.

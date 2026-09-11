@@ -840,7 +840,15 @@ class TorrentController extends BaseController
         // Auth keys must not be cached
         $torrents->through(function ($torrent) {
             $torrent['attributes']['download_link'] = route('torrent.download.rsskey', ['id' => $torrent['id'], 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]);
-            $torrent['attributes']['magnet_link'] = config('torrent.magnet') ? 'magnet:?dn='.$torrent['attributes']['name'].'&xt=urn:btih:'.$torrent['attributes']['info_hash'].'&as='.route('torrent.download.rsskey', ['id' => $torrent['id'], 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]).'&tr='.route('announce', ['passkey' => auth(AuthGuard::API->value)->user()->passkey]).'&xl='.$torrent['attributes']['size'] : null;
+            $torrent['attributes']['magnet_link'] = config('torrent.magnet')
+                ? \App\Services\MagnetLink::build(
+                    (int) $torrent['id'],
+                    (string) $torrent['attributes']['name'],
+                    (string) $torrent['attributes']['info_hash'],
+                    auth(AuthGuard::API->value)->user(),
+                    (int) $torrent['attributes']['size'],
+                )
+                : null;
 
             return $torrent;
         });

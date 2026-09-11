@@ -51,7 +51,8 @@ class LeechAmnestyGranted extends Notification implements ShouldQueue, SystemNot
     {
         $slots = LeechAmnesty::slots();
         $ratio = number_format((float) config('other.ratio'), 2, ',', '.');
-        $until = (string) config('other.freeleech_until');
+        // Formateada y con la zona dicha: la cadena cruda no la entendia nadie.
+        $until = LeechAmnesty::untilLegible();
 
         $message = '[b]Se te ha devuelto la descarga mientras dure el freeleech.[/b]'."\n\n"
             .'Estas en [b]Sanguijuela[/b] porque tu ratio esta por debajo de '.$ratio.'. '
@@ -74,7 +75,9 @@ class LeechAmnestyGranted extends Notification implements ShouldQueue, SystemNot
             .'[b]Ojo con el Hit & Run.[/b] La amnistia perdona el ratio, no los avisos. Si '
             .'acumulas avisos por no sembrar, te quedas sin descarga otra vez y esto no te '
             .'salva.'."\n\n"
-            .'El freeleech termina el [b]'.$until.'[/b]. Cuando acabe, si sigues en '
+            .($until === null
+                ? 'Cuando termine el freeleech, si sigues en '
+                : 'El freeleech termina el [b]'.$until.'[/b]. Cuando acabe, si sigues en ')
             .'Sanguijuela, vuelves a quedarte sin descarga. Aprovechalo.';
 
         return [

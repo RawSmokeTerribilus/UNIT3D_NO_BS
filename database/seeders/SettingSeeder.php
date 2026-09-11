@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\Setting;
+use App\Services\PromoState;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -39,6 +41,8 @@ class SettingSeeder extends Seeder
             'other.freeleech_leech_amnesty' => config('other.freeleech_leech_amnesty') ? 'true' : 'false',
             'other.freeleech_leech_slots' => (string) config('other.freeleech_leech_slots'),
             'other.doubleup' => config('other.doubleup') ? 'true' : 'false',
+            'other.doubleup_until' => (string) config('other.doubleup_until'),
+            'other.openreg_until' => (string) config('other.openreg_until'),
             'other.refundable' => config('other.refundable') ? 'true' : 'false',
             'other.default_upload' => (string) config('other.default_upload'),
             'other.default_download' => (string) config('other.default_download'),
@@ -68,6 +72,21 @@ class SettingSeeder extends Seeder
 
         foreach ($settings as $key => $value) {
             Setting::firstOrCreate(['key' => $key], ['value' => $overrides[$key] ?? $value]);
+        }
+
+        // Sembrar la tabla no proyecta nada sobre el announce Rust: sus factores
+        // viven en el .env de su contenedor, que es cache derivada de esto. Tras
+        // un rebuild con la base vacia, restaurar `other.freeleech = true` sin
+        // esto dejaba al tracker cobrando la descarga hasta que pasara el cron.
+        //
+        // Tolerante a que el announce todavia no este arriba: si falla, queda en
+        // el log y `auto:leech-amnesty` reconcilia en menos de diez minutos.
+        try {
+            PromoState::syncAll();
+        } catch (\Throwable $e) {
+            Log::warning('SettingSeeder: no he podido proyectar las promos sobre el tracker.', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

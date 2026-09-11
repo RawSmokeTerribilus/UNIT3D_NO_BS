@@ -20,7 +20,7 @@
         @show
         <link rel="shortcut icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
         <link rel="icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
-        @vite('resources/sass/pages/_auth.scss')
+        @vite(['resources/sass/pages/_auth.scss', 'resources/js/unit3d/auth-hint.js'])
     </head>
     <body>
         <!-- Do NOT change! For Jackett support -->
@@ -64,6 +64,7 @@
                             class="auth-form__text-input"
                             autocomplete="username"
                             autofocus
+                            data-email-hint="{{ __('auth.email-not-username-hint') }}"
                             name="username"
                             required
                             type="text"

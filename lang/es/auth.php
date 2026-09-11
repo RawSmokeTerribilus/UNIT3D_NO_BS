@@ -37,6 +37,8 @@ return [
     'delete-image' => 'Eliminar último enlace de imagen',
     'delete-profile' => 'Eliminar último enlace de perfil',
     'email' => 'Correo electrónico',
+    'email-not-username' => 'Has introducido un correo electrónico. Se entra con tu nombre de usuario, no con el email.',
+    'email-not-username-hint' => 'Se entra con tu nombre de usuario, no con el email.',
     'email-verification-link' => '¡Se te ha enviado un enlace de verificación por correo electrónico!',
     'enter-recovery' => 'Por favor, introduce uno de los códigos de recuperación proporcionados cuando activaste la autenticación de dos factores por primera vez.',
     'enter-totp' => 'Por favor, introduce el código de autenticación de 6 dígitos generado por tu aplicación.',

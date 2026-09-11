@@ -35,6 +35,7 @@ use App\Console\Commands\AutoCorrectHistory;
 use App\Console\Commands\AutoDeactivateWarning;
 use App\Console\Commands\AutoDeleteStoppedPeers;
 use App\Console\Commands\AutoDisableInactiveUsers;
+use App\Console\Commands\AutoExpirePromos;
 use App\Console\Commands\AutoFlushPeers;
 use App\Console\Commands\AutoGroup;
 use App\Console\Commands\AutoLeechAmnesty;
@@ -59,6 +60,7 @@ use App\Console\Commands\AutoSyncTorrentsToMeilisearch;
 use App\Console\Commands\AutoTorrentBalance;
 use App\Console\Commands\AutoUnbookmarkCompletedTorrents;
 use App\Console\Commands\AutoUpdateUserLastActions;
+use App\Console\Commands\StaffDigestCommand;
 use App\Console\Commands\AutoUpsertAnnounces;
 use App\Console\Commands\AutoUpsertHistories;
 use App\Console\Commands\AutoUpsertPeers;
@@ -95,6 +97,16 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoDeleteStoppedPeers::class)->everyTwoMinutes();
         $schedule->command(AutoUnbookmarkCompletedTorrents::class)->everyFifteenMinutes();
         $schedule->command(AutoGroup::class)->daily();
+        // Resumen operativo al grupo de staff. El diario se manda SIEMPRE, aunque
+        // este todo a cero: sirve de latido, y si un dia no llega es que el cron
+        // se ha muerto. El --watch solo habla cuando una metrica CRUZA su umbral
+        // y no repite hasta que baje.
+        $schedule->command(StaffDigestCommand::class)->dailyAt('08:00');
+        $schedule->command(StaffDigestCommand::class, ['--watch'])->everyFifteenMinutes()->withoutOverlapping();
+        // Caducidad de las promos globales. Va ANTES de la amnistia a proposito:
+        // si apaga el freeleech, la amnistia que corre a continuacion ya lo ve y
+        // revierte los slots de Sanguijuela en la misma pasada.
+        $schedule->command(AutoExpirePromos::class)->everyTenMinutes()->withoutOverlapping();
         // La amnistia tiene que reaccionar al interruptor del freeleech sin
         // esperar a la madrugada. Son ~40 filas: el coste es nulo.
         $schedule->command(AutoLeechAmnesty::class)->everyTenMinutes()->withoutOverlapping();

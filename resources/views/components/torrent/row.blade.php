@@ -415,7 +415,7 @@
             @if (config('torrent.magnet'))
                 <a
                     class="torrent-search--list__magnet form__contained-icon-button form__contained-icon-button--filled"
-                    href="magnet:?dn={{ $torrent->name }}&xt=urn:btih:{{ bin2hex($torrent->info_hash) }}&as={{ route('torrent.download.rsskey', ['id' => $torrent->id, 'rsskey' => auth()->user()->rsskey]) }}&tr={{ route('announce', ['passkey' => auth()->user()->passkey]) }}&xl={{ $torrent->size }}"
+                    href="{{ \App\Services\MagnetLink::forTorrent($torrent, auth()->user()) }}"
                     download
                     title="{{ __('common.magnet') }}"
                 >
