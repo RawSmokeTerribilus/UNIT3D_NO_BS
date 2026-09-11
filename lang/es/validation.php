@@ -1,5 +1,6 @@
 <?php
 return [
+    'css-solo-local'       => 'El tema completo sólo puede ser una hoja de estilo del propio tracker: una ruta que empiece por / y acabe en .css.',
     'css-no-permitido'     => 'Sólo se admite una hoja de estilo del propio tracker (una ruta que empiece por / y acabe en .css) o de estos dominios: :dominios',
     /**
  * NOTICE OF LICENSE.

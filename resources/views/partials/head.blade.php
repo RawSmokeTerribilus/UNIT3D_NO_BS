@@ -15,7 +15,8 @@
 <link rel="icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
 
 @php($cssPropio = \App\Helpers\CssPermitido::limpia(auth()->user()->settings->custom_css))
-@php($cssEntero = \App\Helpers\CssPermitido::limpia(auth()->user()->settings->standalone_css))
+{{-- El tema completo sólo del propio tracker: sustituye a main.scss, no se suma. --}}
+@php($cssEntero = \App\Helpers\CssPermitido::limpia(auth()->user()->settings->standalone_css, true))
 @if ($cssEntero === null)
     @vite('resources/sass/main.scss')
 

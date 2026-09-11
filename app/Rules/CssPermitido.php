@@ -29,16 +29,22 @@ use Illuminate\Contracts\Validation\ValidationRule;
  */
 final class CssPermitido implements ValidationRule
 {
+    public function __construct(private readonly bool $soloLocal = false)
+    {
+    }
+
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if ($value === null || $value === '') {
             return;
         }
 
-        if (!\is_string($value) || Lista::limpia($value) === null) {
-            $fail(__('validation.css-no-permitido', [
-                'dominios' => implode(', ', Lista::DOMINIOS),
-            ]));
+        if (!\is_string($value) || Lista::limpia($value, $this->soloLocal) === null) {
+            $fail($this->soloLocal
+                ? __('validation.css-solo-local')
+                : __('validation.css-no-permitido', [
+                    'dominios' => implode(', ', Lista::DOMINIOS),
+                ]));
         }
     }
 }

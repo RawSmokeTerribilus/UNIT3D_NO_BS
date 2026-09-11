@@ -14,6 +14,7 @@ declare(strict_types=1);
  */
 
 return [
+    'css-solo-local'       => 'A full theme can only be a stylesheet from this tracker: a path starting with / and ending in .css.',
     'css-no-permitido'     => 'Only a stylesheet from this tracker (a path starting with / and ending in .css) or from these domains is allowed: :dominios',
     /*
     |--------------------------------------------------------------------------
