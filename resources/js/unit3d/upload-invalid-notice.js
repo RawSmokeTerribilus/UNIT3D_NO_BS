@@ -12,6 +12,8 @@
  * for every failing field fire back to back during the submit attempt; they are
  * collected and rendered once, right above the submit button.
  *
+ * Each failing field also gets a red outline, cleared as soon as it is edited.
+ *
  * Staging carries an extra debug line (page load type, whether the file input
  * still holds a file); production leaves it out.
  */
@@ -95,10 +97,28 @@ const init = () => {
         failing = [];
     };
 
+    // The form styles have no invalid state, so the field itself never turns
+    // red. Outline it until the user touches it again.
+    const mark = (field) => {
+        field.style.outline = '2px solid #e5484d';
+        field.style.outlineOffset = '2px';
+
+        const clear = () => {
+            field.style.outline = '';
+            field.style.outlineOffset = '';
+            field.removeEventListener('input', clear);
+            field.removeEventListener('change', clear);
+        };
+
+        field.addEventListener('input', clear);
+        field.addEventListener('change', clear);
+    };
+
     form.addEventListener(
         'invalid',
         (event) => {
             failing.push(event.target);
+            mark(event.target);
 
             if (!scheduled) {
                 scheduled = true;
