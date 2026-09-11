@@ -53,8 +53,14 @@ final class CssPermitido
      * Se acepta:
      *   - una ruta del propio tracker: /css/lo-que-sea.css
      *   - https://<dominio de la lista>/lo-que-sea.css
+     *
+     * Con $soloLocal sólo pasa la ruta del propio tracker. Es lo que se aplica
+     * a `standalone_css`, que NO se suma al tema: lo SUSTITUYE — cuando está
+     * puesto, main.scss ni se carga. Un fichero de fuera que resulte ser
+     * parcial deja el sitio hecho un cuadro, y eso acaba en soporte. Para
+     * reemplazar el tema entero, que salga del propio tracker.
      */
-    public static function limpia(?string $url): ?string
+    public static function limpia(?string $url, bool $soloLocal = false): ?string
     {
         $url = trim((string) $url);
 
@@ -66,6 +72,10 @@ final class CssPermitido
         // es una URL protocolo-relativa y apunta fuera.
         if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
             return self::terminaEnCss($url) ? $url : null;
+        }
+
+        if ($soloLocal) {
+            return null;
         }
 
         $partes = parse_url($url);

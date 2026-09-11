@@ -122,12 +122,14 @@ class UpdateGeneralSettingRequest extends FormRequest
             'custom_css' => [
                 'nullable',
                 'url',
+                'max:255',
                 new CssPermitido(),
             ],
+            // Sólo del propio tracker: este campo SUSTITUYE el tema entero.
             'standalone_css' => [
                 'nullable',
-                'url',
-                new CssPermitido(),
+                'max:255',
+                new CssPermitido(soloLocal: true),
             ],
             'theme_accent' => [
                 'nullable',
