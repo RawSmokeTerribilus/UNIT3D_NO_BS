@@ -538,9 +538,14 @@
     align-items: center;
 }
 
+/* nowrap: the hidden .top-nav__icon-label leaves whitespace that Gecko breaks
+   on, splitting this inline link in two lines. The unread dot (absolute,
+   right: 0) then resolves against the empty second fragment and lands left of
+   the icon (Firefox >= ~150). */
 .top-nav__icon-bar > li > a {
     position: relative;
     padding: 0;
+    white-space: nowrap;
 }
 
 .top-nav__icon-bar > li > a > i {
