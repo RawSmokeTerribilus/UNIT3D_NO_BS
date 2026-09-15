@@ -34,6 +34,7 @@ use App\Helpers\TorrentTools;
 use App\Models\Category;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
+use App\Rules\MediainfoTexto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -166,15 +167,19 @@ class StoreTorrentRequest extends FormRequest
                 'required',
                 'max:65535'
             ],
+            // Mismo tope de 65.535 en web, edición y API. Lo legítimo no pasa de
+            // 64.451 (mediainfo) ni de 6.034 (bdinfo), y así una fila de torrent
+            // no pasa de ~196 KB, lo que cabe incluso en un sort buffer por defecto.
             'mediainfo' => [
                 'nullable',
                 'sometimes',
                 'max:65535',
+                new MediainfoTexto(),
             ],
             'bdinfo' => [
                 'nullable',
                 'sometimes',
-                'max:2097152',
+                'max:65535',
             ],
             'category_id' => [
                 'required',

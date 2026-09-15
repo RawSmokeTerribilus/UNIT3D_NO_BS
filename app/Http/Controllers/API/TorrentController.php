@@ -54,6 +54,7 @@ use App\Services\Books\BookScraper;
 use App\Services\Igdb\IgdbScraper;
 use App\Services\Mal\MalScraper;
 use App\Services\Tmdb\TMDBScraper;
+use App\Rules\MediainfoTexto;
 use App\Services\Unit3dAnnounce;
 use App\Traits\TorrentMeta;
 use Exception;
@@ -247,8 +248,20 @@ class TorrentController extends BaseController
                 Rule::unique('torrents')->whereNull('deleted_at'),
                 'max:255',
             ],
+            // La API no tenía tope ni formato: por aquí entró un MediaInfo en
+            // JSON de 150 KB. Mismos topes y misma regla que la subida web.
             'description' => [
                 'required',
+                'max:65535',
+            ],
+            'mediainfo' => [
+                'nullable',
+                'max:65535',
+                new MediainfoTexto(),
+            ],
+            'bdinfo' => [
+                'nullable',
+                'max:65535',
             ],
             'info_hash' => [
                 'required',

@@ -16,6 +16,10 @@ declare(strict_types=1);
 return [
     'css-solo-local'         => 'A full theme replaces the tracker\'s own, so it can only be a stylesheet hosted here. Contact an admin to review yours and upload it.',
     'css-no-permitido'       => 'That stylesheet is not approved. Community ones are served from the tracker itself (/css/comunidad/…). If you want a different one, contact an admin to review and host it.',
+    'mediainfo-json'          => 'MediaInfo must be plain text, not JSON. In MediaInfo: View → Text, then copy and paste the report as is (it starts with "General").',
+    'mediainfo-xml'           => 'MediaInfo must be plain text, not XML or HTML. In MediaInfo: View → Text, then copy and paste the report as is (it starts with "General").',
+    'mediainfo-bbcode'        => 'Paste the MediaInfo as is, without BBCode ([code], [center]…): the torrent page already frames it.',
+    'mediainfo-no-reconocido' => 'This does not look like MediaInfo output: there is no "General", "Video" or "Audio" section. In MediaInfo: View → Text, and paste the full report.',
     /*
     |--------------------------------------------------------------------------
     | Validation language lines
