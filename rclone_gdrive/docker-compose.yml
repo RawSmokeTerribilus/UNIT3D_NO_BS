@@ -8,6 +8,7 @@ services:
       - ./logs:/logs
     command: >
       sync /data gdrive_crypt:
+      --exclude "/logs-nginx-archivo/**"
       --drive-chunk-size 1024M
       --transfers 4
       --checkers 8
