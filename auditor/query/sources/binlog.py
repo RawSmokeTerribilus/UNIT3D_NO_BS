@@ -39,7 +39,8 @@ class BinlogSource:
     def __init__(self, config=None):
         self.cfg = config or cfg
 
-    def run(self, tabla, clave_col=None, clave_val=None, ventana=None, limit=None):
+    def run(self, tabla, clave_col=None, clave_val=None, ventana=None, limit=None,
+            columna=None):
         limit = self.cfg.max_rows if limit is None else limit
         horas = float((ventana or {}).get("ultimas_horas") or 24)
         dias = self.cfg.retention_days["binlog"]
@@ -66,7 +67,8 @@ class BinlogSource:
 
         t0 = time.time()
         filas, parados, agotado = self._leer(ficheros, desde, tabla, columnas,
-                                             secretos, clave_col, clave_val, limit)
+                                             secretos, clave_col, clave_val, limit,
+                                             columna)
         if parados:
             avisos.append("Lectura cortada al llegar al tope de filas: hay más cambios.")
         if agotado:
@@ -82,7 +84,8 @@ class BinlogSource:
             consulta_generada=("mysqlbinlog --base64-output=DECODE-ROWS -v "
                                "--start-datetime='%s' · tabla=%s%s"
                                % (desde.strftime("%Y-%m-%d %H:%M:%S"), tabla,
-                                  (" · %s=%s" % (clave_col, clave_val)) if clave_val else "")),
+                                  (" · %s=%s" % (clave_col, clave_val)) if clave_val else "")
+                               + ((" · columna=%s" % columna) if columna else "")),
             duration_ms=int((time.time() - t0) * 1000),
             truncated=parados, window_ok=dentro and not agotado, warnings=avisos,
             redacted=sorted(secretos.values()))
@@ -123,7 +126,7 @@ class BinlogSource:
         return dentro
 
     def _leer(self, ficheros, desde, tabla, columnas, secretos,
-              clave_col, clave_val, limit):
+              clave_col, clave_val, limit, columna=None):
         clave_pos = None
         if clave_col:
             for p, n in columnas.items():
@@ -157,6 +160,11 @@ class BinlogSource:
                 if op == "UPDATE" and a == d:
                     continue
                 nombre = columnas.get(p, "@%d" % p)
+                # Se filtra AQUÍ, antes de que la fila cuente contra el tope.
+                # `users` recibe miles de toques de last_action al día: sin este
+                # filtro el límite se agota antes de llegar a lo que se busca.
+                if columna and nombre != columna:
+                    continue
                 if p in secretos:
                     a = "••••" if a not in (None, "NULL") else a
                     d = "••••" if d not in (None, "NULL") else d

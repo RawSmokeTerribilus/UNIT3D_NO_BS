@@ -600,7 +600,7 @@ def compilar_binlog(paso, ent):
     No hay lenguaje que emitir aquí: lo que se compone es qué tabla, qué fila y
     qué ventana. El resto lo hace mysqlbinlog.
     """
-    args = {"tabla": None, "clave_col": "id", "clave_val": None}
+    args = {"tabla": None, "clave_col": "id", "clave_val": None, "columna": None}
     for hoja in _hojas(paso.get("condiciones")):
         campo = ent.campo(hoja["campo"])
         op = hoja.get("op", "es")
@@ -608,7 +608,8 @@ def compilar_binlog(paso, ent):
             raise CompileError(
                 "«%s» aquí sólo admite «es»: el binlog se lee por tabla y fila, "
                 "no se filtra como una consulta." % campo.etiqueta)
-        destino = {"tabla": "tabla", "clave": "clave_val", "clave_col": "clave_col"}.get(
+        destino = {"tabla": "tabla", "clave": "clave_val", "clave_col": "clave_col",
+                   "columna": "columna"}.get(
             getattr(campo, "binlog", None))
         if not destino:
             raise CompileError("«%s» no sirve para leer el binlog" % campo.etiqueta)

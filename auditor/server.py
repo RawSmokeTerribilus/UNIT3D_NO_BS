@@ -425,7 +425,8 @@ def _un_paso(paso, ents, origen, limite):
     if fuente == "binlog":
         a = compilar_binlog(paso, ents[eid])
         return BinlogSource().run(a["tabla"], a["clave_col"], a["clave_val"],
-                                  paso.get("ventana"), limit=limite)
+                                  paso.get("ventana"), limit=limite,
+                                  columna=a.get("columna"))
 
     raise CompileError("fuente desconocida: %r" % fuente)
 

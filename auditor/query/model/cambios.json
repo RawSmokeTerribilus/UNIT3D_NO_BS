@@ -30,6 +30,13 @@
       "tipo": "texto",
       "binlog": "clave_col",
       "nota": "Por defecto `id`. En `history` no hay id: la pareja es user_id + torrent_id."
+    },
+    {
+      "id": "columna",
+      "etiqueta": "Sólo esta columna",
+      "tipo": "texto",
+      "binlog": "columna",
+      "nota": "Filtra DURANTE la lectura, no después. `users` recibe miles de toques de last_action al día: sin esto el tope de filas se agota antes de llegar a un cambio de group_id."
     }
   ],
   "enlace_en": "Fila"

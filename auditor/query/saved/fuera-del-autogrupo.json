@@ -1,0 +1,37 @@
+{
+  "nombre": "fuera-del-autogrupo",
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "titulo": "Quién está fuera del autogrupo",
+  "porque": "El control que faltaba. La pasada de `auto:group` SÓLO evalúa a quien ya está en uno de los 8 grupos automáticos: a quien se saca de ahí, no vuelve a mirarlo nunca. Hoy son 233, y casi todo es legítimo — staff, estados de moderación y Semilla, que es manual por diseño. Conviene mirarlo de vez en cuando para que no crezca sin que nadie se entere.",
+  "pedido_por": "RawSmoke",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "en_autogroup",
+            "op": "es",
+            "valor": false
+          }
+        ]
+      },
+      "agrupar": [
+        "grupo"
+      ],
+      "calcular": [
+        {
+          "fn": "contar"
+        }
+      ],
+      "ordenar": {
+        "campo": "_calculo",
+        "sentido": "desc"
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "nombre": "inmunes-a-la-degradacion",
+  "capa": "global",
+  "familia": "padrón y actividad",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "titulo": "Inmunes a bajar de grupo",
+  "porque": "Están fuera del autogrupo Y por debajo del ratio mínimo: nada les va a bajar de grupo, porque el comando ni los mira. Es la lista que de verdad importa de «a quién hemos sacado sin querer». Hoy sale 1, y es una colocación deliberada.",
+  "pedido_por": "RawSmoke",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "en_autogroup",
+            "op": "es",
+            "valor": false
+          },
+          {
+            "campo": "bajo_ratio_minimo",
+            "op": "es",
+            "valor": true
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "ratio",
+        "torrents_subidos",
+        "puede_descargar",
+        "dias_sin_actividad"
+      ],
+      "ordenar": {
+        "campo": "ratio",
+        "sentido": "asc"
+      }
+    }
+  ]
+}

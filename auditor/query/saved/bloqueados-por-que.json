@@ -1,0 +1,39 @@
+{
+  "nombre": "bloqueados-por-que",
+  "capa": "global",
+  "familia": "ratio, H&R y avisos",
+  "parametros": [],
+  "guardada_por": "sembrada",
+  "origen": "sembrada",
+  "titulo": "Bloqueados: y por qué motivo",
+  "porque": "Los 92 que no pueden descargar, con las tres piezas que deciden: avisos activos contra el tope, si están en Sanguijuela (donde la amnistía apagada bloquea por diseño) y si el autogrupo los mira siquiera. Sin estas tres columnas juntas, un bloqueo parece arbitrario.",
+  "pedido_por": "RawSmoke",
+  "pasos": [
+    {
+      "entidad": "usuarios",
+      "condiciones": {
+        "y": [
+          {
+            "campo": "puede_descargar",
+            "op": "es",
+            "valor": false
+          }
+        ]
+      },
+      "mostrar": [
+        "nombre",
+        "grupo",
+        "en_autogroup",
+        "avisos_activos",
+        "avisos_para_ban",
+        "avisos_borrados",
+        "hitandruns",
+        "ratio"
+      ],
+      "ordenar": {
+        "campo": "avisos_activos",
+        "sentido": "desc"
+      }
+    }
+  ]
+}
