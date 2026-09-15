@@ -90,6 +90,9 @@ Initial_NOBS_art/
 # al que apunta el docker-compose.yml publicado — el repo no se podía construir.
 .docker/data/
 .docker/**/*.bkp
+# Baneos de CrowdSec, los escribe crowdsec-nginx-bans cada minuto. Son IPs de
+# terceros: nunca al repo. Sin este directorio nginx arranca igual.
+.docker/nginx/bans/
 vendor/
 
 # Telegram implementation docs (contains sensitive data)
