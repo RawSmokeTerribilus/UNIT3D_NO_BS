@@ -31,6 +31,7 @@ namespace App\Http\Requests;
 use App\Models\Category;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
+use App\Rules\MediainfoTexto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -89,19 +90,24 @@ class UpdateTorrentRequest extends FormRequest
                 Rule::unique('torrents')->whereNot('id', $torrentId)->whereNull('deleted_at'),
                 'max:255',
             ],
+            // Mismos topes que la subida (StoreTorrentRequest). Aquí eran de 2 M:
+            // un mediainfo de 186 KB entró por esta vía y su audit (viejo + nuevo)
+            // tumbó /dashboard/audits. `description` es TEXT: más de 65.535 bytes
+            // no caben en la columna.
             'description' => [
                 'required',
-                'max:2097152'
+                'max:65535'
             ],
             'mediainfo' => [
                 'nullable',
                 'sometimes',
-                'max:2097152',
+                'max:65535',
+                new MediainfoTexto($torrent?->mediainfo),
             ],
             'bdinfo' => [
                 'nullable',
                 'sometimes',
-                'max:2097152',
+                'max:65535',
             ],
             'category_id' => [
                 'required',

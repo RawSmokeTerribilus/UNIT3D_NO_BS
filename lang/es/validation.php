@@ -2,6 +2,10 @@
 return [
     'css-solo-local'         => 'El tema completo sustituye al del tracker, así que sólo puede ser una hoja alojada aquí. Escribe a un admin para que revise la tuya y la suba.',
     'css-no-permitido'       => 'Esa hoja de estilo no está aprobada. Las de la comunidad se sirven desde el propio tracker (/css/comunidad/…). Si quieres usar otra, escribe a un admin para que la revise y la aloje.',
+    'mediainfo-json'          => 'El MediaInfo va en texto, no en JSON. En MediaInfo: Ver → Texto, copia el informe y pégalo tal cual (empieza por «General»).',
+    'mediainfo-xml'           => 'El MediaInfo va en texto, no en XML ni HTML. En MediaInfo: Ver → Texto, copia el informe y pégalo tal cual (empieza por «General»).',
+    'mediainfo-bbcode'        => 'Pega el MediaInfo tal cual, sin BBCode ([code], [center]…): la ficha ya lo enmarca.',
+    'mediainfo-no-reconocido' => 'Esto no parece la salida de MediaInfo: no hay ninguna sección «General», «Video» o «Audio». En MediaInfo: Ver → Texto, y pega el informe completo.',
     /**
  * NOTICE OF LICENSE.
  *
