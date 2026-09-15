@@ -195,6 +195,13 @@ services:
         image: mysql/mysql-server:8.0
         container_name: unit3d-staging-db
         restart: unless-stopped
+        # MySQL 8 ordena arrastrando la fila entera, TEXT/JSON incluidos, y si una
+        # sola fila no cabe en el buffer la consulta muere con 1038 Out of sort
+        # memory. Con los 256 KB por defecto un audit de Torrent de 361 KB tumbó
+        # /dashboard/audits en prod (2026-09-10). Los límites de subida permiten
+        # filas de torrent de ~2,2 MB y audits de ~4,3 MB (viejo + nuevo): 8M los
+        # cubre. Se reserva por tramos, así que sólo cuesta cuando hace falta.
+        command: ["--sort-buffer-size=8M"]
         ports:
             - "127.0.0.1:${FORWARD_DB_PORT:-3306}:3306"
         environment:
