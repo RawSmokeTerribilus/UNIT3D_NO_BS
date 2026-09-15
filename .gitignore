@@ -93,6 +93,8 @@ Initial_NOBS_art/
 # Baneos de CrowdSec, los escribe crowdsec-nginx-bans cada minuto. Son IPs de
 # terceros: nunca al repo. Sin este directorio nginx arranca igual.
 .docker/nginx/bans/
+# Config y estado de bin/rotate-nginx-logs.sh: los genera root en cada pasada.
+.docker/logrotate/
 vendor/
 
 # Telegram implementation docs (contains sensitive data)
