@@ -481,6 +481,9 @@ def _claves(paso, enlace, ents, origen):
     if ent.fuente == "ipstore":
         from query.compile import a_sqlite
         r = IpStore().run(a_sqlite(c.sql), c.params, limit=tope)
+    elif ent.fuente == "ipunion":
+        from query.compile import a_sqlite
+        r = IpUnion().run(a_sqlite(c.sql), c.params, limit=tope)
     else:
         r = origen.run(c.sql, c.params, limit=tope)
     valores = sorted({fila[0] for fila in r.rows if fila[0] is not None})
