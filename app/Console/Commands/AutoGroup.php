@@ -23,10 +23,23 @@ use App\Services\LeechAmnesty;
 use App\Services\Unit3dAnnounce;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Throwable;
 
 class AutoGroup extends Command
 {
+    /**
+     * NOBS: el grupo Fundador es una COHORTE CERRADA, no un escalon de
+     * antiguedad. Solo lo ve quien se dio de alta antes de esta fecha: la
+     * fundacion por invitacion y el registro abierto de mayo (los beta testers
+     * del nuke de la BD). `min_age` no sirve para esto porque la antiguedad
+     * crece y acabaria metiendo a todo el mundo. Se filtra por slug, que es
+     * identidad y no cambia al renombrar el grupo.
+     */
+    private const string FOUNDER_SLUG = 'fundador';
+
+    private const string FOUNDATION_END = '2026-05-18 00:00:00';
+
     /**
      * The name and signature of the console command.
      *
@@ -72,9 +85,15 @@ class AutoGroup extends Command
             $userQuery->whereIntegerInRaw('group_id', $groups->pluck('id'));
         }
 
-        $userQuery->chunkById(100, function ($users) use ($groups, $timestamp): void {
+        $foundationEnd = Carbon::parse(self::FOUNDATION_END)->timestamp;
+
+        $userQuery->chunkById(100, function ($users) use ($groups, $timestamp, $foundationEnd): void {
             foreach ($users as $user) {
                 foreach ($groups as $group) {
+                    if ($group->slug === self::FOUNDER_SLUG && $user->created_at->timestamp >= $foundationEnd) {
+                        continue;
+                    }
+
                     if (
                         ($group->min_uploaded === null || $user->uploaded >= $group->min_uploaded)
                         && ($group->min_ratio === null || $user->ratio >= $group->min_ratio)
