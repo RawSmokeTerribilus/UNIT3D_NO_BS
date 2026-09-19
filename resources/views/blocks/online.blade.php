@@ -29,7 +29,7 @@
                 <span class="user-tag" style="padding: 4px 8px; display: block">
                     <span
                         class="user-tag__link {{ $group->icon }}"
-                        style="color: {{ $group->color }}"
+                        style="{{ $group->estiloTexto() }}"
                         title="{{ $group->name }}"
                     >
                         {{ $group->name }}

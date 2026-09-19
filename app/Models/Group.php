@@ -150,6 +150,46 @@ final class Group extends Model
     }
 
     /**
+     * NOBS: los colores del degradado del nombre (2 o 3), o [] si no tiene.
+     * Sólo hex de 6 cifras: el valor acaba dentro de un atributo style, y así
+     * nada que se escriba en el panel puede colar CSS.
+     *
+     * @return list<string>
+     */
+    public function coloresDegradado(): array
+    {
+        $colores = array_values(array_filter(array_map('trim', explode(',', (string) $this->gradient))));
+
+        foreach ($colores as $c) {
+            if (preg_match('/^#[0-9A-Fa-f]{6}$/', $c) !== 1) {
+                return [];
+            }
+        }
+
+        return \count($colores) >= 2 && \count($colores) <= 3 ? $colores : [];
+    }
+
+    /**
+     * NOBS: el estilo del NOMBRE del grupo (etiqueta de usuario, leyenda, perfil).
+     * Con degradado, pinta el texto (icono incluido) con background-clip: text;
+     * sin él, el color sólido de siempre. `color` va delante en los dos casos:
+     * es lo que se ve si el navegador no soporta el recorte.
+     */
+    public function estiloTexto(): string
+    {
+        $colores = $this->coloresDegradado();
+
+        if ($colores === []) {
+            return 'color: '.$this->color;
+        }
+
+        return 'color: '.$colores[0]
+            .'; background-image: linear-gradient(90deg, '.implode(', ', $colores).')'
+            .'; -webkit-background-clip: text; background-clip: text'
+            .'; -webkit-text-fill-color: transparent';
+    }
+
+    /**
      * Get the forum permissions for the group.
      *
      * @return HasMany<ForumPermission, $this>
