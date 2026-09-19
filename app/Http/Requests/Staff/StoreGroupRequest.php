@@ -61,6 +61,12 @@ class StoreGroupRequest extends FormRequest
             'group.color' => [
                 'required',
             ],
+            'group.gradient' => [
+                'nullable',
+                'string',
+                // 2 o 3 colores hex separados por comas: el valor acaba en un style.
+                'regex:/^\s*#[0-9A-Fa-f]{6}(\s*,\s*#[0-9A-Fa-f]{6}){1,2}\s*$/',
+            ],
             'group.icon' => [
                 'required',
             ],

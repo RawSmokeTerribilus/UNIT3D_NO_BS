@@ -913,7 +913,7 @@
                                     <span class="user-tag">
                                         <span
                                             class="user-tag__link {{ $group->icon }}"
-                                            style="color: {{ $group->color }}"
+                                            style="{{ $group->estiloTexto() }}"
                                             title="{{ $group->name }}"
                                         >
                                             {{ $group->name }}

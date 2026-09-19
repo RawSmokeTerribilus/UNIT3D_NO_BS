@@ -50,7 +50,7 @@
             <a
                 class="user-tag__link user-tag__link--anonymous {{ $claseIconoRango }}"
                 href="{{ route('users.show', ['user' => $user]) }}"
-                style="color: {{ $user->group->color }}"
+                style="{{ $user->group->estiloTexto() }}"
                 title="{{ $tituloRango }}"
             >
                 @if ($iconoRangoEsImagen)
@@ -122,7 +122,7 @@
         <a
             class="user-tag__link {{ $claseIconoRango }}"
             href="{{ route('users.show', ['user' => $user]) }}"
-            style="color: {{ $user->group->color }}"
+            style="{{ $user->group->estiloTexto() }}"
             title="{{ $tituloRango }}"
         >
             @if ($iconoRangoEsImagen)

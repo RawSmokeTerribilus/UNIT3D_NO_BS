@@ -85,6 +85,7 @@ class HomeController extends Controller
                     'id',
                     'name',
                     'color',
+                    'gradient',
                     'effect',
                     'icon',
                 ])

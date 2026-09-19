@@ -94,6 +94,20 @@
                         Color (e.g. #ff0000)
                     </label>
                 </p>
+                {{-- NOBS: degradado opcional del nombre (grupos épicos). Vacío = color sólido. --}}
+                <p class="form__group">
+                    <input
+                        id="gradient"
+                        class="form__text"
+                        type="text"
+                        name="group[gradient]"
+                        placeholder=" "
+                        value="{{ old('group.gradient') }}"
+                    />
+                    <label class="form__label form__label--floating" for="gradient">
+                        Degradado del nombre (opcional: 2 o 3 colores, p. ej. #BB29BB, #F04E98)
+                    </label>
+                </p>
                 <x-icon-picker name="group[icon]" />
                 {{--
                     Efecto de fondo del nick. Era un campo de texto libre sin
