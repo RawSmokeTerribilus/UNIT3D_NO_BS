@@ -180,7 +180,10 @@ class ReportSearch extends Component
                 continue;
             }
 
-            $reportero->notify(new ReportesDescartadosEnBloque($suyos->pluck('title')->map(fn ($t) => (string) $t)->values()->all()));
+            $reportero->notify(new ReportesDescartadosEnBloque(
+                $suyos->pluck('title')->map(fn ($t) => (string) $t)->values()->all(),
+                $staff->username,
+            ));
         }
 
         $this->marcados = [];

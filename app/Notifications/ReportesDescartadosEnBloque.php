@@ -30,8 +30,9 @@ class ReportesDescartadosEnBloque extends Notification implements ShouldQueue, S
 
     /**
      * @param list<string> $titulos
+     * @param string       $staff   quien pulso la seta; el aviso lo nombra
      */
-    public function __construct(public readonly array $titulos)
+    public function __construct(public readonly array $titulos, public readonly string $staff)
     {
     }
 
@@ -58,7 +59,8 @@ class ReportesDescartadosEnBloque extends Notification implements ShouldQueue, S
             .' por motivos tecnicos, sin revisarlos uno a uno. No se ha tomado ninguna '
             .'medida sobre lo que reportaste.'."\n\n"
             .'[list]'.$lista.'[/list]'."\n"
-            .'Si crees que alguno merecia atencion, contacta con un admin.';
+            .'Descartados por: [b]'.$this->staff.'[/b]'."\n\n"
+            .'Si crees que alguno merecia atencion, contacta con '.$this->staff.' o con otro admin.';
 
         return [
             'subject' => $n === 1 ? 'Tu reporte se ha descartado' : 'Tus reportes se han descartado',
