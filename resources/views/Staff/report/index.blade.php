@@ -22,5 +22,8 @@
 @section('page', 'page__staff-report--index')
 
 @section('main')
+    {{-- NOBS: modulo nuke (livewire/includes/_nuke-panel). Fuera del componente para que Livewire no los re-renderice. --}}
+    <link rel="stylesheet" href="{{ asset('css/nuke-panel.css') }}?v=1" />
     @livewire('report-search')
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/nuke-panel.js') }}?v=1"></script>
 @endsection

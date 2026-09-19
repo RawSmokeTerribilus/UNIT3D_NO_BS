@@ -1,0 +1,400 @@
+/*
+ * NOBS — Nuclear Order Bit Syndicate
+ * Copyright (C) 2026 RawSmoke
+ * Obra original de NOBS, parte de un derivado de UNIT3D Community Edition
+ * (HDInnovations) del que hereda la licencia.
+ *
+ * Modulo «nuke» de la lista de reportes: consola de silo con llave, dos
+ * interruptores, tapa de seguridad y seta. Colores fijos a proposito: es un
+ * aparato, no un componente del tema.
+ */
+
+.nuke {
+    --nuke-metal-1: #c9ccd1;
+    --nuke-metal-2: #9ea3aa;
+    --nuke-tinta: #1b1d21;
+    --nuke-amarillo: #f5c400;
+    --nuke-rojo: #d9121b;
+    --nuke-rojo-luz: #ff4b4b;
+    --nuke-verde: #2ecc71;
+    --nuke-carga: 0;
+}
+
+.nuke__titulo {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.nuke__titulo small {
+    font-size: 0.7em;
+    opacity: 0.6;
+    letter-spacing: 0.04em;
+}
+
+.nuke__chasis {
+    display: grid;
+    grid-template-columns: 96px minmax(170px, 210px) 132px;
+    gap: 18px;
+    align-items: center;
+    justify-content: start;
+    width: max-content;
+    max-width: 100%;
+    margin: 10px 14px 14px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    color: var(--nuke-tinta);
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 3px),
+        linear-gradient(180deg, var(--nuke-metal-1), var(--nuke-metal-2));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.25),
+        0 6px 18px rgba(0, 0, 0, 0.45);
+    font-family: ui-monospace, 'DejaVu Sans Mono', monospace;
+}
+
+.nuke__col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.nuke__rotulo {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.nuke__rotulo b {
+    display: inline-grid;
+    place-items: center;
+    width: 1.35em;
+    height: 1.35em;
+    margin-right: 0.15em;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.9em;
+}
+
+/* --- piloto y barra de leds -------------------------------------------- */
+
+.nuke__piloto {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 3px solid #7d8187;
+    background: radial-gradient(circle at 35% 30%, #6b6f75, #34373b);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.nuke__leds {
+    display: flex;
+    gap: 2px;
+}
+
+.nuke__leds i {
+    width: 9px;
+    height: 6px;
+    border-radius: 1px;
+    background: #4a4d52;
+    transition: background 0.2s;
+}
+
+.is-armado .nuke__piloto {
+    background: radial-gradient(circle at 35% 30%, #ff8a8a, var(--nuke-rojo));
+    box-shadow: 0 0 10px var(--nuke-rojo-luz);
+    animation: nuke-parpadeo 1.1s steps(2, jump-none) infinite;
+}
+
+.is-armado .nuke__leds i:nth-child(1),
+.is-armado .nuke__leds i:nth-child(2) { background: var(--nuke-rojo-luz); }
+.is-armado .nuke__leds i:nth-child(3),
+.is-armado .nuke__leds i:nth-child(4) { background: #f39c12; }
+.is-armado .nuke__leds i:nth-child(5),
+.is-armado .nuke__leds i:nth-child(6) { background: var(--nuke-verde); }
+
+/* --- llave --------------------------------------------------------------- */
+
+.nuke__llave {
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    background: radial-gradient(circle at 35% 30%, #f4f5f7, #8d9299 70%, #5e6268);
+    box-shadow: inset 0 -3px 4px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.nuke__bombin {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.35s cubic-bezier(0.5, 1.6, 0.4, 1);
+}
+
+.nuke__paleta {
+    width: 8px;
+    height: 34px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #b8bcc2, #eceef1 50%, #9aa0a6);
+    box-shadow: 0 0 0 1px #5e6268;
+}
+
+.is-armado .nuke__bombin {
+    transform: rotate(90deg);
+}
+
+/* --- interruptores de palanca ------------------------------------------- */
+
+.nuke__col--modos {
+    align-items: stretch;
+    gap: 10px;
+}
+
+.nuke__switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.nuke__switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nuke__palanca {
+    position: relative;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: radial-gradient(circle, #5b5f65 0 7px, #2c2e32 8px 10px, #8d9299 11px);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* la palanca: abajo = OFF, arriba = ON */
+.nuke__palanca::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 15px;
+    width: 8px;
+    height: 13px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #9aa0a6, #f1f2f4 50%, #9aa0a6);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    transition: top 0.18s ease-out;
+}
+
+.nuke__switch input:checked + .nuke__palanca::after {
+    top: 2px;
+}
+
+.nuke__switch input:checked + .nuke__palanca {
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 2px var(--nuke-rojo);
+}
+
+.nuke__switch input:focus-visible + .nuke__palanca {
+    outline: 2px solid var(--nuke-amarillo);
+    outline-offset: 2px;
+}
+
+.nuke__display {
+    display: block;
+    min-height: 2.1em;
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: #0b1a0f;
+    color: #57ff7a;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 0 6px rgba(87, 255, 122, 0.6);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.nuke__display--todos {
+    background: #1f0506;
+    color: var(--nuke-rojo-luz);
+    text-shadow: 0 0 6px rgba(255, 75, 75, 0.7);
+}
+
+.nuke__display--usuario-sin-nombre {
+    color: var(--nuke-amarillo);
+    text-shadow: none;
+}
+
+/* --- caja con franjas, seta y tapa ------------------------------------- */
+
+.nuke__caja {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 112px;
+    height: 112px;
+    perspective: 420px;
+}
+
+.nuke__franjas {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: repeating-linear-gradient(45deg, var(--nuke-amarillo) 0 9px, var(--nuke-tinta) 9px 18px);
+    box-shadow: inset 0 0 0 4px var(--nuke-tinta);
+}
+
+.nuke__seta {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.85);
+    background: radial-gradient(circle at 38% 30%, #ff8d8d, var(--nuke-rojo) 55%, #7a060b);
+    box-shadow:
+        0 0 0 5px #2a2c30,
+        0 5px 0 5px #141517,
+        0 8px 14px rgba(0, 0, 0, 0.6);
+    transition: transform 0.08s, box-shadow 0.08s, filter 0.2s;
+    touch-action: none;
+    user-select: none;
+}
+
+.nuke__seta:disabled {
+    cursor: not-allowed;
+    filter: saturate(0.35) brightness(0.75);
+}
+
+.nuke__seta.is-apretada {
+    transform: translateY(4px);
+    box-shadow:
+        0 0 0 5px #2a2c30,
+        0 1px 0 5px #141517,
+        0 3px 6px rgba(0, 0, 0, 0.6);
+}
+
+.nuke__calavera {
+    font-size: 1.9rem;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* anillo de carga mientras se mantiene pulsada; JS mueve --nuke-carga 0→1 */
+.nuke__anillo {
+    position: absolute;
+    inset: -9px;
+    border-radius: 50%;
+    background: conic-gradient(var(--nuke-rojo-luz) calc(var(--nuke-carga) * 1turn), transparent 0);
+    -webkit-mask: radial-gradient(circle, transparent 0 41px, #000 42px);
+    mask: radial-gradient(circle, transparent 0 41px, #000 42px);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.nuke__seta.is-apretada .nuke__anillo {
+    opacity: 1;
+}
+
+/* tapa de metacrilato con bisagra arriba */
+.nuke__tapa {
+    position: absolute;
+    inset: -4px;
+    display: grid;
+    place-items: end center;
+    padding: 0 0 6px;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.42), rgba(210, 230, 255, 0.12) 55%, rgba(255, 255, 255, 0.28));
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.35), 0 4px 10px rgba(0, 0, 0, 0.35);
+    transform-origin: 50% 0;
+    transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1), opacity 0.45s;
+}
+
+.nuke__tapa span {
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(217, 18, 27, 0.85);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.is-abierto .nuke__tapa {
+    transform: rotateX(-118deg);
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.nuke__estado {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.is-armado .nuke__estado {
+    color: #8b0006;
+    opacity: 1;
+}
+
+.is-traba {
+    animation: nuke-traba 0.3s;
+}
+
+/* casilla de la columna nueva de la tabla */
+.nuke-check {
+    width: 1.05rem;
+    height: 1.05rem;
+    accent-color: #d9121b;
+    cursor: pointer;
+}
+
+@keyframes nuke-parpadeo {
+    50% {
+        background: radial-gradient(circle at 35% 30%, #a33, #4a0306);
+        box-shadow: none;
+    }
+}
+
+@keyframes nuke-traba {
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+/* Movil: una columna encima de otra en vez de tres en fila. */
+@media (max-width: 520px) {
+    .nuke__chasis {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nuke *,
+    .nuke *::before,
+    .nuke *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
