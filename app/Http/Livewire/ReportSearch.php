@@ -71,8 +71,9 @@ class ReportSearch extends Component
 
     /*
      * NOBS: boton nuke. Cierra reportes en bloque con un veredicto fijo y avisa
-     * una vez a cada reportero. Dos interruptores, tres modos: los marcados,
-     * los del reportero del filtro, o los dos a la vez = todos los abiertos.
+     * una vez a cada denunciante. Dos interruptores, tres modos: los marcados,
+     * todos los de los denunciantes de los marcados (o del nombre exacto del
+     * filtro si no hay nada marcado), o los dos a la vez = todos los abiertos.
      * No toca nada mas que los reportes. Solo admin y superiores.
      */
 
@@ -126,12 +127,50 @@ class ReportSearch extends Component
         }
 
         if ($this->modoUsuario) {
-            $reportero = $this->reporteroExacto();
+            $denunciantes = $this->denunciantes();
 
-            return $reportero === null ? null : $abiertos->where('reporter_id', '=', $reportero);
+            return $denunciantes === [] ? null : $abiertos->whereIntegerInRaw('reporter_id', $denunciantes);
         }
 
         return null;
+    }
+
+    /**
+     * Modo «del denunciante»: los autores de los reportes marcados. Marcar uno
+     * de sus reportes basta para llevarse todos los abiertos de esa persona.
+     * Sin nada marcado, vale el nombre EXACTO escrito en el filtro.
+     *
+     * @return list<int>
+     */
+    private function denunciantes(): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $this->marcados)));
+
+        if ($ids !== []) {
+            return Report::query()
+                ->whereIntegerInRaw('id', $ids)
+                ->distinct()
+                ->pluck('reporter_id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+        }
+
+        $exacto = $this->reporteroExacto();
+
+        return $exacto === null ? [] : [$exacto];
+    }
+
+    /**
+     * Para el display: «cunyat» o «3 denunciantes».
+     */
+    private function denunciantesLegible(): string
+    {
+        $ids = $this->denunciantes();
+
+        return \count($ids) === 1
+            ? (string) User::whereKey($ids[0])->value('username')
+            : \count($ids).' denunciantes';
     }
 
     final protected int $nukeCuenta {
@@ -142,7 +181,7 @@ class ReportSearch extends Component
         get => match (true) {
             $this->modoMarcados && $this->modoUsuario => 'todos',
             $this->modoMarcados                        => 'marcados',
-            $this->modoUsuario                         => $this->reporteroExacto() === null ? 'usuario-sin-nombre' : 'usuario',
+            $this->modoUsuario                         => $this->denunciantes() === [] ? 'usuario-sin-nombre' : 'usuario',
             default                                    => 'ninguno',
         };
     }
@@ -222,6 +261,7 @@ class ReportSearch extends Component
             'puedeNukear' => $this->puedeNukear(),
             'nukeCuenta'  => $this->nukeCuenta,
             'nukeModo'    => $this->nukeModo,
+            'nukeQuien'   => $this->modoUsuario && !$this->modoMarcados ? $this->denunciantesLegible() : '',
         ]);
     }
 }
