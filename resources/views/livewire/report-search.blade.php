@@ -136,12 +136,20 @@
             </form>
         </div>
     </section>
+    @if ($puedeNukear)
+        @include('livewire.includes._nuke-panel')
+    @endif
     <div class="panelV2">
         <h2 class="panel__heading">{{ __('staff.reports-log') }}</h2>
         <div class="data-table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
+                        @if ($puedeNukear)
+                            <th title="Marcar para el nuke">
+                                <i class="{{ config('other.font-awesome') }} fa-radiation"></i>
+                            </th>
+                        @endif
                         <th wire:click="sortBy('id')" role="columnheader button">
                             ID
                             @include('livewire.includes._sort-icon', ['field' => 'id'])
@@ -178,7 +186,20 @@
                 </thead>
                 <tbody>
                     @forelse ($reports as $report)
-                        <tr>
+                        <tr wire:key="report-{{ $report->id }}">
+                            @if ($puedeNukear)
+                                <td>
+                                    @if ($report->solved_by === null)
+                                        <input
+                                            type="checkbox"
+                                            class="nuke-check"
+                                            value="{{ $report->id }}"
+                                            wire:model.live="marcados"
+                                            aria-label="Marcar el reporte {{ $report->id }} para el nuke"
+                                        />
+                                    @endif
+                                </td>
+                            @endif
                             <td>{{ $report->id }}</td>
                             <td>{{ $report->type }}</td>
                             <td>
@@ -219,7 +240,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">Sin reportes</td>
+                            <td colspan="{{ $puedeNukear ? 9 : 8 }}">Sin reportes</td>
                         </tr>
                     @endforelse
                 </tbody>
