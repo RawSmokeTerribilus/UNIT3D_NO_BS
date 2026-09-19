@@ -228,6 +228,10 @@ class ReportSearch extends Component
         $this->marcados = [];
         $this->modoMarcados = false;
         $this->modoUsuario = false;
+        // Si el filtro del denunciante se queda puesto, tras el nuke la lista sale
+        // vacia y parece que se ha llevado todo. Se limpia y se vuelve a la pagina 1.
+        $this->reporter = null;
+        $this->resetPage();
 
         $this->dispatch('nuke-hecho', cerrados: $reportes->count());
     }
