@@ -70,6 +70,8 @@ class GroupController extends Controller
 
         $group->permissions()->upsert($request->validated('permissions'), ['forum_id', 'group_id']);
 
+        cache()->forget('user-groups');
+
         Unit3dAnnounce::addGroup($group);
 
         return to_route('staff.groups.index')
@@ -107,6 +109,10 @@ class GroupController extends Controller
         $group->permissions()->upsert($request->validated('permissions'), ['forum_id', 'group_id']);
 
         cache()->forget('group:'.$group->id);
+        // NOBS: la leyenda de rangos del bloque «online» de la home cachea
+        // TODOS los grupos bajo 'user-groups' (HomeController). Sin esto, un
+        // cambio de icono o color no se veía ahí hasta 10 minutos después.
+        cache()->forget('user-groups');
 
         Unit3dAnnounce::addGroup($group);
 
