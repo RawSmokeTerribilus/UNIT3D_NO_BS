@@ -36,10 +36,10 @@
                 <span class="nuke__palanca" aria-hidden="true"></span>
                 <span class="nuke__rotulo"><b>2</b> marcados</span>
             </label>
-            <label class="nuke__switch" title="Todos los abiertos del usuario escrito arriba, en el filtro «Reportero»">
+            <label class="nuke__switch" title="Todos los abiertos del denunciante escrito en el primer filtro de arriba">
                 <input type="checkbox" wire:model.live="modoUsuario" />
                 <span class="nuke__palanca" aria-hidden="true"></span>
-                <span class="nuke__rotulo"><b>2</b> del reportero</span>
+                <span class="nuke__rotulo"><b>2</b> del denunciante</span>
             </label>
             <output
                 class="nuke__display nuke__display--{{ $nukeModo }}"
@@ -57,7 +57,7 @@
                         {{ $nukeCuenta }} de {{ trim($reporter) }}
                         @break
                     @case('usuario-sin-nombre')
-                        ↑ escribe el nombre exacto en «Reportero»
+                        ↑ nombre exacto del denunciante en el primer filtro
                         @break
                     @default
                         elige modo
