@@ -79,3 +79,20 @@
     margin-left: 1.08ch;
     transform: translateY(10%);
 }
+
+/*
+ * El nombre, en negrita SIEMPRE.
+ *
+ * Antes el grosor no era una decision: venia de la clase de FontAwesome del
+ * icono de rango (`.fas` trae `font-weight: 900`), que se aplica al <a> y de
+ * paso engordaba el nick. Los donantes con icono propio llevan un <img> y el
+ * <a> se queda sin esa clase, asi que desde los perks graficos (16c1f5f) sus
+ * nombres se veian finos y el resto gruesos.
+ *
+ * El peso va aqui, en el nombre, y no en el <a>: `.fal`/`.far` declaran su
+ * propio `font-weight` en el elemento (300/400) y es lo que elige que glifo
+ * pinta el ::before; tocarlo ahi romperia esos iconos.
+ */
+.user-tag__name {
+    font-weight: 900;
+}

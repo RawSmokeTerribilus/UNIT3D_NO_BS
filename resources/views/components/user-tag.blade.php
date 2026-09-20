@@ -62,7 +62,7 @@
                     />
                 @endif
 
-                {{ $user->username }}
+                <span class="user-tag__name">{{ $user->username }}</span>
             </a>
             @if ($user->icon !== null)
                 <i>
@@ -134,7 +134,7 @@
                 />
             @endif
 
-            {{ $user->username }}
+            <span class="user-tag__name">{{ $user->username }}</span>
         </a>
         @if ($user->icon !== null)
             <i>
