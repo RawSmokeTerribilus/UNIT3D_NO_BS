@@ -27,6 +27,7 @@ return [
     'groups'                  => 'Groups',
     'last30days'              => 'Last 30 days',
     'last60days'              => 'Last 60 days',
+    'last-year'               => 'Last year',
     'nerd-stats'              => 'Nerd stats',
     'nerd-stats-desc'         => 'We all love stats. Here are a few that we find important',
     'languages'               => 'Languages',
