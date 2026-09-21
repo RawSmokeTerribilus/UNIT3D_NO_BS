@@ -24,6 +24,7 @@ return [
     'groups' => 'Grupos',
     'last30days' => 'Últimos 30 días',
     'last60days' => 'Últimos 60 días',
+    'last-year' => 'Último año',
     'nerd-stats' => 'Estadísticas para nerds',
     'nerd-stats-desc' => 'A todos nos encantan las estadísticas. Aquí tienes algunas que consideramos importantes',
     'languages' => 'Idiomas',

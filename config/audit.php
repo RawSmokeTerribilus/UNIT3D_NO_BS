@@ -54,5 +54,5 @@ return [
     |
     */
 
-    'recycle' => 30,
+    'recycle' => 365,
 ];

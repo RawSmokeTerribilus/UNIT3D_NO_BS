@@ -31,7 +31,7 @@
                         <th>{{ __('common.name') }}</th>
                         <th>{{ __('stat.last30days') }}</th>
                         <th>{{ __('stat.last60days') }}</th>
-                        <th>{{ __('stat.all-time') }}</th>
+                        <th>{{ __('stat.last-year') }}</th>
                     </tr>
                 </thead>
                 <tbody>
