@@ -61,11 +61,11 @@
                         </form>
                     </dialog>
                 @else
-                    <button class="form__button form__button--text" x-bind="showDialog">
+                    <button class="form__button form__button--danger" x-bind="showDialog">
                         {{ __('user.ban') }}
                     </button>
                     <dialog class="dialog" x-bind="dialogElement">
-                        <h3 class="dialog__heading">Ban user: {{ $user->username }}</h3>
+                        <h3 class="dialog__heading">Banear a {{ $user->username }}</h3>
                         <form
                             class="dialog__form"
                             method="POST"
@@ -84,12 +84,12 @@
                                     Reason
                                 </label>
                                 <span class="form__hint">
-                                    The reason will be emailed to the user.
+                                    El motivo se le manda por correo al usuario.
                                 </span>
                             </p>
                             <input type="hidden" name="owned_by" value="{{ $user->id }}" />
                             <p class="form__group">
-                                <button class="form__button form__button--filled">
+                                <button class="form__button form__button--danger">
                                     {{ __('user.ban') }}
                                 </button>
                                 <button

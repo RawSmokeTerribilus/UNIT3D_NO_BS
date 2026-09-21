@@ -52,6 +52,21 @@
     border-radius: var(--button-text-border-radius);
 }
 
+/*
+ * NOBS: acciones destructivas (banear). Antes el botón era igual que
+ * cualquier otro y se confundía con «bloquear cuenta», que es otra cosa.
+ * Rojo (Pantone 485 C, el de Castigados) y texto en mayúsculas desde
+ * lang/es/user.php, para que nadie lo pulse de pasada.
+ */
+.form__button--danger {
+    background: #DA291C;
+    color: #fff;
+    border: 0;
+    border-radius: var(--button-text-border-radius);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
 /* Outlined */
 
 .form__button--outlined {
