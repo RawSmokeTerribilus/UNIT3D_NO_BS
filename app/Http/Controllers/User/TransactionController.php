@@ -58,11 +58,25 @@ class TransactionController extends Controller
     {
         abort_unless($request->user()->is($user), 403);
 
+        $items = BonExchange::all();
+
+        // El panel lateral habla de la tienda entera, no de un articulo: el
+        // listón que enseñamos es el del articulo mas barato de desbloquear.
+        $thanksRequired = (float) ($items
+            ->map(fn (BonExchange $item): float => $user->requiredThanksRatioForBonExchange($item))
+            ->min() ?? 0.0);
+
         return view('user.transaction.create', [
-            'user'     => $user,
-            'bon'      => $user->formatted_seedbonus,
-            'activefl' => $user->personalFreeleeches()->exists(),
-            'items'    => BonExchange::all(),
+            'user'                => $user,
+            'bon'                 => $user->formatted_seedbonus,
+            'activefl'            => $user->personalFreeleeches()->exists(),
+            'items'               => $items,
+            'thanksEnabled'       => $user->hasEnabledThanksRatio(),
+            'thanksRatio'         => $user->thanks_ratio,
+            'thanksRequired'      => $thanksRequired,
+            'thanksNeeded'        => $user->thanksNeededForRatio($thanksRequired),
+            'completedDownloads'  => $user->completed_downloads_count,
+            'thankedDownloads'    => $user->thanked_completed_downloads_count,
         ]);
     }
 

@@ -1277,6 +1277,39 @@ final class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Cuantas descargas completadas mas hay que agradecer para llegar al ratio
+     * pedido. Devuelve 0 si ya se cumple, si el sistema esta desactivado o si
+     * el socio aun no ha completado ninguna descarga (ahi el ratio es 0 por
+     * definicion y no hay nada que agradecer todavia).
+     */
+    public function thanksNeededForRatio(float $minimum): int
+    {
+        if (! $this->hasEnabledThanksRatio()) {
+            return 0;
+        }
+
+        $completed = $this->completed_downloads_count;
+
+        if ($completed === 0) {
+            return 0;
+        }
+
+        $thanked = $this->thanked_completed_downloads_count;
+        $commented = $this->commented_completed_downloads_count;
+
+        // getThanksRatioAttribute() redondea a dos decimales antes de comparar,
+        // asi que 0.995 ya cuenta como 1.00. Sin ese margen diriamos que falta
+        // una gracia de mas.
+        if (round($thanked / $completed + $commented / 100, 2) >= $minimum) {
+            return 0;
+        }
+
+        $target = $minimum - 0.005 - ($commented / 100);
+
+        return max(0, (int) ceil($target * $completed) - $thanked);
+    }
+
+    /**
      * Return the size (pretty formatted) which can be safely downloaded
      * without falling under the minimum ratio.
      */
