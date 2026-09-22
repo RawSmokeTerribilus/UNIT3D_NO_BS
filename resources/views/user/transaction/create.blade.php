@@ -83,6 +83,38 @@
         <h2 class="panel__heading">{{ __('bon.your-points') }}</h2>
         <div class="panel__body">{{ $bon }}</div>
     </section>
+    @if ($thanksEnabled)
+        @php($thanksMet = $completedDownloads > 0 && $thanksNeeded === 0)
+        <section class="panelV2">
+            <h2 class="panel__heading">
+                {{ $thanksMet ? __('bon.thanks-panel-title-open') : __('bon.thanks-panel-title') }}
+            </h2>
+            <dl class="key-value">
+                <div class="key-value__group">
+                    <dt>{{ __('bon.thanks-your-ratio') }}</dt>
+                    <dd>{{ number_format($thanksRatio, 2, '.', '') }}</dd>
+                </div>
+                <div class="key-value__group">
+                    <dt>{{ __('bon.thanks-needed') }}</dt>
+                    <dd>{{ number_format($thanksRequired, 2, '.', '') }}</dd>
+                </div>
+            </dl>
+            <div class="panel__body">
+                @if ($completedDownloads === 0)
+                    {{ __('bon.thanks-no-downloads') }}
+                @else
+                    {{ __('bon.thanks-progress', ['thanked' => $thankedDownloads, 'completed' => $completedDownloads]) }}
+                    @if ($thanksMet)
+                        {{ __('bon.thanks-open') }}
+                    @else
+                        {{ trans_choice('bon.thanks-missing', $thanksNeeded, ['count' => $thanksNeeded]) }}
+                    @endif
+                @endif
+            </div>
+            <div class="panel__body">{{ __('bon.thanks-comment-bonus') }}</div>
+            <div class="panel__body">{{ __('bon.thanks-not-upload-ratio') }}</div>
+        </section>
+    @endif
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('bon.no-refund') }}</h2>
         <div class="panel__body">{{ __('bon.exchange-warning') }}</div>
