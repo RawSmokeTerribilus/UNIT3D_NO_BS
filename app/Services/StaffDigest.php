@@ -121,13 +121,29 @@ final class StaffDigest
                     ->get()
                     ->count(),
             ],
+            // Los dos recuentos de avisos van por consulta cruda, asi que NO
+            // heredan el SoftDeletes del modelo Warning: hay que descartar a
+            // mano los avisos borrados (amnistia o staff) y los de socios
+            // aniquilados, que siguen en la tabla con active=1 para siempre.
+            // Sin esos dos filtros el digest daba 1.656 activos donde habia
+            // 1.076: 530 de gente que ya no existe y 50 avisos ya borrados.
             'hitrun_emitidos_24h' => [
                 'etiqueta' => 'Avisos de H&R emitidos (24 h)',
-                'valor'    => DB::table('warnings')->where('created_at', '>=', $desde)->count(),
+                'valor'    => DB::table('warnings')
+                    ->join('users', 'users.id', '=', 'warnings.user_id')
+                    ->where('warnings.created_at', '>=', $desde)
+                    ->whereNull('warnings.deleted_at')
+                    ->whereNull('users.deleted_at')
+                    ->count(),
             ],
             'hitrun_activos' => [
                 'etiqueta' => 'Avisos de H&R activos',
-                'valor'    => DB::table('warnings')->where('active', '=', 1)->count(),
+                'valor'    => DB::table('warnings')
+                    ->join('users', 'users.id', '=', 'warnings.user_id')
+                    ->where('warnings.active', '=', 1)
+                    ->whereNull('warnings.deleted_at')
+                    ->whereNull('users.deleted_at')
+                    ->count(),
             ],
         ];
 

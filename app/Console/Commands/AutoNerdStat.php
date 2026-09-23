@@ -90,7 +90,14 @@ class AutoNerdStat extends Command
             'peers'    => 'Currently there are [color=#93c47d][b]'.DB::table('peers')->where('active', '=', 1)->count().'[/b][/color] peers on '.config('other.title').'!',
             'bans'     => 'In the last 24 hours [color=#dd7e6b][b]'.DB::table('bans')->whereNotNull('ban_reason')->where('created_at', '>', now()->subDay())->count().'[/b][/color] users have been banned from '.config('other.title').'!',
             'unbans'   => 'In the last 24 hours [color=#dd7e6b][b]'.DB::table('bans')->whereNotNull('unban_reason')->where('removed_at', '>', now()->subDay())->count().'[/b][/color] users have been unbanned from '.config('other.title').'!',
-            'warnings' => 'In the last 24 hours [color=#dd7e6b][b]'.DB::table('warnings')->where('created_at', '>', now()->subDay())->count().'[/b][/color] hit and run warnings have been issued on '.config('other.title').'!',
+            // Consulta cruda: no hereda el SoftDeletes de Warning, asi que se
+            // descartan a mano los avisos borrados y los de socios aniquilados.
+            'warnings' => 'In the last 24 hours [color=#dd7e6b][b]'.DB::table('warnings')
+                ->join('users', 'users.id', '=', 'warnings.user_id')
+                ->where('warnings.created_at', '>', now()->subDay())
+                ->whereNull('warnings.deleted_at')
+                ->whereNull('users.deleted_at')
+                ->count().'[/b][/color] hit and run warnings have been issued on '.config('other.title').'!',
             'king'     => config('other.title').' is king!',
             default    => 'Nerd stat error!',
         };
