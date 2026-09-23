@@ -44,6 +44,16 @@ class EnforceSecurityRequirements
     ];
 
     /**
+     * Exentos SOLO del requisito de Telegram: el 2FA se les sigue exigiendo.
+     * No se puede resolver poniendo telegram_group_joined_at a mano, porque
+     * TelegramService lo resincroniza con la pertenencia real al grupo.
+     */
+    private const array TELEGRAM_EXEMPT_USERNAMES = [
+        // 2026-09-23: no consigue instalar Telegram. 2FA ya confirmado.
+        'ramonheitor',
+    ];
+
+    /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next): mixed
@@ -74,7 +84,8 @@ class EnforceSecurityRequirements
         // que les faltaba un paso. Lo unico que significa 2FA activo es la fecha de
         // confirmacion.
         $hasTwoFactor = $user->two_factor_confirmed_at !== null;
-        $hasTelegram = $user->telegram_group_joined_at !== null;
+        $hasTelegram = $user->telegram_group_joined_at !== null
+            || $this->isExemptUsername($user->username, self::TELEGRAM_EXEMPT_USERNAMES);
 
         if ($hasTwoFactor && $hasTelegram) {
             return $next($request);
@@ -114,9 +125,9 @@ class EnforceSecurityRequirements
             ->withErrors('Seguridad critica: vincula tu Telegram y confirma tu entrada al grupo para acceder al tracker.');
     }
 
-    private function isExemptUsername(string $username): bool
+    private function isExemptUsername(string $username, array $list = self::EXEMPT_USERNAMES): bool
     {
-        foreach (self::EXEMPT_USERNAMES as $exemptUsername) {
+        foreach ($list as $exemptUsername) {
             if (strcasecmp($username, $exemptUsername) === 0) {
                 return true;
             }
