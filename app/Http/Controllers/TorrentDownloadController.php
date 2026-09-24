@@ -78,6 +78,20 @@ class TorrentDownloadController extends Controller
         $torrent = Torrent::withoutGlobalScope(ApprovedScope::class)->findOrFail($id);
         $hasHistory = $user->history()->where([['torrent_id', '=', $torrent->id], ['seeder', '=', 1]])->exists();
 
+        // NOBS: con la re-descarga por hit and run encendida, el .torrent de un
+        // torrent con aviso activo del sistema se entrega aunque el historial
+        // diga seeder = 0 (quien lo borro a medias no tenia otra forma de
+        // recuperarlo). El fichero no da acceso por si solo: el announce decide
+        // (tope de avisos, Sanguijuela, marca del staff; store::hitrun_redownload).
+        $hasHistory = $hasHistory || (
+            config('hitrun.redownload') === true
+            && $user->warnings()
+                ->where('torrent_id', '=', $torrent->id)
+                ->where('warned_by', '=', User::SYSTEM_USER_ID)
+                ->where('active', '=', true)
+                ->exists()
+        );
+
         // User's ratio is too low
         //
         // NOBS: la amnistia del freeleech levanta ESTE candado solo para el
