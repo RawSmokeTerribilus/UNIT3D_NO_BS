@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use crate::queue::torrent_update::{Index, TorrentUpdate};
 use crate::state::AppState;
+use crate::store::hitrun_redownload::HitRunRedownloadStore;
 use chrono::{Duration, Utc};
 use tokio::time::Instant;
-use tracing::info;
+use tracing::{error, info};
 
 pub async fn handle(state: &Arc<AppState>) {
     let mut interval = tokio::time::interval(std::time::Duration::from_millis(1));
@@ -20,6 +21,43 @@ pub async fn handle(state: &Arc<AppState>) {
 
         if counter % (state.config.load().peer_expiry_interval * 1000) == 0 {
             reap(state).await;
+        }
+
+        if counter % (HITRUN_REDOWNLOAD_RELOAD_SECONDS * 1000) == 0 {
+            reload_hitrun_redownloads(state).await;
+        }
+    }
+}
+
+/// NOBS: cada cuanto se relee de la base el conjunto de re-descargas por hit
+/// and run. Es tambien el retraso maximo con el que un aviso nuevo, cerrado o
+/// borrado se refleja en el announce.
+const HITRUN_REDOWNLOAD_RELOAD_SECONDS: u64 = 300;
+
+/// Sustituye el conjunto entero por lo que diga la base. La consulta va fuera
+/// del lock; el cambio, de golpe. Si la consulta falla el conjunto se VACIA:
+/// mejor dejar a alguien bloqueado cinco minutos que abrir con datos viejos.
+pub async fn reload_hitrun_redownloads(state: &Arc<AppState>) {
+    let result = HitRunRedownloadStore::from_db(&state.pool).await;
+
+    let mut store = state.stores.hitrun_redownloads.write();
+    let previous = store.len();
+
+    match result {
+        Ok(fresh) => {
+            *store = fresh;
+
+            if store.len() != previous {
+                info!(
+                    "Hit and run re-download pairs reloaded: {previous} -> {}.",
+                    store.len()
+                );
+            }
+        }
+        Err(e) => {
+            *store = HitRunRedownloadStore::default();
+
+            error!("Hit and run re-download pairs cleared, reload failed: {e:#}");
         }
     }
 }

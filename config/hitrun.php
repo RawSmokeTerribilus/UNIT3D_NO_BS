@@ -104,4 +104,18 @@ return [
     */
 
     'prewarn' => 2,
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOBS: Re-descarga por hit and run
+    |--------------------------------------------------------------------------
+    |
+    | Espejo del interruptor del announce (TRACKER_HITRUN_REDOWNLOAD_ENABLED),
+    | que es quien de verdad deja o no bajar. Aqui solo decide si el aviso de
+    | H&R se lo cuenta al socio. Misma variable del .env del proyecto, asi que
+    | los dos cambian juntos (config:cache + recrear el announce).
+    |
+    */
+
+    'redownload' => env('TRACKER_HITRUN_REDOWNLOAD_ENABLED', false) === true,
 ];

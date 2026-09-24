@@ -47,9 +47,18 @@ class UserWarning extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage())
+        $mail = (new MailMessage())
             ->greeting('Hit and Run Warning Received!')
-            ->line('You have received an automated hit and run WARNING on one or more torrents!')
+            ->line('You have received an automated hit and run WARNING on one or more torrents!');
+
+        // NOBS: si el announce deja volver a bajar los torrents con aviso, que
+        // el socio lo sepa: sin esto, quien borro los ficheros cree que no
+        // tiene salida.
+        if (config('hitrun.redownload') === true) {
+            $mail->line('Aunque se te bloquee la descarga, podrás volver a bajar los torrents con aviso (y solo esos) para sembrarlos hasta cumplir.');
+        }
+
+        return $mail
             ->action('View your unsatisfied torrents and seed off your warnings or wait until they expire!', route('users.history.index', ['user' => $this->user]))
             ->line('Thank you for using 🚀'.config('other.title'));
     }

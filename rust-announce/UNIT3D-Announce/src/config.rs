@@ -131,6 +131,11 @@ pub struct Config {
     /// different value for it, so it is a plain flag: `Some(true)` removes the
     /// cap, anything else leaves the group's limit in place.
     pub donor_unlimited_download_slots: Option<bool>,
+    /// NOBS: interruptor de la re-descarga por hit and run (ver
+    /// `store::hitrun_redownload`). Apagado salvo que la variable valga
+    /// exactamente `true`: ausente, vacia o mal escrita, queda apagado. Asi un
+    /// error de configuracion nunca abre nada ni tumba el arranque.
+    pub hitrun_redownload_enabled: bool,
 }
 
 impl Config {
@@ -395,6 +400,9 @@ impl Config {
             lifetime_donor_upload_factor_override,
             lifetime_donor_download_factor_override,
             donor_unlimited_download_slots,
+            hitrun_redownload_enabled: hitrun_redownload_enabled_from(
+                env::var("HITRUN_REDOWNLOAD_ENABLED").ok().as_deref(),
+            ),
         })
     }
 
@@ -424,6 +432,25 @@ impl Config {
             error!(".env file not found.");
 
             (StatusCode::INTERNAL_SERVER_ERROR, ".env file not found.").into_response()
+        }
+    }
+}
+
+/// Solo el literal `true` enciende la re-descarga por hit and run.
+fn hitrun_redownload_enabled_from(value: Option<&str>) -> bool {
+    value == Some("true")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::hitrun_redownload_enabled_from;
+
+    #[test]
+    fn hitrun_redownload_only_true_enables() {
+        assert!(hitrun_redownload_enabled_from(Some("true")));
+
+        for value in [None, Some(""), Some("false"), Some("TRUE"), Some("1"), Some("yes"), Some(" true")] {
+            assert!(!hitrun_redownload_enabled_from(value), "{value:?} no debe encender");
         }
     }
 }

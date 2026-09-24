@@ -16,6 +16,7 @@ use std::{
     sync::Arc,
 };
 use tokio::net::TcpStream;
+use tracing::info;
 
 use crate::{
     error::AnnounceError::{
@@ -49,6 +50,7 @@ use crate::store::{
     connectable_port::ConnectablePort,
     featured_torrent::FeaturedTorrent,
     freeleech_token::FreeleechToken,
+    hitrun_redownload::HitRunRedownload,
     peer::{self, Peer},
     personal_freeleech::PersonalFreeleech,
 };
@@ -423,8 +425,43 @@ pub async fn announce(
         let user = user?;
 
         // Validate user
+        //
+        // NOBS: excepcion unica para quien tiene la descarga cortada por hit
+        // and run: puede volver a bajar los torrents por los que tiene aviso
+        // activo, y ninguno mas (ver store::hitrun_redownload).
+        //
+        // Ojo: los slots a 0 de abajo NO rechazan el announce, solo dejan al
+        // peer invisible y sin lista. Para Sanguijuela y los grupos castigados
+        // eso es un bloqueo blando, asi que aqui se exige un grupo con descarga
+        // de verdad, mirado EN VIVO: si AutoGroup acaba de mover al socio, el
+        // conjunto de pares puede ir hasta 5 minutos por detras.
         if !user.can_download && queries.left != 0 {
-            return Err(DownloadPrivilegesRevoked);
+            let group_can_download = state
+                .stores
+                .groups
+                .read()
+                .get(&user.group_id)
+                .is_some_and(|group| {
+                    group.download_slots != Some(0)
+                        && !["banned", "validating", "disabled"].contains(&group.slug.as_str())
+                });
+
+            let is_hitrun_redownload = config.hitrun_redownload_enabled
+                && group_can_download
+                && state
+                    .stores
+                    .hitrun_redownloads
+                    .read()
+                    .contains(&HitRunRedownload {
+                        user_id,
+                        torrent_id,
+                    });
+
+            if !is_hitrun_redownload {
+                return Err(DownloadPrivilegesRevoked);
+            }
+
+            info!("Hit and run re-download allowed: user_id {user_id}, torrent_id {torrent_id}.");
         }
 
         let group = state
