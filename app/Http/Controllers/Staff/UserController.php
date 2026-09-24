@@ -50,6 +50,7 @@ use App\Models\Torrent;
 use App\Models\User;
 use App\Services\Unit3dAnnounce;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @see \Tests\Todo\Feature\Http\Controllers\UserControllerTest
@@ -104,6 +105,23 @@ class UserController extends Controller
      */
     public function permissions(Request $request, User $user): \Illuminate\Http\RedirectResponse
     {
+        // NOBS: un corte de descarga hecho a mano por el staff queda marcado,
+        // para que la re-descarga por hit and run del announce no se lo salte.
+        // Solo cuenta el paso de 1 a 0: el formulario reenvia can_download en
+        // cada guardado, y a quien ya estaba a 0 por H&R no hay que marcarlo
+        // por tocarle otro permiso.
+        $couldDownload = (bool) $user->can_download;
+        $canDownload = $request->boolean('can_download');
+
+        if ($couldDownload && !$canDownload) {
+            DB::table('staff_download_blocks')->updateOrInsert(
+                ['user_id' => $user->id],
+                ['blocked_by' => $request->user()->id, 'created_at' => now()],
+            );
+        } elseif (!$couldDownload && $canDownload) {
+            DB::table('staff_download_blocks')->where('user_id', '=', $user->id)->delete();
+        }
+
         $user->update([
             'can_chat'     => $request->boolean('can_chat'),
             'can_comment'  => $request->boolean('can_comment'),

@@ -4,6 +4,7 @@ pub mod connectable_port;
 pub mod featured_torrent;
 pub mod freeleech_token;
 pub mod group;
+pub mod hitrun_redownload;
 pub mod infohash2id;
 pub mod passkey2id;
 pub mod peer;
@@ -20,7 +21,8 @@ use crate::{
     store::{
         blacklisted_agent::BlacklistedAgentStore, blacklisted_port::BlacklistedPortStore,
         connectable_port::ConnectablePortStore, featured_torrent::FeaturedTorrentStore,
-        freeleech_token::FreeleechTokenStore, group::GroupStore, infohash2id::InfoHash2IdStore,
+        freeleech_token::FreeleechTokenStore, group::GroupStore,
+        hitrun_redownload::HitRunRedownloadStore, infohash2id::InfoHash2IdStore,
         passkey2id::Passkey2IdStore, personal_freeleech::PersonalFreeleechStore,
         torrent::TorrentStore, user::UserStore,
     },
@@ -35,6 +37,7 @@ pub struct Stores {
     pub featured_torrents: RwLock<FeaturedTorrentStore>,
     pub freeleech_tokens: RwLock<FreeleechTokenStore>,
     pub groups: RwLock<GroupStore>,
+    pub hitrun_redownloads: RwLock<HitRunRedownloadStore>,
     pub infohash2id: RwLock<InfoHash2IdStore>,
     pub passkey2id: RwLock<Passkey2IdStore>,
     pub personal_freeleeches: RwLock<PersonalFreeleechStore>,
@@ -107,6 +110,20 @@ impl Stores {
         let groups = GroupStore::from_db(&pool).await?;
         println!("[Finished] Records: {:?}", groups.len());
 
+        // NOBS: a diferencia del resto, un fallo aqui NO tumba el tracker:
+        // arranca con el conjunto vacio (nadie bloqueado vuelve a bajar nada)
+        // y el scheduler lo reintenta en la siguiente recarga.
+        print!("Starting to load 12/12: hit and run re-download pairs  ... ");
+        io::stdout().flush().unwrap();
+        let hitrun_redownloads = match HitRunRedownloadStore::from_db(&pool).await {
+            Ok(store) => store,
+            Err(e) => {
+                println!("[Failed] {e:#}");
+                HitRunRedownloadStore::default()
+            }
+        };
+        println!("[Finished] Records: {:?}", hitrun_redownloads.len());
+
         println!("All entities loaded into memory.");
 
         Ok(Stores {
@@ -115,6 +132,7 @@ impl Stores {
             freeleech_tokens: RwLock::new(freeleech_tokens),
             featured_torrents: RwLock::new(featured_torrents),
             groups: RwLock::new(groups),
+            hitrun_redownloads: RwLock::new(hitrun_redownloads),
             infohash2id: RwLock::new(infohash2id),
             passkey2id: RwLock::new(passkey2id),
             personal_freeleeches: RwLock::new(personal_freeleeches),
