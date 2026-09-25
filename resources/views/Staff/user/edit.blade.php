@@ -252,6 +252,14 @@
                     />
                     <label for="can_upload">{{ __('user.can-upload') }}?</label>
                 </p>
+                @php
+                    // NOBS: el tick de descarga manda sobre el protocolo de hit
+                    // and run del tracker. El aviso explica cuando usarlo y
+                    // cuando no, con los avisos activos del socio a la vista.
+                    $hitrunWarnings = $user->warnings()->where('active', '=', true)->count();
+                    $hitrunMax = (int) config('hitrun.max_warnings');
+                    $hitrunContext = 'Este socio tiene <b>'.$hitrunWarnings.' avisos activos</b> (el tope es '.$hitrunMax.').<br><br>';
+                @endphp
                 <p class="form__group">
                     <input type="hidden" name="can_download" value="0" />
                     <input
@@ -261,6 +269,23 @@
                         name="can_download"
                         value="1"
                         @checked($user->can_download)
+                        x-data
+                        x-on:change="
+                            Swal.fire({
+                                icon: 'warning',
+                                title: $el.checked ? 'Abrir la descarga a mano' : 'Bloqueo manual de descarga',
+                                html: {{ Js::from($hitrunContext) }} + ($el.checked
+                                    ? 'Esto <b>se salta el protocolo del hit and run</b>: el socio podrá bajar todo el catálogo, no solo sus torrents con aviso. Si sigue en el tope o por encima, el sistema se la volverá a cortar a las 00:00 UTC.<br><br>Si está bloqueado por hit and run <b>no hace falta</b>: el tracker ya le deja volver a bajar sus torrents con aviso para sembrarlos. Abrirla a mano solo tiene sentido para deshacer un bloqueo del staff o corregir un error. Además, quita la marca de bloqueo del staff.'
+                                    : 'Esto <b>manda sobre el tracker</b>: el socio no podrá bajar nada, ni siquiera volver a bajar sus torrents con aviso para sembrarlos. Queda marcado como bloqueo del staff.<br><br>Úsalo solo con un motivo (abuso, cuenta compartida, investigación). Para el hit and run <b>no hace falta</b>: el sistema corta la descarga al llegar al tope y la devuelve solo.<br><br>Ojo: si el socio tiene avisos por debajo del tope, el sistema automático puede devolverle la descarga en la siguiente hora. Compruébalo.'),
+                                showCancelButton: true,
+                                confirmButtonText: 'Lo entiendo, adelante',
+                                cancelButtonText: 'Cancelar',
+                            }).then((result) => {
+                                if (!result.isConfirmed) {
+                                    $el.checked = !$el.checked;
+                                }
+                            })
+                        "
                     />
                     <label for="can_download">{{ __('user.can-download') }}?</label>
                 </p>
