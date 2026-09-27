@@ -50,6 +50,7 @@ class SettingSeeder extends Seeder
             'hitrun.seedtime' => (string) config('hitrun.seedtime'),
             'hitrun.max_warnings' => (string) config('hitrun.max_warnings'),
             'hitrun.grace' => (string) config('hitrun.grace'),
+            'hitrun.prewarn' => (string) config('hitrun.prewarn'),
             'hitrun.buffer' => (string) config('hitrun.buffer'),
             'hitrun.expire' => (string) config('hitrun.expire'),
             'other.invite_expire' => (string) config('other.invite_expire'),
