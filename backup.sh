@@ -133,6 +133,22 @@ if [[ "${EXTERNAL_BACKUP_ENABLED,,}" == "true" ]]; then
     echo "⚠️ BACKUP_EXTERNAL_ENABLED=true pero BACKUP_EXTERNAL_DIR está vacío. Se omite la copia externa."
   else
     EXTERNAL_BACKUP_DIR="$(resolve_path "$EXTERNAL_BACKUP_DIR_RAW")"
+
+    # Si el disco externo no está montado, su ruta (/run/media/...) cae en un
+    # tmpfs: la copia llena la RAM y tumba todo `docker exec` (pasó el 29-09-2026).
+    # Se mira el sistema de ficheros del ancestro que exista, ANTES del mkdir -p.
+    EXTERNAL_PROBE="$EXTERNAL_BACKUP_DIR"
+    while [ ! -d "$EXTERNAL_PROBE" ]; do
+      EXTERNAL_PROBE="$(dirname "$EXTERNAL_PROBE")"
+    done
+    EXTERNAL_FSTYPE="$(findmnt -n -o FSTYPE -T "$EXTERNAL_PROBE" 2>/dev/null || true)"
+    case "$EXTERNAL_FSTYPE" in
+      tmpfs|ramfs|devtmpfs|"")
+        echo "❌ ERROR: $EXTERNAL_BACKUP_DIR cae en '${EXTERNAL_FSTYPE:-desconocido}' ($(findmnt -n -o TARGET -T "$EXTERNAL_PROBE" 2>/dev/null)): el disco externo no está montado. Se omite la copia externa; el snapshot local está en $SNAPSHOT_DIR."
+        exit 1
+        ;;
+    esac
+
     echo "🧳 Copiando snapshot al backup externo..."
     mkdir -p "$EXTERNAL_BACKUP_DIR"
     rm -rf "$EXTERNAL_BACKUP_DIR/$(basename "$SNAPSHOT_DIR")"
