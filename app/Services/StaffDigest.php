@@ -19,6 +19,7 @@ namespace App\Services;
 use App\Enums\ModerationStatus;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -188,11 +189,88 @@ final class StaffDigest
     }
 
     /**
+     * Fichero que deja backup.sh (cron del host, 06:00 hora local) al terminar,
+     * bien o mal. El contenedor ve el repo entero, asi que se lee directamente.
+     */
+    public const string BACKUP_ESTADO = 'backups/estado_backup.json';
+
+    /**
+     * Mas viejo que esto es que el cron no ha corrido: el backup es diario y
+     * el margen cubre un backup lento sin dar falsas alarmas.
+     */
+    public const int BACKUP_MAX_HORAS = 26;
+
+    /**
+     * Estado del ultimo backup, en una linea.
+     *
+     * Existe porque del 29-09 al 01-10-2026 las copias al disco externo
+     * salieron corruptas tres dias seguidos sin que nadie se enterara: el
+     * script terminaba en verde y el digest no miraba nada de esto. Ahora
+     * backup.sh verifica la copia leyendo del disco y deja aqui el veredicto.
+     *
+     * «Caliente» es cualquier cosa que no sea: backup reciente, terminado, y
+     * con la copia externa verificada. Una copia externa desactivada tambien
+     * cuenta: sin ella, si muere el NVMe no hay de donde tirar.
+     *
+     * @return array{linea: string, caliente: bool}
+     */
+    public static function backup(): array
+    {
+        $ruta = base_path(self::BACKUP_ESTADO);
+
+        if (!is_readable($ruta)) {
+            return ['linea' => 'Backup: no hay estado ('.self::BACKUP_ESTADO.' no existe)', 'caliente' => true];
+        }
+
+        $estado = json_decode((string) file_get_contents($ruta), true);
+
+        if (!\is_array($estado) || !isset($estado['fecha'], $estado['estado'])) {
+            return ['linea' => 'Backup: el fichero de estado está roto', 'caliente' => true];
+        }
+
+        $fecha = Carbon::parse($estado['fecha']);
+        $horas = (int) $fecha->diffInHours(now(), true);
+        $cuando = $fecha->format('d/m H:i').' UTC';
+
+        if ($horas > self::BACKUP_MAX_HORAS) {
+            return ['linea' => "Backup: el último es de hace {$horas} h ({$cuando}) — ¿se ha muerto el cron?", 'caliente' => true];
+        }
+
+        if ($estado['estado'] !== 'ok') {
+            $malos = $estado['externo']['ficheros_malos'] ?? [];
+
+            return [
+                'linea' => "Backup: ERROR ({$cuando}, fase {$estado['fase']}) — {$estado['mensaje']}"
+                    .($malos === [] ? '' : ': '.implode(', ', $malos)),
+                'caliente' => true,
+            ];
+        }
+
+        $tamano  = number_format(($estado['bytes'] ?? 0) / 1024 ** 3, 1, ',', '.').' GB';
+        $externo = $estado['externo']['estado'] ?? 'desconocido';
+
+        if ($externo !== 'verificado') {
+            return ['linea' => "Backup: {$tamano} ({$cuando}) — SIN copia externa ({$externo})", 'caliente' => true];
+        }
+
+        $disco = basename(\dirname((string) ($estado['externo']['dir'] ?? '')));
+
+        return ['linea' => "Backup: {$tamano} ({$cuando}) — copia externa verificada en {$disco}", 'caliente' => false];
+    }
+
+    /**
      * @return list<string> claves de las métricas por encima de su umbral
+     *                      (y 'backup' si el backup no está bien)
      */
     public static function hot(): array
     {
-        return array_keys(array_filter(self::metrics(), static fn (array $m): bool => $m['caliente']));
+        $calientes = array_keys(array_filter(self::metrics(), static fn (array $m): bool => $m['caliente']));
+
+        if (self::backup()['caliente']) {
+            $calientes[] = 'backup';
+        }
+
+        return $calientes;
     }
 
     /**
@@ -202,13 +280,20 @@ final class StaffDigest
     {
         $metricas = self::metrics();
         $promos   = self::promos();
+        $backup   = self::backup();
         $calientes = array_filter($metricas, static fn (array $m): bool => $m['caliente']);
+
+        if ($backup['caliente']) {
+            $calientes['backup'] = $backup;
+        }
 
         $texto = "📋 Resumen operativo — ".now()->format('d/m/Y H:i')." UTC\n\n";
 
         foreach ($metricas as $m) {
             $texto .= sprintf("%s %s: %d\n", $m['caliente'] ? '⚠️' : '·', $m['etiqueta'], $m['valor']);
         }
+
+        $texto .= sprintf("\n%s %s\n", $backup['caliente'] ? '⚠️' : '✅', $backup['linea']);
 
         $texto .= "\nPromos globales: ".($promos === [] ? 'ninguna activa' : "\n· ".implode("\n· ", $promos))."\n";
 
