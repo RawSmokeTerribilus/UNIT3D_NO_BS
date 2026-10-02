@@ -89,13 +89,6 @@ class StaffDigestCommand extends Command
         $texto    = "⚠️ Aviso fuera de hora — ".now()->format('d/m/Y H:i')." UTC\n\n";
 
         foreach ($nuevas as $clave) {
-            // El backup no es un numero con umbral: trae su propia linea.
-            if ($clave === 'backup') {
-                $texto .= '· '.StaffDigest::backup()['linea']."\n";
-
-                continue;
-            }
-
             $texto .= sprintf(
                 "· %s: %d (umbral %d)\n",
                 trim($metricas[$clave]['etiqueta']),
