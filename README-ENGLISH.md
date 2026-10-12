@@ -119,7 +119,7 @@ The Community Edition had **unfixed bugs and missing features**:
 
 | Problem | Impact | Our Solution |
 |---------|--------|--------------|
-| **No installer** | The Community Edition ships no installer; the official automated install is a paid HDInnovations service | Two **free paths** of our own: (1) the Docker `entrypoint.sh` does the full setup on every boot (migrations, blacklist, cache, permissions), and (2) a **bare-metal installer rewritten from scratch** for Debian/Ubuntu at `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` |
+| **No installer** | The Community Edition ships no installer; the official automated install is a paid HDInnovations service | Two **free paths** of our own: (1) the Docker `entrypoint.sh` does the full setup on every boot (migrations, blacklist, cache, permissions), and (2) a **minimal bare-metal installer** (PHP tracker + MariaDB + Redis + Meilisearch, no arcade or Rust tracker) for Debian/Ubuntu at `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` |
 | **Unconfigured Meilisearch** | Search engine shipped but not indexed or synced | Implemented cold-boot indexing, real-time observer syncing, Master Key protection |
 | **Brute-Force Too Aggressive** | Settings locked out legitimate users (5 attempts = 24h block) | Tuned FortifyServiceProvider (5→15 attempts, 24h→1h, created backup owner) |
 | **Email Blacklist Fragility** | System breaks if external CDN unreachable | Created persistent local cache (`storage/app/email-blacklist.json`) with hybrid fallback |
@@ -1219,20 +1219,30 @@ Ubuntu 22.04 / 24.04). Installs PHP 8.4-FPM, nginx, MariaDB, Redis, Meilisearch
 ~20-25 min on a clean host. Also read `Unit3d_9.2-Installer-fixed/readme.en.md` and
 `SECURITY_CHANGES.md`.
 
-**What to adapt vs the dockerized setup** (the installer does NOT cover it):
+**What the installer DOES set up** (since 2026-10-12):
 
-- **Source of the code**: clone **this fork**, not vanilla Community — otherwise you
-  get none of the NOBS features (the 10 custom migrations, Telegram, arcade,
-  multi-provider resolver…).
-- **`.env` with local hosts**: swap the Docker service names for `127.0.0.1` + real
-  ports — `DB_HOST`, `REDIS_HOST`, `MEILISEARCH_HOST`, `MAIL_*` (no Mailpit
-  container → real SMTP), `TRUSTED_PROXIES` per your edge.
-- **Rust tracker (UNIT3D-Announce)**: the installer does **not** set it up.
-  `/announce/` needs the Rust binary built and run as a separate service, its nginx
-  proxy, and the `TRACKER_*` vars. Without it there's no decoupled tracker.
-- **Meta-worker**: the installer's supervisor only runs `queue:work` (the `default`
-  queue). Add a second program for `--queue=meta-refresh` (300s timeout) or metadata
-  refresh will choke the main queue.
+- **Source of the code**: clones **this repo** (`UNIT3D_NO_BS`, branch `main`;
+  override with `REPO_URL` / `REPO_BRANCH`). Until that date it cloned a test repo by
+  mistake: if you used it before, reinstall.
+- **`.env` with local hosts**: `DB_HOST`, `REDIS_HOST` and `MEILISEARCH_HOST` set to
+  `127.0.0.1`, `MAIL_*` with your SMTP, `APP_ENV=production`.
+- **Fresh, seeded database**: migrations, seeders (groups, owner, categories,
+  forums…) and the staff panel settings (`SettingSeeder`). Tested against MariaDB
+  11.8 (Debian Trixie) and 10.11 (Ubuntu 24.04).
+- **Meilisearch**: `torrents` and `people` indexes with their settings
+  (`php artisan meilisearch:full-repair --force`).
+- **Queues**: besides the main worker, a second one for `meta-refresh` (300 s
+  timeout) so metadata refresh doesn't choke the main queue.
+- **Announce**: served by Laravel (`TRACKER_ENABLED=false`).
+
+**What stays out** (this is what separates the minimal route from the full fork):
+
+- **Rust tracker (UNIT3D-Announce)**: not set up. If you want it, build and run the
+  binary as a separate service, with its nginx proxy and the `TRACKER_*` vars.
+- **Arcade (ScummVM / RetroArch)**: not set up. Its assets live on the Internet
+  Archive and are rehydrated with `bin/rehidratar-assets.sh`, which currently targets
+  Docker.
+- **TRUSTED_PROXIES** per your edge (Cloudflare, another proxy…).
 - **Backups and forensics**: `backup.sh` and the forensics bench are **Docker-only**
   (`docker compose stop/up`, `docker exec`). On bare-metal use `mysqldump` via cron;
   the forensics PITR **does not apply** (it assumes MySQL 8.0 ROW binlogs, not MariaDB).

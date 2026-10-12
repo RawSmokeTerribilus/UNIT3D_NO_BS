@@ -1,7 +1,21 @@
 #!/bin/bash
 # ===============================================================================
-# UNIT3D Auto-Installer — Da-GooNies fork (rawsmoke/stabilize)
+# NOBS (UNIT3D_NO_BS) — instalación baremetal MÍNIMA
 # Supports: Debian Trixie / Ubuntu 22.04 / Ubuntu 24.04
+#
+# La ruta recomendada es Docker (README, Rutas A/B). Esto es un extra para la
+# comunidad: levanta el tracker PHP (announce de Laravel, sin el tracker Rust) con
+# MariaDB, Redis y Meilisearch (índices torrents + people). NO incluye el arcade
+# (ScummVM/RetroArch) ni el announce en Rust: sólo existen en el stack Docker.
+#
+# Repo y rama: REPO_URL / REPO_BRANCH (por defecto el repo público de NOBS, main).
+#
+# Probado el 2026-10-12 sobre un clon limpio del repo público: migraciones +
+# seeders contra MariaDB 11.8 (la de Debian Trixie) y 10.11 (la de Ubuntu 24.04),
+# y meilisearch:full-repair contra Meilisearch 1.55. El resto del script (apt,
+# nginx, PHP-FPM, supervisor, certbot) es el de siempre.
+#
+# Hasta el 2026-10-12 este script clonaba Da-GooNies, un repo de PRUEBAS, por error.
 # ===============================================================================
 
 set -e
@@ -27,6 +41,8 @@ SMTP_PASS=""
 SMTP_FROM_ADDRESS=""
 SMTP_FROM_NAME=""
 INSTALL_PATH="/var/www/html"
+REPO_URL="${REPO_URL:-https://github.com/RawSmokeTerribilus/UNIT3D_NO_BS.git}"
+REPO_BRANCH="${REPO_BRANCH:-main}"
 PHP_VERSION=""
 MEILI_KEY=""
 
@@ -437,15 +453,15 @@ install_unit3d() {
 
 	rm -rf ${INSTALL_PATH}
 
-	git clone -b rawsmoke/stabilize https://github.com/RawSmokeTerribilus/Da-GooNies.git ${INSTALL_PATH}
+	git clone -b "${REPO_BRANCH}" "${REPO_URL}" ${INSTALL_PATH}
 	cd ${INSTALL_PATH}
 
-	log_info "Using branch rawsmoke/stabilize @ $(git rev-parse --short HEAD)"
+	log_info "Using ${REPO_URL} (${REPO_BRANCH}) @ $(git rev-parse --short HEAD)"
 
 	cp .env.example .env
 
 	sed -i "s|APP_NAME=.*|APP_NAME=\"${DOMAIN}\"|" .env
-	sed -i "s|APP_ENV=.*|APP_ENV=prod|" .env
+	sed -i "s|APP_ENV=.*|APP_ENV=production|" .env
 	sed -i "s|APP_DEBUG=.*|APP_DEBUG=false|" .env
 	sed -i "s|APP_URL=.*|APP_URL=https://${DOMAIN}|" .env
 
@@ -455,6 +471,9 @@ install_unit3d() {
 	sed -i "s|DB_DATABASE=.*|DB_DATABASE=unit3d|" .env
 	sed -i "s|DB_USERNAME=.*|DB_USERNAME=unit3d|" .env
 	sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=${MYSQL_UNIT3D_PASS}|" .env
+
+	# Sin el tracker Rust (sólo existe en Docker): el announce lo sirve Laravel.
+	sed -i "s|TRACKER_ENABLED=.*|TRACKER_ENABLED=false|" .env
 
 	sed -i "s|VITE_ECHO_ADDRESS=.*|VITE_ECHO_ADDRESS=https://${DOMAIN}|" .env
 
@@ -532,14 +551,25 @@ install_unit3d() {
 	log_info "Generating application key..."
 	sudo -u www-data php artisan key:generate --force
 
-	log_info "Running database migrations and seeding..."
-	sudo -u www-data php artisan migrate --force --seed
+	log_info "Running database migrations..."
+	sudo -u www-data php artisan migrate --force
+
+	# En producción NOBS PROHÍBE db:seed (AppServiceProvider): protege una BD viva de
+	# que los seeders reescriban grupos y usuarios. Una instalación nueva SÍ hay que
+	# sembrarla, así que sólo estas dos órdenes corren con APP_ENV sobrescrito; el .env
+	# sigue en production. SettingSeeder no está en DatabaseSeeder: sin él el panel de
+	# configuración del staff sale vacío.
+	log_info "Seeding fresh database..."
+	sudo -u www-data env APP_ENV=local php artisan db:seed --force
+	sudo -u www-data env APP_ENV=local php artisan db:seed --class=SettingSeeder --force
 
 	sudo -u www-data php artisan storage:link
 
 	log_info "Setting up Meilisearch indexes..."
-	sudo -u www-data php artisan scout:sync-index-settings || true
-	sudo -u www-data php artisan scout:import "App\Models\Torrent" || true
+	# Índices torrents + people, ajustes y reindexado. Equivale a NO_BS_meilisearch.sh,
+	# que sólo sirve dentro de Docker.
+	sudo -u www-data php artisan meilisearch:full-repair --force \
+		|| log_warn "Meilisearch no quedó configurado: reintentar con 'php artisan meilisearch:full-repair --force'"
 
 	log_info "Optimizing application..."
 	sudo -u www-data php artisan config:cache
@@ -607,6 +637,20 @@ numprocs=4
 redirect_stderr=true
 stdout_logfile=${INSTALL_PATH}/storage/logs/queue.log
 stopwaitsecs=3600
+
+; Refresco de metadatos en su propia cola: si va por la principal la ahoga.
+[program:unit3d-meta-refresh]
+process_name=%(program_name)s_%(process_num)02d
+command=php ${INSTALL_PATH}/artisan queue:work redis --queue=meta-refresh --sleep=3 --tries=1 --timeout=300
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=${INSTALL_PATH}/storage/logs/queue-meta-refresh.log
+stopwaitsecs=300
 
 [program:unit3d-echo]
 process_name=%(program_name)s_%(process_num)02d
