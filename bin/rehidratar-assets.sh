@@ -9,7 +9,8 @@
 #   1. Ficheros de Internet Archive (bin/assets-externos/<item>.sha256): arcade
 #      ScummVM (motor, portadas, juegos) y RetroArch (ROMs, cores, frontend). Baja
 #      SÓLO lo que falta o no cuadra con el sha256, y lo deja en su ruta.
-#   2. Manual (/manual): compila book/ con mdbook y lo copia a storage/app/manual.
+#   2. Manual del staff (/dashboard/manual): compila book/ con mdbook y lo copia a
+#      storage/app/manual, que es de donde lo sirve routes/web.php.
 #   3. Comandos de artisan que ninguna otra rutina lanza: índice del selector de
 #      iconos, catálogo y portadas de RetroArch, lista de correos desechables.
 #
@@ -86,7 +87,7 @@ fi
 
 # --- 2. Manual -------------------------------------------------------------------
 if [ "$MANUAL" = 1 ]; then
-    echo "== Manual (/manual)"
+    echo "== Manual del staff (/dashboard/manual)"
     if ! command -v mdbook >/dev/null; then
         echo "   ERROR: falta mdbook en el host" >&2; fallos=$((fallos + 1))
     elif [ "$COMPROBAR" = 1 ]; then
