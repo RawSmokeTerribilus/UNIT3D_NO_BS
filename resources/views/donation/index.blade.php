@@ -388,8 +388,7 @@
             <h2 class="dialog__heading">La ruleta del mirón</h2>
             <div class="donation-dialog__step-body" style="grid-column: auto">
                 <p>
-                    🎲 Einstein dijo que Dios no juega a los dados. Aquí sí: mirar es gratis,
-                    pero lo decide la ruleta. Sin premios, sin trampa y sin BON, sólo honor.
+                    🎲 La casa siempre gana. Y la casa dice que gires.
                 </p>
                 <div class="donation-ruleta__mesa">
                     <span class="donation-ruleta__aguja" aria-hidden="true"></span>
