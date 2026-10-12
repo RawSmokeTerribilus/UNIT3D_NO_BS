@@ -63,6 +63,13 @@ php artisan migrate --force --schema-path=/dev/null || php artisan migrate --for
 echo "Actualizando Blacklist de Emails..."
 php artisan auto:email-blacklist-update
 
+# Assets fuera de git (Internet Archive, manual del staff, índices). NO descarga:
+# avisa de lo que falta y rehace lo barato. La rehidratación completa es
+# `make rehidratar` desde el host. Va antes del chown final a propósito.
+if [ -f ./bin/assets-arranque.sh ]; then
+    sh ./bin/assets-arranque.sh || echo "WARN: comprobación de assets falló (no fatal)"
+fi
+
 # === MEILISEARCH DUAL-INDEX AUTO-CONFIGURATION ===
 echo "Waiting for Meilisearch service..."
 MEILISEARCH_READY=0
