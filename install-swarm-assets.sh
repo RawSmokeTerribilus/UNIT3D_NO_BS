@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # install-swarm-assets.sh
 #
 # Downloads vendor JS libraries used by the Swarm Map feature.
@@ -14,7 +14,10 @@
 #
 # Dependencies: curl (or wget fallback)
 
-set -euo pipefail
+# POSIX sh, no bash: el contenedor de la app es Alpine y no trae bash. Con el
+# shebang de bash el entrypoint lo lanzaba, fallaba con «can't execute bash» y
+# seguía con un WARN: nunca repuso nada dentro de Docker (visto 2026-10-12).
+set -eu
 
 if [ -d /var/www/html/public ]; then
     PUBLIC_DIR="/var/www/html/public"
@@ -23,11 +26,13 @@ else
 fi
 
 # Asset table: dir|filename|url|min_size_bytes
+# Versiones FIJAS: con ellas unpkg sirve ficheros idénticos byte a byte a los que
+# hay en el repo (medido 2026-10-12). Sin versión, un redespliegue bajaría otras.
 ASSETS="
-force-graph|force-graph.min.js|https://unpkg.com/force-graph/dist/force-graph.min.js|100000
+force-graph|force-graph.min.js|https://unpkg.com/force-graph@1.51.4/dist/force-graph.min.js|100000
 3d-force-graph|3d-force-graph.min.js|https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js|500000
 three|three.min.js|https://unpkg.com/three@0.150.0/build/three.min.js|400000
-d3|d3.min.js|https://unpkg.com/d3@7/dist/d3.min.js|200000
+d3|d3.min.js|https://unpkg.com/d3@7.9.0/dist/d3.min.js|200000
 "
 
 fetch() {
@@ -72,6 +77,8 @@ while IFS='|' read -r dir filename url min_size; do
     fi
 
     echo "[swarm-assets] installed $filename ($(du -h "$target" | cut -f1))"
-done <<< "$ASSETS"
+done <<EOF
+$ASSETS
+EOF
 
 echo "[swarm-assets] done"

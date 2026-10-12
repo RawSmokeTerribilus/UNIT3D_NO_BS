@@ -1,5 +1,9 @@
 # Makefile para el Búnker de UNIT3D_Docker (NOBS)
-.PHONY: help install up stop restart status backup health logs clean
+.PHONY: help install up stop restart status backup health logs clean rehidratar comprobar-assets
+
+# Contenedor de la app para los objetivos de assets. En staging:
+#   make rehidratar APP=unit3d-staging-app
+APP ?= unit3d-app
 
 help:
 	@echo "--- 🛡️ UNIT3D BÚNKER CONTROL ---"
@@ -14,6 +18,8 @@ help:
 	@echo "make clean    - Limpiar caché de Laravel (Producción)"
 	@echo "make meilisearch - Configurar Meilisearch (Producción)"
 	@echo "make meilisearch-fix - Reparar Meilisearch de cero (Producción)"
+	@echo "make rehidratar   - Bajar/rehacer lo que no está en git (Archive, manual, índices)"
+	@echo "make comprobar-assets - Sólo informar de lo que falta (no toca nada)"
 
 install:
 	@echo "🎬 Inicializando el búnker..."
@@ -21,6 +27,8 @@ install:
 	chmod -R 775 storage bootstrap/cache
 	docker compose build
 	docker compose up -d
+	@echo "📦 Rehidratando lo que no viene en git (Archive, manual, índices)..."
+	./bin/rehidratar-assets.sh --contenedor $(APP)
 	@echo "✅ Búnker listo. Usa 'make up' para levantar."
 
 up:
@@ -65,3 +73,9 @@ meilisearch-fix:
 	sleep 5
 	bash ./NO_BS_meilisearch.sh docker
 	docker exec unit3d-app php artisan view:cache
+
+rehidratar:
+	./bin/rehidratar-assets.sh --contenedor $(APP)
+
+comprobar-assets:
+	./bin/rehidratar-assets.sh --comprobar --contenedor $(APP)
