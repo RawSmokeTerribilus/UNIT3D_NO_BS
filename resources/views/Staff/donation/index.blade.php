@@ -42,6 +42,7 @@
                     <tr>
                         <th>Date</th>
                         <th>User</th>
+                        <th>Método</th>
                         <th>Transaction</th>
                         <th>Cost</th>
                         <th>Upload #</th>
@@ -66,7 +67,12 @@
                             <td>
                                 <x-user-tag :user="$donation->user" :anon="false" />
                             </td>
-                            <td style="max-width: 80ch; word-wrap: break-word; white-space: normal">
+                            <td>{{ $donation->gateway?->name ?? '—' }}</td>
+                            {{-- `overflow-wrap: anywhere` y no `break-word`: un hash de 64
+                                 caracteres no tiene por dónde partirse, y con `break-word`
+                                 la celda calculaba su ancho mínimo con el hash entero y
+                                 echaba la columna de acciones fuera de la tabla. --}}
+                            <td style="max-width: 34ch; overflow-wrap: anywhere; white-space: normal; font-family: monospace; font-size: 0.85em">
                                 {{ $donation->transaction }}
                             </td>
                             <td

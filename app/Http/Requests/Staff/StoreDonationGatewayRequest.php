@@ -38,10 +38,23 @@ class StoreDonationGatewayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address'   => 'required|unique:donation_gateways',
-            'name'      => 'required|unique:donation_gateways',
-            'position'  => 'min:0|max:9999999',
-            'is_active' => 'required|boolean',
+            'address'               => 'required|unique:donation_gateways',
+            'name'                  => 'required|unique:donation_gateways',
+            'icono'                 => 'nullable|string|max:255|regex:/^[a-z0-9 -]+$/',
+            'instrucciones'         => 'nullable|string|max:5000',
+            'etiqueta_justificante' => 'nullable|string|max:255',
+            'patron_justificante'   => [
+                'nullable',
+                'string',
+                'max:255',
+                // Un patrón que no compila haría fallar TODAS las donaciones
+                // por ese método con un error de PHP; mejor pararlo aquí.
+                fn (string $attribute, mixed $value, \Closure $fail) => @preg_match(\App\Models\DonationGateway::regex((string) $value), '') === false
+                    ? $fail('El patrón no es una expresión regular válida.')
+                    : null,
+            ],
+            'position'              => 'min:0|max:9999999',
+            'is_active'             => 'required|boolean',
         ];
     }
 }

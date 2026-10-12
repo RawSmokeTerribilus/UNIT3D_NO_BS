@@ -33,6 +33,7 @@ export default defineConfig({
         'resources/js/unit3d/upload-invalid-notice.js',
         'resources/js/unit3d/menu-toggle.js',
         'resources/js/vendor/chart.js',
+        'resources/js/vendor/ruleta.js',
       ],
       refresh: true,
     }),

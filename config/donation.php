@@ -62,5 +62,9 @@ return [
      * importe equivocado.
      */
     'amount_prefilled' => false,
+
+    // Privado por Telegram a los Owners con cada donación nueva. Lo manda la
+    // fila `donation.aviso_telegram` de `settings`; esto es el valor por defecto.
+    'aviso_telegram' => true,
     'description'  => '¿Un billete pa un filete?',
 ];

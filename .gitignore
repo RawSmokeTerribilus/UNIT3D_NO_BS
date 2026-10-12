@@ -91,6 +91,11 @@ Initial_NOBS_art/
 .docker/data/
 .docker/**/*.bkp
 vendor/
+# resources/js/vendor/ es CÓDIGO del proyecto (entradas de Vite y librerías
+# copiadas a mano, p. ej. spin-wheel), no dependencias instaladas. Sin esta
+# excepción la regla de arriba lo ignoraba en silencio y los ficheros nuevos se
+# quedaban fuera del commit (2026-10-12).
+!resources/js/vendor/
 
 # Telegram implementation docs (contains sensitive data)
 TELEGRAM_IMPLEMENTATION_SUMMARY.md
