@@ -24,7 +24,7 @@
     "other.thanks-ratio-minimum-overall": "1",
     "other.thanks-ratio-minimum-invite": "1.00",
     "other.thanks-ratio-minimum-personal-freeleech": "1",
-    "donation.is_enabled": "false",
+    "donation.is_enabled": "true",
     "donation.gateway_label": "Ko-fi",
     "donation.amount_prefilled": "false",
     "donation.monthly_goal": "200",
