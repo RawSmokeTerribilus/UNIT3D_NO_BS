@@ -128,7 +128,7 @@ La Edición Comunitaria tenía **bugs sin corregir y funciones faltantes**:
 
 | Problema | Impacto | Nuestra Solución |
 |---|---|---|
-| **Instalador no incluido** | La edición comunitaria no trae instalador; la instalación oficial automatizada se ofrece como servicio de pago de HDInnovations | Cubrimos la instalación por **dos vías propias y gratuitas**: (1) el `entrypoint.sh` de Docker hace el setup completo en cada arranque (migraciones, listas negras, caché, permisos), y (2) un **instalador *baremetal* reescrito desde cero** para Debian/Ubuntu en `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` |
+| **Instalador no incluido** | La edición comunitaria no trae instalador; la instalación oficial automatizada se ofrece como servicio de pago de HDInnovations | Cubrimos la instalación por **dos vías propias y gratuitas**: (1) el `entrypoint.sh` de Docker hace el setup completo en cada arranque (migraciones, listas negras, caché, permisos), y (2) un **instalador *baremetal* mínimo** (tracker PHP + MariaDB + Redis + Meilisearch, sin arcade ni tracker Rust) para Debian/Ubuntu en `Unit3d_9.2-Installer-fixed/Unit3d-installer-debian.sh` |
 | **Meilisearch sin Configurar** | El motor de búsqueda se incluía pero no se indexaba ni sincronizaba | Implementamos indexación en arranque en frío, sincronización con observadores en tiempo real y protección con Llave Maestra |
 | **Fuerza Bruta Demasiado Agresiva** | La configuración bloqueaba a usuarios legítimos (5 intentos = bloqueo de 24h) | Ajustamos FortifyServiceProvider (5→15 intentos, 24h→1h, creamos propietario de respaldo) |
 | **Fragilidad de la Lista Negra de Correos** | El sistema se rompía si el CDN externo no era accesible | Creamos una caché local persistente (`storage/app/email-blacklist.json`) con un sistema de respaldo híbrido |
@@ -1637,20 +1637,29 @@ Ubuntu 22.04 / 24.04). Instala PHP 8.4-FPM, nginx, MariaDB, Redis, Meilisearch
 ~20-25 min en un host limpio. Lee también `Unit3d_9.2-Installer-fixed/readme.md` y
 `SECURITY_CHANGES.md`.
 
-**Qué adaptar respecto al setup dockerizado** (el instalador NO lo cubre):
+**Lo que el instalador SÍ deja hecho** (desde el 2026-10-12):
 
-- **Origen del código**: clona **este fork**, no la community vanilla — si no, no
-  tendrás ninguna feature N.O.B.S (las 10 migraciones propias, Telegram, arcade,
-  resolver multi-proveedor…).
-- **`.env` con hosts locales**: sustituye los nombres de servicio de Docker por
-  `127.0.0.1` + puertos reales — `DB_HOST`, `REDIS_HOST`, `MEILISEARCH_HOST`,
-  `MAIL_*` (sin contenedor Mailpit → SMTP real), `TRUSTED_PROXIES` según tu edge.
-- **Tracker Rust (UNIT3D-Announce)**: el instalador **no** lo monta. `/announce/`
-  necesita compilar y correr el binario Rust como servicio aparte, su proxy en nginx
-  y las vars `TRACKER_*`. Sin esto no hay tracker desacoplado de PHP.
-- **Meta-worker**: el supervisor del instalador solo levanta `queue:work` (cola
-  `default`). Añade un segundo programa para `--queue=meta-refresh` (timeout 300s) o
-  el refresco de metadatos ahogará la cola principal.
+- **Origen del código**: clona **este repo** (`UNIT3D_NO_BS`, rama `main`; se
+  cambia con `REPO_URL` / `REPO_BRANCH`). Hasta esa fecha clonaba por error un repo de
+  pruebas: si lo usaste antes, reinstala.
+- **`.env` con hosts locales**: `DB_HOST`, `REDIS_HOST` y `MEILISEARCH_HOST` a
+  `127.0.0.1`, `MAIL_*` con tu SMTP, `APP_ENV=production`.
+- **Base de datos nueva y sembrada**: migraciones, seeders (grupos, propietario,
+  categorías, foros…) y los ajustes del panel (`SettingSeeder`). Probado contra
+  MariaDB 11.8 (Debian Trixie) y 10.11 (Ubuntu 24.04).
+- **Meilisearch**: índices `torrents` y `people` con sus ajustes
+  (`php artisan meilisearch:full-repair --force`).
+- **Colas**: además de la principal, un segundo worker para `meta-refresh`
+  (timeout 300 s), para que el refresco de metadatos no ahogue la cola principal.
+- **Announce**: lo sirve Laravel (`TRACKER_ENABLED=false`).
+
+**Lo que sigue fuera** (es lo que separa la ruta mínima del fork completo):
+
+- **Tracker Rust (UNIT3D-Announce)**: no se monta. Si lo quieres, hay que compilar y
+  correr el binario como servicio aparte, con su proxy en nginx y las vars `TRACKER_*`.
+- **Arcade (ScummVM / RetroArch)**: no se monta. Sus assets viven en Internet Archive
+  y se rehidratan con `bin/rehidratar-assets.sh`, que hoy está pensado para Docker.
+- **TRUSTED_PROXIES** según tu edge (Cloudflare, otro proxy…).
 - **Backups y forense**: `backup.sh` y el banco forense son **solo-Docker**
   (`docker compose stop/up`, `docker exec`). En baremetal usa `mysqldump` por cron; el
   PITR del banco forense **no aplica** (asume MySQL 8.0 con ROW binlogs, no MariaDB).
