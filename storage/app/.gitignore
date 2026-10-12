@@ -1,6 +1,10 @@
 *
 !public/
 !.gitignore
+# Instantánea de la tabla `settings` (la escribe el panel de config al guardar).
+# Sirve de red si la BD no responde y para sembrar una BD NUEVA (SettingSeeder):
+# sin ella, una instalación limpia vuelve a los valores por defecto. Sin secretos.
+!settings.json
 # RetroArch — mapa de nombres FBNeo (700 KB, estable, regenerable pero raro).
 # catalog.json sigue ignorado vía .gitignore raíz (cambia cada scan).
 !retroarch/

@@ -102,6 +102,22 @@ vendor/
 # quedaban fuera del commit (2026-10-12).
 !resources/js/vendor/
 
+# public/vendor/ sigue ignorado (joypixels, livewire y el índice de iconos los
+# rehace un comando), MENOS las cuatro librerías del grafo de swarm: alguien las
+# dejó a mano, no las repone nada y sin ellas el grafo muere. d3 7.9.0 y sus
+# compañeras, iguales byte a byte en staging y prod (2026-10-12).
+# OJO: el grafo de swarm entero hay que REHACERLO, no ha envejecido bien. Esto
+# es para no perder lo que hay, no una inversión en él.
+# Va DESPUÉS de las tres reglas que excluyen public/vendor/ (/public/vendor/,
+# public/vendor/ y vendor/): git no reabre un directorio excluido si la
+# excepción va antes.
+!public/vendor/
+public/vendor/*
+!public/vendor/3d-force-graph/
+!public/vendor/d3/
+!public/vendor/force-graph/
+!public/vendor/three/
+
 # Telegram implementation docs (contains sensitive data)
 TELEGRAM_IMPLEMENTATION_SUMMARY.md
 
