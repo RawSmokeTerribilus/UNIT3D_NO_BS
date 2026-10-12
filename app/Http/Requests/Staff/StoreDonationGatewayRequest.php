@@ -38,7 +38,9 @@ class StoreDonationGatewayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address'               => 'required|unique:donation_gateways',
+            // Sin `unique`: USDC y Ether comparten dirección a propósito (la misma
+            // 0x… vale para ETH y para el token en todas las redes EVM).
+            'address'               => 'required',
             'name'                  => 'required|unique:donation_gateways',
             'icono'                 => 'nullable|string|max:255|regex:/^[a-z0-9 -]+$/',
             'instrucciones'         => 'nullable|string|max:5000',
