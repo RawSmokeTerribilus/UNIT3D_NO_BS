@@ -16,6 +16,12 @@
 //  además se re-exportan con los mismos nombres por compatibilidad.
 // =============================================================================
 
+// TAMAÑOS DE LETRA: la raíz del sitio está a 10 px (`base/_reset.scss`, el
+// truco del 62,5 %), no a 16. Este fichero se escribió como si fuera 16 y toda
+// la página salía al 62 %: el manifiesto a 10,5 px, el diálogo de pago a 12.
+// El 2026-10-12 se multiplicaron por 1,6 todos los `font-size` en rem (sólo la
+// letra: el espaciado y la rejilla se quedaron como estaban). Aquí 1rem = 10px.
+
 // Los tokens viven en `.donation-panel` (la <section>) y NO en su `__body`.
 // Los <dialog> son hermanos del body dentro de la seccion, asi que colgados del
 // body no los alcanzaban: `background: var(--d-surface)` quedaba invalido y por
@@ -88,7 +94,7 @@
 }
 
 .donation-manifesto__lead {
-  font-size: 1.05rem;
+  font-size: 1.57rem;
   color: currentColor !important; // gana al color: var(--d-mute) de arriba
   strong { color: var(--d-accent); }
 }
@@ -111,7 +117,7 @@
 .donation-perks__title {
   grid-column: 1 / -1;
   margin: 0 0 0.35rem;
-  font-size: 0.7rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -193,7 +199,7 @@
 
 .donation-package__name {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.57rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -207,7 +213,8 @@
 }
 
 .donation-package__price {
-  font-size: 1.9rem;
+  white-space: nowrap;
+  font-size: 2.85rem;
   font-weight: 600;
   line-height: 1;
   color: var(--d-accent);
@@ -215,7 +222,7 @@
 }
 
 .donation-package__separator { color: var(--d-faint); }
-.donation-package__days { font-size: 0.85rem; color: var(--d-mute); }
+.donation-package__days { font-size: 1.28rem; color: var(--d-mute); }
 
 .donation-package__description {
   margin: 0;
@@ -224,7 +231,7 @@
   // asi que a tamaño de parrafo se leia mal de verdad. Ahora queda por ENCIMA
   // de las ventajas comunes (15 px), que es lo correcto: la frase es lo unico
   // con voz propia de cada tramo.
-  font-size: 1.25rem;
+  font-size: 1.88rem;
   font-style: italic;
   line-height: 1.55;
   color: var(--d-faint);
@@ -248,7 +255,7 @@
 
 .donation-package__stat-label {
   display: block;
-  font-size: 0.62rem;
+  font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -258,7 +265,7 @@
 .donation-package__stat-value {
   display: block;
   margin-top: 0.3rem;
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -305,9 +312,11 @@
   // El sobrante liberado va a la descripcion, que ahora va a 1.25rem y es quien
   // de verdad lo necesita: `grow: 2` frente al `1` de las estadisticas, asi que
   // se lleva dos tercios de lo que suelta el header.
-  .donation-package__header { flex: 0 1 14rem; }
-  .donation-package__name { font-size: 1.3rem; }
-  .donation-package__price { font-size: 2.4rem; }
+  // 22rem y no 14: con la raíz a 10 px los 14rem daban 140 px y, con la letra
+  // ya escalada, «50,00 €» se partía en dos líneas (2026-10-12).
+  .donation-package__header { flex: 0 0 22rem; }
+  .donation-package__name { font-size: 1.95rem; }
+  .donation-package__price { font-size: 3.6rem; }
   .donation-package__description { flex: 2 1 18rem; margin: 0; }
   .donation-package__stats { grid-template-columns: repeat(3, minmax(7rem, 1fr)); margin: 0; flex: 1 1 24rem; }
   .donation-package__footer { flex: 0 0 auto; }
@@ -319,7 +328,7 @@
   padding: 0.2rem 0.45rem;
   border: 1px solid var(--d-accent-line);
   border-radius: 3px;
-  font-size: 0.6rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -346,8 +355,8 @@
     &.donation-package--lifetime .donation-package__stats,
     &.donation-package--lifetime .donation-package__footer { flex: 0 0 auto; }
 
-    .donation-package__name { font-size: 1.05rem; }
-    .donation-package__price { font-size: 1.9rem; }
+    .donation-package__name { font-size: 1.57rem; }
+    .donation-package__price { font-size: 2.85rem; }
     .donation-package__stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: auto; }
     .donation-package__footer .form__button { width: 100%; padding-inline: 0.75rem; }
   }
@@ -362,7 +371,7 @@
   padding: 0.85rem 1rem;
   border: 1px dashed var(--d-line);
   border-radius: 5px;
-  font-size: 0.88rem;
+  font-size: 1.32rem;
   line-height: 1.5;
 }
 
@@ -377,7 +386,9 @@
   // centra con `left/right: calc(50vw - min(500px / 2, ...))`, o sea con los
   // 500 px escritos a mano: si sólo se cambia el ancho, el centrado deja de
   // cuadrar. Por eso se anulan los offsets y se centra con `margin-inline`.
-  width: min(64rem, calc(100vw - 24px));
+  // 92rem = 920 px con la raíz a 10 px (ver la cabecera del fichero). Los
+  // «64rem» de antes daban 640 px, no los 1024 que se pretendían.
+  width: min(92rem, calc(100vw - 24px));
   max-width: none;
   left: 0;
   right: 0;
@@ -386,7 +397,7 @@
   // El alto lo manda el contenido (la hoja de estilos del navegador pone
   // `height: fit-content` a los <dialog>), así que para darle presencia se pide
   // un mínimo en vez de una altura fija: si el contenido crece, crece con él.
-  min-height: min(34rem, calc(100vh - 24px));
+  min-height: min(48rem, calc(100vh - 24px));
 
   padding: 28px;
   border: var(--dialog-border);
@@ -432,7 +443,7 @@
     height: 2.2rem;
     border: 1px solid var(--d-accent-line);
     border-radius: 50%;
-    font-size: 1rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--d-accent);
     box-shadow: 0 0 14px color-mix(in oklab, var(--d-accent) 20%, transparent);
@@ -451,12 +462,12 @@
 // en el que alguien va a teclear un importe. Ademas del tamaño se sube el
 // CONTRASTE, que a partir de cierto punto pesa mas que los pixeles.
 .donation-dialog .dialog__heading {
-  font-size: 1.35rem;
+  font-size: 2.03rem;
   font-weight: 700;
   padding-inline: 0;
 }
 
-.donation-dialog__step-title { margin: 0; font-size: 1.15rem; font-weight: 600; }
+.donation-dialog__step-title { margin: 0; font-size: 1.73rem; font-weight: 600; }
 
 .donation-dialog__step-body {
   grid-column: 2;
@@ -464,7 +475,7 @@
   flex-direction: column;
   gap: 0.8rem;
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.57rem;
   line-height: 1.6;
   // Era `--d-mute` (62 %). En un modal enfocado el texto atenuado no aporta
   // jerarquia, solo cuesta leerlo.
@@ -481,21 +492,21 @@
 // cuerpo, y un selector descendente (0,1,1) le ganaria a su propia clase
 // (0,1,0). Sin el, la letra pequeña dejaria de serlo.
 .donation-dialog__step-body > p:not(.donation-dialog__hint) {
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   line-height: 1.55;
 }
 
 // La pista pasa de `--d-faint` (42 %) a `--d-mute` (62 %): sigue siendo
 // secundaria, pero legible.
-.donation-dialog__hint { margin: 0; font-size: 0.95rem; color: var(--d-mute); }
+.donation-dialog__hint { margin: 0; font-size: 1.43rem; color: var(--d-mute); }
 
 // El campo del recibo tambien: `.form__text` global es de 14 px y 40 de alto.
 .donation-dialog .form__text {
-  font-size: 1rem;
+  font-size: 1.5rem;
   height: 46px;
 }
 
-.donation-dialog .form__button { font-size: 1rem; }
+.donation-dialog .form__button { font-size: 1.5rem; }
 
 // El codigo de ejemplo del recibo. Sin esto hereda el `code` global, que es
 // monoespaciado a tamaño de parrafo: en el ancho de un dialogo se lleva la linea
@@ -610,4 +621,284 @@
 
 @media (prefers-reduced-motion: reduce) {
   .donation-package, .donation-package::before { transition: none; }
+}
+
+// =============================================================================
+//  Varios métodos de pago (2026-10-12)
+//
+//  Al entrar se abre `.donation-antes`: una lista de comprobación contra el
+//  «dono por si acaso» y la elección del método. El método elegido queda en una
+//  barra (`.donation-elegido`) y filtra los tramos y el diálogo de cada uno.
+// =============================================================================
+
+// El diálogo de entrada reutiliza la caja de `.donation-dialog`, pero sin la
+// altura mínima: es una pregunta, no un proceso.
+.donation-antes { min-height: 0; }
+
+.donation-antes__objetivo {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--d-line-soft);
+  border-radius: 5px;
+  background: var(--d-surface);
+  font-size: 1.8rem;
+  line-height: 1.55;
+}
+
+.donation-antes__objetivo--cubierto {
+  border-color: var(--d-accent-line);
+  background: var(--d-accent-wash);
+}
+
+.donation-antes__checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // Mismo tamaño que las instrucciones del diálogo de pago: es lo que se
+  // tiene que LEER antes de elegir, no letra pequeña.
+  label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    font-size: 1.8rem;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  input { flex: 0 0 auto; }
+}
+
+.donation-antes__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+// --- rejilla de métodos -------------------------------------------------------
+.donation-metodos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Se apagan enteros mientras falte alguna casilla: lo que se quiere es que la
+// lista se LEA antes de elegir, no que el botón esconda por qué no va.
+.donation-metodos--bloqueados { opacity: 0.45; }
+
+.donation-metodo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 1rem 0.75rem;
+  border: 1px solid var(--d-line);
+  border-radius: 5px;
+  background: var(--d-surface);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: var(--d-accent-line);
+    box-shadow: var(--d-glow);
+  }
+
+  &:disabled { cursor: not-allowed; }
+
+  i { font-size: 2.7rem; color: var(--d-accent); }
+}
+
+.donation-metodo__nombre { font-weight: 600; font-size: 1.8rem; }
+.donation-metodo__tramos { font-size: 1.5rem; line-height: 1.4; color: var(--d-mute); }
+
+// --- barra del método elegido -------------------------------------------------
+.donation-elegido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--d-accent-line);
+  border-radius: 5px;
+  background: var(--d-accent-wash);
+  font-size: 1.8rem;
+
+  .form__button { width: auto; padding-inline: 1.2rem; }
+}
+
+// --- tramo que no se puede pagar con el método elegido -------------------------
+.donation-package--no-disponible {
+  opacity: 0.5;
+
+  &:hover, &:focus-within { box-shadow: none; }
+}
+
+.donation-package__no-disponible {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--d-mute);
+  text-align: center;
+}
+
+// --- dirección de wallet + QR ---------------------------------------------------
+.donation-direccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+
+  .form__text {
+    flex: 1 1 18rem;
+    min-width: 0;
+    font-family: monospace;
+    font-size: 1.35rem;
+  }
+
+  .form__button { width: auto; flex: 0 0 auto; padding-inline: 1.2rem; }
+}
+
+// El QR va SIEMPRE sobre blanco, sea cual sea el tema: un lector de móvil no
+// lee un QR invertido sobre fondo oscuro de forma fiable. El SVG ya trae su
+// rectángulo blanco; el marco es para que no se pegue al borde del diálogo.
+.donation-qr {
+  align-self: flex-start;
+  padding: 8px;
+  border-radius: 5px;
+  background: #fff;
+  line-height: 0;
+
+  svg { display: block; width: 180px; height: 180px; }
+}
+
+// =============================================================================
+//  La ruleta del mirón (2026-10-12)
+//
+//  Lo pidió la comunidad para DONAR; no puede ser (el dinero no se juega), así
+//  que va donde no hay dinero: en «Sólo quiero mirar». Humor, no transacción:
+//  ninguna casilla da ni quita nada, y siempre se puede salir con Esc o con el
+//  enlace de abajo.
+//
+//  La rueda la dibuja spin-wheel (MIT, copiada en resources/js/vendor) en un
+//  <canvas>; aquí sólo van la mesa, el puntero, el eje y la lluvia de emojis.
+//  Colores de casino FIJOS, no del tema: es un objeto, no una parte del sitio.
+// =============================================================================
+.donation-ruleta { min-height: 0; }
+
+.donation-ruleta__mesa {
+  position: relative;
+  align-self: center;
+  width: min(40rem, 78vw);
+  aspect-ratio: 1;
+  margin-top: 1.6rem;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 0.6rem #2a1d0a,
+    0 0 0 0.9rem #d4af37,
+    0 0 3rem rgba(212, 175, 55, 0.35);
+  // el canvas recibe el arrastre: sin esto el móvil hace scroll en vez de girar
+  touch-action: none;
+}
+
+.donation-ruleta__rueda { width: 100%; height: 100%; }
+
+// Puntero dorado arriba, apuntando hacia dentro.
+.donation-ruleta__aguja {
+  position: absolute;
+  top: -1.4rem;
+  left: 50%;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  border-left: 1.3rem solid transparent;
+  border-right: 1.3rem solid transparent;
+  border-top: 2.6rem solid #d4af37;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
+// El eje del centro.
+.donation-ruleta__eje {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 16%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6e7a8, #d4af37 45%, #6b5414);
+  box-shadow: 0 0 0.8rem rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.donation-ruleta__pista {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--d-mute);
+  text-align: center;
+}
+
+.donation-ruleta__resultado {
+  min-height: 1.6em;
+  margin: 0;
+  font-size: 1.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.donation-ruleta__sonido {
+  width: auto;
+  font-size: 1.4rem;
+}
+
+// Lluvia del emoji que ha salido. Va DENTRO del <dialog> para quedar por
+// encima de él (el diálogo vive en la capa superior).
+.donation-ruleta__lluvia {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.donation-ruleta__gota {
+  position: absolute;
+  top: -4rem;
+  line-height: 1;
+  animation: donation-ruleta-caer 2.2s ease-in forwards;
+}
+
+@keyframes donation-ruleta-caer {
+  to { transform: translateY(115vh) rotate(540deg); opacity: 0.7; }
+}
+
+// «Puedes mirar, pero de lejos»: la página se aleja un rato y vuelve sola.
+.donation-panel {
+  transition: filter 0.6s, transform 0.6s;
+}
+
+.donation-panel--de-lejos {
+  filter: blur(5px);
+  transform: scale(0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donation-panel { transition: none; }
+  .donation-ruleta__gota { display: none; }
 }

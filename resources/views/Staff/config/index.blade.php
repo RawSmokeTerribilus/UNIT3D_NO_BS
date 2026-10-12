@@ -28,4 +28,10 @@
 
 @section('main')
     @livewire('staff.config-manager')
+
+    {{-- Qué método de pago se ofrece en qué tramo. Toca dinero: sólo Owners,
+         y el componente lo vuelve a comprobar en cada acción. --}}
+    @if (auth()->user()->group->is_owner)
+        @livewire('staff.donation-method-matrix')
+    @endif
 @endsection

@@ -365,6 +365,12 @@ $chevron-font: 'Font Awesome 6 Pro';
             transform: rotate(180deg);
         }
 
+        // «Donar» es un enlace directo, no un desplegable: sin flecha que
+        // prometa un menú que no existe.
+        > li.top-nav__enlace > a::after {
+            content: none;
+        }
+
         // Folds out in place and pushes the next entries down.
         .top-nav__dropdown > ul {
             display: none;

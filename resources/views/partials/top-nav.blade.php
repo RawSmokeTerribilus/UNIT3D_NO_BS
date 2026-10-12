@@ -224,8 +224,18 @@
         </li>
 
         @if (config('donation.is_enabled'))
-            <li class="top-nav__dropdown">
-                <a tabindex="0" title="{{ $donationPercentage }}% de la meta">
+            {{-- El botón lleva DIRECTO a la página de donar. El desplegable venía
+                 de upstream, que ofrecía dos destinos: los devs de UNIT3D (enlace
+                 de Square, roto, quitado el 2026-08-26) y el propio tracker. NOBS
+                 sólo recauda para sí, así que quedaba un desplegable con un único
+                 enlace: un clic de más, y en táctil el primer toque sólo abría el
+                 menú. Se conserva la clase para no tocar la maqueta;
+                 `top-nav__enlace` le quita la flecha en el menú móvil. --}}
+            <li class="top-nav__dropdown top-nav__enlace">
+                <a
+                    href="{{ route('donations.index') }}"
+                    title="Sostén {{ config('other.title') }}: {{ $donationPercentage }}% de la meta del mes"
+                >
                     <div class="top-nav--left__container">
                         <span
                             class="{{ $donationPercentage < 100 ? 'fa-fade' : '' }}"
@@ -250,14 +260,6 @@
                         </div>
                     </div>
                 </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('donations.index') }}">
-                            <i class="fas fa-display-chart-up-circle-dollar"></i>
-                            Sostén {{ config('other.title') }} ({{ $donationPercentage }}%)
-                        </a>
-                    </li>
-                </ul>
             </li>
         @endif
     </ul>

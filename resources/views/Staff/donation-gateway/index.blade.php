@@ -46,7 +46,9 @@
                                     {{ $gateway->name }}
                                 </a>
                             </td>
-                            <td>{{ $gateway->address }}</td>
+                            <td style="max-width: 50ch; word-wrap: break-word; white-space: normal">
+                                {{ $gateway->address }}
+                            </td>
                             <td class="{{ $gateway->is_active ? 'text-green' : 'text-red' }}">
                                 @if ($gateway->is_active)
                                     {{ __('common.yes') }}

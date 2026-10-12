@@ -30,6 +30,7 @@ use AllowDynamicProperties;
  * @property int                             $gifted_user_id
  * @property ModerationStatus                $status
  * @property int                             $package_id
+ * @property int|null                        $gateway_id
  * @property string                          $transaction
  * @property bool                            $is_gifted
  * @property \Illuminate\Support\Carbon|null $starts_at
@@ -49,7 +50,7 @@ final class Donation extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{user_id: 'int', gifted_user_id: 'int', status: class-string<ModerationStatus>, package_id: 'int', transaction: 'string', is_gifted: 'bool', starts_at: 'datetime', ends_at: 'datetime', created_at: 'datetime', updated_at: 'datetime'}
+     * @return array{user_id: 'int', gifted_user_id: 'int', status: class-string<ModerationStatus>, package_id: 'int', gateway_id: 'int', transaction: 'string', is_gifted: 'bool', starts_at: 'datetime', ends_at: 'datetime', created_at: 'datetime', updated_at: 'datetime'}
      */
     protected function casts(): array
     {
@@ -58,6 +59,7 @@ final class Donation extends Model
             'gifted_user_id' => 'int',
             'status'         => ModerationStatus::class,
             'package_id'     => 'int',
+            'gateway_id'     => 'int',
             'transaction'    => 'string',
             'is_gifted'      => 'bool',
             'starts_at'      => 'datetime',
@@ -101,5 +103,16 @@ final class Donation extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(DonationPackage::class)->withTrashed();
+    }
+
+    /**
+     * Get the gateway the donation was paid through. Null en las anteriores
+     * al 2026-10-12, que no lo guardaban (todas fueron por Ko-fi).
+     *
+     * @return BelongsTo<DonationGateway, $this>
+     */
+    public function gateway(): BelongsTo
+    {
+        return $this->belongsTo(DonationGateway::class);
     }
 }

@@ -18,9 +18,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\ModerationStatus;
 use App\Http\Requests\StoreDonationRequest;
+use App\Jobs\AvisarDonacionPendiente;
 use App\Models\Donation;
 use App\Models\DonationGateway;
 use App\Models\DonationPackage;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 class DonationController extends Controller
 {
@@ -49,9 +54,48 @@ class DonationController extends Controller
         $this->abortSiApagado();
 
         $packages = DonationPackage::where('is_active', '=', true)->orderBy('position')->get();
-        $gateways = DonationGateway::where('is_active', '=', true)->orderBy('position')->get();
+        $gateways = DonationGateway::with('packages:id')->where('is_active', '=', true)->orderBy('position')->get();
 
-        return view('donation.index', ['packages' => $packages, 'gateways' => $gateways]);
+        // Qué métodos cubren cada tramo, según la matriz del panel de config.
+        // Un método que no cubre ningún tramo encendido no se ofrece: sería
+        // elegirlo y encontrarse todos los tramos en gris.
+        $ofertas = $packages->mapWithKeys(fn (DonationPackage $package) => [
+            $package->id => $gateways
+                ->filter(fn (DonationGateway $gateway) => $gateway->packages->contains('id', $package->id))
+                ->pluck('id')
+                ->values()
+                ->all(),
+        ]);
+        $gateways = $gateways
+            ->filter(fn (DonationGateway $gateway) => $ofertas->contains(fn (array $ids) => \in_array($gateway->id, $ids, true)))
+            ->values();
+
+        // QR de las direcciones, en SVG en línea: la CSP no deja cargar imágenes
+        // de fuera y un <svg> en el HTML no es una imagen. Es la misma librería
+        // que pinta el QR del 2FA.
+        $writer = new Writer(new ImageRenderer(new RendererStyle(180, 1), new SvgImageBackEnd()));
+        $qrs = $gateways
+            ->reject(fn (DonationGateway $gateway) => $gateway->esEnlace())
+            ->mapWithKeys(fn (DonationGateway $gateway) => [
+                $gateway->id => preg_replace('/^<\?xml[^>]*>\s*/', '', $writer->writeString($gateway->address)),
+            ]);
+
+        // Lo mismo que la barra del menú: lo aprobado este mes contra el
+        // objetivo. Sirve para frenar a quien iba a donar «por si acaso».
+        $recaudadoMes = (float) Donation::query()
+            ->join('donation_packages', 'donations.package_id', '=', 'donation_packages.id')
+            ->where('donations.created_at', '>=', now()->startOfMonth())
+            ->where('donations.status', ModerationStatus::APPROVED)
+            ->sum('donation_packages.cost');
+        $objetivo = (float) config('donation.monthly_goal');
+
+        return view('donation.index', [
+            'packages'           => $packages,
+            'gateways'           => $gateways,
+            'qrs'                => $qrs,
+            'ofertas'            => $ofertas,
+            'porcentajeObjetivo' => $objetivo > 0 ? (int) min(100, floor($recaudadoMes / $objetivo * 100)) : 0,
+        ]);
     }
 
     /**
@@ -61,14 +105,19 @@ class DonationController extends Controller
     {
         $this->abortSiApagado();
 
-        Donation::create([
+        $donation = Donation::create([
             'status'      => ModerationStatus::PENDING,
             'package_id'  => $request->package_id,
+            'gateway_id'  => $request->gateway_id,
             'user_id'     => auth()->user()->id,
-            'transaction' => $request->transaction,
+            'transaction' => $request->justificante,
         ]);
 
+        if (config('donation.aviso_telegram')) {
+            AvisarDonacionPendiente::dispatch($donation);
+        }
+
         return redirect()->route('donations.index')
-            ->with('success', 'Thank you for supporting us! Please allow for up to 48 hours for staff to confirm the transaction.');
+            ->with('success', '¡Gracias! Lo revisamos a mano: puede tardar hasta 48 horas en aplicarse.');
     }
 }

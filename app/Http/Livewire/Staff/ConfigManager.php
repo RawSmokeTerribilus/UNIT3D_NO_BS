@@ -86,8 +86,10 @@ class ConfigManager extends Component
             'icon'  => 'fa-hand-holding-heart',
             'settings' => [
                 'donation.is_enabled' => ['label' => 'Sistema de donaciones activo', 'hint' => 'Muestra «Donar» en el menú y la página de tramos. Apagado, la página no es accesible y el panel de donaciones del staff se oculta', 'type' => 'boolean'],
-                'donation.gateway_label' => ['label' => 'Nombre de la pasarela', 'hint' => 'Cómo se llama de cara al donante: Ko-fi, PayPal, Stripe… Aparece en el botón de pago y en el diálogo', 'type' => 'text'],
-                'donation.amount_prefilled' => ['label' => 'El enlace lleva el importe fijado', 'hint' => 'Actívalo sólo si el enlace de cada tramo abre la pasarela con la cantidad ya puesta. Si el donante tiene que teclearla, déjalo apagado y el diálogo se lo dirá', 'type' => 'boolean'],
+                // `gateway_label` y `amount_prefilled` siguen en la tabla pero ya no
+                // pintan nada: desde el 2026-10-12 cada método de pago trae su nombre
+                // y sus instrucciones (Staff → Métodos de pago y la matriz de abajo).
+                'donation.aviso_telegram' => ['label' => 'Aviso por Telegram', 'hint' => 'Cada donación nueva manda un privado a los Owners con Telegram vinculado: quién, tramo, importe y método. Nunca el justificante', 'type' => 'boolean'],
                 'donation.monthly_goal' => ['label' => 'Objetivo mensual (€)', 'hint' => 'Lo que rellena la barra del botón «Sostén» en la barra superior. El contador suma las donaciones aprobadas desde el día 1 y se reinicia cada mes, así que la meta es mensual, no acumulada', 'type' => 'integer'],
             ],
         ],
