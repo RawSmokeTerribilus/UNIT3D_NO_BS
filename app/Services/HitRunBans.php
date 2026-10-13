@@ -153,8 +153,12 @@ final class HitRunBans
                 'visto'           => isset($vistos[$u->id]) ? Carbon::parse($vistos[$u->id]) : null,
                 'telegram'        => !empty($u->telegram_chat_id),
                 'tiene_email'     => !empty($u->email),
-                // Solo ha entrado a la web: candidato, pero desmarcado.
-                'marcado' => $web === null || $web->lte($ultimo),
+                // Solo ha entrado a la web: candidato, pero desmarcado. Salvo
+                // tras un aviso con fecha: la pantalla roja le obliga a entrar,
+                // y entrar dice que la cuenta está viva, no que esté arreglando
+                // nada. Ahí solo cuenta que su cliente conecte (eso ya le saca
+                // de candidatos más abajo). Decisión del operador, 2026-10-13.
+                'marcado' => $c->ultimo_con_fecha !== null || $web === null || $web->lte($ultimo),
             ];
 
             $motivo = match (true) {
