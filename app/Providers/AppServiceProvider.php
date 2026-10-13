@@ -34,10 +34,13 @@ use App\Interfaces\ByteUnitsInterface;
 use App\Models\User;
 use App\Services\Emoji\EmojiRenderer;
 use App\Observers\UserObserver;
+use App\Services\CuotaCorreo;
 use App\View\Composers\FooterComposer;
 use App\View\Composers\TopNavComposer;
 use Illuminate\Database\Console\Seeds\SeedCommand;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Foundation\Http\Middleware\TrimStrings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,6 +89,10 @@ class AppServiceProvider extends ServiceProvider
 
         // User Observer For Cache
         User::observe(UserObserver::class);
+
+        // NOBS: cuenta todo correo que sale, venga de donde venga, para la
+        // cuota diaria de Gmail (config/correo.php, App\Jobs\Middleware\CuotaDeCorreo).
+        Event::listen(MessageSent::class, static fn () => CuotaCorreo::registrar());
 
         // Hidden Captcha
         Blade::directive('hiddencaptcha', fn ($mustBeEmptyField = "'_url'") => \sprintf('<?= App\Helpers\HiddenCaptcha::render(%s); ?>', $mustBeEmptyField));

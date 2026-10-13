@@ -16,11 +16,13 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Jobs\Middleware\CuotaDeCorreo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
+use DateTimeInterface;
 
 /**
  * Aviso de baneo por H&R abandonado, en lugar del UserBan nativo (ingles y
@@ -45,6 +47,24 @@ class HitRunBanned extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         return ['mail'];
+    }
+
+    /**
+     * Correo de campaña: respeta la cuota diaria (sale mañana si hoy no cabe).
+     *
+     * @return list<object>
+     */
+    public function middleware(object $notifiable, string $channel): array
+    {
+        return $channel === 'mail' ? [new CuotaDeCorreo()] : [];
+    }
+
+    /**
+     * Ver HitRunReminder::retryUntil(): el worker va con --tries=1.
+     */
+    public function retryUntil(): DateTimeInterface
+    {
+        return now()->addDays(7);
     }
 
     public function toMail(object $notifiable): MailMessage
