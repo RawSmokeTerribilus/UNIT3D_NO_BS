@@ -38,6 +38,8 @@ class HitRunBanned extends Notification implements ShouldQueue
         public string $motivo,
         public ?string $invitacion,
         public Carbon $podaEl,
+        // false = baneo desde el perfil, por otro motivo: sin la frase de H&R.
+        public bool $porHitRun = true,
     ) {
     }
 
@@ -74,8 +76,13 @@ class HitRunBanned extends Notification implements ShouldQueue
         $mail = (new MailMessage())
             ->subject('Tu cuenta de '.config('other.title').' ha sido baneada')
             ->greeting('Hola, '.$notifiable->username.'.')
-            ->line('Tu cuenta ha sido baneada. Motivo: '.$this->motivo)
-            ->line('Antes de llegar aquí te escribimos con tu lista de torrents y las horas que faltaban, y no ha habido respuesta ni actividad. Esto es un baneo, no un borrado: la cuenta sigue existiendo y se puede deshacer.');
+            ->line('Tu cuenta ha sido baneada. Motivo: '.$this->motivo);
+
+        if ($this->porHitRun) {
+            $mail->line('Antes de llegar aquí te escribimos con tu lista de torrents y las horas que faltaban, y no ha habido respuesta ni actividad.');
+        }
+
+        $mail->line('Esto es un baneo, no un borrado: la cuenta sigue existiendo y se puede deshacer.');
 
         if ($this->invitacion !== null) {
             $mail->line('Si quieres explicarte o arreglarlo, entra en nuestro grupo de Telegram para baneados con este enlace. Es personal y vale para una sola persona: no lo compartas.')

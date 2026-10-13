@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int                             $user_id
  * @property int|null                        $ban_id
  * @property int|null                        $staff_id
+ * @property string                          $origen           hitrun | manual (botón de banear del perfil)
  * @property \Illuminate\Support\Carbon      $banned_at
  * @property int|null                        $telegram_user_id
  * @property string|null                     $invite_link

@@ -31,13 +31,9 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Staff\StoreBanRequest;
 use App\Models\Ban;
-use App\Models\Group;
 use App\Models\User;
-use App\Notifications\UserBan;
-use App\Services\TelegramService;
-use App\Services\Unit3dAnnounce;
+use App\Services\BanConInvitacion;
 use Exception;
-use Illuminate\Support\Facades\Log;
 
 /**
  * @see \Tests\Todo\Feature\Http\Controllers\Staff\BanControllerTest
@@ -66,35 +62,16 @@ class BanController extends Controller
 
         abort_if($user->group->is_modo || $staff->is($user), 403);
 
-        $user->update([
-            'group_id'     => Group::where('slug', '=', 'banned')->soleValue('id'),
-            'can_download' => 0,
-        ]);
-
-        $ban = Ban::create(['created_by' => $staff->id] + $request->validated());
-
-        cache()->forget('user:'.$user->passkey);
-
-        Unit3dAnnounce::addUser($user);
-
-        // Guillotina Telegram: kick del grupo si estaba vinculado
-        if ($user->telegram_chat_id) {
-            try {
-                (new TelegramService())->kickUser((string) $user->telegram_chat_id);
-            } catch (\Throwable $e) {
-                Log::warning('Telegram kick failed for user '.$user->username, ['error' => $e->getMessage()]);
-            }
-
-            $user->update([
-                'telegram_chat_id'         => null,
-                'telegram_group_joined_at' => null,
-                'telegram_token'           => null,
-            ]);
-        }
-
-        $user->notify(new UserBan($ban));
+        // NOBS: el mismo baneo que el del botón de H&R (App\Services\BanConInvitacion):
+        // invitación al grupo de baneados por privado del bot y en el correo,
+        // expulsión del grupo principal y registro con plazo de poda. Sustituye
+        // al ritual nativo, que hacía lo mismo sin invitación y con el correo
+        // UserBan en inglés.
+        $hecho = BanConInvitacion::ban($user, $staff, (string) $request->validated('ban_reason'), 'manual');
 
         return to_route('users.show', ['user' => $user])
-            ->with('success', 'User is now banned!');
+            ->with('success', $hecho['invitacion'] === null
+                ? 'Usuario baneado. Sin invitación al grupo de baneados (no configurado o falló).'
+                : 'Usuario baneado e invitado al grupo de baneados'.($hecho['telegram'] ? ' (privado del bot enviado).' : ' (por correo; sin Telegram vinculado).'));
     }
 }
