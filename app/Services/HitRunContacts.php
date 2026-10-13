@@ -109,6 +109,15 @@ final class HitRunContacts
             ->select('user_id', DB::raw('COUNT(*) AS n'))
             ->pluck('n', 'user_id');
 
+        // Un aviso con fecha de eliminacion ya dado y vencido: ese plazo era el
+        // unico. No se le escribe otra vez; lo decide el boton de baneo.
+        $avisadosConFecha = StaffContact::query()
+            ->whereIn('user_id', $ids->all())
+            ->whereIn('plantilla', HitRunBans::PLANTILLAS_CON_FECHA)
+            ->groupBy('user_id')
+            ->select('user_id', DB::raw('MAX(contacted_at) AS t'))
+            ->pluck('t', 'user_id');
+
         $incluidos = collect();
         $excluidos = collect();
 
@@ -134,6 +143,10 @@ final class HitRunContacts
                     'en proceso: %s, hasta el %s',
                     $abiertos[$u->id]->campana,
                     $abiertos[$u->id]->plazo_hasta->timezone('Europe/Madrid')->format('d/m/Y'),
+                ),
+                isset($avisadosConFecha[$u->id]) => \sprintf(
+                    'avisado el %s con fecha de eliminación: toca decidir, no escribir',
+                    Carbon::parse($avisadosConFecha[$u->id])->timezone('Europe/Madrid')->format('d/m/Y'),
                 ),
                 $fila['contactos'] >= self::CONTACTOS_PARA_DECIDIR => \sprintf('ya contactado %d veces: toca decidir, no escribir', $fila['contactos']),
                 default                                            => null,
@@ -192,7 +205,7 @@ final class HitRunContacts
      * @param  list<int>                                    $ids
      * @return array{enviados: int, saltados: list<string>}
      */
-    public static function send(array $ids, string $filtro, string $canal, int $plazoDias, User $staff): array
+    public static function send(array $ids, string $filtro, User $staff): array
     {
         $vigentes = self::recipients($filtro)['incluidos']->keyBy('id');
 
@@ -223,28 +236,36 @@ final class HitRunContacts
             $conversationId = null;
             $canales = [];
 
-            if ($canal === 'pm' || $canal === 'pm+email') {
-                $conversationId = DB::transaction(function () use ($texto, $user, $staff): int {
-                    $conversation = Conversation::create(['subject' => $texto['asunto']]);
+            // Por tierra, mar y aire: privado siempre, correo si lo tiene y
+            // Telegram si lo tiene vinculado. Un solo contacto con fecha vale
+            // como aviso solo si le ha llegado por todas las vias posibles.
+            $conversationId = DB::transaction(function () use ($texto, $user, $staff): int {
+                $conversation = Conversation::create(['subject' => $texto['asunto']]);
 
-                    PrivateMessage::create([
-                        'conversation_id' => $conversation->id,
-                        'sender_id'       => $staff->id,
-                        'message'         => $texto['bbcode'],
-                    ]);
+                PrivateMessage::create([
+                    'conversation_id' => $conversation->id,
+                    'sender_id'       => $staff->id,
+                    'message'         => $texto['bbcode'],
+                ]);
 
-                    $conversation->users()->sync([$staff->id => ['read' => true], $user->id]);
+                $conversation->users()->sync([$staff->id => ['read' => true], $user->id]);
 
-                    return $conversation->id;
-                });
+                return $conversation->id;
+            });
 
-                $canales[] = 'pm';
-            }
+            $canales[] = 'pm';
 
-            if (($canal === 'email' || $canal === 'pm+email') && !empty($user->email)) {
+            if (!empty($user->email)) {
                 Mail::to($user->email)->queue(new HitRunReminder($texto['asunto'], $texto['texto']));
 
                 $canales[] = 'email';
+            }
+
+            if (!empty($user->telegram_chat_id) && app(TelegramService::class)->sendMessage(
+                self::telegramText($user, $texto, $conversationId),
+                (string) $user->telegram_chat_id,
+            )) {
+                $canales[] = 'telegram';
             }
 
             StaffContact::create([
@@ -257,7 +278,7 @@ final class HitRunContacts
                 'hr_en_camino'     => $detalle['en_camino']->count(),
                 'horas_pendientes' => $detalle['horas_pendientes'],
                 'conversation_id'  => $conversationId,
-                'plazo_hasta'      => now()->addDays($plazoDias),
+                'plazo_hasta'      => now()->addDays(HitRunBans::DIAS_BANEO),
                 'staff_id'         => $staff->id,
                 'origen'           => 'boton',
             ]);
@@ -302,11 +323,13 @@ final class HitRunContacts
 
         $b = 'Hola, '.$user->username.'.'."\n\n";
 
-        $b .= match ($plantilla) {
-            'hitrun-cortada' => \sprintf('Tienes [b]%s[/b], y con %d se corta la descarga: ahora mismo no puedes descargar. De todo se sale. Estos son los torrents que te faltan:', $activos, $max),
-            'hitrun-limite'  => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga: todavía puedes evitarlo. Estos son los torrents:', $activos, $llegan, $max),
-            default          => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga. Estos son los torrents que te faltan:', $activos, $llegan, $max),
+        $intro = match ($plantilla) {
+            'hitrun-cortada' => \sprintf('Tienes [b]%s[/b], y con %d se corta la descarga: ahora mismo no puedes descargar. De todo se sale.', $activos, $max),
+            'hitrun-limite'  => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga: todavía puedes evitarlo.', $activos, $llegan, $max),
+            default          => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga.', $activos, $llegan, $max),
         };
+        $b .= $intro.' '.($plantilla === 'hitrun-limite' ? 'Estos son los torrents:' : 'Estos son los torrents que te faltan:');
+        $baja = null;
 
         if ($n > 0) {
             $b .= "\n".self::bbList($detalle['activos'], $horasReq)."\n";
@@ -333,9 +356,10 @@ final class HitRunContacts
         $b .= '[/list]'.($wiki === '' ? '' : "\n".$wiki)."\n\n";
 
         if ($plantilla !== 'hitrun-lista') {
-            $b .= '[b]Una cuenta con la que no se hace nada por arreglarla no tiene sentido conservarla.[/b] Si el '
+            $baja = '[b]Una cuenta con la que no se hace nada por arreglarla no tiene sentido conservarla.[/b] Si el '
                 .now()->addDays(HitRunBans::DIAS_BANEO)->timezone('Europe/Madrid')->format('d/m/Y')
-                .' no has empezado a recuperarla, la cuenta se eliminará.'."\n\n";
+                .' no has empezado a recuperarla, la cuenta se eliminará.';
+            $b .= $baja."\n\n";
         }
 
         $b .= 'Si algo no te cuadra o has perdido algún fichero, contesta a este mensaje y lo vemos.'."\n\n"
@@ -349,7 +373,28 @@ final class HitRunContacts
 
         $texto = self::bbToText($b)."\n\n".'(Este mismo mensaje lo tienes en tu buzón del tracker, con los enlaces.)';
 
-        return ['asunto' => $asunto, 'bbcode' => $b, 'texto' => $texto, 'plantilla' => $plantilla];
+        return ['asunto' => $asunto, 'bbcode' => $b, 'texto' => $texto, 'plantilla' => $plantilla, 'intro' => $intro, 'baja' => $baja];
+    }
+
+    /**
+     * Version corta para el privado del bot de Telegram: el arranque, la fecha
+     * si la hay y el enlace al mensaje completo (la lista no cabe en un
+     * privado de Telegram y alli no se ve bien). parse_mode HTML.
+     *
+     * @param array{asunto: string, intro: string, baja: string|null} $texto
+     */
+    private static function telegramText(User $user, array $texto, ?int $conversationId): string
+    {
+        $html = fn (string $bb): string => preg_replace('/\[b\](.*?)\[\/b\]/s', '<b>$1</b>', e($bb)) ?? e($bb);
+
+        $enlace = $conversationId === null
+            ? rtrim((string) config('app.url'), '/')
+            : rtrim((string) config('app.url'), '/').'/users/'.rawurlencode($user->username).'/conversations/'.$conversationId;
+
+        return '<b>'.e($texto['asunto']).'</b>'."\n\n"
+            .$html($texto['intro'])."\n\n"
+            .($texto['baja'] === null ? '' : $html($texto['baja'])."\n\n")
+            .'La lista de torrents y cómo arreglarlo, en tu buzón del tracker: '.$enlace;
     }
 
     /**
