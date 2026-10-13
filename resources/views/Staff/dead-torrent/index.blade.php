@@ -62,7 +62,7 @@
             >
                 @csrf
                 <div class="data-table-wrapper">
-                    <table class="data-table">
+                    <table class="data-table" data-tools>
                         <thead>
                             <tr>
                                 <th></th>
@@ -85,11 +85,11 @@
                                         <a href="{{ route('torrents.show', ['id' => $t->id]) }}">{{ $t->name }}</a>
                                     </td>
                                     <td>{{ $t->subidor }}</td>
-                                    <td>{{ App\Helpers\StringHelper::formatBytes($t->size, 1) }}</td>
+                                    <td data-sort="{{ $t->size }}">{{ App\Helpers\StringHelper::formatBytes($t->size, 1) }}</td>
                                     <td>{{ $t->completaron }}</td>
                                     <td>{{ $t->leechers }}</td>
-                                    <td>{{ Illuminate\Support\Carbon::parse($t->created_at)->timezone('Europe/Madrid')->format('d/m/Y') }}</td>
-                                    <td>
+                                    <td data-sort="{{ $t->created_at }}">{{ Illuminate\Support\Carbon::parse($t->created_at)->timezone('Europe/Madrid')->format('d/m/Y') }}</td>
+                                    <td data-sort="{{ $t->ultima_semilla ?? '0000' }}">
                                         @if ($t->ultima_semilla === null)
                                             <em>nunca</em>
                                         @else
@@ -119,7 +119,7 @@
             <div class="panel__body">Ninguno.</div>
         @else
             <div class="data-table-wrapper">
-                <table class="data-table">
+                <table class="data-table" data-tools>
                     <thead>
                         <tr>
                             <th>Torrent</th>
@@ -136,10 +136,10 @@
                                 <td>
                                     <a href="{{ route('torrents.show', ['id' => $n->torrent_id]) }}">{{ $n->nombre }}</a>
                                 </td>
-                                <td>{{ $n->avisado_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
+                                <td data-sort="{{ $n->avisado_at }}">{{ $n->avisado_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
                                 <td>{{ $n->staff?->username ?? '—' }}</td>
                                 <td>{{ $n->destinatarios }}</td>
-                                <td title="{{ $n->borrar_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}">
+                                <td data-sort="{{ $n->borrar_at }}" title="{{ $n->borrar_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}">
                                     {{ $n->borrar_at->isPast() ? 'en la próxima pasada' : $n->borrar_at->diffForHumans() }}
                                 </td>
                                 <td>
@@ -171,7 +171,7 @@
             <div class="panel__body">Ninguna todavía.</div>
         @else
             <div class="data-table-wrapper">
-                <table class="data-table">
+                <table class="data-table" data-tools>
                     <thead>
                         <tr>
                             <th>Torrent</th>
@@ -199,8 +199,8 @@
                                             ✋ cancelado
                                     @endswitch
                                 </td>
-                                <td>{{ $n->avisado_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
-                                <td>{{ $n->resuelto_at?->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
+                                <td data-sort="{{ $n->avisado_at }}">{{ $n->avisado_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
+                                <td data-sort="{{ $n->resuelto_at }}">{{ $n->resuelto_at?->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -230,4 +230,5 @@
 
 @section('scripts')
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}"></script>
+    @include('Staff.partials.table-tools')
 @endsection
