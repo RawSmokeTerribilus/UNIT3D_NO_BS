@@ -66,6 +66,22 @@ class StaffContact extends Model
     }
 
     /**
+     * Solo contactos posteriores al último desbaneo del socio. Un desbaneo pone
+     * el contador a cero: lo de antes ya se decidió (se le baneó y se le dio
+     * otra oportunidad) y no puede volver a sumar para un baneo nuevo ni
+     * impedir que se le mande un aviso nuevo con fecha.
+     *
+     * @param Builder<self> $query
+     */
+    public function scopeTrasUltimoDesbaneo(Builder $query): void
+    {
+        $query->whereNotExists(fn ($q) => $q->from('bans as b')
+            ->whereColumn('b.owned_by', 'staff_contacts.user_id')
+            ->whereNotNull('b.removed_at')
+            ->whereColumn('b.removed_at', '>=', 'staff_contacts.contacted_at'));
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

@@ -72,6 +72,7 @@ final class HitRunBans
         $marcadores = implode(',', array_fill(0, \count(self::PLANTILLAS_CON_FECHA), '?'));
 
         $contactos = StaffContact::query()
+            ->trasUltimoDesbaneo()
             ->where('campana', 'like', 'hitrun%')
             ->where('canal', '!=', 'ninguno')
             ->groupBy('user_id')
@@ -162,6 +163,13 @@ final class HitRunBans
                 // de candidatos más abajo). Decisión del operador, 2026-10-13.
                 'marcado' => $c->ultimo_con_fecha !== null || $web === null || $web->lte($ultimo),
             ];
+
+            // Sin ningún H&R activo está solucionado: ni se lista. Si vuelve a
+            // acumular, reaparece solo. Si no, con el registro creciendo cada
+            // campaña, esta lista sería enorme en un año.
+            if ($fila['activos'] === 0) {
+                continue;
+            }
 
             $motivo = match (true) {
                 $u->is_modo || $u->is_admin || $u->is_owner                 => 'staff',

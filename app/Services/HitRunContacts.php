@@ -105,6 +105,7 @@ final class HitRunContacts
             ->keyBy('user_id');
 
         $contactos = StaffContact::query()
+            ->trasUltimoDesbaneo()
             ->whereIn('user_id', $ids->all())
             ->where('canal', '!=', 'ninguno')
             ->where('campana', 'like', 'hitrun%')
@@ -115,6 +116,7 @@ final class HitRunContacts
         // Un aviso con fecha de eliminacion ya dado y vencido: ese plazo era el
         // unico. No se le escribe otra vez; lo decide el boton de baneo.
         $avisadosConFecha = StaffContact::query()
+            ->trasUltimoDesbaneo()
             ->whereIn('user_id', $ids->all())
             ->whereIn('plantilla', HitRunBans::PLANTILLAS_CON_FECHA)
             ->groupBy('user_id')
