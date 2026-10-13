@@ -131,15 +131,18 @@
     </section>
 
     @if ($muestra !== null)
+        {{-- Plegada por defecto: la página es para revisar la lista, no la carta. --}}
         <section class="panelV2">
-            <h2 class="panel__heading">
-                <i class="{{ config('other.font-awesome') }} fa-eye"></i>
-                Muestra — lo que recibiría {{ $muestra['para'] }}
-            </h2>
-            <div class="panel__body">
-                <p><strong>{{ $muestra['asunto'] }}</strong></p>
-                <pre class="hrc-muestra">{{ $muestra['texto'] }}</pre>
-            </div>
+            <details class="hrc-details">
+                <summary class="panel__heading">
+                    <i class="{{ config('other.font-awesome') }} fa-eye"></i>
+                    Muestra — lo que recibiría {{ $muestra['para'] }} (pulsa para ver)
+                </summary>
+                <div class="panel__body">
+                    <p><strong>{{ $muestra['asunto'] }}</strong></p>
+                    <pre class="hrc-muestra">{{ $muestra['texto'] }}</pre>
+                </div>
+            </details>
         </section>
     @endif
 
@@ -240,6 +243,23 @@
         .hrc-hint {
             opacity: 0.7;
             font-size: 1.2rem;
+        }
+
+        .hrc-details > summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .hrc-details > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .hrc-details > summary::after {
+            content: ' ▸';
+        }
+
+        .hrc-details[open] > summary::after {
+            content: ' ▾';
         }
 
         .hrc-muestra {
