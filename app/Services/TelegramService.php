@@ -268,6 +268,34 @@ class TelegramService
         }
     }
 
+    /**
+     * Enlace de invitacion de UN solo uso a un grupo, con nombre (Telegram lo
+     * devuelve en la actualizacion chat_member de quien entra por el, asi se
+     * sabe quien fue). Null si falla.
+     */
+    public function createSingleUseInvite(string $chatId, string $name): ?string
+    {
+        $token = config('services.telegram.token');
+
+        if (empty($token)) {
+            return null;
+        }
+
+        try {
+            $response = Http::post("https://api.telegram.org/bot{$token}/createChatInviteLink", [
+                'chat_id'      => $chatId,
+                'name'         => mb_substr($name, 0, 32),
+                'member_limit' => 1,
+            ]);
+
+            return $response->successful() ? ($response->json('result.invite_link') ?: null) : null;
+        } catch (\Throwable $e) {
+            Log::error('TelegramService: Error en createChatInviteLink.', ['chat_id' => $chatId, 'msg' => $e->getMessage()]);
+
+            return null;
+        }
+    }
+
     private function isMemberStatus(string $status, bool $isMember = false): bool
     {
         return in_array($status, ['member', 'administrator', 'creator'], true)

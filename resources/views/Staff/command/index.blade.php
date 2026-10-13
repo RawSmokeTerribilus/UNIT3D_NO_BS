@@ -177,6 +177,14 @@
                     <i class="{{ config('other.font-awesome') }} fa-envelope-open-text"></i>
                     Mensajes de H&amp;R
                 </a>
+                <a
+                    href="{{ route('staff.commands.hitrun_bans.index') }}"
+                    class="cmd-btn cmd-btn--danger"
+                    title="Banea a quien sigue sin hacer caso tras los mensajes de H&R (lista y confirmación), le invita al grupo de baneados para responder y prunea después a quien no respondió"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-user-slash"></i>
+                    Baneo por H&amp;R abandonado
+                </a>
             </div>
         </section>
 

@@ -361,6 +361,11 @@ final class HitRunContacts
             ->map(fn ($n) => (int) $n);
     }
 
+    public static function onTheWayCountFor(int $userId): int
+    {
+        return self::onTheWayQuery()->where('h.user_id', '=', $userId)->count();
+    }
+
     /**
      * @return Collection<int, int> user_id => torrents en camino
      */

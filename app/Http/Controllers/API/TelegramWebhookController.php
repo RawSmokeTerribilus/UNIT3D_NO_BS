@@ -16,6 +16,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\HitRunBans;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -77,6 +78,16 @@ class TelegramWebhookController extends Controller
         $membershipUpdate = $request->input('chat_member') ?? $request->input('my_chat_member');
 
         if (is_array($membershipUpdate)) {
+            // El grupo «Baneados de NOBS» tiene su propio registro de
+            // entradas (App\Services\HitRunBans); no es el grupo de miembros.
+            $bannedGroupId = (string) config('services.telegram.banned_group_id', '');
+
+            if ($bannedGroupId !== '' && (string) ($membershipUpdate['chat']['id'] ?? '') === $bannedGroupId) {
+                HitRunBans::recordJoin($membershipUpdate);
+
+                return response()->json(['status' => 'ok'], 200);
+            }
+
             $this->handleMembershipUpdate($membershipUpdate);
 
             return response()->json(['status' => 'ok'], 200);

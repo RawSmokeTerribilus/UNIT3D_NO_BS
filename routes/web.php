@@ -1022,6 +1022,11 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->grou
                 Route::get('/hitrun-contacts', [App\Http\Controllers\Staff\HitRunContactController::class, 'index'])->name('commands.hitrun_contacts.index');
                 Route::post('/hitrun-contacts', [App\Http\Controllers\Staff\HitRunContactController::class, 'store'])->name('commands.hitrun_contacts.store');
 
+                // Baneo por H&R abandonado → grupo de Telegram de baneados → poda
+                Route::get('/hitrun-bans', [App\Http\Controllers\Staff\HitRunBanController::class, 'index'])->name('commands.hitrun_bans.index');
+                Route::post('/hitrun-bans', [App\Http\Controllers\Staff\HitRunBanController::class, 'store'])->name('commands.hitrun_bans.store');
+                Route::post('/hitrun-bans/prune', [App\Http\Controllers\Staff\HitRunBanController::class, 'prune'])->name('commands.hitrun_bans.prune');
+
                 // Rust Tracker Sync
                 Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
                 Route::post('/tracker-sync-users', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerUsers']);

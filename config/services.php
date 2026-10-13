@@ -42,6 +42,10 @@ return [
         // Grupo interno del staff. Si esta vacio, los avisos internos NO caen
         // al grupo de miembros: se saltan y se registran en el log.
         'staff_chat_id'     => env('TELEGRAM_STAFF_GROUP_ID'),
+        // Grupo «Baneados de NOBS»: a donde se invita a quien se banea por H&R
+        // abandonado para que pueda responder. Vacio = no se invita a nadie
+        // (staging: comparte el bot con prod y no debe tocar el grupo real).
+        'banned_group_id'   => env('TELEGRAM_BANNED_GROUP_ID'),
         'topic_id'          => env('TELEGRAM_TOPIC_NOVEDADES'),
         // Topic de noticias del grupo de miembros: es donde se anuncian los
         // eventos del sitio (promos que empiezan y terminan).
