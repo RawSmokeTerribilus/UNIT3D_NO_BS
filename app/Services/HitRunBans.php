@@ -16,17 +16,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Ban;
-use App\Models\Group;
 use App\Models\HitRunBan;
 use App\Models\StaffContact;
 use App\Models\User;
-use App\Notifications\HitRunBanned;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Baneo de quien sigue sin hacer caso tras los mensajes de H&R, y poda
@@ -199,8 +195,6 @@ final class HitRunBans
     public static function ban(array $ids, int $dias, User $staff): array
     {
         $vigentes = self::candidates($dias)['candidatos']->keyBy('id');
-        $grupoBaneados = config('services.telegram.banned_group_id');
-        $bannedGroupId = Group::where('slug', '=', 'banned')->soleValue('id');
         $r = ['baneados' => [], 'saltados' => [], 'sin_invitacion' => []];
 
         foreach (array_unique($ids) as $id) {
@@ -222,99 +216,14 @@ final class HitRunBans
                 $fila['ultimo_contacto']->format('d/m/Y'),
             );
 
-            $podaEl = now()->addDays(self::DIAS_PODA);
-            $telegramId = $user->telegram_chat_id;
+            // El baneo es el mismo que el del perfil: App\Services\BanConInvitacion.
+            $hecho = BanConInvitacion::ban($user, $staff, $motivo, 'hitrun', [
+                'activos'   => $fila['activos'],
+                'en_camino' => $fila['en_camino'],
+            ]);
 
-            // 1. Invitacion y privado del bot ANTES del baneo: el baneo nativo
-            //    borra telegram_chat_id y luego ya no hay a quien escribir.
-            $invitacion = null;
-            $telegramEnviado = false;
-
-            if (!empty($grupoBaneados)) {
-                $invitacion = app(TelegramService::class)->createSingleUseInvite((string) $grupoBaneados, $user->username);
-
-                if ($invitacion !== null && !empty($telegramId)) {
-                    // Con botón, como el «📡 UNIRSE AL GRUPO» de la vinculación: un
-                    // toque y entra (un bot no puede añadir a nadie él solo).
-                    $telegramEnviado = app(TelegramService::class)->sendMessageWithButton(
-                        'Hola, '.e($user->username).'. Tu cuenta de '.e((string) config('other.title')).' ha sido baneada por '.e($motivo)."\n\n"
-                        .'Si quieres explicarte o arreglarlo, entra al grupo de baneados con el botón de abajo. Es personal y de un solo uso: no lo compartas.'."\n\n"
-                        .'Si el '.$podaEl->copy()->timezone('Europe/Madrid')->format('d/m/Y').' no sabemos nada de ti, la cuenta se dará de baja.',
-                        (string) $telegramId,
-                        "\u{1F4E1} ENTRAR AL GRUPO DE BANEADOS",
-                        $invitacion,
-                    );
-                }
-            }
-
-            if ($invitacion === null) {
+            if ($hecho['invitacion'] === null) {
                 $r['sin_invitacion'][] = $user->username;
-            }
-
-            // 2. Baneo con el ritual de Staff\BanController::store y los dos
-            //    registros, todo o nada: un fallo a medias dejaria a alguien
-            //    baneado sin rastro de por que ni plazo de poda.
-            $correo = !empty($user->email);
-
-            DB::transaction(function () use ($user, $staff, $motivo, $bannedGroupId, $fila, $invitacion, $telegramId, $telegramEnviado, $correo, $podaEl): void {
-                $user->update([
-                    'group_id'     => $bannedGroupId,
-                    'can_download' => 0,
-                ] + ($telegramId ? [
-                    'telegram_chat_id'         => null,
-                    'telegram_group_joined_at' => null,
-                    'telegram_token'           => null,
-                ] : []));
-
-                $ban = Ban::create([
-                    'owned_by'   => $user->id,
-                    'created_by' => $staff->id,
-                    'ban_reason' => ucfirst($motivo),
-                ]);
-
-                HitRunBan::create([
-                    'user_id'          => $user->id,
-                    'ban_id'           => $ban->id,
-                    'staff_id'         => $staff->id,
-                    'banned_at'        => now(),
-                    'telegram_user_id' => $telegramId ?: null,
-                    'invite_link'      => $invitacion,
-                    'invite_name'      => $invitacion === null ? null : mb_substr($user->username, 0, 32),
-                    'telegram_enviado' => $telegramEnviado,
-                    'correo_enviado'   => $correo,
-                    'prune_after'      => $podaEl,
-                ]);
-
-                StaffContact::create([
-                    'user_id'      => $user->id,
-                    'contacted_at' => now(),
-                    'campana'      => 'baneo-hitrun-'.now()->format('Y-m-d'),
-                    'canal'        => implode('+', array_filter([$correo ? 'email' : null, $telegramEnviado ? 'telegram' : null])) ?: 'ninguno',
-                    'plantilla'    => 'baneo-hitrun',
-                    'hr_activos'   => $fila['activos'],
-                    'hr_en_camino' => $fila['en_camino'],
-                    'plazo_hasta'  => $podaEl,
-                    'staff_id'     => $staff->id,
-                    'origen'       => 'boton',
-                    'nota'         => $invitacion === null ? 'sin invitación al grupo de baneados' : 'invitación: '.$invitacion,
-                ]);
-            });
-
-            // 3. Lo que sale fuera, ya con el baneo guardado.
-            cache()->forget('user:'.$user->passkey);
-
-            Unit3dAnnounce::addUser($user);
-
-            if ($telegramId) {
-                try {
-                    app(TelegramService::class)->kickUser((string) $telegramId);
-                } catch (Throwable $e) {
-                    Log::warning('Telegram kick failed for user '.$user->username, ['error' => $e->getMessage()]);
-                }
-            }
-
-            if ($correo) {
-                $user->notify(new HitRunBanned($motivo, $invitacion, $podaEl));
             }
 
             $r['baneados'][] = $user->username;

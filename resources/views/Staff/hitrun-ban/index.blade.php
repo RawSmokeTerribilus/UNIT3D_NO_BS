@@ -168,7 +168,7 @@
     <section class="panelV2">
         <h2 class="panel__heading panel__heading--danger">
             <i class="{{ config('other.font-awesome') }} fa-skull"></i>
-            Plazo vencido, para prunear: {{ $podables->count() }}
+            Plazo vencido, para prunear: {{ $podables->count() }} (H&amp;R y baneos desde el perfil)
         </h2>
         @if ($podables->isNotEmpty())
             <form
@@ -183,6 +183,7 @@
                             <tr>
                                 <th></th>
                                 <th>Socio</th>
+                                <th>Origen</th>
                                 <th>Baneado</th>
                                 <th>Invitación</th>
                                 <th>Entró al grupo</th>
@@ -193,6 +194,7 @@
                                 <tr>
                                     <td><input type="checkbox" name="ids[]" value="{{ $b->id }}" @checked($b->joined_at === null) /></td>
                                     <td>{{ $b->user->username }}</td>
+                                    <td>{{ $b->origen === 'hitrun' ? 'H&R' : 'perfil' }}</td>
                                     <td>{{ $b->banned_at->timezone('Europe/Madrid')->format('d/m/Y') }}</td>
                                     <td>{{ $b->invite_link === null ? 'no' : ($b->telegram_enviado ? 'TG + correo' : 'correo') }}</td>
                                     <td>{{ $b->joined_at?->timezone('Europe/Madrid')->format('d/m/Y H:i') ?? 'no' }}</td>
@@ -212,13 +214,14 @@
     <section class="panelV2">
         <h2 class="panel__heading">
             <i class="{{ config('other.font-awesome') }} fa-history"></i>
-            Baneos por H&amp;R (últimos 50)
+            Baneos con invitación al grupo de baneados (últimos 50)
         </h2>
         <div class="data-table-wrapper">
             <table class="data-table" data-tools>
                 <thead>
                     <tr>
                         <th>Socio</th>
+                        <th>Origen</th>
                         <th>Baneado</th>
                         <th>Por</th>
                         <th>Invitación</th>
@@ -231,6 +234,7 @@
                     @forelse ($baneos as $b)
                         <tr>
                             <td>{{ $b->user?->username ?? '#'.$b->user_id }}</td>
+                            <td>{{ $b->origen === 'hitrun' ? 'H&R' : 'perfil' }}</td>
                             <td>{{ $b->banned_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
                             <td>{{ $b->staff?->username ?? '—' }}</td>
                             <td>{{ $b->invite_link === null ? 'no' : ($b->telegram_enviado ? 'TG + correo' : 'correo') }}</td>
@@ -239,7 +243,7 @@
                             <td>{{ $b->pruned_at?->timezone('Europe/Madrid')->format('d/m/Y') ?? '—' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7">Ninguno todavía.</td></tr>
+                        <tr><td colspan="8">Ninguno todavía.</td></tr>
                     @endforelse
                 </tbody>
             </table>
