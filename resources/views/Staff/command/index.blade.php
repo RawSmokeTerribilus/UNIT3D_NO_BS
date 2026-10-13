@@ -169,6 +169,14 @@
                     <i class="{{ config('other.font-awesome') }} fa-skull-crossbones"></i>
                     Torrents muertos
                 </a>
+                <a
+                    href="{{ route('staff.commands.hitrun_contacts.index') }}"
+                    class="cmd-btn cmd-btn--warning"
+                    title="Mensaje a cada socio con hit and run con su lista de torrents y horas que faltan; queda anotado en el registro de contactos"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-envelope-open-text"></i>
+                    Mensajes de H&amp;R
+                </a>
             </div>
         </section>
 
