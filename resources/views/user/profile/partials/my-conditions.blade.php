@@ -12,16 +12,22 @@
 @php
     $group = $user->group;
 
-    // Freeleech — site-wide OR group perk
+    // Donante: los perks los aplica el announce Rust con sus overrides
+    // (DONOR_*/LIFETIME_DONOR_* en docker-compose.yml): descarga 0, subida
+    // x2 o x2,55 para siempre, inmunidad H&R y slots ilimitados. El panel solo
+    // miraba sitio y grupo, y a todo donante le pintaba la cruz.
+    $isDonor    = (bool) $user->is_donor;
+    $donorLabel = $isDonor ? ($user->is_lifetime ? 'donante, para siempre' : 'donante') : null;
+
+    // Freeleech — site-wide OR group perk OR donante
     $siteFreeleech  = (bool) config('other.freeleech');
     $groupFreeleech = (bool) $group->is_freeleech;
-    $freeleechOn    = $siteFreeleech || $groupFreeleech;
-    $freeleechSrc   = match(true) {
-        $siteFreeleech && $groupFreeleech => 'sitio + grupo',
-        $siteFreeleech                    => 'sitio',
-        $groupFreeleech                   => 'grupo',
-        default                           => null,
-    };
+    $freeleechOn    = $siteFreeleech || $groupFreeleech || $isDonor;
+    $freeleechSrc   = implode(' + ', array_filter([
+        $siteFreeleech ? 'sitio' : null,
+        $groupFreeleech ? 'grupo' : null,
+        $donorLabel,
+    ])) ?: null;
     // La fecha se guarda en UTC. Se imprime formateada y CON la zona dicha en
     // voz alta: antes salia la cadena cruda '06/15/2026 3:00 PM EST' en mitad
     // de una frase en espanol, y nadie sabia a que hora era eso.
@@ -30,13 +36,12 @@
     // Double upload
     $siteDouble  = (bool) config('other.doubleup');
     $groupDouble = (bool) $group->is_double_upload;
-    $doubleOn    = $siteDouble || $groupDouble;
-    $doubleSrc   = match(true) {
-        $siteDouble && $groupDouble => 'sitio + grupo',
-        $siteDouble                 => 'sitio',
-        $groupDouble                => 'grupo',
-        default                     => null,
-    };
+    $doubleOn    = $siteDouble || $groupDouble || $isDonor;
+    $doubleSrc   = implode(' + ', array_filter([
+        $siteDouble ? 'sitio' : null,
+        $groupDouble ? 'grupo' : null,
+        $isDonor ? ($user->is_lifetime ? 'donante, x2,55' : 'donante') : null,
+    ])) ?: null;
 
     // Minimum ratio — group overrides global when set
     $groupRatio     = $group->min_ratio !== null ? (float) $group->min_ratio : null;
@@ -46,7 +51,8 @@
 
     // Hit & Run
     $hrEnabled  = (bool) config('hitrun.enabled');
-    $hrImmune   = (bool) $group->is_immune;
+    $hrImmune   = (bool) $group->is_immune || $isDonor;
+    $hrImmuneSrc = $group->is_immune ? 'grupo inmune' : $donorLabel;
     $hrSeedtime = (int) round(config('hitrun.seedtime') / 3600); // hours
     $hrGrace    = (int) config('hitrun.grace');
     $hrMaxWarn  = (int) config('hitrun.max_warnings');
@@ -150,7 +156,7 @@
                 <dd>
                     <i class="{{ config('other.font-awesome') }} fa-shield-alt text-green"></i>
                     <span class="text-green">Exento</span>
-                    <span style="font-size:.8em; opacity:.7">(grupo inmune)</span>
+                    <span style="font-size:.8em; opacity:.7">({{ $hrImmuneSrc }})</span>
                 </dd>
             </div>
         @else
@@ -178,6 +184,9 @@
             <dd>
                 @if ($slots === null)
                     <span style="opacity:.7">Ilimitados</span>
+                @elseif ($isDonor)
+                    <span class="text-green">Ilimitados</span>
+                    <span style="font-size:.8em; opacity:.7">({{ $donorLabel }})</span>
                 @else
                     {{ $slots }}
                 @endif
