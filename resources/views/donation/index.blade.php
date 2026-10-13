@@ -281,8 +281,9 @@
             </p>
         </div>
 
-        {{-- Antes de donar. Se abre al entrar. La lista no es decorativa: los
-             métodos no se pueden pulsar hasta marcar las tres. --}}
+        {{-- Antes de donar. Se abre al entrar. Hubo tres casillas obligatorias
+             (2026-10-12) y se quitaron al día siguiente: liaban a la gente y
+             repetían lo que ya dice la descripción. --}}
         <dialog class="dialog donation-dialog donation-antes" x-ref="antes">
             <h2 class="dialog__heading">Antes de donar</h2>
             <div class="donation-dialog__step-body" style="grid-column: auto">
@@ -299,42 +300,9 @@
                     </p>
                 @endif
 
-                <ul class="donation-antes__checks">
-                    <li>
-                        <label>
-                            <input type="checkbox" class="form__checkbox" x-model="checks[0]" />
-                            <span>
-                                Es una donación: no se devuelve y no compra nada. Los premios se
-                                regalan igual a todo el mundo.
-                            </span>
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="checkbox" class="form__checkbox" x-model="checks[1]" />
-                            <span>
-                                Me lo puedo permitir. Si este dinero te hace falta para otra
-                                cosa, no dones: el sitio seguirá aquí igual.
-                            </span>
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="checkbox" class="form__checkbox" x-model="checks[2]" />
-                            <span>
-                                Sé que la revisa una persona a mano y puede tardar hasta
-                                48&nbsp;horas en aplicarse.
-                            </span>
-                        </label>
-                    </li>
-                </ul>
-
                 @if ($gateways->isNotEmpty())
                     <p><strong>¿Cómo quieres pagar?</strong></p>
-                    <ul
-                        class="donation-metodos"
-                        x-bind:class="{ 'donation-metodos--bloqueados': ! checks.every(Boolean) }"
-                    >
+                    <ul class="donation-metodos">
                         @foreach ($gateways as $gateway)
                             @php
                                 $tramosMetodo = $packages
@@ -347,7 +315,6 @@
                                 <button
                                     type="button"
                                     class="donation-metodo"
-                                    x-bind:disabled="! checks.every(Boolean)"
                                     x-on:click="metodo = {{ $gateway->id }}; $refs.antes.close()"
                                 >
                                     @if ($gateway->icono)
@@ -574,7 +541,6 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('donar', (metodoInicial) => ({
                 metodo: metodoInicial,
-                checks: [false, false, false],
 
                 // --- la ruleta del mirón ---
                 rueda: null,
