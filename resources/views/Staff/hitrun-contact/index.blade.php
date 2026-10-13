@@ -191,6 +191,7 @@
                         <th>Activos / camino</th>
                         <th>Horas</th>
                         <th>Plazo</th>
+                        <th>Vio el aviso</th>
                         <th>Por</th>
                     </tr>
                 </thead>
@@ -209,10 +210,11 @@
                             <td>{{ $c->hr_activos ?? '—' }} / {{ $c->hr_en_camino ?? '—' }}</td>
                             <td>{{ $c->horas_pendientes ?? '—' }}</td>
                             <td data-sort="{{ $c->plazo_hasta ?? '0000' }}">{{ $c->plazo_hasta?->timezone('Europe/Madrid')->format('d/m/Y') ?? '—' }}</td>
+                            <td data-sort="{{ $c->visto_at ?? '0000' }}">{{ $c->visto_at?->timezone('Europe/Madrid')->format('d/m/Y H:i') ?? '—' }}</td>
                             <td>{{ $c->staff?->username ?? $c->origen }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="8">Vacío.</td></tr>
+                        <tr><td colspan="9">Vacío.</td></tr>
                     @endforelse
                 </tbody>
             </table>

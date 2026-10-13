@@ -34,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null                     $horas_pendientes
  * @property int|null                        $conversation_id
  * @property \Illuminate\Support\Carbon|null $plazo_hasta
+ * @property \Illuminate\Support\Carbon|null $visto_at
  * @property int|null                        $staff_id
  * @property string                          $origen
  * @property string|null                     $nota
@@ -50,6 +51,7 @@ class StaffContact extends Model
         return [
             'contacted_at' => 'datetime',
             'plazo_hasta'  => 'datetime',
+            'visto_at'     => 'datetime',
         ];
     }
 

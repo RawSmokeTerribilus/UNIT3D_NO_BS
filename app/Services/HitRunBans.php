@@ -112,6 +112,11 @@ final class HitRunBans
         $filasAviso = DB::table('warnings')->whereIn('user_id', $ids)->whereNull('deleted_at')
             ->groupBy('user_id')->select('user_id', DB::raw('COUNT(*) AS n'))->pluck('n', 'user_id');
 
+        // Cuándo vio la pantalla de aviso (su último aviso con fecha).
+        $vistos = StaffContact::query()->whereIn('user_id', $ids)
+            ->whereIn('plantilla', self::PLANTILLAS_CON_FECHA)->whereNotNull('visto_at')
+            ->groupBy('user_id')->select('user_id', DB::raw('MAX(visto_at) AS t'))->pluck('t', 'user_id');
+
         $ultimoAnnounce = DB::table('history')->whereIn('user_id', $ids)->whereNull('deleted_at')
             ->groupBy('user_id')->select('user_id', DB::raw('MAX(updated_at) AS t'))->pluck('t', 'user_id');
 
@@ -149,6 +154,7 @@ final class HitRunBans
                 'cumplidos'       => $cumplidos,
                 'ultimo_announce' => $announce,
                 'ultima_web'      => $web,
+                'visto'           => isset($vistos[$u->id]) ? Carbon::parse($vistos[$u->id]) : null,
                 'telegram'        => !empty($u->telegram_chat_id),
                 'tiene_email'     => !empty($u->email),
                 // Solo ha entrado a la web: candidato, pero desmarcado.

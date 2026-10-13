@@ -101,6 +101,7 @@
                                 <th>Último announce</th>
                                 <th>Última web</th>
                                 <th>TG / correo</th>
+                                <th>Vio el aviso</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -120,6 +121,7 @@
                                         @endunless
                                     </td>
                                     <td>{{ $u['telegram'] ? 'TG' : '—' }} / {{ $u['tiene_email'] ? '✉' : '—' }}</td>
+                                    <td data-sort="{{ $u['visto'] ?? '0000' }}">{{ $u['visto']?->timezone('Europe/Madrid')->format('d/m/Y H:i') ?? 'no' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

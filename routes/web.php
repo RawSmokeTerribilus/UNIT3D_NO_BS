@@ -160,7 +160,11 @@ Route::get('/authenticated-images/art/{size}/{hash}.jpg', [App\Http\Controllers\
         'hash' => '^[0-9a-f]{40}$',
     ]);
 
-Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->group(function (): void {
+Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitrun.aviso'])->group(function (): void {
+        // Pantalla de aviso de H&R (App\Http\Middleware\HitRunAvisoPendiente): el middleware la deja pasar
+        Route::get('/aviso-hit-and-run', [App\Http\Controllers\HitRunAvisoController::class, 'show'])->name('hitrun_aviso.show');
+        Route::post('/aviso-hit-and-run', [App\Http\Controllers\HitRunAvisoController::class, 'ack'])->name('hitrun_aviso.ack');
+
         // General
         Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
 
