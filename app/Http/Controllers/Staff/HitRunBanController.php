@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Models\HitRunBan;
 use App\Services\HitRunBans;
+use App\Services\HitRunContacts;
 use Illuminate\Http\Request;
 
 /**
@@ -61,6 +62,28 @@ class HitRunBanController extends Controller
                 implode(', ', $r['baneados']) ?: '—',
                 $r['sin_invitacion'] === [] ? '' : '⚠ Sin invitación al grupo de baneados (respuesta por correo): '.implode(', ', $r['sin_invitacion']).".\n",
                 $r['saltados'] === [] ? '' : 'Saltados porque ya no cumplían: '.implode(', ', $r['saltados']).'.',
+            )));
+    }
+
+    /**
+     * Último aviso con fecha a candidatos que el staff prefiere no banear aún
+     * (histórico que nunca recibió fecha). Ver HitRunContacts::sendUltimoAviso().
+     */
+    public function ultimoAviso(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $v = $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $r = HitRunContacts::sendUltimoAviso(array_map('intval', $v['ids']), $request->user());
+
+        return to_route('staff.commands.hitrun_bans.index')
+            ->with('info', trim(\sprintf(
+                "📨 Último aviso enviado a %d socio(s): privado, correo, Telegram y pantalla al entrar. Fecha de eliminación: hoy + %d días.\n%s",
+                $r['enviados'],
+                HitRunBans::DIAS_BANEO,
+                $r['saltados'] === [] ? '' : 'Saltados (ya no eran candidatos): '.implode(', ', $r['saltados']).'.',
             )));
     }
 

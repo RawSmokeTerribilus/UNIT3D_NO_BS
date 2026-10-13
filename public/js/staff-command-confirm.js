@@ -10,7 +10,10 @@
                 }
                 form.dataset.confirmBound = '1';
                 form.addEventListener('submit', function (event) {
-                    var message = form.getAttribute('data-confirm');
+                    // NOBS: un botón con su propio data-confirm (p. ej. el de «último
+                    // aviso» junto al de banear) manda sobre el del formulario.
+                    var submitter = event.submitter;
+                    var message = (submitter && submitter.getAttribute('data-confirm')) || form.getAttribute('data-confirm');
                     if (message && !window.confirm(message)) {
                         event.preventDefault();
                         event.stopPropagation();

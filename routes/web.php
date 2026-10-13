@@ -1030,6 +1030,7 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                 Route::get('/hitrun-bans', [App\Http\Controllers\Staff\HitRunBanController::class, 'index'])->name('commands.hitrun_bans.index');
                 Route::post('/hitrun-bans', [App\Http\Controllers\Staff\HitRunBanController::class, 'store'])->name('commands.hitrun_bans.store');
                 Route::post('/hitrun-bans/prune', [App\Http\Controllers\Staff\HitRunBanController::class, 'prune'])->name('commands.hitrun_bans.prune');
+                Route::post('/hitrun-bans/ultimo-aviso', [App\Http\Controllers\Staff\HitRunBanController::class, 'ultimoAviso'])->name('commands.hitrun_bans.ultimo_aviso');
 
                 // Rust Tracker Sync
                 Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
