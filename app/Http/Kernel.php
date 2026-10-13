@@ -117,6 +117,8 @@ class Kernel extends HttpKernel
         'owner'                 => Middleware\CheckForOwner::class,
         'throttle'              => \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
         'security.requirements' => Middleware\EnforceSecurityRequirements::class,
+        // NOBS: pantalla de aviso de H&R al entrar (aviso con fecha de eliminación sin ver)
+        'hitrun.aviso'          => Middleware\HitRunAvisoPendiente::class,
         'signed'                => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'verified'              => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'password.confirm'      => \Illuminate\Auth\Middleware\RequirePassword::class

@@ -283,6 +283,10 @@ final class HitRunContacts
                 'origen'           => 'boton',
             ]);
 
+            // La pantalla de aviso cachea 5 min «no tiene nada pendiente»: que el
+            // aviso nuevo le salga en la siguiente pagina, no a los 5 minutos.
+            \App\Http\Middleware\HitRunAvisoPendiente::olvidar($user->id);
+
             $enviados++;
         }
 
