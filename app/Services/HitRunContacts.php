@@ -195,8 +195,6 @@ final class HitRunContacts
     public static function send(array $ids, string $filtro, string $canal, int $plazoDias, User $staff): array
     {
         $vigentes = self::recipients($filtro)['incluidos']->keyBy('id');
-        $plantilla = $filtro === self::FILTRO_LIMITE ? 'hitrun-limite' : 'hitrun-lista';
-        $campana = $plantilla.'-'.now()->format('Y-m-d');
 
         $enviados = 0;
         $saltados = [];
@@ -220,6 +218,8 @@ final class HitRunContacts
 
             $detalle = self::detail($user->id);
             $texto = self::message($user, $staff, $filtro, $detalle);
+            $plantilla = $texto['plantilla'];
+            $campana = $plantilla.'-'.now()->format('Y-m-d');
             $conversationId = null;
             $canales = [];
 
@@ -271,80 +271,85 @@ final class HitRunContacts
     /**
      * El mensaje de un socio, en BBCode (privado) y en texto plano (correo).
      *
+     * La plantilla depende del ESTADO del socio, no del filtro de la lista:
+     *   A hitrun-cortada  descarga cortada por H&R (activos >= maximo);
+     *   B hitrun-limite   activos + los que le llegan en 48 h >= maximo;
+     *   C hitrun-lista    el resto.
+     * A y B avisan de que la cuenta se eliminara si no hace nada: la fecha es
+     * la de hoy + HitRunBans::DIAS_BANEO, que es cuando pasa a ser candidato
+     * del boton de baneo. Las listas llevan solo titulo, enlace y horas que
+     * faltan: el detalle lo ve en la web.
+     *
      * @param  array{activos: Collection<int, stdClass>, en_camino: Collection<int, stdClass>, horas_pendientes: float} $detalle
-     * @return array{asunto: string, bbcode: string, texto: string}
+     * @return array{asunto: string, bbcode: string, texto: string, plantilla: string}
      */
     public static function message(User $user, User $staff, string $filtro, array $detalle): array
     {
         $max = (int) config('hitrun.max_warnings');
         $horasReq = intdiv((int) config('hitrun.seedtime'), 3600);
-        $nActivos = $detalle['activos']->count();
-        $nCamino = $detalle['en_camino']->count();
+        $prewarn = (int) config('hitrun.prewarn');
+        $n = $detalle['activos']->count();
+        $m = $detalle['en_camino']->count();
+
+        $plantilla = match (true) {
+            $n >= $max && !$user->can_download => 'hitrun-cortada',
+            $n + $m >= $max                    => 'hitrun-limite',
+            default                            => 'hitrun-lista',
+        };
+
+        $activos = $n.' hit and run '.($n === 1 ? 'activo' : 'activos');
+        $llegan = $m > 0 ? ' y [b]'.$m.' '.($m === 1 ? 'más que te llegará' : 'más que te llegarán').'[/b] en los próximos dos días' : '';
 
         $b = 'Hola, '.$user->username.'.'."\n\n";
 
-        // «Cortada» solo si el corte es por los avisos: con menos del maximo y
-        // sin descarga, la causa es otra (ratio, staff) y no se le promete nada.
-        if ($filtro === self::FILTRO_LIMITE && $nActivos >= $max && !$user->can_download) {
-            $b .= \sprintf(
-                'Te escribimos desde el staff porque tienes [b]%d H&R activos[/b] y con %d se corta la descarga: ahora mismo la tienes cortada.',
-                $nActivos,
-                $max,
-            );
-            $b .= config('hitrun.redownload')
-                ? ' Lo que sí puedes hacer es volver a bajar [b]los torrents con H&R[/b], y solo esos, para sembrarlos: en cuanto bajes de '.$max.' H&R activos, recuperas la descarga entera sin que nadie tenga que tocar nada.'
-                : ' En cuanto bajes de '.$max.' H&R activos, recuperas la descarga sin que nadie tenga que tocar nada.';
-        } elseif ($filtro === self::FILTRO_LIMITE && $nActivos >= $max) {
-            $b .= \sprintf(
-                'Te escribimos desde el staff porque tienes [b]%d H&R activos[/b] y el límite es %d: con el próximo H&R la descarga se corta sola.',
-                $nActivos,
-                $max,
-            );
-        } elseif ($filtro === self::FILTRO_LIMITE) {
-            $b .= \sprintf(
-                'Te escribimos desde el staff porque vas camino del corte de descarga: tienes [b]%d H&R activo(s)[/b] y [b]%d torrent(s) más en camino[/b] de serlo, y con %d se corta la descarga. Todavía estás a tiempo de que no pase.',
-                $nActivos,
-                $nCamino,
-                $max,
-            );
-        } else {
-            $b .= \sprintf(
-                'Te escribimos desde el staff con tu lista concreta: tienes [b]%d H&R activo(s)[/b]. Cada uno se apaga solo en cuanto ese torrent llega a %d h de siembra en el tracker.',
-                $nActivos,
-                $horasReq,
-            );
+        $b .= match ($plantilla) {
+            'hitrun-cortada' => \sprintf('Tienes [b]%s[/b], y con %d se corta la descarga: ahora mismo no puedes descargar. De todo se sale. Estos son los torrents que te faltan:', $activos, $max),
+            'hitrun-limite'  => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga: todavía puedes evitarlo. Estos son los torrents:', $activos, $llegan, $max),
+            default          => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga. Estos son los torrents que te faltan:', $activos, $llegan, $max),
+        };
+
+        if ($n > 0) {
+            $b .= "\n".self::bbList($detalle['activos'], $horasReq)."\n";
         }
 
-        $b .= "\n\n";
-
-        if ($nActivos > 0) {
-            $b .= '[b]Con H&R[/b]'."\n".self::bbList($detalle['activos'], $horasReq)."\n";
+        if ($m > 0) {
+            $b .= ($n > 0 ? 'Y estos te llegarán' : 'Estos te llegarán').' como hit and run en los próximos dos días si no vuelves a sembrarlos:'
+                ."\n".self::bbList($detalle['en_camino'], $horasReq)."\n";
         }
 
-        if ($nCamino > 0) {
-            $b .= '[b]Todavía sin H&R, pero en camino[/b] (si no se siembran, el H&R llega solo)'."\n".self::bbList($detalle['en_camino'], $horasReq)."\n";
+        $b .= "\n".'[b]Cómo se arregla[/b]'."\n".'[list]'
+            .'[*][b]Cada torrent[/b] tiene que sembrarse [b]'.$horasReq.' h ('.self::dias($horasReq).')[/b] por su cuenta. No se suman entre torrents: uno con '.($horasReq - 1).' h sigue siendo un hit and run.'."\n"
+            .'[*]Las horas las cuenta [b]el tracker[/b], no tu cliente. En tu perfil → Torrents, marca «Show more precision»: si el Seedtime sale en verde, está cumplido.'."\n";
+
+        if ($plantilla === 'hitrun-cortada' && config('hitrun.redownload')) {
+            $b .= '[*]Aunque tengas la descarga cortada, [b]puedes volver a bajar los torrents de esta lista[/b], y solo esos. En cuanto bajes de '.$max.' hit and run, recuperas la descarga sola.'."\n";
         }
 
-        $b .= \sprintf('En total te faltan [b]%s h de siembra[/b]. ', self::num($detalle['horas_pendientes']))
-            .'Son horas de siembra, no de calendario, y corren todas a la vez: si vuelves a cargar los torrents, '
-            .'avanzan en paralelo. Lo que ya llevas sembrado no se pierde.'."\n\n"
-            .'[b]Cómo comprobarlo:[/b] en tu perfil → Torrents, marca la casilla «Show more precision». '
-            .'Cuando el Seedtime de un torrent sale en verde, ya está cumplido. Fíate del tracker, no del contador '
-            .'de tu cliente, que siempre va un poco por delante: pon la parada de qBittorrent en 105-110 h o quítala.';
+        $b .= $prewarn > 0
+            ? '[*][b]Antes de borrar un torrent de tu cliente, páusalo '.$prewarn.' '.($prewarn === 1 ? 'día' : 'días').'.[/b] Si no te llega un preaviso, está cumplido y ya puedes borrarlo. Si te llega, es que aún le faltan horas.'."\n"
+            : '[*][b]Antes de borrar un torrent de tu cliente,[/b] comprueba en tu perfil que su Seedtime sale en verde.'."\n";
 
-        $b .= self::wikiLine();
+        $wiki = trim(self::wikiLine());
+        $b .= '[/list]'.($wiki === '' ? '' : "\n".$wiki)."\n\n";
 
-        $b .= "\n\n".'Las herramientas las ponemos nosotros; los pasos los das tú. Si algo no te cuadra o no '
-            .'puedes recuperar algún fichero, contesta a este mensaje y lo vemos.'."\n\n"
+        if ($plantilla !== 'hitrun-lista') {
+            $b .= '[b]Una cuenta con la que no se hace nada por arreglarla no tiene sentido conservarla.[/b] Si el '
+                .now()->addDays(HitRunBans::DIAS_BANEO)->timezone('Europe/Madrid')->format('d/m/Y')
+                .' no has empezado a recuperarla, la cuenta se eliminará.'."\n\n";
+        }
+
+        $b .= 'Si algo no te cuadra o has perdido algún fichero, contesta a este mensaje y lo vemos.'."\n\n"
             .'— '.$staff->username.', staff de NOBS';
 
-        $asunto = $filtro === self::FILTRO_LIMITE
-            ? 'Tu descarga y tus hit and run: lo que falta, torrent a torrent'
-            : 'Tus hit and run: lo que falta, torrent a torrent';
+        $asunto = match ($plantilla) {
+            'hitrun-cortada' => 'Tu descarga está cortada por hit and run',
+            'hitrun-limite'  => 'Tu descarga está a punto de cortarse por hit and run',
+            default          => 'Tus hit and run: lo que te falta',
+        };
 
         $texto = self::bbToText($b)."\n\n".'(Este mismo mensaje lo tienes en tu buzón del tracker, con los enlaces.)';
 
-        return ['asunto' => $asunto, 'bbcode' => $b, 'texto' => $texto];
+        return ['asunto' => $asunto, 'bbcode' => $b, 'texto' => $texto, 'plantilla' => $plantilla];
     }
 
     /**
@@ -379,11 +384,18 @@ final class HitRunContacts
     }
 
     /**
-     * El filtro de AutoWarning sin las condiciones de tiempo: lo que acabara
-     * en aviso si no se siembra.
+     * Lo que AutoWarning convertira en H&R en las proximas 48 h: su mismo
+     * filtro, mas el reloj. AutoWarning corre a medianoche (UTC); se mira la
+     * ultima medianoche dentro de las 48 h. En esa pasada hace falta llevar mas
+     * de `grace` dias sin anunciar y tener el preaviso con al menos `prewarn`
+     * dias (el puesto, o cuando le llegaria si aun no lo tiene). Asi no entra
+     * quien acaba de apagar el cliente.
      */
     private static function onTheWayQuery(): \Illuminate\Database\Query\Builder
     {
+        $pasada = now('UTC')->addHours(48)->startOfDay();
+        $prewarn = (int) config('hitrun.prewarn');
+
         return DB::table('history as h')
             ->join('torrents as t', 't.id', '=', 'h.torrent_id')
             ->join('users as u', 'u.id', '=', 'h.user_id')
@@ -398,6 +410,11 @@ final class HitRunContacts
             ->where('g.is_immune', '=', false)
             ->where('u.is_donor', '=', false)
             ->whereRaw('h.actual_downloaded > t.size * ?', [config('hitrun.buffer') / 100])
+            ->where('h.updated_at', '<', $pasada->copy()->subDays((int) config('hitrun.grace')))
+            ->whereRaw(
+                'COALESCE(h.prewarned_at, GREATEST(DATE_ADD(h.updated_at, INTERVAL ? DAY), UTC_TIMESTAMP())) <= ?',
+                [$prewarn, $pasada->copy()->subDays($prewarn)->toDateTimeString()],
+            )
             ->whereNotExists(fn ($q) => $q->from('warnings as w')
                 ->whereColumn('w.user_id', 'h.user_id')
                 ->whereColumn('w.torrent_id', 'h.torrent_id'));
@@ -427,28 +444,23 @@ final class HitRunContacts
         $s = '[list]';
 
         foreach ($torrents as $t) {
-            $hechas = (int) $t->seedtime / 3600;
-            $faltan = max(0, $req - (int) $t->seedtime) / 3600;
-            $estado = $t->sembrando
-                ? 'lo estás sembrando ahora, no lo quites'
-                : ($t->ultimo_announce !== null
-                    ? 'parado desde el '.Carbon::parse($t->ultimo_announce)->timezone('Europe/Madrid')->format('d/m/Y')
-                    : 'nunca lo has sembrado');
-
             $s .= \sprintf(
-                "[*][url=%s/torrents/%d]%s[/url] — %s — %s h de %d, faltan [b]%s h[/b] — %s\n",
+                "[*][url=%s/torrents/%d]%s[/url] — faltan [b]%s h[/b]\n",
                 rtrim((string) config('app.url'), '/'),
                 $t->id,
                 $t->name,
-                \App\Helpers\StringHelper::formatBytes((int) $t->size, 1),
-                self::num($hechas),
-                $horasReq,
-                self::num($faltan),
-                $estado,
+                self::num(max(0, $req - (int) $t->seedtime) / 3600),
             );
         }
 
         return $s.'[/list]';
+    }
+
+    private static function dias(int $horas): string
+    {
+        $d = $horas / 24;
+
+        return (fmod($d, 1.0) === 0.0 ? (string) (int) $d : self::num($d)).' '.($d == 1 ? 'día' : 'días');
     }
 
     private static function bbToText(string $bb): string
@@ -475,11 +487,11 @@ final class HitRunContacts
         $id = DB::table('wikis')->where('name', 'like', '%ajustes de qBittorrent%')->value('id');
 
         if ($id !== null) {
-            return ' Los tres ajustes que lo evitan: [url='.$base.$id.']esta wiki[/url].';
+            return 'Los tres ajustes de qBittorrent que lo evitan: [url='.$base.$id.']esta wiki[/url].';
         }
 
         $id = DB::table('wikis')->where('name', '=', 'H&R')->value('id');
 
-        return $id === null ? '' : ' Más detalle en [url='.$base.$id.']la wiki de H&R[/url].';
+        return $id === null ? '' : 'Más detalle en [url='.$base.$id.']la wiki de H&R[/url].';
     }
 }

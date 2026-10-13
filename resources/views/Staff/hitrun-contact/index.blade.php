@@ -65,8 +65,9 @@
                 </p>
             </form>
             <p class="hrc-hint">
-                H&amp;R activos = los que penalizan ahora (ni el contador histórico ni el preaviso). «En camino» =
-                descargas sin sembrar que el sistema convertirá en H&amp;R. El límite ({{ $max }}) es «Máx. H&amp;R
+                H&amp;R activos = los que penalizan ahora (ni el contador histórico ni el preaviso). «Llegan en 48 h» =
+                descargas sin cumplir que la pasada de medianoche convertirá en H&amp;R en los próximos dos días
+                (no entra quien acaba de apagar el cliente). El límite ({{ $max }}) es «Máx. H&amp;R
                 activos» de Configuración → Hit &amp; Run. Quedan fuera, con su motivo: staff, cuentas
                 baneadas o sin validar, cortes manuales del staff, quien está en otro proceso (plazo abierto
                 en el registro) y quien ya lleva {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }}
@@ -91,14 +92,14 @@
                 <input type="hidden" name="canal" value="{{ $canal }}" />
                 <input type="hidden" name="plazo" value="{{ $plazo }}" />
                 <div class="data-table-wrapper">
-                    <table class="data-table">
+                    <table class="data-table" data-tools>
                         <thead>
                             <tr>
                                 <th></th>
                                 <th>Socio</th>
                                 <th>Grupo</th>
                                 <th>Activos</th>
-                                <th>En camino</th>
+                                <th>Llegan en 48 h</th>
                                 <th>Descarga</th>
                                 <th>Correo / TG</th>
                                 <th>Última visita</th>
@@ -115,7 +116,7 @@
                                     <td>{{ $u['en_camino'] }}</td>
                                     <td>{{ $u['can_download'] ? 'sí' : 'cortada' }}</td>
                                     <td>{{ $u['tiene_email'] ? '✉' : '—' }} {{ $u['telegram'] ? 'TG' : '' }}</td>
-                                    <td>{{ $u['last_action'] ? Illuminate\Support\Carbon::parse($u['last_action'])->timezone('Europe/Madrid')->format('d/m/Y') : 'nunca' }}</td>
+                                    <td data-sort="{{ $u['last_action'] ?? '0000' }}">{{ $u['last_action'] ? Illuminate\Support\Carbon::parse($u['last_action'])->timezone('Europe/Madrid')->format('d/m/Y') : 'nunca' }}</td>
                                     <td>{{ $u['contactos'] }}</td>
                                 </tr>
                             @endforeach
@@ -149,12 +150,12 @@
         </h2>
         @if ($excluidos->isNotEmpty())
             <div class="data-table-wrapper">
-                <table class="data-table">
+                <table class="data-table" data-tools>
                     <thead>
                         <tr>
                             <th>Socio</th>
                             <th>Activos</th>
-                            <th>En camino</th>
+                            <th>Llegan en 48 h</th>
                             <th>Por qué</th>
                         </tr>
                     </thead>
@@ -179,7 +180,7 @@
             Registro de contactos (últimos 100)
         </h2>
         <div class="data-table-wrapper">
-            <table class="data-table">
+            <table class="data-table" data-tools>
                 <thead>
                     <tr>
                         <th>Fecha</th>
@@ -195,7 +196,7 @@
                 <tbody>
                     @forelse ($registro as $c)
                         <tr>
-                            <td>{{ $c->contacted_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
+                            <td data-sort="{{ $c->contacted_at }}">{{ $c->contacted_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}</td>
                             <td>{{ $c->user?->username ?? '#'.$c->user_id }}</td>
                             <td title="{{ $c->nota }}">{{ $c->campana }}</td>
                             <td>
@@ -206,7 +207,7 @@
                             </td>
                             <td>{{ $c->hr_activos ?? '—' }} / {{ $c->hr_en_camino ?? '—' }}</td>
                             <td>{{ $c->horas_pendientes ?? '—' }}</td>
-                            <td>{{ $c->plazo_hasta?->timezone('Europe/Madrid')->format('d/m/Y') ?? '—' }}</td>
+                            <td data-sort="{{ $c->plazo_hasta ?? '0000' }}">{{ $c->plazo_hasta?->timezone('Europe/Madrid')->format('d/m/Y') ?? '—' }}</td>
                             <td>{{ $c->staff?->username ?? $c->origen }}</td>
                         </tr>
                     @empty
@@ -252,4 +253,5 @@
 
 @section('scripts')
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}"></script>
+    @include('Staff.partials.table-tools')
 @endsection

@@ -86,7 +86,7 @@
                 @csrf
                 <input type="hidden" name="dias" value="{{ $dias }}" />
                 <div class="data-table-wrapper">
-                    <table class="data-table">
+                    <table class="data-table" data-tools>
                         <thead>
                             <tr>
                                 <th></th>
@@ -94,7 +94,7 @@
                                 <th>Grupo</th>
                                 <th>Contactos</th>
                                 <th>Último contacto</th>
-                                <th>Activos / camino</th>
+                                <th>Activos / llegan 48 h</th>
                                 <th>Último announce</th>
                                 <th>Última web</th>
                                 <th>TG / correo</th>
@@ -106,11 +106,11 @@
                                     <td><input type="checkbox" name="ids[]" value="{{ $u['id'] }}" @checked($u['marcado']) /></td>
                                     <td><a href="{{ route('users.show', ['user' => $u['username']]) }}">{{ $u['username'] }}</a></td>
                                     <td>{{ $u['grupo'] }}</td>
-                                    <td>{{ $u['contactos'] }} (desde {{ $u['primer_contacto']->format('d/m') }})</td>
-                                    <td>{{ $u['ultimo_contacto']->timezone('Europe/Madrid')->format('d/m/Y') }}</td>
+                                    <td data-sort="{{ $u['contactos'] }}">{{ $u['contactos'] }} (desde {{ $u['primer_contacto']->format('d/m') }})</td>
+                                    <td data-sort="{{ $u['ultimo_contacto'] }}">{{ $u['ultimo_contacto']->timezone('Europe/Madrid')->format('d/m/Y') }}</td>
                                     <td>{{ $u['activos'] }} / {{ $u['en_camino'] }}</td>
-                                    <td>{{ $u['ultimo_announce']?->timezone('Europe/Madrid')->format('d/m/Y') ?? 'nunca' }}</td>
-                                    <td>
+                                    <td data-sort="{{ $u['ultimo_announce'] ?? '0000' }}">{{ $u['ultimo_announce']?->timezone('Europe/Madrid')->format('d/m/Y') ?? 'nunca' }}</td>
+                                    <td data-sort="{{ $u['ultima_web'] ?? '0000' }}">
                                         {{ $u['ultima_web']?->timezone('Europe/Madrid')->format('d/m/Y') ?? 'nunca' }}
                                         @unless ($u['marcado'])
                                             ⚠ entra a la web
@@ -136,12 +136,12 @@
         </h2>
         @if ($excluidos->isNotEmpty())
             <div class="data-table-wrapper">
-                <table class="data-table">
+                <table class="data-table" data-tools>
                     <thead>
                         <tr>
                             <th>Socio</th>
                             <th>Contactos</th>
-                            <th>Activos / camino</th>
+                            <th>Activos / llegan 48 h</th>
                             <th>Por qué</th>
                         </tr>
                     </thead>
@@ -173,7 +173,7 @@
             >
                 @csrf
                 <div class="data-table-wrapper">
-                    <table class="data-table">
+                    <table class="data-table" data-tools>
                         <thead>
                             <tr>
                                 <th></th>
@@ -210,7 +210,7 @@
             Baneos por H&amp;R (últimos 50)
         </h2>
         <div class="data-table-wrapper">
-            <table class="data-table">
+            <table class="data-table" data-tools>
                 <thead>
                     <tr>
                         <th>Socio</th>
@@ -273,4 +273,5 @@
 
 @section('scripts')
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}"></script>
+    @include('Staff.partials.table-tools')
 @endsection
