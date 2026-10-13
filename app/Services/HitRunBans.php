@@ -234,11 +234,15 @@ final class HitRunBans
                 $invitacion = app(TelegramService::class)->createSingleUseInvite((string) $grupoBaneados, $user->username);
 
                 if ($invitacion !== null && !empty($telegramId)) {
-                    $telegramEnviado = app(TelegramService::class)->sendMessage(
+                    // Con botón, como el «📡 UNIRSE AL GRUPO» de la vinculación: un
+                    // toque y entra (un bot no puede añadir a nadie él solo).
+                    $telegramEnviado = app(TelegramService::class)->sendMessageWithButton(
                         'Hola, '.e($user->username).'. Tu cuenta de '.e((string) config('other.title')).' ha sido baneada por '.e($motivo)."\n\n"
-                        .'Si quieres explicarte o arreglarlo, entra aquí (enlace personal, de un solo uso): '.$invitacion."\n\n"
+                        .'Si quieres explicarte o arreglarlo, entra al grupo de baneados con el botón de abajo. Es personal y de un solo uso: no lo compartas.'."\n\n"
                         .'Si el '.$podaEl->copy()->timezone('Europe/Madrid')->format('d/m/Y').' no sabemos nada de ti, la cuenta se dará de baja.',
                         (string) $telegramId,
+                        "\u{1F4E1} ENTRAR AL GRUPO DE BANEADOS",
+                        $invitacion,
                     );
                 }
             }

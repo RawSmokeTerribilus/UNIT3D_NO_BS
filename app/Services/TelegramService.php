@@ -296,6 +296,33 @@ class TelegramService
         }
     }
 
+    /**
+     * Privado con un botón que abre un enlace (el «📡 UNIRSE AL GRUPO» de la
+     * vinculación). Un bot no puede meter a nadie en un grupo: el botón es lo
+     * más cerca que se llega, un toque. parse_mode HTML. Devuelve si salió.
+     */
+    public function sendMessageWithButton(string $text, string $chatId, string $buttonText, string $url): bool
+    {
+        $token = config('services.telegram.token');
+
+        if (empty($token)) {
+            return false;
+        }
+
+        try {
+            return Http::timeout(10)->asJson()->post("https://api.telegram.org/bot{$token}/sendMessage", [
+                'chat_id'      => $chatId,
+                'text'         => $text,
+                'parse_mode'   => 'HTML',
+                'reply_markup' => ['inline_keyboard' => [[['text' => $buttonText, 'url' => $url]]]],
+            ])->successful();
+        } catch (\Throwable $e) {
+            Log::error('TelegramService: Fallo en envío con botón.', ['msg' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
     private function isMemberStatus(string $status, bool $isMember = false): bool
     {
         return in_array($status, ['member', 'administrator', 'creator'], true)
