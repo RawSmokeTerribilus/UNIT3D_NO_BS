@@ -43,8 +43,8 @@ return new class () extends Migration {
             // pm | email | telegram | ninguno, o combinaciones con «+»
             $table->string('canal', 32);
             $table->string('plantilla', 64)->nullable();
-            $table->unsignedSmallInteger('avisos_activos')->nullable();
-            $table->unsignedSmallInteger('avisos_en_camino')->nullable();
+            $table->unsignedSmallInteger('hr_activos')->nullable();
+            $table->unsignedSmallInteger('hr_en_camino')->nullable();
             $table->decimal('horas_pendientes', 8, 1)->nullable();
             $table->unsignedInteger('conversation_id')->nullable();
             $table->timestamp('plazo_hasta')->nullable();

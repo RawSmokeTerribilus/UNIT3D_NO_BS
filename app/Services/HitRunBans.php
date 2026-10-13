@@ -143,7 +143,7 @@ final class HitRunBans
             $motivo = match (true) {
                 \in_array($u->slug, ['banned', 'pruned', 'disabled'], true) => 'cuenta '.$u->grupo,
                 $u->is_modo || $u->is_admin || $u->is_owner                 => 'staff',
-                !$u->can_download && !isset($filasAviso[$u->id])            => 'bloqueado sin filas de aviso (bucle de AutoDeactivateWarning): no tocar sin permiso',
+                !$u->can_download && !isset($filasAviso[$u->id])            => 'bloqueado sin filas de H&R visibles (bucle de AutoDeactivateWarning): no tocar sin permiso',
                 isset($abiertos[$u->id])                                    => \sprintf(
                     '%s, hasta el %s',
                     $abiertos[$u->id]->campana,
@@ -151,7 +151,7 @@ final class HitRunBans
                 ),
                 $ultimo->gt($limite)                         => 'último contacto hace menos de '.$dias.' días',
                 $fila['activos'] + $camino === 0             => 'ya no debe nada',
-                $cumplidos > 0                               => $cumplidos.' aviso(s) cumplidos sembrando desde el primer contacto',
+                $cumplidos > 0                               => $cumplidos.' H&R cumplido(s) sembrando desde el primer contacto',
                 $announce !== null && $announce->gt($ultimo) => 'su cliente ha anunciado desde el último contacto',
                 default                                      => null,
             };
@@ -193,7 +193,7 @@ final class HitRunBans
             }
 
             $motivo = \sprintf(
-                'hit and run sin resolver: %d aviso(s) activos y %d en camino; contactado %d veces entre el %s y el %s sin respuesta ni actividad.',
+                'hit and run sin resolver: %d H&R activo(s) y %d en camino; contactado %d veces entre el %s y el %s sin respuesta ni actividad.',
                 $fila['activos'],
                 $fila['en_camino'],
                 $fila['contactos'],
@@ -266,8 +266,8 @@ final class HitRunBans
                     'campana'          => 'baneo-hitrun-'.now()->format('Y-m-d'),
                     'canal'            => implode('+', array_filter([$correo ? 'email' : null, $telegramEnviado ? 'telegram' : null])) ?: 'ninguno',
                     'plantilla'        => 'baneo-hitrun',
-                    'avisos_activos'   => $fila['activos'],
-                    'avisos_en_camino' => $fila['en_camino'],
+                    'hr_activos'       => $fila['activos'],
+                    'hr_en_camino'     => $fila['en_camino'],
                     'plazo_hasta'      => $podaEl,
                     'staff_id'         => $staff->id,
                     'origen'           => 'boton',

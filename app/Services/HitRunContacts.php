@@ -253,8 +253,8 @@ final class HitRunContacts
                 'campana'          => $campana,
                 'canal'            => $canales === [] ? 'ninguno' : implode('+', $canales),
                 'plantilla'        => $plantilla,
-                'avisos_activos'   => $detalle['activos']->count(),
-                'avisos_en_camino' => $detalle['en_camino']->count(),
+                'hr_activos'       => $detalle['activos']->count(),
+                'hr_en_camino'     => $detalle['en_camino']->count(),
                 'horas_pendientes' => $detalle['horas_pendientes'],
                 'conversation_id'  => $conversationId,
                 'plazo_hasta'      => now()->addDays($plazoDias),
@@ -287,29 +287,29 @@ final class HitRunContacts
         // sin descarga, la causa es otra (ratio, staff) y no se le promete nada.
         if ($filtro === self::FILTRO_LIMITE && $nActivos >= $max && !$user->can_download) {
             $b .= \sprintf(
-                'Te escribimos desde el staff porque tienes [b]%d avisos de hit and run[/b] y con %d se corta la descarga: ahora mismo la tienes cortada.',
+                'Te escribimos desde el staff porque tienes [b]%d H&R activos[/b] y con %d se corta la descarga: ahora mismo la tienes cortada.',
                 $nActivos,
                 $max,
             );
             $b .= config('hitrun.redownload')
-                ? ' Lo que sí puedes hacer es volver a bajar [b]los torrents con aviso[/b], y solo esos, para sembrarlos: en cuanto bajes de '.$max.' avisos, recuperas la descarga entera sin que nadie tenga que tocar nada.'
-                : ' En cuanto bajes de '.$max.' avisos, recuperas la descarga sin que nadie tenga que tocar nada.';
+                ? ' Lo que sí puedes hacer es volver a bajar [b]los torrents con H&R[/b], y solo esos, para sembrarlos: en cuanto bajes de '.$max.' H&R activos, recuperas la descarga entera sin que nadie tenga que tocar nada.'
+                : ' En cuanto bajes de '.$max.' H&R activos, recuperas la descarga sin que nadie tenga que tocar nada.';
         } elseif ($filtro === self::FILTRO_LIMITE && $nActivos >= $max) {
             $b .= \sprintf(
-                'Te escribimos desde el staff porque tienes [b]%d avisos de hit and run[/b] y el límite es %d: con el próximo aviso la descarga se corta sola.',
+                'Te escribimos desde el staff porque tienes [b]%d H&R activos[/b] y el límite es %d: con el próximo H&R la descarga se corta sola.',
                 $nActivos,
                 $max,
             );
         } elseif ($filtro === self::FILTRO_LIMITE) {
             $b .= \sprintf(
-                'Te escribimos desde el staff porque vas camino del corte de descarga: tienes [b]%d aviso(s) de hit and run[/b] y [b]%d torrent(s) más en camino[/b] de serlo, y con %d se corta la descarga. Todavía estás a tiempo de que no pase.',
+                'Te escribimos desde el staff porque vas camino del corte de descarga: tienes [b]%d H&R activo(s)[/b] y [b]%d torrent(s) más en camino[/b] de serlo, y con %d se corta la descarga. Todavía estás a tiempo de que no pase.',
                 $nActivos,
                 $nCamino,
                 $max,
             );
         } else {
             $b .= \sprintf(
-                'Te escribimos desde el staff con tu lista concreta: tienes [b]%d aviso(s) de hit and run[/b]. Cada uno se apaga solo en cuanto ese torrent llega a %d h de siembra en el tracker.',
+                'Te escribimos desde el staff con tu lista concreta: tienes [b]%d H&R activo(s)[/b]. Cada uno se apaga solo en cuanto ese torrent llega a %d h de siembra en el tracker.',
                 $nActivos,
                 $horasReq,
             );
@@ -318,11 +318,11 @@ final class HitRunContacts
         $b .= "\n\n";
 
         if ($nActivos > 0) {
-            $b .= '[b]Con aviso[/b]'."\n".self::bbList($detalle['activos'], $horasReq)."\n";
+            $b .= '[b]Con H&R[/b]'."\n".self::bbList($detalle['activos'], $horasReq)."\n";
         }
 
         if ($nCamino > 0) {
-            $b .= '[b]Todavía sin aviso, pero en camino[/b] (si no se siembran, el aviso llega solo)'."\n".self::bbList($detalle['en_camino'], $horasReq)."\n";
+            $b .= '[b]Todavía sin H&R, pero en camino[/b] (si no se siembran, el H&R llega solo)'."\n".self::bbList($detalle['en_camino'], $horasReq)."\n";
         }
 
         $b .= \sprintf('En total te faltan [b]%s h de siembra[/b]. ', self::num($detalle['horas_pendientes']))

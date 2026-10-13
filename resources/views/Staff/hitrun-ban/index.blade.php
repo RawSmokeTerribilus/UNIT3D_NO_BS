@@ -43,7 +43,7 @@
             <p>
                 Candidatos: {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }} o más contactos de H&amp;R
                 en el registro, el último hace {{ $dias }} días o más, ningún plazo abierto, deuda pendiente,
-                ningún aviso cumplido desde el primer contacto y su cliente sin anunciar nada desde el último.
+                ningún H&amp;R cumplido desde el primer contacto y su cliente sin anunciar nada desde el último.
                 Quien solo ha entrado a la web sale <strong>desmarcado</strong>: decides tú.
             </p>
             <p>

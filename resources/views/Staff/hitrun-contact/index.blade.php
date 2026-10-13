@@ -43,7 +43,7 @@
             <form method="GET" action="{{ route('staff.commands.hitrun_contacts.index') }}" class="hrc-filtros">
                 <p class="form__group">
                     <select id="filtro" name="filtro" class="form__select">
-                        <option value="limite" @selected($filtro === 'limite')>Van a pasar de {{ $max }} avisos o ya han pasado</option>
+                        <option value="limite" @selected($filtro === 'limite')>Van a pasar de {{ $max }} H&amp;R activos o ya han pasado</option>
                         <option value="todos" @selected($filtro === 'todos')>Todos con H&amp;R activo</option>
                     </select>
                     <label class="form__label form__label--floating" for="filtro">Filtro</label>
@@ -65,8 +65,9 @@
                 </p>
             </form>
             <p class="hrc-hint">
-                Avisos activos = los que penalizan ahora (no el contador histórico). «En camino» = descargas
-                sin sembrar que el sistema convertirá en aviso. Quedan fuera, con su motivo: staff, cuentas
+                H&amp;R activos = los que penalizan ahora (ni el contador histórico ni el preaviso). «En camino» =
+                descargas sin sembrar que el sistema convertirá en H&amp;R. El límite ({{ $max }}) es «Máx. H&amp;R
+                activos» de Configuración → Hit &amp; Run. Quedan fuera, con su motivo: staff, cuentas
                 baneadas o sin validar, cortes manuales del staff, quien está en otro proceso (plazo abierto
                 en el registro) y quien ya lleva {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }}
                 contactos de H&amp;R: a esos ya no se les escribe, se decide.
@@ -203,7 +204,7 @@
                                     (conv. {{ $c->conversation_id }})
                                 @endif
                             </td>
-                            <td>{{ $c->avisos_activos ?? '—' }} / {{ $c->avisos_en_camino ?? '—' }}</td>
+                            <td>{{ $c->hr_activos ?? '—' }} / {{ $c->hr_en_camino ?? '—' }}</td>
                             <td>{{ $c->horas_pendientes ?? '—' }}</td>
                             <td>{{ $c->plazo_hasta?->timezone('Europe/Madrid')->format('d/m/Y') ?? '—' }}</td>
                             <td>{{ $c->staff?->username ?? $c->origen }}</td>

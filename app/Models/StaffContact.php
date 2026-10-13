@@ -29,8 +29,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string                          $campana
  * @property string                          $canal
  * @property string|null                     $plantilla
- * @property int|null                        $avisos_activos
- * @property int|null                        $avisos_en_camino
+ * @property int|null                        $hr_activos
+ * @property int|null                        $hr_en_camino
  * @property string|null                     $horas_pendientes
  * @property int|null                        $conversation_id
  * @property \Illuminate\Support\Carbon|null $plazo_hasta

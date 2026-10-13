@@ -26,7 +26,7 @@ use Illuminate\Support\Carbon;
  *
  * El CSV NO va en el repo: lleva nombres de socios. Cabecera obligatoria:
  *   usuario,fecha,campana,canal,plantilla,conversation_id,plazo_hasta,
- *   avisos_activos,horas_pendientes,nota
+ *   hr_activos,horas_pendientes,nota
  * Fechas en UTC, 'Y-m-d' o 'Y-m-d H:i'. Vacio = null.
  *
  * Es idempotente: una fila con el mismo socio, fecha y campana no se repite.
@@ -43,7 +43,7 @@ class ImportStaffContacts extends Command
 
     private const array COLUMNAS = [
         'usuario', 'fecha', 'campana', 'canal', 'plantilla', 'conversation_id',
-        'plazo_hasta', 'avisos_activos', 'horas_pendientes', 'nota',
+        'plazo_hasta', 'hr_activos', 'horas_pendientes', 'nota',
     ];
 
     final public function handle(): int
@@ -113,7 +113,7 @@ class ImportStaffContacts extends Command
                 'plantilla'        => $f['plantilla'],
                 'conversation_id'  => $f['conversation_id'],
                 'plazo_hasta'      => $f['plazo_hasta'] === null ? null : Carbon::parse($f['plazo_hasta'], 'UTC'),
-                'avisos_activos'   => $f['avisos_activos'],
+                'hr_activos'       => $f['hr_activos'],
                 'horas_pendientes' => $f['horas_pendientes'],
                 'origen'           => 'importado',
                 'nota'             => $f['nota'],
