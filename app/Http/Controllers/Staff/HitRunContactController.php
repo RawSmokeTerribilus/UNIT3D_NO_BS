@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Models\StaffContact;
 use App\Models\User;
+use App\Services\CuotaCorreo;
 use App\Services\HitRunBans;
 use App\Services\HitRunContacts;
 use Illuminate\Http\Request;
@@ -53,8 +54,13 @@ class HitRunContactController extends Controller
         }
 
         return view('Staff.hitrun-contact.index', [
-            'filtro'    => $filtro,
-            'plazo'     => HitRunBans::DIAS_BANEO,
+            'filtro' => $filtro,
+            'plazo'  => HitRunBans::DIAS_BANEO,
+            'correo' => [
+                'enviados' => CuotaCorreo::enviadosHoy(),
+                'cuota'    => (int) config('correo.cuota_diaria'),
+                'libre'    => CuotaCorreo::libreParaCampanas(),
+            ],
             'max'       => (int) config('hitrun.max_warnings'),
             'incluidos' => $listas['incluidos'],
             'excluidos' => $listas['excluidos'],

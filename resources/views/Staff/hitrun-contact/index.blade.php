@@ -67,6 +67,12 @@
                 lleva {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }} contactos del histórico: a esos
                 ya no se les escribe, se decide.
             </p>
+            <p class="hrc-hint">
+                <strong>Correo de hoy:</strong> {{ $correo['enviados'] }} de {{ $correo['cuota'] }} enviados;
+                quedan <strong>{{ $correo['libre'] }}</strong> para campañas (el resto se reserva al correo del
+                sistema). Los que no quepan salen solos a partir de la medianoche (UTC); el privado y el Telegram
+                salen al momento igualmente.
+            </p>
         </div>
     </section>
 
