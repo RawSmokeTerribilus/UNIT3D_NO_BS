@@ -281,23 +281,20 @@
             </p>
         </div>
 
-        {{-- Antes de donar. Se abre al entrar. La lista no es decorativa: los
-             métodos no se pueden pulsar hasta marcar las tres. --}}
-        <dialog class="dialog donation-dialog donation-antes" x-ref="antes">
-            <h2 class="dialog__heading">Antes de donar</h2>
-            <div class="donation-dialog__step-body" style="grid-column: auto">
-                @if ($porcentajeObjetivo >= 100)
-                    <p class="donation-antes__objetivo donation-antes__objetivo--cubierto">
-                        <strong>Este mes ya está cubierto.</strong>
-                        Gracias de verdad. No hace falta que dones ahora: si te apetece
-                        ayudar, guárdalo para un mes flojo.
-                    </p>
-                @else
-                    <p class="donation-antes__objetivo">
-                        Este mes llevamos el <strong>{{ $porcentajeObjetivo }}&nbsp;%</strong>
-                        de lo que cuesta mantener esto encendido.
-                    </p>
-                @endif
+        {{-- Antes de donar. Se abre al entrar. Hubo tres casillas obligatorias
+             (2026-10-12) y se quitaron al día siguiente: liaban a la gente y
+             repetían lo que ya dice la descripción. --}}
+        {{-- Las casillas, guardadas para reciclarlas cambiando los textos. Para
+             volver a encenderlas hacen falta tres piezas:
+             1. Esta lista, donde iba (antes de «¿Cómo quieres pagar?»).
+             2. En el <ul class="donation-metodos">:
+                x-bind:class="{ 'donation-metodos--bloqueados': ! checks.every(Boolean) }"
+                y en cada <button class="donation-metodo">:
+                x-bind:disabled="! checks.every(Boolean)"
+             3. En Alpine.data('donar'), junto a `metodo`:
+                checks: [false, false, false],
+             El CSS (.donation-antes__checks, .donation-metodos--bloqueados) sigue en
+             _donation-package.scss.
 
                 <ul class="donation-antes__checks">
                     <li>
@@ -328,13 +325,26 @@
                         </label>
                     </li>
                 </ul>
+        --}}
+        <dialog class="dialog donation-dialog donation-antes" x-ref="antes">
+            <h2 class="dialog__heading">Antes de donar</h2>
+            <div class="donation-dialog__step-body" style="grid-column: auto">
+                @if ($porcentajeObjetivo >= 100)
+                    <p class="donation-antes__objetivo donation-antes__objetivo--cubierto">
+                        <strong>Este mes ya está cubierto.</strong>
+                        Gracias de verdad. No hace falta que dones ahora: si te apetece
+                        ayudar, guárdalo para un mes flojo.
+                    </p>
+                @else
+                    <p class="donation-antes__objetivo">
+                        Este mes llevamos el <strong>{{ $porcentajeObjetivo }}&nbsp;%</strong>
+                        de lo que cuesta mantener esto encendido.
+                    </p>
+                @endif
 
                 @if ($gateways->isNotEmpty())
                     <p><strong>¿Cómo quieres pagar?</strong></p>
-                    <ul
-                        class="donation-metodos"
-                        x-bind:class="{ 'donation-metodos--bloqueados': ! checks.every(Boolean) }"
-                    >
+                    <ul class="donation-metodos">
                         @foreach ($gateways as $gateway)
                             @php
                                 $tramosMetodo = $packages
@@ -347,7 +357,6 @@
                                 <button
                                     type="button"
                                     class="donation-metodo"
-                                    x-bind:disabled="! checks.every(Boolean)"
                                     x-on:click="metodo = {{ $gateway->id }}; $refs.antes.close()"
                                 >
                                     @if ($gateway->icono)
@@ -574,7 +583,6 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('donar', (metodoInicial) => ({
                 metodo: metodoInicial,
-                checks: [false, false, false],
 
                 // --- la ruleta del mirón ---
                 rueda: null,
