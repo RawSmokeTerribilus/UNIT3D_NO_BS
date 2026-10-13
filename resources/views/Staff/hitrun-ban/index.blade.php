@@ -123,7 +123,7 @@
                     </table>
                 </div>
                 <div class="panel__body">
-                    <button type="submit" class="form__button form__button--filled">Banear a los marcados</button>
+                    <button type="submit" class="form__button form__button--filled hrb-btn-danger">Banear a los marcados</button>
                 </div>
             </form>
         @endif
@@ -198,7 +198,7 @@
                 </div>
                 <div class="panel__body">
                     <p class="hrb-hint">Quien entró al grupo sale desmarcado: lee lo que escribió antes de decidir.</p>
-                    <button type="submit" class="form__button form__button--filled">Prunear a los marcados</button>
+                    <button type="submit" class="form__button form__button--filled hrb-btn-danger">Prunear a los marcados</button>
                 </div>
             </form>
         @endif
@@ -258,6 +258,17 @@
             flex-wrap: wrap;
             gap: 1rem;
             align-items: flex-end;
+        }
+
+        /* Banear y prunear: rojo, y siempre con confirmación (data-confirm). */
+        .hrb-btn-danger {
+            background: #b91c1c !important;
+            border-color: #b91c1c !important;
+            color: #fff !important;
+        }
+
+        .hrb-btn-danger:hover {
+            background: #991b1b !important;
         }
 
         .hrb-hint {
