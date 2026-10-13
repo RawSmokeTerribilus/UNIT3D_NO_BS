@@ -316,6 +316,6 @@ final class HitRunBans
 
         $ban->update(['joined_at' => now(), 'telegram_user_id' => $ban->telegram_user_id ?? $telegramId]);
 
-        Log::info('Telegram: un baneado por H&R ha entrado al grupo de baneados', ['user_id' => $ban->user_id]);
+        Log::info('Telegram: un baneado ha entrado al grupo de baneados', ['user_id' => $ban->user_id, 'origen' => $ban->origen]);
     }
 }
