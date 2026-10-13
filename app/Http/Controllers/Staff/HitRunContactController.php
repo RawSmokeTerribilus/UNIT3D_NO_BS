@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Models\StaffContact;
 use App\Models\User;
+use App\Services\HitRunBans;
 use App\Services\HitRunContacts;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -29,14 +30,10 @@ use Illuminate\Validation\Rule;
  */
 class HitRunContactController extends Controller
 {
-    private const array CANALES = ['pm', 'email', 'pm+email'];
-
     public function index(Request $request): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
         $opciones = $request->validate([
             'filtro' => ['nullable', Rule::in([HitRunContacts::FILTRO_TODOS, HitRunContacts::FILTRO_LIMITE])],
-            'canal'  => ['nullable', Rule::in(self::CANALES)],
-            'plazo'  => ['nullable', 'integer', 'min:1', 'max:90'],
         ]);
 
         $filtro = $opciones['filtro'] ?? HitRunContacts::FILTRO_LIMITE;
@@ -57,8 +54,7 @@ class HitRunContactController extends Controller
 
         return view('Staff.hitrun-contact.index', [
             'filtro'    => $filtro,
-            'canal'     => $opciones['canal'] ?? 'pm+email',
-            'plazo'     => (int) ($opciones['plazo'] ?? 14),
+            'plazo'     => HitRunBans::DIAS_BANEO,
             'max'       => (int) config('hitrun.max_warnings'),
             'incluidos' => $listas['incluidos'],
             'excluidos' => $listas['excluidos'],
@@ -75,8 +71,6 @@ class HitRunContactController extends Controller
     {
         $v = $request->validate([
             'filtro' => ['required', Rule::in([HitRunContacts::FILTRO_TODOS, HitRunContacts::FILTRO_LIMITE])],
-            'canal'  => ['required', Rule::in(self::CANALES)],
-            'plazo'  => ['required', 'integer', 'min:1', 'max:90'],
             'ids'    => ['required', 'array', 'min:1'],
             'ids.*'  => ['integer'],
         ]);
@@ -84,12 +78,10 @@ class HitRunContactController extends Controller
         $r = HitRunContacts::send(
             array_map('intval', $v['ids']),
             $v['filtro'],
-            $v['canal'],
-            (int) $v['plazo'],
             $request->user(),
         );
 
-        return to_route('staff.commands.hitrun_contacts.index', ['filtro' => $v['filtro'], 'canal' => $v['canal'], 'plazo' => $v['plazo']])
+        return to_route('staff.commands.hitrun_contacts.index', ['filtro' => $v['filtro']])
             ->with('info', \sprintf(
                 '✅ %d mensaje(s) enviados y anotados en el registro.%s',
                 $r['enviados'],

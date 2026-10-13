@@ -41,9 +41,12 @@
         </h2>
         <div class="panel__body">
             <p>
-                Candidatos: {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }} o más contactos de H&amp;R
-                en el registro, el último hace {{ $dias }} días o más, ningún plazo abierto, deuda pendiente,
-                ningún H&amp;R cumplido desde el primer contacto y su cliente sin anunciar nada desde el último.
+                Candidatos: recibieron su aviso con fecha de eliminación (o, del histórico,
+                {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }} o más contactos) hace {{ $dias }} días o más,
+                tienen <strong>{{ config('hitrun.max_warnings') }} o más H&amp;R activos</strong> (la descarga ya
+                cortada: con menos, ni la web les sanciona), ningún plazo abierto, ningún H&amp;R cumplido desde el
+                primer contacto y su cliente sin anunciar nada desde el último (con la descarga cortada, el tracker
+                solo les deja los torrents con H&amp;R: si su cliente anuncia, está intentando arreglarlo).
                 Quien solo ha entrado a la web sale <strong>desmarcado</strong>: decides tú.
             </p>
             <p>

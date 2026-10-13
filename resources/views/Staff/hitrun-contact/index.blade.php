@@ -49,18 +49,6 @@
                     <label class="form__label form__label--floating" for="filtro">Filtro</label>
                 </p>
                 <p class="form__group">
-                    <select id="canal" name="canal" class="form__select">
-                        <option value="pm+email" @selected($canal === 'pm+email')>Privado del tracker + correo</option>
-                        <option value="pm" @selected($canal === 'pm')>Solo privado del tracker</option>
-                        <option value="email" @selected($canal === 'email')>Solo correo</option>
-                    </select>
-                    <label class="form__label form__label--floating" for="canal">Canal</label>
-                </p>
-                <p class="form__group">
-                    <input id="plazo" name="plazo" type="number" min="1" max="90" value="{{ $plazo }}" class="form__text" />
-                    <label class="form__label form__label--floating" for="plazo">Plazo (días sin volver a escribirle)</label>
-                </p>
-                <p class="form__group">
                     <button type="submit" class="form__button form__button--outlined">Ver lista</button>
                 </p>
             </form>
@@ -68,10 +56,16 @@
                 H&amp;R activos = los que penalizan ahora (ni el contador histórico ni el preaviso). «Llegan en 48 h» =
                 descargas sin cumplir que la pasada de medianoche convertirá en H&amp;R en los próximos dos días
                 (no entra quien acaba de apagar el cliente). El límite ({{ $max }}) es «Máx. H&amp;R
-                activos» de Configuración → Hit &amp; Run. Quedan fuera, con su motivo: staff, cuentas
-                baneadas o sin validar, cortes manuales del staff, quien está en otro proceso (plazo abierto
-                en el registro) y quien ya lleva {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }}
-                contactos de H&amp;R: a esos ya no se les escribe, se decide.
+                activos» de Configuración → Hit &amp; Run.
+            </p>
+            <p class="hrc-hint">
+                El mensaje sale por todas las vías a la vez: privado del tracker, correo si lo tiene y Telegram si
+                lo tiene vinculado. Es un solo aviso con un solo plazo de {{ $plazo }} días: no se le vuelve a
+                escribir, y si tiene la descarga cortada o está a punto, el mensaje le da esa fecha para la
+                eliminación. Quedan fuera, con su motivo: staff, cuentas baneadas o sin validar, cortes manuales
+                del staff, quien está en otro proceso (plazo abierto) y quien ya recibió su aviso con fecha o
+                lleva {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }} contactos del histórico: a esos
+                ya no se les escribe, se decide.
             </p>
         </div>
     </section>
@@ -85,12 +79,10 @@
             <form
                 method="POST"
                 action="{{ route('staff.commands.hitrun_contacts.store') }}"
-                data-confirm="Se enviará el mensaje a los socios marcados ({{ $canal }}) y quedará anotado, con {{ $plazo }} días sin volver a escribirles. ¿Enviar?"
+                data-confirm="Se enviará el mensaje a los socios marcados (privado, correo y Telegram) y quedará anotado. Plazo: {{ $plazo }} días. ¿Enviar?"
             >
                 @csrf
                 <input type="hidden" name="filtro" value="{{ $filtro }}" />
-                <input type="hidden" name="canal" value="{{ $canal }}" />
-                <input type="hidden" name="plazo" value="{{ $plazo }}" />
                 <div class="data-table-wrapper">
                     <table class="data-table" data-tools>
                         <thead>

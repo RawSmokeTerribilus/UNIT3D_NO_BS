@@ -37,11 +37,18 @@ use Throwable;
  * por el grupo de Telegram «Baneados de NOBS», y la poda es un paso aparte a
  * los DIAS_PODA dias, solo con quien no respondio y siempre confirmando.
  *
+ * Decidido el 2026-10-13: UN contacto y UN plazo (DIAS_BANEO) para todo: no
+ * volver a escribirle, la fecha que promete el mensaje y cuando pasa a ser
+ * candidato. Del primer H&R a la poda, unas 5 semanas.
+ *
  * Candidato:
- *   - HitRunContacts::CONTACTOS_PARA_DECIDIR o mas contactos de H&R en
- *     staff_contacts, el ultimo hace DIAS_BANEO dias o mas;
+ *   - su ultimo contacto de H&R prometia la eliminacion con fecha (plantillas
+ *     PLANTILLAS_CON_FECHA) y fue hace DIAS_BANEO dias o mas; o, para el
+ *     historico importado que no prometia nada, 2 o mas contactos de H&R y el
+ *     ultimo hace DIAS_BANEO dias o mas;
  *   - ningun plazo abierto en el registro (otro proceso, o retenido);
- *   - deuda pendiente: avisos activos o en camino;
+ *   - hitrun.max_warnings H&R activos o mas: solo se banea a quien la web ya
+ *     le ha cortado la descarga. Con menos, ni la web le sanciona;
  *   - ningun aviso cumplido sembrando desde el primer contacto;
  *   - su cliente no ha anunciado nada desde el ultimo contacto (history,
  *     con deleted_at IS NULL).
@@ -54,26 +61,32 @@ use Throwable;
  */
 final class HitRunBans
 {
-    final public const int DIAS_BANEO = 21;
+    final public const int DIAS_BANEO = 14;
 
-    final public const int DIAS_PODA = 14;
+    final public const int DIAS_PODA = 7;
+
+    /** Mensajes de H&R que avisan de la eliminacion con fecha. */
+    final public const array PLANTILLAS_CON_FECHA = ['hitrun-cortada', 'hitrun-limite'];
 
     /**
      * @return array{candidatos: Collection<int, array<string, mixed>>, excluidos: Collection<int, array<string, mixed>>}
      */
     public static function candidates(int $dias = self::DIAS_BANEO): array
     {
+        $marcadores = implode(',', array_fill(0, \count(self::PLANTILLAS_CON_FECHA), '?'));
+
         $contactos = StaffContact::query()
             ->where('campana', 'like', 'hitrun%')
             ->where('canal', '!=', 'ninguno')
             ->groupBy('user_id')
-            ->havingRaw('COUNT(*) >= ?', [HitRunContacts::CONTACTOS_PARA_DECIDIR])
-            ->select([
-                'user_id',
-                DB::raw('COUNT(*) AS n'),
-                DB::raw('MIN(contacted_at) AS primero'),
-                DB::raw('MAX(contacted_at) AS ultimo'),
-            ])
+            ->selectRaw(
+                "user_id, COUNT(*) AS n, MIN(contacted_at) AS primero, MAX(contacted_at) AS ultimo,
+                 MAX(CASE WHEN plantilla IN ({$marcadores}) THEN contacted_at END) AS ultimo_con_fecha",
+                self::PLANTILLAS_CON_FECHA,
+            )
+            // Solo quien ya puede llegar a candidato: un aviso con fecha, o el
+            // historico de 2+ contactos. Los demas no pintan nada en esta lista.
+            ->havingRaw('COUNT(*) >= ? OR MAX(CASE WHEN plantilla IN ('.$marcadores.') THEN 1 END) = 1', [HitRunContacts::CONTACTOS_PARA_DECIDIR, ...self::PLANTILLAS_CON_FECHA])
             ->get()
             ->keyBy('user_id');
 
@@ -103,6 +116,7 @@ final class HitRunBans
             ->groupBy('user_id')->select('user_id', DB::raw('MAX(updated_at) AS t'))->pluck('t', 'user_id');
 
         $limite = now()->subDays($dias);
+        $max = (int) config('hitrun.max_warnings');
         $candidatos = collect();
         $excluidos = collect();
 
@@ -127,6 +141,7 @@ final class HitRunBans
                 'username'        => $u->username,
                 'grupo'           => $u->grupo,
                 'contactos'       => (int) $c->n,
+                'con_fecha'       => $c->ultimo_con_fecha !== null,
                 'primer_contacto' => $primero,
                 'ultimo_contacto' => $ultimo,
                 'activos'         => (int) ($activos[$u->id] ?? 0),
@@ -149,8 +164,8 @@ final class HitRunBans
                     $abiertos[$u->id]->campana,
                     $abiertos[$u->id]->plazo_hasta->timezone('Europe/Madrid')->format('d/m/Y'),
                 ),
-                $ultimo->gt($limite)                         => 'último contacto hace menos de '.$dias.' días',
-                $fila['activos'] + $camino === 0             => 'ya no debe nada',
+                $ultimo->gt($limite)                         => 'último contacto hace menos de '.$dias.' días: aún en plazo',
+                $fila['activos'] < $max                      => \sprintf('%d H&R activos, menos de %d: la web ni le corta la descarga', $fila['activos'], $max),
                 $cumplidos > 0                               => $cumplidos.' H&R cumplido(s) sembrando desde el primer contacto',
                 $announce !== null && $announce->gt($ultimo) => 'su cliente ha anunciado desde el último contacto',
                 default                                      => null,
@@ -261,17 +276,17 @@ final class HitRunBans
                 ]);
 
                 StaffContact::create([
-                    'user_id'          => $user->id,
-                    'contacted_at'     => now(),
-                    'campana'          => 'baneo-hitrun-'.now()->format('Y-m-d'),
-                    'canal'            => implode('+', array_filter([$correo ? 'email' : null, $telegramEnviado ? 'telegram' : null])) ?: 'ninguno',
-                    'plantilla'        => 'baneo-hitrun',
-                    'hr_activos'       => $fila['activos'],
-                    'hr_en_camino'     => $fila['en_camino'],
-                    'plazo_hasta'      => $podaEl,
-                    'staff_id'         => $staff->id,
-                    'origen'           => 'boton',
-                    'nota'             => $invitacion === null ? 'sin invitación al grupo de baneados' : 'invitación: '.$invitacion,
+                    'user_id'      => $user->id,
+                    'contacted_at' => now(),
+                    'campana'      => 'baneo-hitrun-'.now()->format('Y-m-d'),
+                    'canal'        => implode('+', array_filter([$correo ? 'email' : null, $telegramEnviado ? 'telegram' : null])) ?: 'ninguno',
+                    'plantilla'    => 'baneo-hitrun',
+                    'hr_activos'   => $fila['activos'],
+                    'hr_en_camino' => $fila['en_camino'],
+                    'plazo_hasta'  => $podaEl,
+                    'staff_id'     => $staff->id,
+                    'origen'       => 'boton',
+                    'nota'         => $invitacion === null ? 'sin invitación al grupo de baneados' : 'invitación: '.$invitacion,
                 ]);
             });
 
