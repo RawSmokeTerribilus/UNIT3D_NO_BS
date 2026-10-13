@@ -73,12 +73,13 @@ class ConfigManager extends Component
             'icon'  => 'fa-exclamation-triangle',
             'settings' => [
                 'hitrun.enabled'      => ['label' => 'Sistema H&R activo',             'hint' => 'Activa el sistema de penalizaciones por hit & run',                              'type' => 'boolean'],
-                'hitrun.seedtime'     => ['label' => 'Tiempo mínimo de seed (horas)',    'hint' => 'Horas que debe seedearse un torrent para no recibir advertencia (ej: 96 = 4 días)', 'type' => 'integer'],
-                'hitrun.max_warnings' => ['label' => 'Máx. advertencias',              'hint' => 'Número de advertencias antes de perder los privilegios de descarga',            'type' => 'integer'],
+                'hitrun.seedtime'     => ['label' => 'Tiempo mínimo de seed (horas)',    'hint' => 'Horas que debe sembrarse un torrent para no recibir un H&R (ej: 96 = 4 días)', 'type' => 'integer'],
+                'hitrun.max_warnings' => ['label' => 'Máx. H&R activos',               'hint' => 'Con este número de H&R activos se pierde la descarga. Los preavisos no cuentan',            'type' => 'integer'],
                 'hitrun.grace'        => ['label' => 'Período de gracia (días)',        'hint' => 'Días desde la última actividad del torrent (último announce) antes de que pueda caer el H&R. Mientras no pasen, no cae aunque ya tenga preaviso',     'type' => 'integer'],
                 'hitrun.prewarn'      => ['label' => 'Plazo del preaviso (días)',       'hint' => 'Cuenta dos veces: días sin actividad hasta que llega el PREAVISO, y días desde el preaviso hasta que puede caer el H&R. El H&R solo se reparte en la pasada diaria de medianoche (UTC) y exige además el período de gracia. Con 0 el preaviso llega en la siguiente hora y el H&R esa misma medianoche', 'type' => 'integer'],
                 'hitrun.buffer'       => ['label' => 'Buffer (%)',                     'hint' => 'Porcentaje del torrent verificado contra el downloaded real (margen de error)', 'type' => 'integer'],
-                'hitrun.expire'       => ['label' => 'Expiración de advertencia (días)','hint' => 'Días antes de que una advertencia activa expire automáticamente',              'type' => 'integer'],
+                'hitrun.expire'       => ['label' => 'Caducidad de un H&R (días)',      'hint' => 'Días antes de que un H&R activo caduque solo',              'type' => 'integer'],
+                'hitrun.dead_torrent_hours' => ['label' => 'Plazo de torrents muertos (horas)', 'hint' => 'Cuenta tres veces: horas sin semilla para que un torrent cuente como muerto, antigüedad mínima del torrent, y horas entre pedir la resiembra y borrarlo. 0 = el mismo que el tiempo mínimo de seed', 'type' => 'integer'],
             ],
         ],
         [

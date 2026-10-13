@@ -107,6 +107,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | NOBS: Plazo de los torrents muertos (horas)
+    |--------------------------------------------------------------------------
+    |
+    | Horas sin semilla para que un torrent cuente como muerto, antiguedad
+    | minima del torrent y espera entre pedir la resiembra y borrarlo
+    | (App\Services\DeadTorrents). 0 = el mismo que "seedtime". El valor vivo
+    | sale de la tabla settings, editable en el panel de configuracion.
+    |
+    */
+
+    'dead_torrent_hours' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
     | NOBS: Re-descarga por hit and run
     |--------------------------------------------------------------------------
     |

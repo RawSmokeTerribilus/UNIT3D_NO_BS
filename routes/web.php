@@ -1013,6 +1013,20 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->grou
                 Route::post('/sync-peers', [App\Http\Controllers\Staff\CommandController::class, 'syncPeers']);
                 Route::post('/sync-torrents-meilisearch', [App\Http\Controllers\Staff\CommandController::class, 'syncTorrents']);
 
+                // Torrents muertos: lista → peticion de resiembra → borrado por el scheduler
+                Route::get('/dead-torrents', [App\Http\Controllers\Staff\DeadTorrentController::class, 'index'])->name('commands.dead_torrents.index');
+                Route::post('/dead-torrents', [App\Http\Controllers\Staff\DeadTorrentController::class, 'store'])->name('commands.dead_torrents.store');
+                Route::post('/dead-torrents/{notice}/cancel', [App\Http\Controllers\Staff\DeadTorrentController::class, 'cancel'])->name('commands.dead_torrents.cancel')->whereNumber('notice');
+
+                // Mensajes de H&R: lista → envío → registro en staff_contacts
+                Route::get('/hitrun-contacts', [App\Http\Controllers\Staff\HitRunContactController::class, 'index'])->name('commands.hitrun_contacts.index');
+                Route::post('/hitrun-contacts', [App\Http\Controllers\Staff\HitRunContactController::class, 'store'])->name('commands.hitrun_contacts.store');
+
+                // Baneo por H&R abandonado → grupo de Telegram de baneados → poda
+                Route::get('/hitrun-bans', [App\Http\Controllers\Staff\HitRunBanController::class, 'index'])->name('commands.hitrun_bans.index');
+                Route::post('/hitrun-bans', [App\Http\Controllers\Staff\HitRunBanController::class, 'store'])->name('commands.hitrun_bans.store');
+                Route::post('/hitrun-bans/prune', [App\Http\Controllers\Staff\HitRunBanController::class, 'prune'])->name('commands.hitrun_bans.prune');
+
                 // Rust Tracker Sync
                 Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
                 Route::post('/tracker-sync-users', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerUsers']);

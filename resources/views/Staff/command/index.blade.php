@@ -160,6 +160,31 @@
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/reset-user-flushes',   'label' => 'Resetear flushes usuarios',  'icon' => 'fa-redo',         'level' => 'warning', 'tip' => 'Resetear cuota diaria de flush de peers para todos los usuarios'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-peers',           'label' => 'Sincronizar peers (DB)',      'icon' => 'fa-exchange-alt', 'level' => 'safe',    'tip' => 'Recalcula seeders/leechers en la tabla torrents desde la tabla peers'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar Meilisearch', 'icon' => 'fa-hdd',       'level' => 'safe',    'tip' => 'Sincronizar índice de torrents en Meilisearch'])
+                {{-- No es un POST: abre la lista, y la peticion sale solo al confirmar alli. --}}
+                <a
+                    href="{{ route('staff.commands.dead_torrents.index') }}"
+                    class="cmd-btn cmd-btn--warning"
+                    title="Lista los torrents sin semillas desde hace {{ App\Services\DeadTorrents::hours() }} h, pide la resiembra al confirmar y los borra solos si nadie vuelve a sembrar"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-skull-crossbones"></i>
+                    Torrents muertos
+                </a>
+                <a
+                    href="{{ route('staff.commands.hitrun_contacts.index') }}"
+                    class="cmd-btn cmd-btn--warning"
+                    title="Mensaje a cada socio con hit and run con su lista de torrents y horas que faltan; queda anotado en el registro de contactos"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-envelope-open-text"></i>
+                    Mensajes de H&amp;R
+                </a>
+                <a
+                    href="{{ route('staff.commands.hitrun_bans.index') }}"
+                    class="cmd-btn cmd-btn--danger"
+                    title="Banea a quien sigue sin hacer caso tras los mensajes de H&R (lista y confirmación), le invita al grupo de baneados para responder y prunea después a quien no respondió"
+                >
+                    <i class="{{ config('other.font-awesome') }} fa-user-slash"></i>
+                    Baneo por H&amp;R abandonado
+                </a>
             </div>
         </section>
 
@@ -388,6 +413,7 @@
         }
 
         .cmd-btn:active { transform: translateX(1px); }
+        a.cmd-btn { text-decoration: none; }
 
         .cmd-btn i { flex-shrink: 0; width: 1.5rem; text-align: center; }
 

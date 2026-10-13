@@ -18,11 +18,8 @@ namespace App\Console\Commands;
 
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
-use App\Models\User;
-use App\Notifications\TorrentDeleted;
-use App\Services\Unit3dAnnounce;
+use App\Services\TorrentPurge;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * Borra torrents por id con el MISMO ritual que el boton de la web.
@@ -30,8 +27,8 @@ use Illuminate\Support\Facades\Notification;
  * Un `UPDATE torrents SET deleted_at=NOW()` a mano deja el torrent vivo en el
  * announce de Rust, deja peers, historial y avisos colgando, y no avisa a quien
  * se lo habia bajado. Este comando repite paso por paso lo que hace
- * `TorrentController@destroy`, para limpiezas en lote (duplicados) donde ir uno
- * a uno por la interfaz son decenas de clics.
+ * `TorrentController@destroy` (ver App\Services\TorrentPurge), para limpiezas
+ * en lote (duplicados) donde ir uno a uno por la interfaz son decenas de clics.
  *
  * El motivo es obligatorio: es lo que le llega al que se lo descargo.
  */
@@ -83,38 +80,11 @@ class PurgeTorrents extends Command
                 continue;
             }
 
-            Notification::send(
-                User::query()->whereHas('history', fn ($query) => $query->where('torrent_id', '=', $torrent->id))->get(),
-                new TorrentDeleted($torrent, $motivo),
-            );
+            $hecho = TorrentPurge::purge($torrent, $motivo);
 
-            $torrent->requests()->whereNull('approved_when')->update(['torrent_id' => null]);
-
-            cache()->forget(\sprintf('torrent:%s', $torrent->info_hash));
-
-            $torrent->comments()->delete();
-            $torrent->peers()->delete();
-            $torrent->history()->delete();
-            $torrent->warnings()->delete();
-            $torrent->files()->delete();
-            $torrent->playlists()->detach();
-            $torrent->subtitles()->delete();
-            $torrent->resurrections()->delete();
-            $torrent->featured()->delete();
-
-            $freeleechTokens = $torrent->freeleechTokens();
-
-            foreach ($freeleechTokens->get() as $freeleechToken) {
-                cache()->forget('freeleech_token:'.$freeleechToken->user_id.':'.$torrent->id);
+            if ($hecho['rehabilitados'] !== []) {
+                $this->line('  descarga devuelta a: '.implode(', ', $hecho['rehabilitados']));
             }
-
-            $freeleechTokens->delete();
-
-            cache()->forget('announce-torrents:by-infohash:'.$torrent->info_hash);
-
-            Unit3dAnnounce::removeTorrent($torrent);
-
-            $torrent->delete();
         }
 
         $this->newLine();
