@@ -229,68 +229,106 @@ final class HitRunContacts
                 continue;
             }
 
-            $detalle = self::detail($user->id);
-            $texto = self::message($user, $staff, $filtro, $detalle);
-            $plantilla = $texto['plantilla'];
-            $campana = $plantilla.'-'.now()->format('Y-m-d');
-            $conversationId = null;
-            $canales = [];
-
-            // Por tierra, mar y aire: privado siempre, correo si lo tiene y
-            // Telegram si lo tiene vinculado. Un solo contacto con fecha vale
-            // como aviso solo si le ha llegado por todas las vias posibles.
-            $conversationId = DB::transaction(function () use ($texto, $user, $staff): int {
-                $conversation = Conversation::create(['subject' => $texto['asunto']]);
-
-                PrivateMessage::create([
-                    'conversation_id' => $conversation->id,
-                    'sender_id'       => $staff->id,
-                    'message'         => $texto['bbcode'],
-                ]);
-
-                $conversation->users()->sync([$staff->id => ['read' => true], $user->id]);
-
-                return $conversation->id;
-            });
-
-            $canales[] = 'pm';
-
-            if (!empty($user->email)) {
-                Mail::to($user->email)->queue(new HitRunReminder($texto['asunto'], $texto['texto']));
-
-                $canales[] = 'email';
-            }
-
-            if (!empty($user->telegram_chat_id) && app(TelegramService::class)->sendMessage(
-                self::telegramText($user, $texto, $conversationId),
-                (string) $user->telegram_chat_id,
-            )) {
-                $canales[] = 'telegram';
-            }
-
-            StaffContact::create([
-                'user_id'          => $user->id,
-                'contacted_at'     => now(),
-                'campana'          => $campana,
-                'canal'            => $canales === [] ? 'ninguno' : implode('+', $canales),
-                'plantilla'        => $plantilla,
-                'hr_activos'       => $detalle['activos']->count(),
-                'hr_en_camino'     => $detalle['en_camino']->count(),
-                'horas_pendientes' => $detalle['horas_pendientes'],
-                'conversation_id'  => $conversationId,
-                'plazo_hasta'      => now()->addDays(HitRunBans::DIAS_BANEO),
-                'staff_id'         => $staff->id,
-                'origen'           => 'boton',
-            ]);
-
-            // La pantalla de aviso cachea 5 min «no tiene nada pendiente»: que el
-            // aviso nuevo le salga en la siguiente pagina, no a los 5 minutos.
-            \App\Http\Middleware\HitRunAvisoPendiente::olvidar($user->id);
+            self::sendTo($user, $staff, $filtro);
 
             $enviados++;
         }
 
         return ['enviados' => $enviados, 'saltados' => $saltados];
+    }
+
+    /**
+     * Último aviso a candidatos del botón de baneo (histórico sin fecha
+     * prometida): el mismo mensaje, encabezado con «Último aviso», y desde ahí
+     * con su plazo de DIAS_BANEO días. Solo a quien SIGA siendo candidato.
+     *
+     * @param  list<int>                                    $ids
+     * @return array{enviados: int, saltados: list<string>}
+     */
+    public static function sendUltimoAviso(array $ids, User $staff): array
+    {
+        $vigentes = HitRunBans::candidates()['candidatos']->keyBy('id');
+        $r = ['enviados' => 0, 'saltados' => []];
+
+        foreach (array_unique($ids) as $id) {
+            $user = isset($vigentes[$id]) ? User::find($id) : null;
+
+            if ($user === null) {
+                $r['saltados'][] = '#'.$id;
+
+                continue;
+            }
+
+            self::sendTo($user, $staff, self::FILTRO_LIMITE, true);
+            $r['enviados']++;
+        }
+
+        return $r;
+    }
+
+    /**
+     * Un mensaje a un socio por todas las vías, y su fila en staff_contacts.
+     */
+    private static function sendTo(User $user, User $staff, string $filtro, bool $ultimo = false): void
+    {
+        $detalle = self::detail($user->id);
+        $texto = self::message($user, $staff, $filtro, $detalle, $ultimo);
+        $plantilla = $texto['plantilla'];
+        $campana = $plantilla.'-'.now()->format('Y-m-d');
+        $conversationId = null;
+        $canales = [];
+
+        // Por tierra, mar y aire: privado siempre, correo si lo tiene y
+        // Telegram si lo tiene vinculado. Un solo contacto con fecha vale
+        // como aviso solo si le ha llegado por todas las vias posibles.
+        $conversationId = DB::transaction(function () use ($texto, $user, $staff): int {
+            $conversation = Conversation::create(['subject' => $texto['asunto']]);
+
+            PrivateMessage::create([
+                'conversation_id' => $conversation->id,
+                'sender_id'       => $staff->id,
+                'message'         => $texto['bbcode'],
+            ]);
+
+            $conversation->users()->sync([$staff->id => ['read' => true], $user->id]);
+
+            return $conversation->id;
+        });
+
+        $canales[] = 'pm';
+
+        if (!empty($user->email)) {
+            Mail::to($user->email)->queue(new HitRunReminder($texto['asunto'], $texto['texto']));
+
+            $canales[] = 'email';
+        }
+
+        if (!empty($user->telegram_chat_id) && app(TelegramService::class)->sendMessage(
+            self::telegramText($user, $texto, $conversationId),
+            (string) $user->telegram_chat_id,
+        )) {
+            $canales[] = 'telegram';
+        }
+
+        StaffContact::create([
+            'user_id'          => $user->id,
+            'contacted_at'     => now(),
+            'campana'          => $campana,
+            'canal'            => $canales === [] ? 'ninguno' : implode('+', $canales),
+            'plantilla'        => $plantilla,
+            'hr_activos'       => $detalle['activos']->count(),
+            'hr_en_camino'     => $detalle['en_camino']->count(),
+            'horas_pendientes' => $detalle['horas_pendientes'],
+            'conversation_id'  => $conversationId,
+            'plazo_hasta'      => now()->addDays(HitRunBans::DIAS_BANEO),
+            'staff_id'         => $staff->id,
+            'origen'           => 'boton',
+            'nota'             => $ultimo ? 'último aviso, desde el botón de baneo' : null,
+        ]);
+
+        // La pantalla de aviso cachea 5 min «no tiene nada pendiente»: que el
+        // aviso nuevo le salga en la siguiente pagina, no a los 5 minutos.
+        \App\Http\Middleware\HitRunAvisoPendiente::olvidar($user->id);
     }
 
     /**
@@ -308,7 +346,7 @@ final class HitRunContacts
      * @param  array{activos: Collection<int, stdClass>, en_camino: Collection<int, stdClass>, horas_pendientes: float} $detalle
      * @return array{asunto: string, bbcode: string, texto: string, plantilla: string}
      */
-    public static function message(User $user, User $staff, string $filtro, array $detalle): array
+    public static function message(User $user, User $staff, string $filtro, array $detalle, bool $ultimo = false): array
     {
         $max = (int) config('hitrun.max_warnings');
         $horasReq = intdiv((int) config('hitrun.seedtime'), 3600);
@@ -332,6 +370,11 @@ final class HitRunContacts
             'hitrun-limite'  => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga: todavía puedes evitarlo.', $activos, $llegan, $max),
             default          => \sprintf('Tienes [b]%s[/b]%s. Con %d se corta la descarga.', $activos, $llegan, $max),
         };
+
+        if ($ultimo) {
+            $intro = '[b]ÚLTIMO AVISO.[/b] '.$intro;
+        }
+
         $b .= $intro.' '.($plantilla === 'hitrun-limite' ? 'Estos son los torrents:' : 'Estos son los torrents que te faltan:');
         $baja = null;
 

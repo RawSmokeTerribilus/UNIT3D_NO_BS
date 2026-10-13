@@ -129,6 +129,14 @@
                 </div>
                 <div class="panel__body">
                     <button type="submit" class="form__button form__button--filled hrb-btn-danger">Banear a los marcados</button>
+                    <button
+                        type="submit"
+                        class="form__button form__button--outlined"
+                        formaction="{{ route('staff.commands.hitrun_bans.ultimo_aviso') }}"
+                        data-confirm="Se mandará el ÚLTIMO AVISO a los marcados (privado, correo, Telegram y pantalla al entrar), con su fecha de eliminación a {{ App\Services\HitRunBans::DIAS_BANEO }} días. No se banea a nadie. ¿Enviar?"
+                    >
+                        Mandar último aviso a los marcados
+                    </button>
                 </div>
             </form>
         @endif
@@ -292,6 +300,6 @@
 @endsection
 
 @section('scripts')
-    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}"></script>
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}?v=20261013"></script>
     @include('Staff.partials.table-tools')
 @endsection
