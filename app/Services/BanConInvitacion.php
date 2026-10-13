@@ -22,6 +22,7 @@ use App\Models\HitRunBan;
 use App\Models\StaffContact;
 use App\Models\User;
 use App\Notifications\HitRunBanned;
+use App\Notifications\HitRunUnbanned;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -147,5 +148,75 @@ final class BanConInvitacion
         }
 
         return ['invitacion' => $invitacion, 'telegram' => $telegramEnviado, 'correo' => $correo, 'ban_id' => $ban->id];
+    }
+
+    /**
+     * El desbaneo, el reverso de ban() (lo usa Staff\UnbanController):
+     *
+     *   1. Ritual nativo: grupo y descarga de vuelta, fila de desbaneo en bans,
+     *      announce.
+     *   2. Si le baneamos con este flujo, su id de Telegram está en hitrun_bans:
+     *      se le restaura el vínculo (si nadie más lo usa: es único), se le saca
+     *      del grupo de baneados y el bot le manda el botón para volver al grupo
+     *      principal. La entrada la apunta el webhook, como siempre.
+     *   3. Correo en castellano (HitRunUnbanned) en vez del UserBanExpire nativo.
+     *
+     * @return array{telegram_restaurado: bool, privado: bool, fuera_de_baneados: bool, correo: bool}
+     */
+    public static function unban(User $user, User $staff, int $groupId, string $motivo): array
+    {
+        $user->update(['group_id' => $groupId, 'can_download' => 1]);
+
+        Ban::create([
+            'owned_by'     => $user->id,
+            'created_by'   => $staff->id,
+            'unban_reason' => $motivo,
+            'removed_at'   => now(),
+        ]);
+
+        cache()->forget('user:'.$user->passkey);
+
+        Unit3dAnnounce::addUser($user);
+
+        $baneo = HitRunBan::query()
+            ->where('user_id', '=', $user->id)
+            ->whereNotNull('telegram_user_id')
+            ->latest('banned_at')
+            ->first();
+
+        $telegramId = $user->telegram_chat_id ?: $baneo?->telegram_user_id;
+        $restaurado = false;
+        $fuera = false;
+        $privado = false;
+
+        if ($user->telegram_chat_id === null && $baneo !== null
+            && !User::withTrashed()->where('telegram_chat_id', '=', $baneo->telegram_user_id)->exists()) {
+            $user->update(['telegram_chat_id' => $baneo->telegram_user_id, 'telegram_group_joined_at' => null]);
+            $restaurado = true;
+        }
+
+        $enlaceGrupo = config('services.telegram.group_invite_link') ?: null;
+
+        if ($telegramId) {
+            $fuera = app(TelegramService::class)->kickFromChat((string) config('services.telegram.banned_group_id'), (string) $telegramId);
+
+            if ($enlaceGrupo !== null) {
+                $privado = app(TelegramService::class)->sendMessageWithButton(
+                    "\u{2705} <b>Cuenta desbaneada, ".e($user->username).'.</b>'."\n\n"
+                    .'Tu cuenta de '.e((string) config('other.title')).' vuelve a estar activa. Entra otra vez al grupo con el botón de abajo.',
+                    (string) $telegramId,
+                    "\u{1F4E1} UNIRSE AL GRUPO",
+                    $enlaceGrupo,
+                );
+            }
+        }
+
+        $correo = !empty($user->email);
+
+        if ($correo) {
+            $user->notify(new HitRunUnbanned($motivo, $enlaceGrupo, $restaurado || (bool) $user->telegram_chat_id));
+        }
+
+        return ['telegram_restaurado' => $restaurado, 'privado' => $privado, 'fuera_de_baneados' => $fuera, 'correo' => $correo];
     }
 }
