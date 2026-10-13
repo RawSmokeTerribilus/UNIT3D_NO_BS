@@ -284,6 +284,48 @@
         {{-- Antes de donar. Se abre al entrar. Hubo tres casillas obligatorias
              (2026-10-12) y se quitaron al día siguiente: liaban a la gente y
              repetían lo que ya dice la descripción. --}}
+        {{-- Las casillas, guardadas para reciclarlas cambiando los textos. Para
+             volver a encenderlas hacen falta tres piezas:
+             1. Esta lista, donde iba (antes de «¿Cómo quieres pagar?»).
+             2. En el <ul class="donation-metodos">:
+                x-bind:class="{ 'donation-metodos--bloqueados': ! checks.every(Boolean) }"
+                y en cada <button class="donation-metodo">:
+                x-bind:disabled="! checks.every(Boolean)"
+             3. En Alpine.data('donar'), junto a `metodo`:
+                checks: [false, false, false],
+             El CSS (.donation-antes__checks, .donation-metodos--bloqueados) sigue en
+             _donation-package.scss.
+
+                <ul class="donation-antes__checks">
+                    <li>
+                        <label>
+                            <input type="checkbox" class="form__checkbox" x-model="checks[0]" />
+                            <span>
+                                Es una donación: no se devuelve y no compra nada. Los premios se
+                                regalan igual a todo el mundo.
+                            </span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" class="form__checkbox" x-model="checks[1]" />
+                            <span>
+                                Me lo puedo permitir. Si este dinero te hace falta para otra
+                                cosa, no dones: el sitio seguirá aquí igual.
+                            </span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="checkbox" class="form__checkbox" x-model="checks[2]" />
+                            <span>
+                                Sé que la revisa una persona a mano y puede tardar hasta
+                                48&nbsp;horas en aplicarse.
+                            </span>
+                        </label>
+                    </li>
+                </ul>
+        --}}
         <dialog class="dialog donation-dialog donation-antes" x-ref="antes">
             <h2 class="dialog__heading">Antes de donar</h2>
             <div class="donation-dialog__step-body" style="grid-column: auto">
