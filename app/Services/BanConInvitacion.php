@@ -178,6 +178,14 @@ final class BanConInvitacion
 
         Unit3dAnnounce::addUser($user);
 
+        // El baneo abría un plazo en el registro (el de la poda). Desbaneado, ese
+        // proceso se acaba: si no, saldría «en proceso» y fuera de toda lista.
+        StaffContact::query()
+            ->where('user_id', '=', $user->id)
+            ->whereIn('plantilla', ['baneo-hitrun', 'baneo-manual'])
+            ->where('plazo_hasta', '>', now())
+            ->update(['plazo_hasta' => now()]);
+
         $baneo = HitRunBan::query()
             ->where('user_id', '=', $user->id)
             ->whereNotNull('telegram_user_id')
