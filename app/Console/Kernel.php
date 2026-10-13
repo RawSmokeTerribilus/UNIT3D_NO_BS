@@ -32,6 +32,7 @@ use App\Console\Commands\AutoBonAllocation;
 use App\Console\Commands\AutoCacheRandomMediaIds;
 use App\Console\Commands\AutoCacheUserLeechCounts;
 use App\Console\Commands\AutoCorrectHistory;
+use App\Console\Commands\AutoDeadTorrents;
 use App\Console\Commands\AutoDeactivateWarning;
 use App\Console\Commands\AutoDeleteStoppedPeers;
 use App\Console\Commands\AutoDisableInactiveUsers;
@@ -140,6 +141,11 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoSyncPeopleToMeilisearch::class)->daily();
         $schedule->command(AutoRemoveExpiredDonors::class)->daily();
         $schedule->command(AutoRemoveReseeds::class)->daily();
+        // Torrents muertos: el staff pide la resiembra desde el panel y esto
+        // cierra cada peticion a su hora, salvada o borrada, con resumen al
+        // grupo de staff. Cada hora para que el borrado no se retrase mas de
+        // eso sobre la fecha que se prometio en el privado.
+        $schedule->command(AutoDeadTorrents::class)->hourly()->withoutOverlapping(30);
         // La caché del proxy de imágenes de descripción crece con cada imagen
         // servida y no se borraba nunca. Poda diaria hasta el tope, tirando
         // primero de lo menos pedido.

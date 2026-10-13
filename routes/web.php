@@ -1013,6 +1013,11 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements'])->grou
                 Route::post('/sync-peers', [App\Http\Controllers\Staff\CommandController::class, 'syncPeers']);
                 Route::post('/sync-torrents-meilisearch', [App\Http\Controllers\Staff\CommandController::class, 'syncTorrents']);
 
+                // Torrents muertos: lista → peticion de resiembra → borrado por el scheduler
+                Route::get('/dead-torrents', [App\Http\Controllers\Staff\DeadTorrentController::class, 'index'])->name('commands.dead_torrents.index');
+                Route::post('/dead-torrents', [App\Http\Controllers\Staff\DeadTorrentController::class, 'store'])->name('commands.dead_torrents.store');
+                Route::post('/dead-torrents/{notice}/cancel', [App\Http\Controllers\Staff\DeadTorrentController::class, 'cancel'])->name('commands.dead_torrents.cancel')->whereNumber('notice');
+
                 // Rust Tracker Sync
                 Route::post('/tracker-sync-torrents', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerTorrents']);
                 Route::post('/tracker-sync-users', [App\Http\Controllers\Staff\CommandController::class, 'syncTrackerUsers']);

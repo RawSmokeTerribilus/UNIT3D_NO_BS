@@ -79,6 +79,7 @@ class ConfigManager extends Component
                 'hitrun.prewarn'      => ['label' => 'Plazo del preaviso (días)',       'hint' => 'Cuenta dos veces: días sin actividad hasta que llega el PREAVISO, y días desde el preaviso hasta que puede caer el H&R. El H&R solo se reparte en la pasada diaria de medianoche (UTC) y exige además el período de gracia. Con 0 el preaviso llega en la siguiente hora y el H&R esa misma medianoche', 'type' => 'integer'],
                 'hitrun.buffer'       => ['label' => 'Buffer (%)',                     'hint' => 'Porcentaje del torrent verificado contra el downloaded real (margen de error)', 'type' => 'integer'],
                 'hitrun.expire'       => ['label' => 'Expiración de advertencia (días)','hint' => 'Días antes de que una advertencia activa expire automáticamente',              'type' => 'integer'],
+                'hitrun.dead_torrent_hours' => ['label' => 'Plazo de torrents muertos (horas)', 'hint' => 'Cuenta tres veces: horas sin semilla para que un torrent cuente como muerto, antigüedad mínima del torrent, y horas entre pedir la resiembra y borrarlo. 0 = el mismo que el tiempo mínimo de seed', 'type' => 'integer'],
             ],
         ],
         [
