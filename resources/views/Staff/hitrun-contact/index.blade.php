@@ -62,8 +62,8 @@
                 El mensaje sale por todas las vías a la vez: privado del tracker, correo si lo tiene y Telegram si
                 lo tiene vinculado. Es un solo aviso con un solo plazo de {{ $plazo }} días: no se le vuelve a
                 escribir, y si tiene la descarga cortada o está a punto, el mensaje le da esa fecha para la
-                eliminación. Quedan fuera, con su motivo: staff, cuentas baneadas o sin validar, cortes manuales
-                del staff, quien está en otro proceso (plazo abierto) y quien ya recibió su aviso con fecha o
+                eliminación. Las cuentas baneadas, aniquiladas o sin validar ni aparecen. Quedan fuera, con su
+                motivo: staff, cortes manuales del staff, quien está en otro proceso (plazo abierto) y quien ya recibió su aviso con fecha o
                 lleva {{ App\Services\HitRunContacts::CONTACTOS_PARA_DECIDIR }} contactos del histórico: a esos
                 ya no se les escribe, se decide.
             </p>

@@ -92,6 +92,8 @@ final class HitRunBans
             ->join('groups as g', 'g.id', '=', 'u.group_id')
             ->whereIn('u.id', $ids)
             ->whereNull('u.deleted_at')
+            // Los ya baneados o aniquilados no se listan: están en poda e historial.
+            ->whereNotIn('g.slug', ['banned', 'pruned', 'disabled'])
             ->select([
                 'u.id', 'u.username', 'u.email', 'u.can_download', 'u.last_action',
                 'u.telegram_chat_id', 'g.name as grupo', 'g.slug',
@@ -162,7 +164,6 @@ final class HitRunBans
             ];
 
             $motivo = match (true) {
-                \in_array($u->slug, ['banned', 'pruned', 'disabled'], true) => 'cuenta '.$u->grupo,
                 $u->is_modo || $u->is_admin || $u->is_owner                 => 'staff',
                 !$u->can_download && !isset($filasAviso[$u->id])            => 'bloqueado sin filas de H&R visibles (bucle de AutoDeactivateWarning): no tocar sin permiso',
                 isset($abiertos[$u->id])                                    => \sprintf(
