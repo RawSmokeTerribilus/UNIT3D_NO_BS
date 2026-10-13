@@ -297,6 +297,38 @@ class TelegramService
     }
 
     /**
+     * Saca a alguien de un grupo cualquiera sin vetarle (ban + unban, como
+     * kickUser, que solo sirve para el grupo principal). Devuelve si salió.
+     */
+    public function kickFromChat(string $chatId, string $telegramUserId): bool
+    {
+        $token = config('services.telegram.token');
+
+        if (empty($token) || $chatId === '') {
+            return false;
+        }
+
+        try {
+            $ok = Http::post("https://api.telegram.org/bot{$token}/banChatMember", [
+                'chat_id' => $chatId,
+                'user_id' => $telegramUserId,
+            ])->successful();
+
+            Http::post("https://api.telegram.org/bot{$token}/unbanChatMember", [
+                'chat_id'        => $chatId,
+                'user_id'        => $telegramUserId,
+                'only_if_banned' => true,
+            ]);
+
+            return $ok;
+        } catch (\Throwable $e) {
+            Log::error('TelegramService: Error al sacar de un grupo.', ['chat_id' => $chatId, 'msg' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
+    /**
      * Privado con un botón que abre un enlace (el «📡 UNIRSE AL GRUPO» de la
      * vinculación). Un bot no puede meter a nadie en un grupo: el botón es lo
      * más cerca que se llega, un toque. parse_mode HTML. Devuelve si salió.
