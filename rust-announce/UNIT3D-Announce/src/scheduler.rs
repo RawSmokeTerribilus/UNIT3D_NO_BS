@@ -64,11 +64,20 @@ pub async fn reload_hitrun_redownloads(state: &Arc<AppState>) {
 
 /// Remove peers that have not announced for some time
 pub async fn reap(state: &Arc<AppState>) {
+    let active_peer_ttl = state.config.load().active_peer_ttl;
+
+    reap_older_than(state, active_peer_ttl);
+}
+
+/// Igual que `reap`, pero con un TTL de pares activos elegido por quien llama.
+/// Lo usa el botón «Limpiar pares viejos» del panel (`auto:flush_peers`) para
+/// que la memoria del announce suelte los mismos pares que la base.
+pub fn reap_older_than(state: &Arc<AppState>, active_peer_ttl: u64) {
     use rayon::prelude::*;
 
     let start = Instant::now();
     let config = state.config.load();
-    let ttl = Duration::seconds(config.active_peer_ttl.try_into().unwrap());
+    let ttl = Duration::seconds(active_peer_ttl.try_into().unwrap());
     let active_cutoff = Utc::now().checked_sub_signed(ttl).unwrap();
     let ttl = Duration::seconds(config.inactive_peer_ttl.try_into().unwrap());
     let inactive_cutoff = Utc::now().checked_sub_signed(ttl).unwrap();

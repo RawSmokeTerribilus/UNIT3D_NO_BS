@@ -385,6 +385,40 @@ class Unit3dAnnounce
     }
 
     /**
+     * Pide al announce que suelte ya, de su memoria, los pares que llevan más
+     * de `$activePeerTtl` segundos sin anunciar (`api/peer.rs`).
+     *
+     * Lo usa AutoFlushPeers: sin esto el flush sólo tocaba la tabla `peers` y
+     * el announce seguía contando esos pares para el límite por usuario hasta
+     * su propio ACTIVE_PEER_TTL. El announce rechaza TTL <= ANNOUNCE_MAX.
+     */
+    public static function reapPeers(int $activePeerTtl): bool
+    {
+        if (!self::isConfigValid()) {
+            return true;
+        }
+
+        try {
+            $response = self::buildHttpClient()->post(self::buildRoute('peers/reap'), [
+                'active_peer_ttl' => $activePeerTtl,
+            ]);
+        } catch (Throwable) {
+            return false;
+        }
+
+        if (!$response->ok()) {
+            Log::notice('External tracker error - POST peers/reap', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @return bool|array<mixed>
      */
     private static function get(string $path, ?int $id = null): bool|array

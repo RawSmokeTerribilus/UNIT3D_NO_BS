@@ -18,6 +18,7 @@ namespace App\Console\Commands;
 
 use App\Models\History;
 use App\Models\Peer;
+use App\Services\Unit3dAnnounce;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Exception;
@@ -76,6 +77,12 @@ class AutoFlushPeers extends Command
         // in case a user has internet issues and comes back online within the
         // next 2 days
         if (config('announce.external_tracker.is_enabled')) {
+            // El límite de pares por usuario lo cuenta el announce en memoria,
+            // no la base: que suelte los mismos pares (2 h) que acabamos de marcar.
+            if (!Unit3dAnnounce::reapPeers(2 * 3600)) {
+                $this->warn('El announce no ha confirmado la limpieza de pares en memoria');
+            }
+
             Peer::query()
                 ->where('updated_at', '<', $carbon->copy()->subDays(2))
                 ->where('active', '=', 0)
