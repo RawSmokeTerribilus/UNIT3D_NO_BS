@@ -116,7 +116,8 @@
                     >
                         @csrf
                         <button
-                            class="form__button form__button--text"
+                            class="form__button form__button--filled"
+                            style="background: var(--color-red, #ff0039); color: #fff"
                             title="Suelta tus pares de este torrent que llevan más de 65 min sin anunciar (cliente reiniciado o cerrado de golpe), para que no cuenten en el límite de 3. Los más recientes no se tocan: pueden seguir vivos"
                         >
                             Limpiar mis pares
