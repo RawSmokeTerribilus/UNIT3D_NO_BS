@@ -294,20 +294,27 @@
                 </li>
             @endif
 
-            @if ($isProfileOwner)
-                @if (! config('announce.external_tracker.is_enabled'))
-                    <form
-                        action="{{ route('users.peers.mass_destroy', ['user' => $user]) }}"
-                        method="POST"
-                        style="display: contents"
+            {{-- Vaciar pares fantasma: el socio, los suyos (2 al día); el staff, los de cualquiera menos el owner. --}}
+            @if ($isProfileOwner || ($isModo && ! $user->group->is_owner))
+                <form
+                    action="{{ route('users.peers.mass_destroy', ['user' => $user]) }}"
+                    method="POST"
+                    style="display: contents"
+                >
+                    @csrf()
+                    @method('DELETE')
+                    <button
+                        class="nav-tab__link"
+                        type="submit"
+                        style="background: var(--color-red, #ff0039); color: #fff; border-radius: 4px"
+                        title="Suelta los pares sin anunciar desde hace más de 70 min (cliente reiniciado o cerrado de golpe) para que no cuenten en el límite de 3 por torrent.{{ $isProfileOwner ? ' Dos veces al día.' : '' }}"
                     >
-                        @csrf()
-                        @method('DELETE')
-                        <button class="nav-tab__link" type="submit">
-                            {{ __('staff.flush-ghost-peers') }}
-                        </button>
-                    </form>
-                @endif
+                        {{ __('staff.flush-ghost-peers') }}
+                    </button>
+                </form>
+            @endif
+
+            @if ($isProfileOwner)
 
                 <li class="nav-tabV2" x-data="dialog">
                     <a class="nav-tab__link" x-bind="showDialog">Download torrent files</a>
