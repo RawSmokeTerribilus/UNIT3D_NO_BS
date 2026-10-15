@@ -93,7 +93,50 @@ class TorrentPeerController extends Controller
             'activePeers'   => $activePeers,
             'inactivePeers' => $inactivePeers,
             'diagnosis'     => $isStaff ? $this->diagnose($peers) : collect(),
+            'hasOwnPeers'   => $peers->contains('user_id', $request->user()->id),
         ]);
+    }
+
+    /**
+     * «Limpiar mis pares»: el socio suelta sus propios pares de este torrent
+     * que llevan más de 65 min sin anunciar, en la memoria del announce (donde
+     * se cuenta el límite de 3) y en la tabla `peers`.
+     *
+     * 65 min = ANNOUNCE_MAX (1 h) + margen: un cliente vivo anuncia como mucho
+     * cada hora, así que nunca se marca uno vivo (si se marcara, su siguiente
+     * anuncio entraría como par nuevo con la subida y la bajada a cero).
+     */
+    public function reapMine(int $id, Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $inactiveFor = 65 * 60;
+        $user = $request->user();
+        $torrent = Torrent::withoutGlobalScope(ApprovedScope::class)->findOrFail($id);
+
+        if (config('announce.external_tracker.is_enabled')) {
+            $reaped = Unit3dAnnounce::reapUserPeers($torrent->id, $user->id, $inactiveFor);
+
+            if ($reaped === false) {
+                return to_route('peers', ['id' => $torrent->id])
+                    ->withErrors('El tracker no ha respondido. Prueba en un rato.');
+            }
+        }
+
+        $marked = Peer::query()
+            ->where('torrent_id', '=', $torrent->id)
+            ->where('user_id', '=', $user->id)
+            ->where('active', '=', 1)
+            ->where('updated_at', '<', now()->subSeconds($inactiveFor))
+            ->update([
+                'active'     => false,
+                'updated_at' => \Illuminate\Support\Facades\DB::raw('updated_at'),
+            ]);
+
+        $count = max($marked, $reaped ?? 0);
+
+        return to_route('peers', ['id' => $torrent->id])
+            ->with('success', $count > 0
+                ? "Listo: {$count} par(es) tuyos sin anunciar desde hace más de 65 min ya no cuentan para el límite de 3."
+                : 'No tienes pares sin anunciar desde hace más de 65 min. Los más recientes pueden seguir vivos: espera a que pase la hora o cierra el cliente que sobra.');
     }
 
     /**

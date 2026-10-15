@@ -52,6 +52,7 @@ pub fn routes(state: Arc<AppState>) -> Router<Arc<AppState>> {
                                 .delete(api::featured_torrent::destroy),
                         )
                         .route("/peers/reap", post(api::peer::reap))
+                        .route("/peers/reap-user", post(api::peer::reap_user))
                         .route("/stats", get(crate::stats::show))
                         .route("/config/reload", post(Config::reload)),
                 ),

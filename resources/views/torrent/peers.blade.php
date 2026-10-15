@@ -103,9 +103,28 @@
     @endif
 
     <section class="panelV2">
-        <h2 class="panel__heading">
-            {{ __('torrent.torrent') }} {{ __('torrent.peers') }} ({{ $activePeers->count() }})
-        </h2>
+        <header class="panel__header">
+            <h2 class="panel__heading">
+                {{ __('torrent.torrent') }} {{ __('torrent.peers') }} ({{ $activePeers->count() }})
+            </h2>
+            @if ($hasOwnPeers)
+                <div class="panel__actions">
+                    <form
+                        class="panel__action"
+                        action="{{ route('peers.reap_mine', ['id' => $torrent->id]) }}"
+                        method="POST"
+                    >
+                        @csrf
+                        <button
+                            class="form__button form__button--text"
+                            title="Suelta tus pares de este torrent que llevan más de 65 min sin anunciar (cliente reiniciado o cerrado de golpe), para que no cuenten en el límite de 3. Los más recientes no se tocan: pueden seguir vivos"
+                        >
+                            Limpiar mis pares
+                        </button>
+                    </form>
+                </div>
+            @endif
+        </header>
         @include('torrent.partials.peers-table', ['rows' => $activePeers])
     </section>
 

@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
+use crate::config::Config;
 use crate::queue::torrent_update::{Index, TorrentUpdate};
 use crate::state::AppState;
+use crate::store::peer;
+use crate::store::torrent::Torrent;
 use crate::store::hitrun_redownload::HitRunRedownloadStore;
 use chrono::{Duration, Utc};
 use tokio::time::Instant;
@@ -99,48 +102,105 @@ pub fn reap_older_than(state: &Arc<AppState>, active_peer_ttl: u64) {
             // active_peer_ttl seconds. User peer count and torrent peer
             // count are updated to reflect.
             if peer.updated_at < active_cutoff && peer.is_active {
-                if peer.is_included_in_peer_list(&config) {
-                    state
-                        .stores
-                        .users
-                        .write()
-                        .entry(index.user_id)
-                        .and_modify(|user| {
-                            if peer.is_seeder {
-                                user.num_seeding = user.num_seeding.saturating_sub(1);
-                            } else {
-                                user.num_leeching = user.num_leeching.saturating_sub(1);
-                            }
-                        });
-                    match peer.is_seeder {
-                        true => seeder_delta -= 1,
-                        false => leecher_delta -= 1,
-                    }
-                }
-
-                peer.is_active = false;
+                deactivate_peer(state, &config, index, peer, &mut seeder_delta, &mut leecher_delta);
             }
         }
 
         // Update peer count of torrents and users
-        if seeder_delta != 0 || leecher_delta != 0 {
-            torrent.seeders = torrent.seeders.saturating_add_signed(seeder_delta);
-            torrent.leechers = torrent.leechers.saturating_add_signed(leecher_delta);
-
-            state.queues.torrents.lock().upsert(
-                Index {
-                    torrent_id: torrent.id,
-                },
-                TorrentUpdate {
-                    seeder_delta,
-                    leecher_delta,
-                    times_completed_delta: 0,
-                    balance_delta: 0,
-                },
-            );
-        }
+        apply_torrent_deltas(state, torrent, seeder_delta, leecher_delta);
     });
 
     let elapsed = start.elapsed().as_millis();
     info!("Expired stale peers in {elapsed} ms.")
+}
+
+/// Botón «Limpiar mis pares» de la ficha del torrent: marca inactivos los
+/// pares de un socio en un torrent que llevan más de `inactive_for` segundos
+/// sin anunciar. Devuelve cuántos ha marcado.
+pub fn reap_user_peers(
+    state: &Arc<AppState>,
+    torrent_id: u32,
+    user_id: u32,
+    inactive_for: u64,
+) -> u32 {
+    let config = state.config.load();
+    let ttl = Duration::seconds(inactive_for.try_into().unwrap());
+    let cutoff = Utc::now().checked_sub_signed(ttl).unwrap();
+
+    let mut torrent_store = state.stores.torrents.lock();
+
+    let Some(torrent) = torrent_store.get_mut(&torrent_id) else {
+        return 0;
+    };
+
+    let mut seeder_delta: i32 = 0;
+    let mut leecher_delta: i32 = 0;
+    let mut reaped = 0;
+
+    for (index, peer) in torrent.peers.iter_mut() {
+        if index.user_id == user_id && peer.updated_at < cutoff && peer.is_active {
+            deactivate_peer(state, &config, index, peer, &mut seeder_delta, &mut leecher_delta);
+            reaped += 1;
+        }
+    }
+
+    apply_torrent_deltas(state, torrent, seeder_delta, leecher_delta);
+
+    reaped
+}
+
+/// Marca un par como inactivo y descuenta al socio y al torrent lo que
+/// aportaba a las listas.
+fn deactivate_peer(
+    state: &Arc<AppState>,
+    config: &Config,
+    index: &peer::Index,
+    peer: &mut peer::Peer,
+    seeder_delta: &mut i32,
+    leecher_delta: &mut i32,
+) {
+    if peer.is_included_in_peer_list(config) {
+        state
+            .stores
+            .users
+            .write()
+            .entry(index.user_id)
+            .and_modify(|user| {
+                if peer.is_seeder {
+                    user.num_seeding = user.num_seeding.saturating_sub(1);
+                } else {
+                    user.num_leeching = user.num_leeching.saturating_sub(1);
+                }
+            });
+        match peer.is_seeder {
+            true => *seeder_delta -= 1,
+            false => *leecher_delta -= 1,
+        }
+    }
+
+    peer.is_active = false;
+}
+
+fn apply_torrent_deltas(
+    state: &Arc<AppState>,
+    torrent: &mut Torrent,
+    seeder_delta: i32,
+    leecher_delta: i32,
+) {
+    if seeder_delta != 0 || leecher_delta != 0 {
+        torrent.seeders = torrent.seeders.saturating_add_signed(seeder_delta);
+        torrent.leechers = torrent.leechers.saturating_add_signed(leecher_delta);
+
+        state.queues.torrents.lock().upsert(
+            Index {
+                torrent_id: torrent.id,
+            },
+            TorrentUpdate {
+                seeder_delta,
+                leecher_delta,
+                times_completed_delta: 0,
+                balance_delta: 0,
+            },
+        );
+    }
 }
