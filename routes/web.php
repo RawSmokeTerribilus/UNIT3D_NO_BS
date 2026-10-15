@@ -360,6 +360,7 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
 
         Route::prefix('torrents')->group(function (): void {
             Route::get('/{id}/peers', [App\Http\Controllers\TorrentPeerController::class, 'index'])->name('peers')->whereNumber('id');
+            Route::post('/{id}/peers/reap-mine', [App\Http\Controllers\TorrentPeerController::class, 'reapMine'])->name('peers.reap_mine')->whereNumber('id')->middleware('throttle:3,1');
             Route::get('/{id}/history', [App\Http\Controllers\TorrentHistoryController::class, 'index'])->name('history')->whereNumber('id');
             Route::get('/{id}/external-tracker', [App\Http\Controllers\ExternalTorrentController::class, 'show'])->name('torrents.external_tracker')->whereNumber('id')->middleware('modo');
             Route::get('/download_check/{id}', [App\Http\Controllers\TorrentDownloadController::class, 'show'])->name('download_check')->whereNumber('id');

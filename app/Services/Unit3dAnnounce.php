@@ -419,6 +419,40 @@ class Unit3dAnnounce
     }
 
     /**
+     * «Limpiar mis pares»: el announce marca inactivos los pares de un socio en
+     * un torrent que llevan más de `$inactiveFor` segundos sin anunciar
+     * (`api/peer.rs`). Devuelve cuántos ha marcado, o false si no responde.
+     * El announce rechaza `$inactiveFor` <= ANNOUNCE_MAX.
+     */
+    public static function reapUserPeers(int $torrentId, int $userId, int $inactiveFor): int|false
+    {
+        if (!self::isConfigValid()) {
+            return 0;
+        }
+
+        try {
+            $response = self::buildHttpClient()->post(self::buildRoute('peers/reap-user'), [
+                'torrent_id'   => $torrentId,
+                'user_id'      => $userId,
+                'inactive_for' => $inactiveFor,
+            ]);
+        } catch (Throwable) {
+            return false;
+        }
+
+        if (!$response->ok()) {
+            Log::notice('External tracker error - POST peers/reap-user', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
+            return false;
+        }
+
+        return (int) $response->body();
+    }
+
+    /**
      * @return bool|array<mixed>
      */
     private static function get(string $path, ?int $id = null): bool|array

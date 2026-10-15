@@ -40,3 +40,40 @@ pub async fn reap(State(state): State<Arc<AppState>>, Json(reap): Json<Reap>) ->
 
     (StatusCode::OK, "Reaped stale peers.").into_response()
 }
+
+#[derive(Deserialize)]
+pub struct ReapUser {
+    pub torrent_id: u32,
+    pub user_id: u32,
+    pub inactive_for: u64,
+}
+
+/// «Limpiar mis pares»: los pares de un socio en un torrent que llevan más de
+/// `inactive_for` segundos sin anunciar. Responde con cuántos ha marcado.
+pub async fn reap_user(
+    State(state): State<Arc<AppState>>,
+    Json(reap): Json<ReapUser>,
+) -> Response {
+    let announce_max = state.config.load().announce_max as u64;
+
+    // Un par vivo anuncia como mucho cada ANNOUNCE_MAX: por debajo podría
+    // marcarse uno vivo, y su siguiente anuncio entraría como par nuevo con la
+    // subida y la bajada a cero.
+    if reap.inactive_for <= announce_max {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            format!("inactive_for must be greater than ANNOUNCE_MAX ({announce_max})"),
+        )
+            .into_response();
+    }
+
+    let reaped =
+        scheduler::reap_user_peers(&state, reap.torrent_id, reap.user_id, reap.inactive_for);
+
+    info!(
+        "Reaped {reaped} peers of user {} on torrent {} on demand.",
+        reap.user_id, reap.torrent_id
+    );
+
+    (StatusCode::OK, reaped.to_string()).into_response()
+}
