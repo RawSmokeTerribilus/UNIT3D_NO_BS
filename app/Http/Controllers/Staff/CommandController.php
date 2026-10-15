@@ -379,6 +379,31 @@ class CommandController extends Controller
     }
 
     /**
+     * Comprobador de contadores: seeders/leechers (columna, peers, announce) y
+     * balance (columna, history). Sólo lee.
+     */
+    public function checkTrackerCounters(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tracker:counters');
+    }
+
+    /**
+     * Reescribe seeders/leechers desde la memoria del announce (quien manda).
+     */
+    public function fixTrackerPeerCounters(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tracker:counters', ['--fix-peers' => true]);
+    }
+
+    /**
+     * Reescribe torrents.balance desde el tráfico de history.
+     */
+    public function fixTrackerBalance(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->executeArtisanSafely('tracker:counters', ['--fix-balance' => true]);
+    }
+
+    /**
      * Sync Torrents To Meilisearch.
      */
     public function syncTorrents(): \Illuminate\Http\RedirectResponse
