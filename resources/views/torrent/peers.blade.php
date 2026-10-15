@@ -50,115 +50,74 @@
 @section('page', 'page__torrent-peer--index')
 
 @section('main')
-    <section class="panelV2">
-        <h2 class="panel__heading">{{ __('torrent.torrent') }} {{ __('torrent.peers') }}</h2>
-        <div class="data-table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('common.user') }}</th>
-                        <th>{{ __('torrent.progress') }}</th>
-                        <th>{{ __('common.upload') }}</th>
-                        <th>{{ __('common.download') }}</th>
-                        <th>{{ __('torrent.left') }}</th>
-                        <th>{{ __('torrent.client') }}</th>
-                        <th>{{ __('common.ip') }}</th>
-                        <th>{{ __('common.port') }}</th>
-                        @if (\config('announce.connectable_check') == true)
-                            <th>Conectable</th>
+    @if ($isStaff)
+        <section class="panelV2">
+            <h2 class="panel__heading">Diagnóstico por socio</h2>
+            <div class="panel__body">
+                @if (config('announce.external_tracker.is_enabled') && ! $hasTracker)
+                    <p class="text-danger">
+                        No se ha podido leer la memoria del announce: los estados de abajo
+                        vienen sólo de la base.
+                    </p>
+                @endif
+
+                @forelse ($diagnosis as $entry)
+                    <p>
+                        <x-user-tag :user="$entry['user']" :anon="false" />
+                        : {{ $entry['active'] }} activo(s)
+                        @if ($entry['ghosts'] > 0)
+                            · <span class="text-orange">{{ $entry['ghosts'] }} fantasma(s)</span>
                         @endif
+                        @if ($entry['stopped'] > 0)
+                            · <span class="text-muted">{{ $entry['stopped'] }} parado(s)</span>
+                        @endif
+                        @if (! $hasTracker && $entry['inactive'] > 0)
+                            · <span class="text-orange">{{ $entry['inactive'] }} inactivo(s)</span>
+                        @endif
+                        @if ($entry['restarts']->count() >= 2)
+                            <br />
+                            → {{ $entry['restarts']->count() }} de un solo anuncio
+                            ({{ $entry['restarts']->map(fn ($date) => $date->format('d/m H:i'))->implode(', ') }} UTC):
+                            el cliente se reinició o se volvió a añadir el torrent sin mandar «stopped».
+                        @endif
+                        @if ($entry['active'] > 1)
+                            <br />
+                            → {{ $entry['active'] }} pares activos a la vez: dos clientes, o el mismo
+                            con varias IP o puertos.
+                        @endif
+                        @if ($entry['mismatch'] > 0)
+                            <br />
+                            → {{ $entry['mismatch'] }} activo(s) en la web que el announce ya da por
+                            caducados; se igualan en el próximo «Limpiar peers viejos» (cada hora).
+                        @endif
+                        @if ($entry['agents']->count() > 1)
+                            <br />
+                            → clientes distintos: {{ $entry['agents']->implode(', ') }}
+                        @endif
+                    </p>
+                @empty
+                    <p class="text-muted">Nadie con más de un par ni con pares inactivos.</p>
+                @endforelse
+            </div>
+        </section>
+    @endif
 
-                        <th>{{ __('torrent.started') }}</th>
-                        <th>{{ __('torrent.last-update') }}</th>
-                        <th>{{ __('common.status') }}</th>
-                        <th>Visible</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($peers as $peer)
-                        <tr>
-                            <td>
-                                <x-user-tag
-                                    :user="$peer->user"
-                                    :anon="
-                                        $peer->user->privacy?->hidden
-                                        || $peer->user->privacy?->show_peer === 0
-                                        || ($peer->user->id == $torrent->user->id && $torrent->anon == 1)
-                                    "
-                                />
-                            </td>
-                            <td>{{ $peer->progress }}%</td>
-                            <td class="text-green">
-                                {{ \App\Helpers\StringHelper::formatBytes($peer->uploaded, 2) }}
-                            </td>
-                            <td class="text-red">
-                                {{ \App\Helpers\StringHelper::formatBytes($peer->downloaded, 2) }}
-                            </td>
-                            <td>{{ \App\Helpers\StringHelper::formatBytes($peer->left, 2) }}</td>
-                            <td>{{ $peer->agent }}</td>
-
-                            @if (auth()->user()->group->is_modo || auth()->id() == $peer->user_id)
-                                <td>{{ $peer->ip }}</td>
-                                <td>{{ $peer->port }}</td>
-                            @else
-                                <td>---</td>
-                                <td>---</td>
-                            @endif
-                            @if (\config('announce.connectable_check') == true)
-                                @php
-                                    $connectable = false;
-                                    if (config('announce.external_tracker.is_enabled')) {
-                                        $connectable = $peer->connectable;
-                                    } elseif (cache()->has('peers:connectable:' . $peer->ip . '-' . $peer->port . '-' . $peer->agent)) {
-                                        $connectable = cache()->get('peers:connectable:' . $peer->ip . '-' . $peer->port . '-' . $peer->agent);
-                                    }
-                                @endphp
-
-                                <td class="{{ $connectable ? 'text-green' : 'text-red' }}">
-                                    @choice('user.client-connectable-state', $connectable)
-                                </td>
-                            @endif
-
-                            <td>
-                                <time
-                                    datetime="{{ $peer->created_at }}"
-                                    title="{{ $peer->created_at }}"
-                                >
-                                    {{ $peer->created_at ? $peer->created_at->diffForHumans() : 'N/A' }}
-                                </time>
-                            </td>
-                            <td>
-                                <time
-                                    datetime="{{ $peer->updated_at }}"
-                                    title="{{ $peer->updated_at }}"
-                                >
-                                    {{ $peer->updated_at ? $peer->updated_at->diffForHumans() : 'N/A' }}
-                                </time>
-                            </td>
-                            <td
-                                class="{{ $peer->active ? ($peer->seeder ? 'text-green' : 'text-red') : 'text-orange' }}"
-                            >
-                                @if ($peer->active)
-                                    @if ($peer->seeder)
-                                        {{ __('torrent.seeder') }}
-                                    @else
-                                        {{ __('torrent.leecher') }}
-                                    @endif
-                                @else
-                                        Inactivo
-                                @endif
-                            </td>
-                            <td class="{{ $peer->visible ? 'text-green' : 'text-red' }}">
-                                @if ($peer->visible)
-                                    {{ __('common.yes') }}
-                                @else
-                                    {{ __('common.no') }}
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+    <section class="panelV2">
+        <h2 class="panel__heading">
+            {{ __('torrent.torrent') }} {{ __('torrent.peers') }} ({{ $activePeers->count() }})
+        </h2>
+        @include('torrent.partials.peers-table', ['rows' => $activePeers])
     </section>
+
+    @if ($inactivePeers->isNotEmpty())
+        <section class="panelV2">
+            <details @if ($isStaff) open @endif>
+                <summary class="panel__heading">
+                    Inactivos ({{ $inactivePeers->count() }}): no cuentan para seeders/leechers
+                    ni para el límite de 3 por torrent; la lista se vacía sola a los 2 días
+                </summary>
+                @include('torrent.partials.peers-table', ['rows' => $inactivePeers])
+            </details>
+        </section>
+    @endif
 @endsection
