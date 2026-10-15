@@ -117,7 +117,9 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoHighspeedTag::class)->hourly();
         $schedule->command(AutoPreWarning::class)->hourly();
         $schedule->command(AutoWarning::class)->daily();
-        $schedule->command(AutoDeactivateWarning::class)->hourly();
+        // A y media, no en punto: backup.sh para el stack de 04:00 a ~04:15 UTC y
+        // la pasada de las 04:00 se quedaba sin announce («Could not resolve host»).
+        $schedule->command(AutoDeactivateWarning::class)->hourlyAt(30);
         $schedule->command(AutoFlushPeers::class)->hourly();
         $schedule->command(AutoBonAllocation::class)->hourly();
         $schedule->command(AutoRemovePersonalFreeleech::class)->hourly();
