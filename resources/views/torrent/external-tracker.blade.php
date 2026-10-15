@@ -86,7 +86,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($externalTorrent['peers'] ?? [] as $peerId => $peer)
+                        {{-- Activos primero; los inactivos los guarda el announce 21 días por si vuelven. --}}
+                        @foreach (collect($externalTorrent['peers'] ?? [])->sortByDesc(fn ($peer) => [$peer['is_active'], $peer['updated_at']]) as $peerId => $peer)
                             <tr>
                                 <td>
                                     @if (null !== ($user = \App\Models\User::find($peer['user_id'])))

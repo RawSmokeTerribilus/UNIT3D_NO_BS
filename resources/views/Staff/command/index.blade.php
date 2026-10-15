@@ -156,7 +156,7 @@
                 Gestión de Peers y Torrents
             </h2>
             <div class="panel__body">
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/flush-old-peers',      'label' => 'Limpiar peers viejos',       'icon' => 'fa-wifi',         'level' => 'safe',    'tip' => 'Peers sin anunciar > 2 horas: los marca inactivos en la web y en la memoria del announce (libera el límite de 3 por torrent)'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/flush-old-peers',      'label' => 'Limpiar peers viejos',       'icon' => 'fa-wifi',         'level' => 'safe',    'tip' => 'Peers sin anunciar > 2 horas: los marca inactivos en la web y en la memoria del announce (libera el límite de 3 por torrent). No vacía la lista de peers, solo actualiza su estado; las filas inactivas se borran solas a los 2 días'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/reset-user-flushes',   'label' => 'Resetear flushes usuarios',  'icon' => 'fa-redo',         'level' => 'warning', 'tip' => 'Resetear cuota diaria de flush de peers para todos los usuarios'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-peers',           'label' => 'Sincronizar peers (DB)',      'icon' => 'fa-exchange-alt', 'level' => 'safe',    'tip' => 'Recalcula seeders/leechers en la tabla torrents desde la tabla peers'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar Meilisearch', 'icon' => 'fa-hdd',       'level' => 'safe',    'tip' => 'Sincronizar índice de torrents en Meilisearch'])
