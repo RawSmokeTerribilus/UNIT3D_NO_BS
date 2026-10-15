@@ -1011,6 +1011,9 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                 Route::post('/flush-old-peers', [App\Http\Controllers\Staff\CommandController::class, 'flushOldPeers']);
                 Route::post('/reset-user-flushes', [App\Http\Controllers\Staff\CommandController::class, 'resetUserFlushes']);
                 Route::post('/sync-peers', [App\Http\Controllers\Staff\CommandController::class, 'syncPeers']);
+                Route::post('/tracker-counters-check', [App\Http\Controllers\Staff\CommandController::class, 'checkTrackerCounters']);
+                Route::post('/tracker-counters-fix-peers', [App\Http\Controllers\Staff\CommandController::class, 'fixTrackerPeerCounters']);
+                Route::post('/tracker-counters-fix-balance', [App\Http\Controllers\Staff\CommandController::class, 'fixTrackerBalance']);
                 Route::post('/sync-torrents-meilisearch', [App\Http\Controllers\Staff\CommandController::class, 'syncTorrents']);
 
                 // Torrents muertos: lista → peticion de resiembra → borrado por el scheduler

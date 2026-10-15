@@ -158,7 +158,24 @@
             <div class="panel__body">
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/flush-old-peers',      'label' => 'Limpiar peers viejos',       'icon' => 'fa-wifi',         'level' => 'safe',    'tip' => 'Peers sin anunciar > 2 horas: los marca inactivos en la web y en la memoria del announce (libera el límite de 3 por torrent). No vacía la lista de peers, solo actualiza su estado; las filas inactivas se borran solas a los 2 días'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/reset-user-flushes',   'label' => 'Resetear flushes usuarios',  'icon' => 'fa-redo',         'level' => 'warning', 'tip' => 'Resetear cuota diaria de flush de peers para todos los usuarios'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-peers',           'label' => 'Sincronizar peers (DB)',      'icon' => 'fa-exchange-alt', 'level' => 'safe',    'tip' => 'Recalcula seeders/leechers en la tabla torrents desde la tabla peers'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-peers',           'label' => 'Sincronizar peers (DB)',      'icon' => 'fa-exchange-alt', 'level' => 'warning', 'tip' => 'Recalcula seeders/leechers de la tabla torrents desde la tabla peers. Con el announce Rust quien manda es su memoria: mejor «Comprobar contadores» y, si hace falta, «Reset pares (announce)»'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/tracker-counters-check', 'label' => 'Comprobar contadores', 'icon' => 'fa-stethoscope', 'level' => 'safe', 'tip' => 'Solo lee. Compara seeders/leechers (columna de torrents, tabla peers y memoria del announce) y balance (columna frente a history), y lista los que no cuadran'])
+                @include('Staff.command._btn', [
+                    'action'  => '/dashboard/commands/tracker-counters-fix-peers',
+                    'label'   => 'Reset pares (announce)',
+                    'icon'    => 'fa-satellite-dish',
+                    'level'   => 'warning',
+                    'tip'     => 'Reescribe seeders/leechers de los torrents descuadrados desde la memoria del announce. Solo toca los que dan el mismo desfase en dos lecturas separadas 5 s y guarda copia previa en storage/app/tracker-counters/',
+                    'confirm' => '⚠️ Va a reescribir seeders/leechers de los torrents descuadrados con lo que dice el announce. Guarda copia previa.\n¿Continuar?',
+                ])
+                @include('Staff.command._btn', [
+                    'action'  => '/dashboard/commands/tracker-counters-fix-balance',
+                    'label'   => 'Reset balance (history)',
+                    'icon'    => 'fa-balance-scale',
+                    'level'   => 'warning',
+                    'tip'     => 'Reescribe torrents.balance de los torrents descuadrados con el tráfico de history (incluidas las filas borradas). Lo usa «Torrents tramposos». Guarda copia previa en storage/app/tracker-counters/',
+                    'confirm' => '⚠️ Va a reescribir el balance de los torrents descuadrados con lo que dice history. Cambia lo que muestra «Torrents tramposos». Guarda copia previa.\n¿Continuar?',
+                ])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar Meilisearch', 'icon' => 'fa-hdd',       'level' => 'safe',    'tip' => 'Sincronizar índice de torrents en Meilisearch'])
                 {{-- No es un POST: abre la lista, y la peticion sale solo al confirmar alli. --}}
                 <a

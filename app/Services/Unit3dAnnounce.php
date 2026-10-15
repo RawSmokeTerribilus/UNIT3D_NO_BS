@@ -419,6 +419,56 @@ class Unit3dAnnounce
     }
 
     /**
+     * Contadores de muchos torrents de una vez, leídos de la memoria del
+     * announce: [torrent_id => ['seeders' => int, 'leechers' => int]]. Los que
+     * el announce no conoce no aparecen. Peticiones en paralelo (`Http::pool`)
+     * en tandas de `$concurrency`: el catálogo entero sale en segundos, no en
+     * los ~25 s de pedirlos uno a uno.
+     *
+     * @param  array<int>                                             $torrentIds
+     * @return array<int, array{seeders: int, leechers: int}>|false
+     */
+    public static function getTorrentCounters(array $torrentIds, int $concurrency = 50): array|false
+    {
+        if (!self::isConfigValid()) {
+            return false;
+        }
+
+        $socket = config('announce.external_tracker.unix_socket');
+        $counters = [];
+
+        foreach (array_chunk($torrentIds, $concurrency) as $chunk) {
+            try {
+                $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk, $socket) {
+                    foreach ($chunk as $id) {
+                        $request = $pool->as((string) $id)->acceptJson();
+
+                        if ($socket !== null) {
+                            $request->withOptions(['curl' => [CURLOPT_UNIX_SOCKET_PATH => $socket]]);
+                        }
+
+                        $request->get(self::buildRoute('torrents', $id));
+                    }
+                });
+            } catch (Throwable) {
+                return false;
+            }
+
+            foreach ($responses as $id => $response) {
+                if ($response instanceof \Illuminate\Http\Client\Response && $response->ok()) {
+                    $torrent = $response->json();
+                    $counters[(int) $id] = [
+                        'seeders'  => (int) ($torrent['seeders'] ?? 0),
+                        'leechers' => (int) ($torrent['leechers'] ?? 0),
+                    ];
+                }
+            }
+        }
+
+        return $counters;
+    }
+
+    /**
      * «Limpiar mis pares»: el announce marca inactivos los pares de un socio en
      * un torrent que llevan más de `$inactiveFor` segundos sin anunciar
      * (`api/peer.rs`). Devuelve cuántos ha marcado, o false si no responde.
