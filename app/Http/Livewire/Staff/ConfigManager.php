@@ -109,7 +109,20 @@ class ConfigManager extends Component
 
     public function mount(): void
     {
+        self::authorizeAdmin();
+
         $this->loadSettings();
+    }
+
+    /**
+     * El componente escribe en `settings` (la fuente de verdad del sitio) y
+     * proyecta promos sobre el tracker: se protege él mismo, no sólo la página
+     * que lo pinta (`Staff\ConfigController`), por si algún día se incrusta en
+     * otra vista.
+     */
+    private static function authorizeAdmin(): void
+    {
+        abort_unless((bool) auth()->user()?->group?->is_admin, 403);
     }
 
     // Keys stored internally in seconds but displayed/edited in hours
@@ -195,6 +208,8 @@ class ConfigManager extends Component
 
     public function save(): void
     {
+        self::authorizeAdmin();
+
         try {
             // Las fechas se validan antes de tocar la tabla: si una no se
             // entiende se aborta el guardado entero y se dice cual. Guardar

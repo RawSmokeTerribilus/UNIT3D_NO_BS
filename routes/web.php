@@ -174,11 +174,6 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
             Route::get('/{article}', [App\Http\Controllers\ArticleController::class, 'show'])->name('show');
         });
 
-            // Config System
-            Route::prefix("config")->name("config.")->group(function (): void {
-                Route::get("/", [\App\Http\Controllers\Staff\ConfigController::class, "index"])->name("index");
-            });
-
         // Authenticated Images
         Route::prefix('authenticated-images')->name('authenticated_images.')->middleware('throttle:'.GlobalRateLimit::AUTHENTICATED_IMAGES->value)->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value)->group(function (): void {
             Route::get('/article-images/{article}', [App\Http\Controllers\AuthenticatedImageController::class, 'articleImage'])->name('article_image');
