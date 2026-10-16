@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Redis;
  *   día 0  aviso al que pidió en cuanto se rellena (Telegram o privado);
  *   día 3  «achtung»: sigue sin aprobar y el que rellenó espera su recompensa;
  *   día 7  se aprueba solo, firmado por System, si pasa las comprobaciones
- *          (torrent vivo y aprobado, misma categoría, mismo TMDB, y quien
+ *          (torrent vivo y aprobado, misma categoría, mismo TMDB o IGDB, y quien
  *          rellena no es quien pidió); si no, se queda para el staff.
  *
  * Cada pasada del día 7 abre UN ticket de System al staff con lo aprobado
@@ -148,13 +148,18 @@ class RellenosPendientes extends Command
 
         $movie = (int) $tr->tmdb_movie_id;
         $tv = (int) $tr->tmdb_tv_id;
+        $igdb = (int) $tr->igdb;
 
-        if ($movie === 0 && $tv === 0) {
-            return 'la petición no tiene TMDB y no se puede comprobar';
+        if ($movie === 0 && $tv === 0 && $igdb === 0) {
+            return 'la petición no tiene TMDB ni IGDB y no se puede comprobar';
         }
 
         if (($movie !== 0 && $movie !== (int) $t->tmdb_movie_id) || ($tv !== 0 && $tv !== (int) $t->tmdb_tv_id)) {
             return 'otra peli o serie en TMDB';
+        }
+
+        if ($igdb !== 0 && $igdb !== (int) $t->igdb) {
+            return 'otro juego en IGDB';
         }
 
         return null;
@@ -192,7 +197,7 @@ class RellenosPendientes extends Command
         $body = 'Rellenos con '.self::DIAS_AUTO.' días sin aprobar ni rechazar. Ticket automático de requests:rellenos-pendientes.';
 
         if ($aprobados !== []) {
-            $body .= "\n\n[b]Aprobados solos[/b] (pasan las comprobaciones: torrent vivo y aprobado, misma categoría, mismo TMDB, no se la rellena quien la pidió). "
+            $body .= "\n\n[b]Aprobados solos[/b] (pasan las comprobaciones: torrent vivo y aprobado, misma categoría, mismo TMDB o IGDB, no se la rellena quien la pidió). "
                 ."Si alguno está mal: botón «Revoke approval» en su ficha, que le quita el bounty al que rellenó.\n";
 
             foreach ($aprobados as [$tr]) {
