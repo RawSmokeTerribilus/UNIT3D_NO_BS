@@ -247,16 +247,31 @@ class CommandController extends Controller
     /**
      * Set All Site Cache At Once.
      *
-     * Runs each step explicitly so config:cache uses a subprocess (safe from PHP-FPM context).
+     * The route cache is only refreshed where it already exists. Production
+     * runs without it on purpose (2026-10-16: it saves ~20 ms per request
+     * and every change to routes/web.php would need a re-cache, or new
+     * routes 404); staging keeps it. This button never introduces it.
      */
     public function setAllCache(): \Illuminate\Http\RedirectResponse
     {
         $lines = [];
+        $commands = ['view:cache'];
 
-        foreach (['view:cache', 'route:cache'] as $cmd) {
+        if (app()->routesAreCached()) {
+            $commands[] = 'route:cache';
+        } else {
+            $lines[] = 'Rutas sin caché en este entorno (a propósito): no se fijan.';
+        }
+
+        foreach ($commands as $cmd) {
             try {
                 Artisan::call($cmd);
-                $lines[] = trim(Artisan::output());
+                // route:cache boots a fresh app to build the cache and its own
+                // output gets lost on the way: say it here. It deletes and
+                // rewrites the file in this process, so drop PHP's stat cache
+                // before checking.
+                clearstatcache();
+                $lines[] = trim(Artisan::output()) ?: ($cmd === 'route:cache' && is_file(app()->getCachedRoutesPath()) ? '✓ Caché de rutas renovada.' : '');
             } catch (\Throwable $e) {
                 $lines[] = "❌ {$cmd}: {$e->getMessage()}";
             }
