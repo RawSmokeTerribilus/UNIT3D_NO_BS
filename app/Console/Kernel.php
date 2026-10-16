@@ -45,6 +45,7 @@ use App\Console\Commands\AutoNerdStat;
 use App\Console\Commands\AutoPreWarning;
 use App\Console\Commands\AutoRecycleAudits;
 use App\Console\Commands\AutoRecycleClaimedTorrentRequests;
+use App\Console\Commands\RellenosPendientes;
 use App\Console\Commands\AutoRecycleFailedLogins;
 use App\Console\Commands\AutoRecycleInvites;
 use App\Console\Commands\AutoRefundDownload;
@@ -130,6 +131,8 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoDisableInactiveUsers::class)->daily();
         $schedule->command(AutoSoftDeleteDisabledUsers::class)->daily();
         $schedule->command(AutoRecycleClaimedTorrentRequests::class)->daily();
+        // NOBS: avisos de rellenos sin aprobar (día 0 y 3) y aprobación sola a los 7 días.
+        $schedule->command(RellenosPendientes::class)->everyTenMinutes()->withoutOverlapping();
         $schedule->command(DeleteUnparticipatedConversations::class)->daily();
         $schedule->command(AutoCorrectHistory::class)->daily();
         // Una vez al día a las 15:00 de Madrid. `->weekends()` a secas era CADA
