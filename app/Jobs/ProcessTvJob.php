@@ -38,6 +38,7 @@ use App\Models\TmdbPerson;
 use App\Models\Torrent;
 use App\Models\TmdbTv;
 use App\Services\Tmdb\Client;
+use App\Services\Translation\SinopsisEnCastellano;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -131,7 +132,17 @@ class ProcessTvJob implements ShouldQueue
             return;
         }
 
-        $tv = TmdbTv::updateOrCreate(['id' => $this->id], $tvScraper->getTv());
+        // NOBS: sinopsis en castellano (es-ES → es-MX → inglés traducido).
+        $previa = TmdbTv::query()->find($this->id, ['overview', 'overview_original']);
+        $datos = $tvScraper->getTv();
+        $datos = [...$datos, ...SinopsisEnCastellano::tmdb(
+            $tvScraper->data,
+            $previa?->overview,
+            $previa?->overview_original,
+            [$datos['name'] ?? null, $datos['original_name'] ?? null],
+        )];
+
+        $tv = TmdbTv::updateOrCreate(['id' => $this->id], $datos);
 
         // Companies
 

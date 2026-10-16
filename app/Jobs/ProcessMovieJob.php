@@ -38,6 +38,7 @@ use App\Models\TmdbMovie;
 use App\Models\TmdbPerson;
 use App\Models\Torrent;
 use App\Services\Tmdb\Client;
+use App\Services\Translation\SinopsisEnCastellano;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -113,7 +114,17 @@ class ProcessMovieJob implements ShouldQueue
             return;
         }
 
-        $movie = TmdbMovie::updateOrCreate(['id' => $this->id], $movieScraper->getMovie());
+        // NOBS: sinopsis en castellano (es-ES → es-MX → inglés traducido).
+        $previa = TmdbMovie::query()->find($this->id, ['overview', 'overview_original']);
+        $datos = $movieScraper->getMovie();
+        $datos = [...$datos, ...SinopsisEnCastellano::tmdb(
+            $movieScraper->data,
+            $previa?->overview,
+            $previa?->overview_original,
+            [$datos['title'] ?? null, $datos['original_title'] ?? null],
+        )];
+
+        $movie = TmdbMovie::updateOrCreate(['id' => $this->id], $datos);
 
         // Genres
 

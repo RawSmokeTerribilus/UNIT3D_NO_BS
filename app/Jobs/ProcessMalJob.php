@@ -19,6 +19,7 @@ namespace App\Jobs;
 use App\Enums\GlobalRateLimit;
 use App\Models\MalAnime;
 use App\Services\Mal\Client\Anime;
+use App\Services\Translation\SinopsisEnCastellano;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -44,7 +45,8 @@ class ProcessMalJob implements ShouldQueue
 
     public int $backoff = 300;
 
-    public int $timeout = 60;
+    // NOBS: 180 y no 60, para que quepa la traducción de la sinopsis.
+    public int $timeout = 180;
 
     public bool $failOnTimeout = true;
 
@@ -74,7 +76,17 @@ class ProcessMalJob implements ShouldQueue
             return;
         }
 
-        MalAnime::updateOrCreate(['id' => $this->id], $client->normalize($data));
+        // MAL sólo da la sinopsis en inglés: se traduce y se guarda el original.
+        $previa = MalAnime::query()->find($this->id, ['synopsis', 'synopsis_original']);
+        $datos = $client->normalize($data);
+        $datos = [...$datos, ...SinopsisEnCastellano::mal(
+            $datos['synopsis'],
+            $previa?->synopsis,
+            $previa?->synopsis_original,
+            [$datos['title'], $datos['title_english']],
+        )];
+
+        MalAnime::updateOrCreate(['id' => $this->id], $datos);
 
         // MAL API is free-tier — cache for 8 hours to avoid hammering
         cache()->put("mal-anime-scraper:{$this->id}", now(), 8 * 3600);

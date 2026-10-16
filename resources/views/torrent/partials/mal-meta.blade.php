@@ -114,7 +114,11 @@
         @endif
     </ul>
 
-    <p class="meta__description">{{ $mal->synopsis }}</p>
+    <x-meta.translated-description
+        :texto="$mal->synopsis"
+        :original="$mal->synopsis_original"
+        :idioma="$mal->synopsis_source_language"
+    />
 
     @if ($mal->title !== ($mal->title_english ?? $mal->title) || $mal->title_japanese)
         <p style="color: #a5a5a5; font-size: 0.85em; margin-top: 0.5rem;">

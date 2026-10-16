@@ -332,7 +332,9 @@ class TV
             ->get('https://api.TheMovieDB.org/3/tv/{id}', [
                 'api_key'            => config('api-keys.tmdb'),
                 'language'               => config('app.meta_locale'),
-                'append_to_response'     => 'videos,images,aggregate_credits,external_ids,keywords,recommendations,alternative_titles',
+                // NOBS: translations trae la sinopsis en es-MX y en-US para cuando
+                // falta la es-ES (App\Services\Translation\SinopsisEnCastellano).
+                'append_to_response'     => 'videos,images,aggregate_credits,external_ids,keywords,recommendations,alternative_titles,translations',
                 'include_video_language' => TrailerPicker::VIDEO_LANGUAGES,
             ])
             ->throwIf(fn (Response $response) => !$response->notFound());
