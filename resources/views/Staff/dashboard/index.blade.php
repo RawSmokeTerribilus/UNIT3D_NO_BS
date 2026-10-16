@@ -30,6 +30,14 @@
                         Gestor de Configuración
                     </a>
                 </p>
+                @if (auth()->user()->group->is_admin)
+                    <p class="form__group form__group--horizontal">
+                        <a class="form__button form__button--text" href="{{ route('staff.queues.index') }}">
+                            <i class="{{ config('other.font-awesome') }} fa-stream"></i>
+                            Colas de jobs
+                        </a>
+                    </p>
+                @endif
                 <p class="form__group form__group--horizontal">
                     <a class="form__button form__button--text" href="{{ config("app.url") }}/dashboard/manual/index.html" target="_blank">
                         <i class="{{ config("other.font-awesome") }} fa-book"></i>

@@ -79,17 +79,15 @@
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-cache',        'label' => 'Limpiar caché',          'icon' => 'fa-broom',       'level' => 'safe',    'tip' => 'Limpiar caché de la aplicación'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-view-cache',   'label' => 'Limpiar vistas',         'icon' => 'fa-eye-slash',   'level' => 'safe',    'tip' => 'Limpiar caché de vistas compiladas'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-route-cache',  'label' => 'Limpiar rutas',          'icon' => 'fa-route',       'level' => 'safe',    'tip' => 'Limpiar caché de rutas compiladas'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-config-cache', 'label' => 'Limpiar config',         'icon' => 'fa-cog',         'level' => 'warning', 'tip' => 'Limpiar y reconstruir caché de configuración (config:clear + config:cache)'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-all-cache',    'label' => 'Limpiar toda la caché',  'icon' => 'fa-trash-alt',   'level' => 'warning', 'tip' => 'Limpiar TODA la caché y reconstruir config'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-all-cache',    'label' => 'Limpiar vistas, rutas y config', 'icon' => 'fa-trash-alt', 'level' => 'warning', 'tip' => 'Limpia vistas y rutas compiladas, reconstruye la config desde config/ y .env y reinicia los workers. No toca la caché de Redis: para eso, «Limpiar caché» o «Limpiar optimización»'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/set-all-cache',      'label' => 'Fijar toda la caché',    'icon' => 'fa-database',    'level' => 'safe',    'tip' => 'Reconstruir y fijar toda la caché'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/optimize-clear',     'label' => 'Limpiar optimización',   'icon' => 'fa-tools',       'level' => 'warning', 'tip' => 'optimize:clear + reconstruir config (config:cache)'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/optimize-clear',     'label' => 'Limpiar optimización',   'icon' => 'fa-tools',       'level' => 'warning', 'tip' => 'Lo limpia todo: caché de Redis, vistas, rutas, eventos y compilados (optimize:clear); reconstruye la config desde config/ y .env y reinicia los workers'])
                 @include('Staff.command._btn', [
-                    'action'  => '/dashboard/commands/flush-queue',
-                    'label'   => 'Vaciar cola Redis',
-                    'icon'    => 'fa-exclamation-triangle',
-                    'level'   => 'danger',
-                    'tip'     => 'Vaciar cola Redis — CRÍTICO tras cambios de token',
-                    'confirm' => '⚠️ Esto vaciará la cola Redis y perderás todos los jobs en cola.\n¿Continuar?',
+                    'action'  => '/dashboard/commands/apply-env',
+                    'label'   => 'Aplicar cambios del .env',
+                    'icon'    => 'fa-key',
+                    'level'   => 'warning',
+                    'tip'     => 'Tras cambiar un token, una clave o un host en el .env: reconstruye la config desde el .env y reinicia los workers para que los jobs la carguen. Si el .env no cuadra, la config en uso no se toca. Los jobs fallidos se ven en Dashboard → Colas',
                 ])
             </div>
         </section>
@@ -103,22 +101,22 @@
             <div class="panel__body">
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/update-email-blacklist', 'label' => 'Actualizar lista negra emails', 'icon' => 'fa-envelope-open-text', 'level' => 'danger',  'tip' => 'Actualizar lista negra de emails desde fuente remota'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/telegram-webhook',       'label' => 'Registrar Telegram',           'icon' => 'fa-paper-plane',        'level' => 'info',    'tip' => 'Registrar webhook del bot Telegram con la API'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/scout-reindex',          'label' => 'Reindexar Meilisearch',        'icon' => 'fa-sync',               'level' => 'warning', 'tip' => 'Reindexar todos los torrents en Meilisearch'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/scout-reindex',          'label' => 'Reindexar Meilisearch',        'icon' => 'fa-sync',               'level' => 'warning', 'tip' => 'Vuelve a mandar TODOS los torrents al índice sin vaciarlo (el buscador sigue funcionando) y quita los que ya no existen. ~15 s en prod. Para cuando el buscador da resultados viejos o le faltan torrents'])
                 @include('Staff.command._btn', [
                     'action'  => '/dashboard/commands/meilisearch-fix',
                     'label'   => 'Vaciar Meilisearch',
                     'icon'    => 'fa-search-minus',
                     'level'   => 'danger',
-                    'tip'     => 'Vaciar y reparar índices de Meilisearch',
-                    'confirm' => '⚠️ Esto vaciará el índice de Meilisearch. El buscador estará offline hasta que se reindexe.\n¿Continuar?',
+                    'tip'     => 'Vacía el índice de torrents y lo rehace entero en el mismo paso. Mientras dura (~15 s en prod) la búsqueda de torrents sale vacía. No toca el índice de personas',
+                    'confirm' => '⚠️ Vacía el índice de torrents y lo rehace entero.\nMientras dura (unos 15 s) la búsqueda de torrents sale vacía.\nSi solo hace falta refrescarlo, mejor «Reindexar Meilisearch».\n¿Continuar?',
                 ])
                 @include('Staff.command._btn', [
                     'action'  => '/dashboard/commands/meilisearch-full-repair',
                     'label'   => 'Reparación completa Meilisearch',
                     'icon'    => 'fa-wrench',
                     'level'   => 'danger',
-                    'tip'     => 'Salud + crear índices + sincronizar config + reindexar torrents y personas + validar',
-                    'confirm' => "⚠️ REPARACIÓN COMPLETA DE MEILISEARCH\n\nEsto va a:\n1. Verificar salud\n2. Crear índices si faltan\n3. Sincronizar filtros\n4. BORRAR + reindexar TODOS los torrents\n5. BORRAR + reindexar TODAS las personas\n\n⏱️ Puede tardar varios minutos.\n\n¿Continuar?",
+                    'tip'     => 'Salud + crea los índices que falten + filtros y orden desde config/scout.php + vacía y rehace torrents + vuelve a mandar todas las personas + valida. 20-30 s en prod',
+                    'confirm' => "⚠️ REPARACIÓN COMPLETA DE MEILISEARCH\n\nEsto va a:\n1. Verificar salud\n2. Crear índices si faltan\n3. Sincronizar filtros y orden (config/scout.php)\n4. VACIAR y rehacer el índice de torrents (búsqueda vacía mientras dura)\n5. Volver a mandar todas las personas (se actualizan, no se borran)\n6. Validar\n\n⏱️ Unos 20-30 s en prod. No cierres la página: la salida sale aquí.\n\n¿Continuar?",
                 ])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clean-failed-logins', 'label' => 'Limpiar logins fallidos', 'icon' => 'fa-user-slash', 'level' => 'muted', 'tip' => 'Eliminar todos los intentos de login fallidos (solo BD)'])
             </div>
@@ -176,7 +174,7 @@
                     'tip'     => 'Reescribe torrents.balance de los torrents descuadrados con el tráfico de history (incluidas las filas borradas). Lo usa «Torrents tramposos». Guarda copia previa en storage/app/tracker-counters/',
                     'confirm' => '⚠️ Va a reescribir el balance de los torrents descuadrados con lo que dice history. Cambia lo que muestra «Torrents tramposos». Guarda copia previa.\n¿Continuar?',
                 ])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar Meilisearch', 'icon' => 'fa-hdd',       'level' => 'safe',    'tip' => 'Sincronizar índice de torrents en Meilisearch'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/sync-torrents-meilisearch', 'label' => 'Sincronizar últimos 15 min', 'icon' => 'fa-hdd',       'level' => 'safe',    'tip' => 'Manda a Meilisearch solo los torrents cambiados en el último cuarto de hora. Es lo mismo que hace el scheduler cada 15 min, por si hace falta darle a mano'])
                 {{-- No es un POST: abre la lista, y la peticion sale solo al confirmar alli. --}}
                 <a
                     href="{{ route('staff.commands.dead_torrents.index') }}"

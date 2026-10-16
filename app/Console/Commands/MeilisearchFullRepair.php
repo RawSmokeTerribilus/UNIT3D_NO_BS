@@ -30,7 +30,11 @@ class MeilisearchFullRepair extends Command
 
     public function handle(): int
     {
-        if (! $this->option('force') && ! $this->confirm('⚠️  This will wipe and rebuild ALL Meilisearch indices (torrents + people). Meilisearch may need a container restart via Portainer after completion. Continue?', false)) {
+        // El botón del panel lo lanza dentro de una petición web (30 s de límite
+        // en fpm) y en prod tarda 20-30 s. nginx espera 300 s.
+        set_time_limit(300);
+
+        if (! $this->option('force') && ! $this->confirm('⚠️  This will wipe and rebuild the torrents index and re-send every person to the people index (people are updated, not wiped). Continue?', false)) {
             $this->warn('Cancelled.');
 
             return 1;
@@ -166,7 +170,7 @@ class MeilisearchFullRepair extends Command
                 $pIndex->addDocuments($documents);
             });
 
-        $this->line("  ✓ People: {$peopleCount} records reindexed");
+        $this->line("  ✓ People: {$peopleCount} records re-sent (updated in place, not wiped)");
 
         // ── Step 5: Validate ─────────────────────────────────────────────
         $current++;
