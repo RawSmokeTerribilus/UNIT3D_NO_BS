@@ -18,6 +18,7 @@ namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
 use App\Models\Book;
+use App\Models\Torrent;
 use App\Services\Metadata\CoverLadder;
 use App\Models\BookGenre;
 use App\Services\Books\GoogleBooksClient;
@@ -242,6 +243,10 @@ class ProcessBookJob implements ShouldQueue
         // edition does not re-ask the provider.
         cache()->put("book-scraper:{$isbn13}", now(), 8 * 3600);
         cache()->forget('meta-error:book:'.$this->isbn13);
+
+        // El torrent se indexa al guardarse, antes de que exista la ficha: se
+        // reindexa ahora para que el buscador tenga portada y géneros.
+        Torrent::query()->whereIn('isbn13', array_unique([$isbn13, (string) $this->isbn13]))->searchable();
     }
 
     /**

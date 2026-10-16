@@ -18,6 +18,7 @@ namespace App\Jobs;
 
 use App\Enums\GlobalRateLimit;
 use App\Models\Audiobook;
+use App\Models\Torrent;
 use App\Services\Audiobooks\AudnexusClient;
 use App\Services\Books\TaxonomyNormalizer;
 use App\Services\Translation\LibreTranslateClient;
@@ -49,6 +50,11 @@ class ProcessAudiobookJob implements ShouldQueue
 
     public int $backoff = 300;
 
+    /**
+     * Dónde buscar si la región del tracker no conoce el ASIN.
+     */
+    private const array REGIONES_ALTERNATIVAS = ['us', 'uk'];
+
     public function __construct(public string $asin, public string $region = 'es')
     {
     }
@@ -74,9 +80,18 @@ class ProcessAudiobookJob implements ShouldQueue
     {
         $record = $audnexus->book($this->asin, $this->region);
 
+        // Un ASIN existe solo en la tienda donde se vende: audiolibros en
+        // castellano de Planeta Audio MX o HarperCollins Español están solo en
+        // la de EE. UU., otros solo en la británica. Si la región del tracker
+        // no lo conoce, se prueba en esas antes de rendirse (16-10: #9400,
+        // #10584, #11571 y #11892 tenían el ASIN bueno y se quedaban sin ficha).
+        foreach (array_diff(self::REGIONES_ALTERNATIVAS, [$this->region]) as $region) {
+            $record ??= $audnexus->book($this->asin, $region);
+        }
+
         if ($record === null) {
             throw new RuntimeException(
-                'Audnexus returned no book for ASIN '.$this->asin.' in region '.$this->region
+                'Audnexus returned no book for ASIN '.$this->asin.' in region '.$this->region.' nor in '.implode('/', self::REGIONES_ALTERNATIVAS)
             );
         }
 
@@ -128,6 +143,11 @@ class ProcessAudiobookJob implements ShouldQueue
 
         cache()->put("audiobook-scraper:{$asin}", now(), 8 * 3600);
         cache()->forget('meta-error:audiobook:'.$this->asin);
+
+        // Al guardar el torrent se indexa ANTES de que exista la ficha, y el
+        // documento de Meilisearch se quedaba sin portada ni géneros hasta el
+        // siguiente guardado. Se reindexa ahora que la ficha existe.
+        Torrent::query()->whereIn('asin', array_unique([$asin, $this->asin]))->searchable();
     }
 
     /**
