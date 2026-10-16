@@ -313,11 +313,14 @@ class CommandController extends Controller
     }
 
     /**
-     * Reindex All Torrents In Meilisearch.
+     * Reindex All Torrents In Meilisearch, without emptying the index.
+     *
+     * It used to run the same incremental sync as the 15-minute schedule
+     * (only torrents changed in the last quarter hour) while saying «all».
      */
     public function reindexScout(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('auto:sync_torrents_to_meilisearch');
+        return $this->executeArtisanSafely('auto:sync_torrents_to_meilisearch', ['--all' => true]);
     }
 
     /**
@@ -451,7 +454,7 @@ class CommandController extends Controller
     }
 
     /**
-     * Sync Torrents To Meilisearch.
+     * Sync Torrents Changed In The Last 15 Minutes To Meilisearch (same as the schedule).
      */
     public function syncTorrents(): \Illuminate\Http\RedirectResponse
     {
