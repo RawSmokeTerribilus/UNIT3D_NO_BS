@@ -16,36 +16,56 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Jobs\SyncTrackerTorrentsBatch;
 use App\Models\Torrent;
-use App\Services\Unit3dAnnounce;
 use Illuminate\Console\Command;
 
+/**
+ * Empuja todos los torrents al announce (estado, borrado, factores). Los
+ * contadores de los que ya están en memoria no se tocan: los lleva el propio
+ * announce a partir de sus pares (`scheduler::recount`).
+ *
+ * Por defecto reparte en lotes encolados (SyncTrackerTorrentsBatch): hacerlo
+ * todo en la petición del panel pasaba del límite de 30 s. --inline lo hace
+ * aquí mismo (consola).
+ */
 class TrackerSyncTorrents extends Command
 {
-    protected $signature   = 'tracker:sync-torrents';
-    protected $description = 'Push all torrents to the Rust tracker (force resync)';
+    protected $signature = 'tracker:sync-torrents
+        {--inline : Lo hace todo aquí mismo en vez de encolar lotes (consola)}';
+
+    protected $description = 'Empuja todos los torrents al tracker Rust (en lotes encolados)';
 
     final public function handle(): int
     {
         if (!config('announce.external_tracker.is_enabled')) {
             $this->warn('External tracker not enabled — nothing to sync.');
+
             return self::SUCCESS;
         }
 
-        $total   = 0;
-        $success = 0;
-        $failed  = 0;
+        $ids = Torrent::withoutGlobalScopes()->orderBy('id')->pluck('id')->all();
 
-        Torrent::withoutGlobalScopes()
-            ->chunkById(100, function ($torrents) use (&$total, &$success, &$failed): void {
-                foreach ($torrents as $torrent) {
-                    $total++;
-                    Unit3dAnnounce::addTorrent($torrent) ? $success++ : $failed++;
-                }
-            });
+        if ($this->option('inline')) {
+            $result = SyncTrackerTorrentsBatch::process($ids);
+            $this->info("✓ Torrents synced to tracker: {$result['success']}/".\count($ids).($result['failed'] > 0 ? " ({$result['failed']} failed)" : ''));
 
-        $this->info("✓ Torrents synced to tracker: {$success}/{$total}" . ($failed > 0 ? " ({$failed} failed)" : ''));
+            return $result['failed'] > 0 ? self::FAILURE : self::SUCCESS;
+        }
 
-        return $failed > 0 ? self::FAILURE : self::SUCCESS;
+        $batches = array_chunk($ids, SyncTrackerTorrentsBatch::SIZE);
+        $total = \count($batches);
+
+        foreach ($batches as $i => $batch) {
+            SyncTrackerTorrentsBatch::dispatch($batch, $i + 1, $total);
+        }
+
+        $this->info(\sprintf(
+            '✓ %d torrents en %d lotes encolados. El worker los empuja al announce y el último pasa el comprobador de contadores: resultado en el log (Panel → Laravel log).',
+            \count($ids),
+            $total,
+        ));
+
+        return self::SUCCESS;
     }
 }

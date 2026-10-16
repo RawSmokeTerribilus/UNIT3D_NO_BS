@@ -7,6 +7,7 @@ use crate::store::peer;
 use crate::store::torrent::Torrent;
 use crate::store::hitrun_redownload::HitRunRedownloadStore;
 use chrono::{Duration, Utc};
+use indexmap::IndexMap;
 use tokio::time::Instant;
 use tracing::{error, info};
 
@@ -24,6 +25,7 @@ pub async fn handle(state: &Arc<AppState>) {
 
         if counter % (state.config.load().peer_expiry_interval * 1000) == 0 {
             reap(state).await;
+            recount(state);
         }
 
         if counter % (HITRUN_REDOWNLOAD_RELOAD_SECONDS * 1000) == 0 {
@@ -147,6 +149,87 @@ pub fn reap_user_peers(
     apply_torrent_deltas(state, torrent, seeder_delta, leecher_delta);
 
     reaped
+}
+
+/// Recuenta los contadores DERIVADOS a partir de la lista de pares en memoria,
+/// que es la realidad que conoce el announce (lo que han anunciado los
+/// clientes): seeders/leechers de cada torrent y pares de cada socio.
+///
+/// Los contadores se llevan sumando y restando en cada anuncio; si alguna vez
+/// se descuadran (un sync desde la base, una carga tras un corte de luz) no
+/// vuelven solos. Esto los iguala a la lista de pares en cada barrido y al
+/// arrancar, sin depender de reinicios ni de nadie. Las correcciones de los
+/// torrents van a la base como deltas en el volcado normal: la base sigue
+/// siendo la copia de seguridad, alineada con la memoria.
+///
+/// Los acumulados (tráfico, seedtime, balance) NO se tocan: sólo existen como
+/// suma de anuncios.
+///
+/// Los torrents se corrigen exactos (sus contadores cambian dentro del mismo
+/// bloqueo que sus pares). Los socios pueden quedar ±1 si un anuncio cae entre
+/// su parte de torrent y su parte de socio; el siguiente recuento lo iguala.
+pub fn recount(state: &Arc<AppState>) {
+    use rayon::prelude::*;
+
+    let start = Instant::now();
+    let config = state.config.load();
+    let mut torrent_store = state.stores.torrents.lock();
+
+    let torrents_corrected: usize = torrent_store
+        .par_values_mut()
+        .map(|torrent| {
+            let (seeders, leechers) = torrent.peers.values().fold((0_u32, 0_u32), |(s, l), peer| {
+                (
+                    s + peer.is_included_in_seed_list(&config) as u32,
+                    l + peer.is_included_in_leech_list(&config) as u32,
+                )
+            });
+
+            let seeder_delta = (i64::from(seeders) - i64::from(torrent.seeders)) as i32;
+            let leecher_delta = (i64::from(leechers) - i64::from(torrent.leechers)) as i32;
+
+            if seeder_delta != 0 || leecher_delta != 0 {
+                apply_torrent_deltas(state, torrent, seeder_delta, leecher_delta);
+
+                1
+            } else {
+                0
+            }
+        })
+        .sum();
+
+    let mut user_counts: IndexMap<u32, (u32, u32)> = IndexMap::new();
+
+    for torrent in torrent_store.values() {
+        for (index, peer) in torrent.peers.iter() {
+            if peer.is_included_in_peer_list(&config) {
+                let counts = user_counts.entry(index.user_id).or_insert((0, 0));
+
+                if peer.is_seeder {
+                    counts.0 += 1;
+                } else {
+                    counts.1 += 1;
+                }
+            }
+        }
+    }
+
+    let mut users_corrected = 0;
+
+    for (user_id, user) in state.stores.users.write().iter_mut() {
+        let (seeding, leeching) = user_counts.get(user_id).copied().unwrap_or((0, 0));
+
+        if user.num_seeding != seeding || user.num_leeching != leeching {
+            user.num_seeding = seeding;
+            user.num_leeching = leeching;
+            users_corrected += 1;
+        }
+    }
+
+    let elapsed = start.elapsed().as_millis();
+    info!(
+        "Recounted counters from peers in {elapsed} ms: {torrents_corrected} torrents and {users_corrected} users corrected."
+    )
 }
 
 /// Marca un par como inactivo y descuenta al socio y al torrent lo que

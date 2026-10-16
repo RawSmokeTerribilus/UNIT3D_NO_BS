@@ -36,6 +36,13 @@ pub async fn upsert(
         info!("Inserting user with id {}.", user.id);
         let config = state.config.load();
         let old_user = state.stores.users.write().swap_remove(&user.id);
+        // Igual que en torrents: si el socio ya está en memoria mandan sus
+        // contadores (los iguala `scheduler::recount` a sus pares); los que
+        // calcula la web desde la tabla `peers` sólo valen para uno nuevo.
+        let (num_seeding, num_leeching) = old_user
+            .as_ref()
+            .map(|old| (old.num_seeding, old.num_leeching))
+            .unwrap_or((user.num_seeding, user.num_leeching));
         let (receive_seed_list_rates, receive_leech_list_rates) = old_user
             .map(|user| (user.receive_seed_list_rates, user.receive_leech_list_rates))
             .unwrap_or_else(|| {
@@ -63,8 +70,8 @@ pub async fn upsert(
                 group_id: user.group_id,
                 passkey: new_passkey,
                 can_download: user.can_download,
-                num_seeding: user.num_seeding,
-                num_leeching: user.num_leeching,
+                num_seeding,
+                num_leeching,
                 is_donor: user.is_donor,
                 is_lifetime: user.is_lifetime,
                 receive_seed_list_rates,
