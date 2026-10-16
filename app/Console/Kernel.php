@@ -200,6 +200,22 @@ class Kernel extends ConsoleKernel
         $schedule->exec('chown -R www-data:www-data storage bootstrap/cache')
             ->everyThirtyMinutes()
             ->withoutOverlapping(10);
+
+        // The daily log is created by whoever writes first after 00:00, and that is
+        // meta:sync from this (root) scheduler: until the 00:30 chown, php-fpm and the
+        // queue workers (www-data since 2026-10-16) cannot append, and Monolog throws,
+        // which fails the job. Create tomorrow's file the evening before, as www-data.
+        $schedule->call(function (): void {
+            $file = storage_path('logs/laravel-'.now()->addDay()->format('Y-m-d').'.log');
+
+            if (!file_exists($file)) {
+                touch($file);
+            }
+
+            @chown($file, 'www-data');
+            @chgrp($file, 'www-data');
+            @chmod($file, 0664);
+        })->name('precreate-tomorrow-log')->dailyAt('23:55');
     }
 
     /**

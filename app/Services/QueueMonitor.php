@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -53,6 +54,14 @@ class QueueMonitor
     private static array $started = [];
 
     /**
+     * uuid → la excepción del intento. JobReleasedAfterException no la trae, y
+     * sin ella un reintento sale en la página sin decir por qué.
+     *
+     * @var array<string, Throwable>
+     */
+    private static array $errors = [];
+
+    /**
      * Engancha el registro a los eventos del worker. Se llama en el arranque
      * de la aplicación; en la web no hace nada porque allí no se procesan jobs.
      */
@@ -70,8 +79,12 @@ class QueueMonitor
             self::record($event->connectionName, $event->job, $event->job->isReleased() ? 'released' : 'ok');
         });
 
+        Event::listen(JobExceptionOccurred::class, function (JobExceptionOccurred $event): void {
+            self::$errors[$event->job->uuid() ?? ''] = $event->exception;
+        });
+
         Event::listen(JobReleasedAfterException::class, function (JobReleasedAfterException $event): void {
-            self::record($event->connectionName, $event->job, 'retry');
+            self::record($event->connectionName, $event->job, 'retry', self::$errors[$event->job->uuid() ?? ''] ?? null);
         });
 
         Event::listen(JobFailed::class, function (JobFailed $event): void {
@@ -91,7 +104,7 @@ class QueueMonitor
         try {
             $uuid = $job->uuid() ?? '';
             $start = self::$started[$uuid] ?? null;
-            unset(self::$started[$uuid]);
+            unset(self::$started[$uuid], self::$errors[$uuid]);
 
             $payload = $job->payload();
             $now = microtime(true);
