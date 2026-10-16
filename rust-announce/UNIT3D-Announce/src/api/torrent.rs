@@ -31,23 +31,33 @@ pub async fn upsert(
 ) -> StatusCode {
     if let Ok(info_hash) = InfoHash::from_str(&torrent.info_hash) {
         info!("Inserting torrent with id {}.", torrent.id);
-        let old_torrent = state.stores.torrents.lock().swap_remove(&torrent.id);
-        let peers = old_torrent.unwrap_or_default().peers;
+        let mut torrent_store = state.stores.torrents.lock();
 
-        state.stores.torrents.lock().insert(
+        // Si ya está en memoria, mandan sus contadores (salen de sus pares, que
+        // son la realidad); los de la base sólo valen para un torrent nuevo.
+        // Así «Sincronizar torrents» actualiza estado y factores sin pisar
+        // contadores con una copia que puede ir unos segundos por detrás.
+        let (seeders, leechers, times_completed, peers) = match torrent_store.swap_remove(&torrent.id) {
+            Some(old) => (old.seeders, old.leechers, old.times_completed, old.peers),
+            None => (torrent.seeders, torrent.leechers, torrent.times_completed, Default::default()),
+        };
+
+        torrent_store.insert(
             torrent.id,
             Torrent {
                 id: torrent.id,
                 status: torrent.status,
                 is_deleted: torrent.is_deleted,
-                seeders: torrent.seeders,
-                leechers: torrent.leechers,
-                times_completed: torrent.times_completed,
+                seeders,
+                leechers,
+                times_completed,
                 download_factor: torrent.download_factor,
                 upload_factor: torrent.upload_factor,
                 peers,
             },
         );
+
+        drop(torrent_store);
 
         state
             .stores

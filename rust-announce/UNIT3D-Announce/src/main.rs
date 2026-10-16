@@ -50,6 +50,10 @@ async fn main() -> Result<()> {
     // The state struct keeps track of all state within the application.
     let state = state::AppState::default().await?;
 
+    // Lo cargado de la base (contadores y pares) puede venir descuadrado tras
+    // un corte: se iguala a la lista de pares antes de atender anuncios.
+    scheduler::recount(&state);
+
     // Starts scheduler to automate flushing updates
     // to database and inactive peer removal.
     let _handle = tokio::spawn({
