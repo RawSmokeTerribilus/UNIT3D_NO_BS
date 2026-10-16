@@ -148,25 +148,55 @@ class QueueMonitor
     }
 
     /**
-     * Totales por cola, para las pestañas.
+     * Totales por cola, para las pestañas. «new» son los fallidos posteriores a
+     * la última vez que ese usuario miró la cola.
      *
-     * @return array<string, array{pending: int, running: int, failed: int}>
+     * @return array<string, array{pending: int, running: int, failed: int, new: int}>
      */
-    public static function totals(): array
+    public static function totals(int $userId): array
     {
         $redis = self::redis();
         $failed = DB::table('failed_jobs')->selectRaw('queue, count(*) as n')->groupBy('queue')->pluck('n', 'queue');
         $out = [];
 
         foreach (self::queues() as $queue) {
+            $seen = self::seen($userId, $queue);
+
             $out[$queue] = [
                 'pending' => (int) $redis->llen("queues:{$queue}") + (int) $redis->zcard("queues:{$queue}:delayed"),
                 'running' => (int) $redis->zcard("queues:{$queue}:reserved"),
                 'failed'  => (int) ($failed[$queue] ?? 0),
+                'new'     => $seen === null ? 0 : DB::table('failed_jobs')
+                    ->where('queue', '=', $queue)
+                    ->where('failed_at', '>', gmdate('Y-m-d H:i:s', (int) $seen))
+                    ->count(),
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * Cuándo miró este usuario esta cola por última vez (null: nunca).
+     */
+    public static function seen(int $userId, string $queue): ?float
+    {
+        $value = self::redis()->get("nobs:queue-seen:{$userId}:{$queue}");
+
+        return $value === null || $value === false ? null : (float) $value;
+    }
+
+    /**
+     * Apunta que la mira ahora y devuelve la vez anterior. La primera vez
+     * devuelve ahora: no tiene sentido marcar 1.400 fallidos viejos como nuevos.
+     */
+    public static function markSeen(int $userId, string $queue): float
+    {
+        $now = microtime(true);
+        $before = self::seen($userId, $queue) ?? $now;
+        self::redis()->setex("nobs:queue-seen:{$userId}:{$queue}", 90 * 86400, (string) $now);
+
+        return $before;
     }
 
     /**

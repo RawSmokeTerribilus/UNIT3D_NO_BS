@@ -27,7 +27,7 @@ class QueueController extends Controller
 {
     public function index(Request $request): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        $totals = QueueMonitor::totals();
+        $totals = QueueMonitor::totals((int) $request->user()->id);
         $queue = (string) $request->query('queue', 'default');
 
         if (!\array_key_exists($queue, $totals)) {

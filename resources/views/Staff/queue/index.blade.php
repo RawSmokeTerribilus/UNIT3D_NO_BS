@@ -44,6 +44,9 @@
                 @if ($t['failed'] > 0)
                     <span class="qm-tab qm-tab--fail">✖ {{ $t['failed'] }}</span>
                 @endif
+                @if ($t['new'] > 0)
+                    <span class="qm-tab qm-tab--new" title="Fallidos desde tu última visita a esta cola">{{ $t['new'] }} nuevos</span>
+                @endif
             </a>
         </li>
     @endforeach
@@ -80,6 +83,7 @@
         }
         .qm-tab--run  { background: rgba(56, 139, 253, 0.25); color: #79c0ff; }
         .qm-tab--fail { background: rgba(248, 81, 73, 0.25); color: #ff7b72; }
+        .qm-tab--new  { background: #f0883e; color: #0d1117; font-weight: 600; }
 
         .qm { font-size: 1.2rem; }
 
@@ -125,6 +129,7 @@
         .qm-s--run  { color: #79c0ff; }
         .qm-s--ok   { color: #3fb950; }
         .qm-s--fail { color: #ff7b72; }
+        .qm-s--new  { color: #f0883e; font-weight: 600; }
 
         .qm-notice {
             display: flex;
@@ -181,6 +186,27 @@
         .qm-pill--ok   { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
         .qm-pill--warn { background: rgba(210, 153, 34, 0.2); color: #d29922; }
         .qm-pill--fail { background: rgba(248, 81, 73, 0.2); color: #ff7b72; }
+        .qm-pill--new  { background: #f0883e; color: #0d1117; font-weight: 600; }
+
+        .qm-sub { border-top: 1px solid #161b22; }
+        .qm-sub__head {
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            padding: 0.3rem 0.75rem 0.3rem 1.6rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .qm-sub__head:hover { filter: brightness(1.25); }
+        .qm-count {
+            flex: 0 0 auto;
+            min-width: 3.5rem;
+            text-align: right;
+            color: #c9d1d9;
+            font-weight: 600;
+        }
+        .qm-line--new { box-shadow: inset 3px 0 0 #f0883e; }
+        .qm-group__actions--sub { padding-left: 3.2rem; }
 
         .qm-group__body { border-top: 1px solid #21262d; }
         .qm-group__actions {
@@ -195,7 +221,7 @@
             display: flex;
             align-items: baseline;
             gap: 0.6rem;
-            padding: 0.2rem 0.75rem 0.2rem 2rem;
+            padding: 0.2rem 0.75rem 0.2rem 3.2rem;
             border-top: 1px solid #161b22;
         }
         .qm-line__time { flex: 0 0 auto; color: #6e7681; }
@@ -227,7 +253,7 @@
 
         .qm-trace {
             margin: 0;
-            padding: 0.6rem 0.75rem 0.6rem 2rem;
+            padding: 0.6rem 0.75rem 0.6rem 3.2rem;
             max-height: 24rem;
             overflow: auto;
             background: #010409;
@@ -249,7 +275,7 @@
         .qm-foot { margin-top: 0.75rem; color: #8b949e; font-size: 1.05rem; }
 
         @media (max-width: 640px) {
-            .qm-line { flex-wrap: wrap; padding-left: 0.75rem; }
+            .qm-line, .qm-sub__head { flex-wrap: wrap; padding-left: 0.75rem; }
             .qm-group__meta { margin-left: 0; width: 100%; }
         }
     </style>
