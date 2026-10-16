@@ -14,6 +14,18 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
  */
 
+/**
+ * MODIFICADO PARA NOBS
+ *
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+ *
+ * Este fichero contiene cambios sobre el original de UNIT3D Community Edition.
+ * Se distribuye bajo la misma licencia, GNU AGPL v3.0.
+ *
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+ */
+
 namespace App\Notifications;
 
 use App\Models\TorrentRequestClaim;
@@ -26,11 +38,27 @@ class NewRequestUnclaim extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    // NOBS: el original guardaba el claim y lo releía en el worker, pero
+    // ClaimController lo borra justo después de encolar el aviso: el job
+    // fallaba siempre (ModelNotFoundException) y el que pidió no se enteraba.
+    // Se copian aquí los datos que hacen falta, en el momento de liberar.
+    public int $claimerId;
+
+    public ?int $claimerGroupId;
+
+    public int $requestId;
+
+    public string $requestName;
+
     /**
      * NewRequestUnclaim Constructor.
      */
-    public function __construct(public string $type, public string $sender, public TorrentRequestClaim $torrentRequestClaim)
+    public function __construct(public string $type, public string $sender, TorrentRequestClaim $torrentRequestClaim)
     {
+        $this->claimerId = $torrentRequestClaim->user_id;
+        $this->claimerGroupId = $torrentRequestClaim->user?->group_id;
+        $this->requestId = $torrentRequestClaim->request_id;
+        $this->requestName = (string) $torrentRequestClaim->request?->name;
     }
 
     /**
@@ -49,7 +77,7 @@ class NewRequestUnclaim extends Notification implements ShouldQueue
     public function shouldSend(User $notifiable): bool
     {
         // Do not notify self
-        if ($this->torrentRequestClaim->user_id === $notifiable->id) {
+        if ($this->claimerId === $notifiable->id) {
             return false;
         }
 
@@ -63,7 +91,7 @@ class NewRequestUnclaim extends Notification implements ShouldQueue
 
         // If the sender's group ID is found in the "Block all notifications from the selected groups" array,
         // the expression will return false.
-        return ! \in_array($this->torrentRequestClaim->user->group_id, $notifiable->notification?->json_request_groups ?? [], true);
+        return ! \in_array($this->claimerGroupId, $notifiable->notification?->json_request_groups ?? [], true);
     }
 
     /**
@@ -75,8 +103,8 @@ class NewRequestUnclaim extends Notification implements ShouldQueue
     {
         return [
             'title' => $this->sender.' Has Unclaimed One Of Your Requested Torrents',
-            'body'  => $this->sender.' has unclaimed your Requested Torrent '.$this->torrentRequestClaim->request->name,
-            'url'   => \sprintf('/requests/%s', $this->torrentRequestClaim->request->id),
+            'body'  => $this->sender.' has unclaimed your Requested Torrent '.$this->requestName,
+            'url'   => \sprintf('/requests/%s', $this->requestId),
         ];
     }
 }

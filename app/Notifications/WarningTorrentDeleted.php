@@ -14,6 +14,18 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
  */
 
+/**
+ * MODIFICADO PARA NOBS
+ *
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+ *
+ * Este fichero contiene cambios sobre el original de UNIT3D Community Edition.
+ * Se distribuye bajo la misma licencia, GNU AGPL v3.0.
+ *
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+ */
+
 namespace App\Notifications;
 
 use App\Interfaces\SystemNotificationInterface;
@@ -49,9 +61,15 @@ class WarningTorrentDeleted extends Notification implements ShouldQueue, SystemN
      */
     public function toSystemNotification(User $notifiable): array
     {
+        // NOBS: el original metía en el texto el modelo Torrent entero; al pasarlo
+        // a JSON el info_hash binario reventaba (Malformed UTF-8) y el aviso no
+        // llegaba nunca. Solo el nombre, y aunque el torrent ya esté borrado.
+        $torrent = $this->warning->torrent()->withTrashed()->value('name')
+            ?? ($this->warning->torrent_id !== null ? "#{$this->warning->torrent_id}" : '—');
+
         return [
             'subject' => 'Hit and Run Warning Deleted',
-            'message' => "{$this->staff->username} has decided to delete your warning for torrent {$this->warning->torrent}. You lucked out!",
+            'message' => "{$this->staff->username} has decided to delete your warning for torrent {$torrent}. You lucked out!",
         ];
     }
 }
