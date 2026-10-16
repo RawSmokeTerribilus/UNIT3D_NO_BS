@@ -16,101 +16,63 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Jobs\SyncTrailersBatch;
 use App\Models\TmdbMovie;
 use App\Models\TmdbTv;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 
+/**
+ * Rehidrata los tráilers de las fichas que ya existen: lo que necesita un
+ * tracker ya montado que estrena la función, o tras cambiar el criterio. El
+ * día a día lo lleva el refresco normal de metadatos, que usa el MISMO
+ * criterio (App\Services\Tmdb\TrailerPicker).
+ *
+ * Por defecto reparte las fichas en lotes (SyncTrailersBatch) en la cola
+ * `meta-refresh`: el job único de antes recorría todo y el worker lo mataba a
+ * los 300 s. Con --inline lo hace todo en este proceso (consola, sin límite).
+ */
 class SyncMissingTrailers extends Command
 {
-    protected $signature   = 'tmdb:sync-trailers {--force : Re-fetch even when trailer is already set}';
-    protected $description = 'Backfill missing YouTube trailers from TMDB (movies + TV)';
+    protected $signature = 'tmdb:sync-trailers
+        {--force : Repasa también las fichas que ya tienen tráiler}
+        {--inline : Lo hace todo aquí mismo en vez de encolar lotes (consola)}';
+
+    protected $description = 'Rehidrata los tráilers de YouTube desde TMDB (películas y series), en lotes encolados';
 
     final public function handle(): void
     {
-        $this->processMedia(TmdbMovie::class, 'movie');
-        $this->processMedia(TmdbTv::class, 'tv');
-        $this->info('Done.');
-    }
+        $force = (bool) $this->option('force');
 
-    /**
-     * Pick the best trailer key from TMDB results.
-     *
-     * Priority: official Spanish → official English → official any → unofficial Spanish → any trailer.
-     * Spanish trailers are hosted by Spanish/EU channels and are generally not geo-restricted for ES/EU.
-     */
-    private function pickTrailer(array $results): ?string
-    {
-        $trailers = collect($results)
-            ->filter(fn ($v) => ($v['type'] ?? '') === 'Trailer' && ($v['site'] ?? '') === 'YouTube');
+        foreach (['movie' => TmdbMovie::class, 'tv' => TmdbTv::class] as $type => $model) {
+            $ids = $model::query()
+                ->when(!$force, fn ($query) => $query->whereNull('trailer'))
+                ->orderBy('id')
+                ->pluck('id')
+                ->all();
 
-        foreach (['es', 'en'] as $lang) {
-            $key = $trailers
-                ->filter(fn ($v) => ($v['iso_639_1'] ?? '') === $lang && ($v['official'] ?? false))
-                ->sortByDesc('published_at')
-                ->first()['key'] ?? null;
-            if ($key !== null) {
-                return $key;
-            }
-        }
+            if ($ids === []) {
+                $this->info("{$type}: nada que rehidratar.");
 
-        // Any official trailer regardless of language
-        $key = $trailers->filter(fn ($v) => $v['official'] ?? false)->sortByDesc('published_at')->first()['key'] ?? null;
-        if ($key !== null) {
-            return $key;
-        }
-
-        // Last resort: unofficial Spanish, then anything
-        return $trailers
-            ->sortByDesc(fn ($v) => ($v['iso_639_1'] ?? '') === 'es' ? 1 : 0)
-            ->first()['key'] ?? null;
-    }
-
-    private function processMedia(string $modelClass, string $type): void
-    {
-        $query = $modelClass::query()->select('id', 'trailer');
-
-        if (!$this->option('force')) {
-            $query->whereNull('trailer');
-        }
-
-        $count = $query->count();
-
-        if ($count === 0) {
-            $this->info("No {$type} entries need trailer backfill.");
-
-            return;
-        }
-
-        $this->info("Fetching trailers for {$count} {$type} entries...");
-        $bar = $this->output->createProgressBar($count);
-
-        $query->each(function ($record) use ($type, $bar): void {
-            usleep(250_000); // ~4 req/s, safely under TMDB 40/10s limit
-
-            try {
-                $response = Http::timeout(15)->get(
-                    "https://api.TheMovieDB.org/3/{$type}/{$record->id}/videos",
-                    ['api_key' => config('api-keys.tmdb'), 'include_video_language' => 'es,en,null'],
-                );
-
-                if ($response->successful()) {
-                    $key = $this->pickTrailer($response->json('results', []));
-
-                    if ($key !== null || $this->option('force')) {
-                        $record->update(['trailer' => $key]);
-                    }
-                } else {
-                    $this->warn("\nTMDB {$type} {$record->id}: HTTP {$response->status()}");
-                }
-            } catch (\Exception $e) {
-                $this->warn("\nTMDB {$type} {$record->id}: {$e->getMessage()}");
+                continue;
             }
 
-            $bar->advance();
-        });
+            if ($this->option('inline')) {
+                $bar = $this->output->createProgressBar(\count($ids));
+                $result = SyncTrailersBatch::process($type, $ids, $force, fn () => $bar->advance());
+                $bar->finish();
+                $this->newLine();
+                $this->info(\sprintf('%s: %d fichas, %d con tráiler, %d fallos.', $type, \count($ids), $result['found'], $result['failed']));
 
-        $bar->finish();
-        $this->newLine();
+                continue;
+            }
+
+            $batches = array_chunk($ids, SyncTrailersBatch::SIZE);
+
+            foreach ($batches as $batch) {
+                SyncTrailersBatch::dispatch($type, $batch, $force)->onQueue('meta-refresh');
+            }
+
+            $this->info(\sprintf('%s: %d fichas en %d lotes encolados en meta-refresh.', $type, \count($ids), \count($batches)));
+        }
     }
 }

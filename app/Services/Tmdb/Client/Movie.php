@@ -31,6 +31,7 @@ namespace App\Services\Tmdb\Client;
 use App\Enums\Occupation;
 use App\Exceptions\MetaFetchNotFoundException;
 use App\Services\Tmdb\TMDB;
+use App\Services\Tmdb\TrailerPicker;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use DateTime;
@@ -269,8 +270,9 @@ class Movie
             ->withUrlParameters(['id' => $id])
             ->get('https://api.TheMovieDB.org/3/movie/{id}', [
                 'api_key'            => config('api-keys.tmdb'),
-                'language'           => config('app.meta_locale'),
-                'append_to_response' => 'videos,images,credits,external_ids,keywords,recommendations,alternative_titles',
+                'language'               => config('app.meta_locale'),
+                'append_to_response'     => 'videos,images,credits,external_ids,keywords,recommendations,alternative_titles',
+                'include_video_language' => TrailerPicker::VIDEO_LANGUAGES,
             ])
             ->throwIf(fn (Response $response) => !$response->notFound());
 
@@ -348,10 +350,7 @@ class Movie
                 'title_sort'        => $titleSort,
                 'vote_average'      => $this->data['vote_average'] ?? null,
                 'vote_count'        => $this->data['vote_count'] ?? null,
-                'trailer'           => collect($this->data['videos']['results'] ?? [])
-                    ->filter(fn ($v) => ($v['type'] ?? '') === 'Trailer' && ($v['site'] ?? '') === 'YouTube')
-                    ->sortByDesc('official')
-                    ->first()['key'] ?? null,
+                'trailer'           => TrailerPicker::pick($this->data['videos']['results'] ?? []),
             ];
         }
 
