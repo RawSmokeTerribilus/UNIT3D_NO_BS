@@ -141,6 +141,11 @@ services:
             context: .
             dockerfile: .docker/php/Dockerfile.app
         container_name: unit3d-staging-worker
+        # Como www-data (82), igual que php-fpm: si corre como root, lo que crea
+        # (el laravel-*.log del día, imágenes, cachés) queda de root y fpm no lo
+        # puede tocar. Prueba 16-10 en staging; el scheduler sigue como root
+        # para el chown de cada 30 min (Kernel.php).
+        user: "82:82"
         restart: unless-stopped
         entrypoint: ["/usr/local/bin/entrypoint-worker.sh"]
         tmpfs:
@@ -171,6 +176,11 @@ services:
             context: .
             dockerfile: .docker/php/Dockerfile.app
         container_name: unit3d-staging-meta-worker
+        # Como www-data (82), igual que php-fpm: si corre como root, lo que crea
+        # (el laravel-*.log del día, imágenes, cachés) queda de root y fpm no lo
+        # puede tocar. Prueba 16-10 en staging; el scheduler sigue como root
+        # para el chown de cada 30 min (Kernel.php).
+        user: "82:82"
         restart: unless-stopped
         entrypoint: ["/usr/local/bin/entrypoint-worker.sh"]
         tmpfs:
