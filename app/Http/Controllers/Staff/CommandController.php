@@ -30,6 +30,8 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Process;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
  * @see \Tests\Feature\Http\Controllers\Staff\CommandControllerTest
@@ -57,30 +59,88 @@ class CommandController extends Controller
     }
 
     /**
-     * Write config.php directly from the current running app's config values.
+     * Rebuild bootstrap/cache/config.php from config/*.php and the .env, and
+     * restart the queue workers so they load it too.
      *
-     * Using Artisan::call('config:cache') or a subprocess both require a window
-     * where config.php is deleted first, during which concurrent requests 500.
-     * Writing directly is atomic — the old config.php is never removed until
-     * the new one is ready — and APP_KEY is guaranteed correct because it comes
-     * from the already-booted app, not from a subprocess environment.
+     * Until 2026-10-16 this dumped config()->all() of the running request: the
+     * old cache it had booted from. A change in the .env or in config/*.php
+     * never got in, and whatever the request had set at runtime (the locale
+     * of whoever pressed) was baked into the cache. Now a separate
+     * `php artisan config:cache` builds a fresh file under another name
+     * (APP_CONFIG_CACHE) and rename() swaps it in, which is atomic: other
+     * requests see the old file or the new one, never none. If anything
+     * fails, the live file is left as it was.
+     *
+     * The workers are long-running processes that keep the config they
+     * started with; queue:restart makes them exit after their current job
+     * and Docker brings them back up (restart: unless-stopped). Without it a
+     * changed token reaches the web but not the jobs.
+     *
+     * @param callable|null $between runs after the fresh file is built and
+     *                               before it is swapped in (optimize:clear
+     *                               deletes config.php; this keeps that gap
+     *                               to milliseconds)
+     * @return list<string>
      */
-    private function rebuildConfigCache(): string
+    private function rebuildConfig(?callable $between = null): array
     {
-        $configPath = base_path('bootstrap/cache/config.php');
+        $live = base_path('bootstrap/cache/config.php');
+        $fresh = base_path('bootstrap/cache/config.fresh-'.getmypid().'.php');
+        $lines = [];
 
         try {
-            $config = config()->all();
-            $contents = '<?php return ' . var_export($config, true) . ';' . PHP_EOL;
+            $result = Process::path(base_path())
+                ->env(['APP_CONFIG_CACHE' => $fresh])
+                ->timeout(25)
+                ->run([(new PhpExecutableFinder())->find(false) ?: 'php', 'artisan', 'config:cache']);
 
-            if (file_put_contents($configPath, $contents, LOCK_EX) === false) {
-                return '❌ config:cache failed: could not write ' . $configPath;
+            if (!$result->successful() || !is_file($fresh)) {
+                @unlink($fresh);
+
+                return ['❌ config:cache falló; la config en uso no se ha tocado: '.trim($result->errorOutput() ?: $result->output())];
+            }
+
+            $config = require $fresh;
+
+            if (!\is_array($config) || empty($config['app']['key'])) {
+                @unlink($fresh);
+
+                return ['❌ La config nueva sale sin APP_KEY (¿.env ilegible?); la config en uso no se ha tocado.'];
+            }
+
+            if ($between !== null) {
+                $lines = array_merge($lines, (array) $between());
+            }
+
+            if (!rename($fresh, $live)) {
+                @unlink($fresh);
+
+                return [...$lines, '❌ No se pudo poner la config nueva en '.$live];
             }
         } catch (\Throwable $e) {
-            return '❌ config:cache failed: ' . $e->getMessage();
+            @unlink($fresh);
+
+            return [...$lines, '❌ config:cache falló: '.$e->getMessage()];
         }
 
-        return 'Configuration cached successfully.';
+        $lines[] = '✓ Config reconstruida desde config/ y .env.';
+
+        try {
+            Artisan::call('queue:restart');
+            $lines[] = '✓ Workers avisados: cargan la config nueva al acabar su job en curso.';
+        } catch (\Throwable $e) {
+            $lines[] = '❌ queue:restart: '.$e->getMessage();
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param list<string> $lines
+     */
+    private function report(array $lines): \Illuminate\Http\RedirectResponse
+    {
+        return to_route('staff.commands.index')->with('info', trim(implode("\n", array_filter($lines))));
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -148,32 +208,39 @@ class CommandController extends Controller
     /**
      * Clear Site Config Cache.
      *
-     * Always rebuilds immediately — clearing without rebuilding leaves the site unable to read APP_KEY.
+     * No config:clear: it would leave the site without config.php until the
+     * rebuild, and without it the site cannot read APP_KEY. The atomic swap
+     * replaces it in one step.
      */
     public function clearConfig(): \Illuminate\Http\RedirectResponse
     {
-        try {
-            Artisan::call('config:clear');
-            $output = trim(Artisan::output());
-        } catch (\Throwable $e) {
-            return to_route('staff.commands.index')->with('info', "❌ config:clear failed: {$e->getMessage()}");
-        }
+        return $this->report($this->rebuildConfig());
+    }
 
-        $output .= "\n" . $this->rebuildConfigCache();
-
-        return to_route('staff.commands.index')->with('info', trim($output));
+    /**
+     * Apply .env changes (tokens, keys, hosts): fresh config + worker restart.
+     *
+     * Replaces «Vaciar cola Redis» (queue:flush), whose tip said it was
+     * critical after token changes. queue:flush only deletes failed_jobs:
+     * it neither emptied Redis nor applied anything. See the queues page
+     * (/dashboard/queues) for failed jobs.
+     */
+    public function applyEnv(): \Illuminate\Http\RedirectResponse
+    {
+        return $this->report($this->rebuildConfig());
     }
 
     /**
      * Clear All Site Cache At Once.
      *
-     * Runs each step explicitly so config:cache uses a subprocess (safe from PHP-FPM context).
+     * Views and routes are cleared; config is rebuilt with the atomic swap
+     * instead of config:clear.
      */
     public function clearAllCache(): \Illuminate\Http\RedirectResponse
     {
         $lines = [];
 
-        foreach (['view:clear', 'route:clear', 'config:clear'] as $cmd) {
+        foreach (['view:clear', 'route:clear'] as $cmd) {
             try {
                 Artisan::call($cmd);
                 $lines[] = trim(Artisan::output());
@@ -182,9 +249,7 @@ class CommandController extends Controller
             }
         }
 
-        $lines[] = $this->rebuildConfigCache();
-
-        return to_route('staff.commands.index')->with('info', trim(implode("\n", array_filter($lines))));
+        return $this->report([...$lines, ...$this->rebuildConfig()]);
     }
 
     /**
@@ -205,36 +270,26 @@ class CommandController extends Controller
             }
         }
 
-        $lines[] = $this->rebuildConfigCache();
-
-        return to_route('staff.commands.index')->with('info', trim(implode("\n", array_filter($lines))));
-    }
-
-    /**
-     * Clear Redis Queue (Critical after token changes).
-     */
-    public function flushQueue(): \Illuminate\Http\RedirectResponse
-    {
-        return $this->executeArtisanSafely('queue:flush');
+        return $this->report([...$lines, ...$this->rebuildConfig()]);
     }
 
     /**
      * Clear Optimization Cache.
      *
-     * Rebuilds config:cache after optimize:clear, because optimize:clear deletes config.php.
+     * optimize:clear deletes config.php among other things; the fresh one is
+     * built first and swapped in right after, so the gap is milliseconds.
      */
     public function optimizeClear(): \Illuminate\Http\RedirectResponse
     {
-        try {
-            Artisan::call('optimize:clear');
-            $output = trim(Artisan::output());
-        } catch (\Throwable $e) {
-            return to_route('staff.commands.index')->with('info', "❌ optimize:clear failed: {$e->getMessage()}");
-        }
+        return $this->report($this->rebuildConfig(function (): array {
+            try {
+                Artisan::call('optimize:clear');
 
-        $output .= "\n" . $this->rebuildConfigCache();
-
-        return to_route('staff.commands.index')->with('info', trim($output));
+                return [trim(Artisan::output())];
+            } catch (\Throwable $e) {
+                return ["❌ optimize:clear failed: {$e->getMessage()}"];
+            }
+        }));
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

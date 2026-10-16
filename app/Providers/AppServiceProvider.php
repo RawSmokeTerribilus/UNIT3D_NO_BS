@@ -35,6 +35,7 @@ use App\Models\User;
 use App\Services\Emoji\EmojiRenderer;
 use App\Observers\UserObserver;
 use App\Services\CuotaCorreo;
+use App\Services\QueueMonitor;
 use App\View\Composers\FooterComposer;
 use App\View\Composers\TopNavComposer;
 use Illuminate\Database\Console\Seeds\SeedCommand;
@@ -158,6 +159,9 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('rsskey', fn (Request $request) => User::query()->where('rsskey', '=', $request->route('rsskey'))->first());
 
         Context::add('url', $request->url());
+
+        // Historial de jobs terminados para la página de colas (/dashboard/queues).
+        QueueMonitor::listen();
 
         // Candado de comandos destructivos en producción.
         //

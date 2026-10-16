@@ -137,6 +137,8 @@ class Kernel extends ConsoleKernel
         // caché dura un mes. El cron de root la relanza a las 03:00 como cinturón
         // de seguridad (se puso cuando el scheduler de PHP estaba roto).
         $schedule->command(EmailBlacklistUpdate::class)->timezone('Europe/Madrid')->dailyAt('15:00');
+        // Poda de failed_jobs: los fallidos se miran en /dashboard/queues; a los 30 días sobran.
+        $schedule->command('queue:prune-failed', ['--hours' => 720])->dailyAt('04:40');
         $schedule->command(SyncDisposableEmailDomains::class)->hourly();
         $schedule->command(DispatchMetaRefresh::class, ['--limit' => 5, '--stale-hours' => 720, '--dispatch-ttl-minutes' => 10])->everyMinute()->withoutOverlapping();
         $schedule->command(AutoResetUserFlushes::class)->daily();

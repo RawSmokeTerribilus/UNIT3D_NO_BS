@@ -968,6 +968,11 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                 Route::get('/', [App\Http\Controllers\Staff\VersionController::class, 'checkVersion']);
             });
 
+            // Colas de jobs: lo que espera, lo que corre, lo terminado y los fallidos
+            Route::prefix('queues')->middleware('admin')->group(function (): void {
+                Route::get('/', [App\Http\Controllers\Staff\QueueController::class, 'index'])->name('queues.index');
+            });
+
             // Commands
             Route::prefix('commands')->middleware('admin')->group(function (): void {
                 Route::get('/', [App\Http\Controllers\Staff\CommandController::class, 'index'])->name('commands.index');
@@ -992,7 +997,7 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                 Route::post('/clear-config-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearConfig']);
                 Route::post('/clear-all-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearAllCache']);
                 Route::post('/set-all-cache', [App\Http\Controllers\Staff\CommandController::class, 'setAllCache']);
-                Route::post('/flush-queue', [App\Http\Controllers\Staff\CommandController::class, 'flushQueue']);
+                Route::post('/apply-env', [App\Http\Controllers\Staff\CommandController::class, 'applyEnv']);
                 Route::post('/optimize-clear', [App\Http\Controllers\Staff\CommandController::class, 'optimizeClear']);
 
                 // Critical Data Operations

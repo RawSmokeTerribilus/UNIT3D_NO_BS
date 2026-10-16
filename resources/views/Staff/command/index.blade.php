@@ -79,17 +79,16 @@
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-cache',        'label' => 'Limpiar caché',          'icon' => 'fa-broom',       'level' => 'safe',    'tip' => 'Limpiar caché de la aplicación'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-view-cache',   'label' => 'Limpiar vistas',         'icon' => 'fa-eye-slash',   'level' => 'safe',    'tip' => 'Limpiar caché de vistas compiladas'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-route-cache',  'label' => 'Limpiar rutas',          'icon' => 'fa-route',       'level' => 'safe',    'tip' => 'Limpiar caché de rutas compiladas'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-config-cache', 'label' => 'Limpiar config',         'icon' => 'fa-cog',         'level' => 'warning', 'tip' => 'Limpiar y reconstruir caché de configuración (config:clear + config:cache)'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-all-cache',    'label' => 'Limpiar toda la caché',  'icon' => 'fa-trash-alt',   'level' => 'warning', 'tip' => 'Limpiar TODA la caché y reconstruir config'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-config-cache', 'label' => 'Limpiar config',         'icon' => 'fa-cog',         'level' => 'warning', 'tip' => 'Reconstruye la caché de configuración desde config/ y .env (cambio atómico, la web no se queda sin config) y reinicia los workers'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/clear-all-cache',    'label' => 'Limpiar toda la caché',  'icon' => 'fa-trash-alt',   'level' => 'warning', 'tip' => 'Limpia vistas y rutas, reconstruye la config desde config/ y .env y reinicia los workers'])
                 @include('Staff.command._btn', ['action' => '/dashboard/commands/set-all-cache',      'label' => 'Fijar toda la caché',    'icon' => 'fa-database',    'level' => 'safe',    'tip' => 'Reconstruir y fijar toda la caché'])
-                @include('Staff.command._btn', ['action' => '/dashboard/commands/optimize-clear',     'label' => 'Limpiar optimización',   'icon' => 'fa-tools',       'level' => 'warning', 'tip' => 'optimize:clear + reconstruir config (config:cache)'])
+                @include('Staff.command._btn', ['action' => '/dashboard/commands/optimize-clear',     'label' => 'Limpiar optimización',   'icon' => 'fa-tools',       'level' => 'warning', 'tip' => 'optimize:clear + config reconstruida desde config/ y .env + reinicio de los workers'])
                 @include('Staff.command._btn', [
-                    'action'  => '/dashboard/commands/flush-queue',
-                    'label'   => 'Vaciar cola Redis',
-                    'icon'    => 'fa-exclamation-triangle',
-                    'level'   => 'danger',
-                    'tip'     => 'Vaciar cola Redis — CRÍTICO tras cambios de token',
-                    'confirm' => '⚠️ Esto vaciará la cola Redis y perderás todos los jobs en cola.\n¿Continuar?',
+                    'action'  => '/dashboard/commands/apply-env',
+                    'label'   => 'Aplicar cambios del .env',
+                    'icon'    => 'fa-key',
+                    'level'   => 'warning',
+                    'tip'     => 'Tras cambiar un token, una clave o un host en el .env: reconstruye la config desde el .env y reinicia los workers para que los jobs la carguen. Si el .env no cuadra, la config en uso no se toca. Los jobs fallidos se ven en Dashboard → Colas',
                 ])
             </div>
         </section>
