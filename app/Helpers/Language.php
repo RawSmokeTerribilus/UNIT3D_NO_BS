@@ -141,22 +141,6 @@ class Language
     }
 
     /**
-     * Returns the url to set up language and return back.
-     */
-    public static function back(string $code): string
-    {
-        return route('back', ['locale' => $code]);
-    }
-
-    /**
-     * Returns the url to set up language and return to url('/').
-     */
-    public static function home(string $code): string
-    {
-        return route('home', ['locale' => $code]);
-    }
-
-    /**
      * Returns the language code.
      */
     public static function getCode(string $name = 'default'): string
