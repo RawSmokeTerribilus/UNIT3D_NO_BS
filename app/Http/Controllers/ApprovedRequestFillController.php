@@ -14,17 +14,24 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
  */
 
+/**
+ * MODIFICADO PARA NOBS
+ *
+ * Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+ *
+ * Este fichero contiene cambios sobre el original de UNIT3D Community Edition.
+ * Se distribuye bajo la misma licencia, GNU AGPL v3.0.
+ *
+ * @project    NOBS — https://nobs.rawsmoke.net
+ * @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+ */
+
 namespace App\Http\Controllers;
 
-use App\Achievements\UserFilled100Requests;
-use App\Achievements\UserFilled25Requests;
-use App\Achievements\UserFilled50Requests;
-use App\Achievements\UserFilled75Requests;
 use App\Models\TorrentRequest;
-use App\Notifications\NewRequestFillApprove;
 use App\Repositories\ChatRepository;
+use App\Services\RequestFillApproval;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 /**
  * @see \Tests\Todo\Feature\Http\Controllers\RequestControllerTest
@@ -45,36 +52,9 @@ class ApprovedRequestFillController extends Controller
     {
         abort_unless(($request->user()->id === $torrentRequest->user_id || $request->user()->group->is_modo) && $torrentRequest->approved_when === null, 403);
 
-        $approver = $request->user();
-        $filler = $torrentRequest->filler()->sole();
-
-        $torrentRequest->update([
-            'approved_by'   => $approver->id,
-            'approved_when' => Carbon::now(),
-        ]);
-
-        $filler->increment('seedbonus', (float) $torrentRequest->bounty);
-
-        // Achievements
-        if (!$torrentRequest->filled_anon) {
-            $filler->addProgress(new UserFilled25Requests(), 1);
-            $filler->addProgress(new UserFilled50Requests(), 1);
-            $filler->addProgress(new UserFilled75Requests(), 1);
-            $filler->addProgress(new UserFilled100Requests(), 1);
-        }
-
-        // Auto Shout
-        if ($torrentRequest->filled_anon) {
-            $this->chatRepository->systemMessage(
-                \sprintf('An anonymous user has filled request, [url=%s]%s[/url]', href_request($torrentRequest), $torrentRequest->name)
-            );
-        } else {
-            $this->chatRepository->systemMessage(
-                \sprintf('[url=%s]%s[/url] has filled request, [url=%s]%s[/url]', href_profile($filler), $filler->username, href_request($torrentRequest), $torrentRequest->name)
-            );
-        }
-
-        $filler->notify(new NewRequestFillApprove($torrentRequest));
+        // NOBS: la aprobación vive en RequestFillApproval, que también usa la
+        // aprobación automática de los 7 días (requests:rellenos-pendientes).
+        $filler = RequestFillApproval::approve($torrentRequest, $request->user());
 
         return to_route('requests.show', ['torrentRequest' => $torrentRequest])
             ->with('success', \sprintf(trans('request.approved-user'), $torrentRequest->name, $torrentRequest->filled_anon ? 'Anonymous' : $filler->username));
