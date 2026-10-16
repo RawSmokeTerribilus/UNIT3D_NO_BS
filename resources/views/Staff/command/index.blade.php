@@ -282,7 +282,7 @@
                     'label'  => 'Fichas de autor pendientes',
                     'icon'   => 'fa-user-pen',
                     'level'  => 'safe',
-                    'tip'    => 'Cachea foto, biografía y fechas de los autores desde OpenLibrary, para que las fichas de libro tengan la columna de autoría con imagen. Va despacio a propósito; también corre solo cada hora.',
+                    'tip'    => 'Libros: cachea foto, biografía y fechas de los autores desde OpenLibrary (también corre solo cada hora). Pelis y series: vuelve a encolar las que tienen torrent y se quedaron sin reparto o sin ficha, y pide a TMDB las personas que falten. Si no falta nada, no hace nada: se puede pulsar cuando quieras.',
                 ])
                 @include('Staff.command._btn', [
                     'action' => '/dashboard/commands/games-sync',

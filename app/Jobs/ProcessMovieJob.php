@@ -146,7 +146,20 @@ class ProcessMovieJob implements ShouldQueue
         $people = [];
         $cache = [];
 
-        foreach (array_unique(array_column($credits, 'tmdb_person_id')) as $personId) {
+        // NOBS: una persona que ya está en tmdb_people no se vuelve a pedir. Antes
+        // sólo la frenaba una caché de 8 h y cada refresco de una serie larga
+        // pedía a TMDB, una a una, miles de personas que ya teníamos (Anatomía de
+        // Grey: 3.332): no cabía en el timeout y la serie se quedaba sin reparto.
+        // Refrescarlas a mano: tmdb:personas-pendientes (botón «Fichas de autor
+        // pendientes» del panel de comandos).
+        $personIds = array_unique(array_column($credits, 'tmdb_person_id'));
+        $known = TmdbPerson::query()->whereIn('id', $personIds)->pluck('id')->flip();
+
+        foreach ($personIds as $personId) {
+            if (isset($known[$personId])) {
+                continue;
+            }
+
             // TMDB caches their api responses for 8 hours, so don't abuse them
 
             $cacheKey = "tmdb-person-scraper:{$personId}";
