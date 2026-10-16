@@ -132,7 +132,11 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoRecycleClaimedTorrentRequests::class)->daily();
         $schedule->command(DeleteUnparticipatedConversations::class)->daily();
         $schedule->command(AutoCorrectHistory::class)->daily();
-        $schedule->command(EmailBlacklistUpdate::class)->weekends();
+        // Una vez al día a las 15:00 de Madrid. `->weekends()` a secas era CADA
+        // MINUTO sábado y domingo (2.880 descargas de la lista por finde), y la
+        // caché dura un mes. El cron de root la relanza a las 03:00 como cinturón
+        // de seguridad (se puso cuando el scheduler de PHP estaba roto).
+        $schedule->command(EmailBlacklistUpdate::class)->timezone('Europe/Madrid')->dailyAt('15:00');
         $schedule->command(SyncDisposableEmailDomains::class)->hourly();
         $schedule->command(DispatchMetaRefresh::class, ['--limit' => 5, '--stale-hours' => 720, '--dispatch-ttl-minutes' => 10])->everyMinute()->withoutOverlapping();
         $schedule->command(AutoResetUserFlushes::class)->daily();
