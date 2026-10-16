@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\Redis;
  *          rellena no es quien pidió); si no, se queda para el staff.
  *
  * Cada pasada del día 7 abre UN ticket de System al staff con lo aprobado
- * (deshacer: «Revoke approval» en la ficha) y lo que hay que mirar a mano.
+ * (deshacer: «Deshacer aprobación» en la ficha) y lo que hay que mirar a mano.
  * Lo ya hecho se apunta en Redis (conexión de colas, que no vacía
  * cache:clear) por petición y fecha de relleno: un rechazo y un relleno nuevo
  * empiezan de cero.
@@ -198,7 +198,7 @@ class RellenosPendientes extends Command
 
         if ($aprobados !== []) {
             $body .= "\n\n[b]Aprobados solos[/b] (pasan las comprobaciones: torrent vivo y aprobado, misma categoría, mismo TMDB o IGDB, no se la rellena quien la pidió). "
-                ."Si alguno está mal: botón «Revoke approval» en su ficha, que le quita el bounty al que rellenó.\n";
+                ."Si alguno está mal: botón «Deshacer aprobación» en su ficha, que le quita el bounty al que rellenó.\n";
 
             foreach ($aprobados as [$tr]) {
                 $body .= "\n• ".$linea($tr);
