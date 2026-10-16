@@ -66,7 +66,11 @@ return [
             'driver'       => 'redis',
             'connection'   => 'job',
             'queue'        => env('REDIS_QUEUE', 'default'),
-            'retry_after'  => 120,
+            // NOBS: mayor que el $timeout más largo (ProcessTvJob, 900 s). Si no,
+            // el job caduca como reservado y se reparte otra vez mientras sigue
+            // corriendo. Contrapartida: un job de un worker muerto tarda hasta
+            // 16 min en volver a la cola.
+            'retry_after'  => 960,
             'block_for'    => null,
             'after_commit' => false,
         ],

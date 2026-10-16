@@ -524,11 +524,25 @@ class CommandController extends Controller
     }
 
     /**
-     * Cachea las fichas de autor (foto, biografia, fechas) que faltan.
+     * Cachea las fichas de autor (foto, biografia, fechas) que faltan y
+     * recupera las fichas de TMDB en uso que se quedaron sin reparto o a las
+     * que les falta alguna persona (tmdb:recuperar-fichas). Las dos son
+     * idempotentes: si no falta nada, no hacen nada.
      */
     public function booksSyncAuthors(): \Illuminate\Http\RedirectResponse
     {
-        return $this->executeArtisanSafely('books:sync-authors', ['--limit' => 10]);
+        $lines = [];
+
+        foreach (['books:sync-authors' => ['--limit' => 10], 'tmdb:recuperar-fichas' => ['--limit' => 20]] as $command => $parameters) {
+            try {
+                Artisan::call($command, $parameters);
+                $lines[] = trim(Artisan::output());
+            } catch (\Throwable $e) {
+                $lines[] = "❌ {$command}: {$e->getMessage()}";
+            }
+        }
+
+        return $this->report($lines);
     }
 
     /**
