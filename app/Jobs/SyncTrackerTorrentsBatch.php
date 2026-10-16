@@ -23,7 +23,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -69,8 +68,7 @@ class SyncTrackerTorrentsBatch implements ShouldQueue
         ));
 
         if ($this->batch === $this->batches) {
-            Artisan::call('tracker:counters');
-            Log::info("tracker:sync-torrents terminado. Comprobador de contadores:\n".trim(Artisan::output()));
+            TrackerCountersCheck::dispatch('tracker:sync-torrents');
         }
     }
 
