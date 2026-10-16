@@ -206,19 +206,11 @@ class CommandController extends Controller
     }
 
     /**
-     * Clear Site Config Cache.
-     *
-     * No config:clear: it would leave the site without config.php until the
-     * rebuild, and without it the site cannot read APP_KEY. The atomic swap
-     * replaces it in one step.
-     */
-    public function clearConfig(): \Illuminate\Http\RedirectResponse
-    {
-        return $this->report($this->rebuildConfig());
-    }
-
-    /**
      * Apply .env changes (tokens, keys, hosts): fresh config + worker restart.
+     *
+     * Also replaces «Limpiar config», which did the same thing. No
+     * config:clear: it would leave the site without config.php until the
+     * rebuild, and without it the site cannot read APP_KEY.
      *
      * Replaces «Vaciar cola Redis» (queue:flush), whose tip said it was
      * critical after token changes. queue:flush only deletes failed_jobs:

@@ -994,7 +994,6 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                 Route::post('/clear-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearCache']);
                 Route::post('/clear-view-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearView']);
                 Route::post('/clear-route-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearRoute']);
-                Route::post('/clear-config-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearConfig']);
                 Route::post('/clear-all-cache', [App\Http\Controllers\Staff\CommandController::class, 'clearAllCache']);
                 Route::post('/set-all-cache', [App\Http\Controllers\Staff\CommandController::class, 'setAllCache']);
                 Route::post('/apply-env', [App\Http\Controllers\Staff\CommandController::class, 'applyEnv']);
