@@ -1,3 +1,14 @@
+{{--
+    MODIFICADO PARA NOBS
+
+    Copyright (C) 2026 RawSmoke <https://nobs.rawsmoke.net>
+
+    Este fichero contiene cambios sobre el original de UNIT3D Community Edition.
+    Se distribuye bajo la misma licencia, GNU AGPL v3.0.
+
+    @project    NOBS — https://nobs.rawsmoke.net
+    @license    https://www.gnu.org/licenses/agpl-3.0.en.html  GNU AGPL v3.0
+--}}
 <section class="meta">
     @if ($meta?->backdrop)
         <img class="meta__backdrop" src="{{ tmdb_image('back_big', $meta->backdrop) }}" alt="" />
@@ -251,7 +262,11 @@
             </li>
         @endforeach
     </ul>
-    <p class="meta__description">{{ $meta?->overview }}</p>
+    <x-meta.translated-description
+        :texto="$meta?->overview"
+        :original="$meta?->overview_original"
+        :idioma="$meta?->overview_source_language"
+    />
     <div class="meta__chips">
         <section class="meta__chip-container">
             <h2 class="meta__heading">Cast</h2>

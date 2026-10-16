@@ -20,6 +20,7 @@ use App\Jobs\ProcessMovieJob;
 use App\Jobs\ProcessTvJob;
 use App\Models\TmdbPerson;
 use App\Services\Tmdb\Client\Person;
+use App\Services\Translation\LibreTranslateClient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -31,11 +32,13 @@ use Illuminate\Support\Facades\DB;
  * Desde el 16-10 los jobs ya no vuelven a pedir a TMDB las personas que
  * tenemos guardadas, así que esto es la vía de recuperación:
  *
- *   - Películas y series EN USO (con torrent) sin ficha o sin reparto: se
- *     encolan otra vez en meta-refresh con force. Se saltan las que ya están
- *     encoladas (marca de 20 min) y las que el último job terminó BIEN sin
- *     reparto (TMDB no tiene: documentales y similares; la marca de éxito del
- *     job dura 8 h). Una que falló se puede relanzar al momento.
+ *   - Películas y series EN USO (con torrent) sin ficha, sin reparto o sin
+ *     sinopsis en castellano (desde el 16-10 el job la saca de es-MX o la
+ *     traduce del inglés): se encolan otra vez en meta-refresh con force. Se
+ *     saltan las que ya están encoladas (marca de 20 min) y las que el último
+ *     job terminó BIEN y siguen igual (TMDB no tiene reparto ni sinopsis
+ *     que sirva; la marca de éxito del job dura 8 h). Una que falló se puede
+ *     relanzar al momento.
  *   - Personas citadas en créditos y que no tienen ficha: se piden ya.
  *   - --persona=ID: vuelve a pedir esa persona aunque la tengamos (foto
  *     nueva, defunción...).
@@ -46,7 +49,7 @@ class TmdbRecuperarFichas extends Command
                             {--limit=20 : Cuántos títulos encolar como máximo, de cada tipo}
                             {--persona=* : Id de TMDB de una persona a refrescar aunque ya exista}';
 
-    protected $description = 'Relanza las fichas de TMDB en uso que se quedaron sin reparto y pide las personas que faltan';
+    protected $description = 'Relanza las fichas de TMDB en uso que se quedaron sin reparto o sin sinopsis en castellano y pide las personas que faltan';
 
     private const int MARCA_ENCOLADA = 20 * 60;
 
@@ -69,8 +72,8 @@ class TmdbRecuperarFichas extends Command
 
         if ($series + $pelis + $personas === 0) {
             $this->info($this->saltadas === 0
-                ? '✓ Nada que recuperar: las fichas de TMDB en uso tienen reparto y no falta ninguna persona.'
-                : '✓ Nada nuevo que encolar: lo que falta ya está en la cola o TMDB no tiene reparto para ello.');
+                ? '✓ Nada que recuperar: las fichas de TMDB en uso tienen reparto y sinopsis, y no falta ninguna persona.'
+                : '✓ Nada nuevo que encolar: lo que falta ya está en la cola o TMDB no tiene reparto ni sinopsis que sirva.');
 
             return self::SUCCESS;
         }
@@ -86,10 +89,11 @@ class TmdbRecuperarFichas extends Command
     private function relanzar(string $tipo, string $columna, string $tabla, string $marcaExito, int $limit): int
     {
         $enUso = DB::table('torrents')->whereNull('deleted_at')->where($columna, '>', 0)->distinct()->pluck($columna);
-        $conFicha = DB::table($tabla)->whereIn('id', $enUso)->pluck('id')->flip();
+        $conFicha = DB::table($tabla)->whereIn('id', $enUso)->pluck('overview', 'id');
         $conReparto = DB::table('tmdb_credits')->whereIn($columna, $enUso)->distinct()->pluck($columna)->flip();
+        $enCastellano = fn ($id): bool => trim((string) $conFicha[$id]) !== '' && LibreTranslateClient::pareceCastellano((string) $conFicha[$id]);
 
-        $faltan = $enUso->reject(fn ($id) => isset($conFicha[$id]) && isset($conReparto[$id]));
+        $faltan = $enUso->reject(fn ($id) => $conFicha->has($id) && isset($conReparto[$id]) && $enCastellano($id));
         $saltadas = 0;
         $encoladas = 0;
 
@@ -98,9 +102,9 @@ class TmdbRecuperarFichas extends Command
                 break;
             }
 
-            $sinReparto = isset($conFicha[$id]);
+            $tieneFicha = $conFicha->has($id);
 
-            if (cache()->has("tmdb-recuperar:{$tipo}:{$id}") || ($sinReparto && cache()->has("{$marcaExito}:{$id}"))) {
+            if (cache()->has("tmdb-recuperar:{$tipo}:{$id}") || ($tieneFicha && cache()->has("{$marcaExito}:{$id}"))) {
                 $saltadas++;
 
                 continue;
@@ -111,14 +115,19 @@ class TmdbRecuperarFichas extends Command
             cache()->put("tmdb-recuperar:{$tipo}:{$id}", now(), self::MARCA_ENCOLADA);
 
             $nombre = DB::table($tabla)->where('id', $id)->value($tipo === 'tv' ? 'name' : 'title') ?? "#{$id}";
-            $this->line(($tipo === 'tv' ? '📺 ' : '🎬 ').$nombre.($sinReparto ? ' (sin reparto)' : ' (sin ficha)'));
+            $motivo = match (true) {
+                !$tieneFicha               => 'sin ficha',
+                !isset($conReparto[$id])   => 'sin reparto',
+                default                    => 'sin sinopsis en castellano',
+            };
+            $this->line(($tipo === 'tv' ? '📺 ' : '🎬 ')."{$nombre} ({$motivo})");
             $encoladas++;
         }
 
         $this->saltadas += $saltadas;
 
         if ($saltadas > 0) {
-            $this->line(($tipo === 'tv' ? 'Series' : 'Películas')." saltadas: {$saltadas} (ya encoladas, o TMDB no tiene reparto).");
+            $this->line(($tipo === 'tv' ? 'Series' : 'Películas')." saltadas: {$saltadas} (ya encoladas, o TMDB no tiene reparto ni sinopsis que sirva).");
         }
 
         return $encoladas;

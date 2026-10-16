@@ -282,7 +282,7 @@
                     'label'  => 'Fichas de autor pendientes',
                     'icon'   => 'fa-user-pen',
                     'level'  => 'safe',
-                    'tip'    => 'Libros: cachea foto, biografía y fechas de los autores desde OpenLibrary (también corre solo cada hora). Pelis y series: vuelve a encolar las que tienen torrent y se quedaron sin reparto o sin ficha, y pide a TMDB las personas que falten. Si no falta nada, no hace nada: se puede pulsar cuando quieras.',
+                    'tip'    => 'Libros: cachea foto, biografía y fechas de los autores desde OpenLibrary (también corre solo cada hora). Pelis y series: vuelve a encolar las que tienen torrent y se quedaron sin ficha, sin reparto o sin sinopsis en castellano (la sacan de es-MX o la traducen del inglés), y pide a TMDB las personas que falten. Si no falta nada, no hace nada: se puede pulsar cuando quieras.',
                 ])
                 @include('Staff.command._btn', [
                     'action' => '/dashboard/commands/games-sync',
