@@ -36,6 +36,7 @@ use App\Models\IgdbCompany;
 use App\Models\IgdbGame;
 use App\Models\IgdbGenre;
 use App\Models\IgdbPlatform;
+use App\Models\Torrent;
 use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -204,6 +205,10 @@ class ProcessIgdbGameJob implements ShouldQueue
 
         cache()->put("igdb-game-scraper:{$this->id}", now(), 8 * 3600);
         cache()->forget('meta-error:game:'.$this->id);
+
+        // NOBS: el torrent se indexa al guardarse, antes de que exista la
+        // ficha; se reindexa ahora para que el buscador tenga portada y géneros.
+        Torrent::query()->where('igdb', '=', $this->id)->searchable();
     }
 
     /**

@@ -36,6 +36,8 @@ use App\Helpers\TorrentTools;
 use App\Http\Resources\TorrentResource;
 use App\Services\Metadata\TorrentMetaProjection;
 use App\Http\Resources\TorrentsResource;
+use App\Models\Audiobook;
+use App\Models\Book;
 use App\Models\Category;
 use App\Models\FeaturedTorrent;
 use App\Models\IgdbGame;
@@ -642,6 +644,19 @@ class TorrentController extends BaseController
 
         if ($torrent->category->game_meta && $torrent->igdb) {
             $torrent->setAttribute('meta', IgdbGame::with(['genres'])->find($torrent->igdb));
+        }
+
+        // NOBS: libros y audiolibros también, con el mismo criterio que la
+        // página del torrent: el audiolibro sin ficha propia (lectura libre)
+        // cae a la del libro por ISBN. Sin esto, `meta.poster` salía vacío en
+        // todos.
+        if ($torrent->category->book_meta && $torrent->isbn13) {
+            $torrent->setAttribute('meta', Book::with(['genres'])->find($torrent->isbn13));
+        }
+
+        if ($torrent->category->audiobook_meta) {
+            $torrent->setAttribute('meta', ($torrent->asin ? Audiobook::with(['bookGenres'])->find($torrent->asin) : null)
+                ?? ($torrent->isbn13 ? Book::with(['genres'])->find($torrent->isbn13) : null));
         }
 
         TorrentResource::withoutWrapping();
