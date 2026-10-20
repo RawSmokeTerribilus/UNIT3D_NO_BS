@@ -98,7 +98,10 @@ class Kernel extends ConsoleKernel
         $schedule->command(AutoUpdateUserLastActions::class)->everyFiveSeconds();
         $schedule->command(AutoDeleteStoppedPeers::class)->everyTwoMinutes();
         $schedule->command(AutoUnbookmarkCompletedTorrents::class)->everyFifteenMinutes();
-        $schedule->command(AutoGroup::class)->daily();
+        // NOBS: cada hora, no a diario. Quien repone ratio por la manana se
+        // quedaba en Sanguijuela hasta la madrugada; la pasada tarda ~2 s y solo
+        // escribe a quien cambia de grupo.
+        $schedule->command(AutoGroup::class)->hourly();
         // Resumen operativo al grupo de staff. El diario se manda SIEMPRE, aunque
         // este todo a cero: sirve de latido, y si un dia no llega es que el cron
         // se ha muerto. El --watch solo habla cuando una metrica CRUZA su umbral
