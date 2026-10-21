@@ -175,10 +175,11 @@ Escenas.registrar({
         R(ctx, lx, ly, dw, 37, '#4a7a8a'); R(ctx, lx + dw - 1, ly, 1, 37, '#2a4a5a');
       }
 
+      // placa de latón con su número: crece con las cifras y se centra en la puerta
       if (NUM && open === 0) {
-        const ns = String(NUM).slice(-4);
-        R(ctx, lx + 1, ly + 25, 13, 7, '#3a6a7a');
-        txt(ctx, ns, lx + 8 - (tw(ns) >> 1), ly + 26, '#ffd23e');
+        const ns = String(NUM), w = tw(ns) + 2, px = lx + 7 - (w >> 1);
+        R(ctx, px, ly + 25, w, 7, '#c9a24a'); R(ctx, px, ly + 25, w, 1, '#fff3a0');
+        txt(ctx, ns, px + 1, ly + 26, '#3a2410');
       }
 
       // mostrador con la azafata detrás
