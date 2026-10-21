@@ -89,7 +89,7 @@ footer p { margin: 0; max-width: 75ch; }
 
   <section class="film" aria-labelledby="film-title">
     <h2 id="film-title">Película completa</h2>
-    <div class="screen"><canvas id="film" role="img" aria-label="Las escenas de NOBS encadenadas: la puerta, el bufé, el bar, la sala de trofeos, la pista, el SCUMM Bar y la oficina de la rata."></canvas></div>
+    <div class="screen"><canvas id="film" role="img" aria-label="Las escenas de NOBS encadenadas: la puerta, la recepción, el bufé, el bar, la sala de trofeos, la pista, el SCUMM Bar y la oficina de la rata."></canvas></div>
     <div class="bar" aria-hidden="true"><span id="film-bar"></span></div>
     <div class="controls">
       <button id="film-play" type="button">Pausa</button>
@@ -112,6 +112,7 @@ footer p { margin: 0; max-width: 75ch; }
 
 <script src="js/escenas/motor.js"></script>
 <script src="js/escenas/puerta.js"></script>
+<script src="js/escenas/recepcion.js"></script>
 <script src="js/escenas/bufe.js"></script>
 <script src="js/escenas/bar.js"></script>
 <script src="js/escenas/trofeos.js"></script>
@@ -120,7 +121,7 @@ footer p { margin: 0; max-width: 75ch; }
 <script src="js/escenas/oficina.js"></script>
 <script>
 (() => {
-  const ORDER = ['puerta', 'bufe', 'bar', 'trofeos', 'pista', 'scumm', 'oficina'];
+  const ORDER = ['puerta', 'recepcion', 'bufe', 'bar', 'trofeos', 'pista', 'scumm', 'oficina'];
   const defs = Object.fromEntries(Escenas.lista().map(d => [d.id, d]));
   const order = ORDER.filter(id => defs[id]);
 
