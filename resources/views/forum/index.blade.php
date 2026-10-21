@@ -21,7 +21,7 @@
 @section('page', 'page__forum--index')
 
 @section('main')
-    <x-escena id="bar" titulo="El bar" :datos="App\Services\EscenasDatos::bar($categories)" />
+    <x-escena id="bar" titulo="El bar" :datos="fn () => App\Services\EscenasDatos::bar($categories)" />
     @foreach ($categories as $category)
         <section class="panelV2">
             <h2 class="panel__heading">

@@ -363,6 +363,7 @@ final class User extends Authenticatable implements MustVerifyEmail
             'torrent_sort_field'                => 'bumped_at',
             'torrent_search_autofocus'          => false,
             'show_adult_content'                => true,
+            'show_escenas'                      => true,
         ]);
     }
 

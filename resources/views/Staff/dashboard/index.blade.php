@@ -17,7 +17,7 @@
 @section('page', 'page__staff-dashboard--index')
 
 @section('main')
-    <x-escena id="oficina" titulo="La oficina de la rata" :datos="App\Services\EscenasDatos::oficina()" />
+    <x-escena id="oficina" titulo="La oficina de la rata" :datos="fn () => App\Services\EscenasDatos::oficina()" />
     <div class="dashboard__menus">
         <section class="panelV2 panel--grid-item">
             <h2 class="panel__heading">

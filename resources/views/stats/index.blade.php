@@ -52,7 +52,7 @@
 @section('page', 'page__stats--index')
 
 @section('main')
-    <x-escena id="trofeos" titulo="La sala de trofeos" :datos="App\Services\EscenasDatos::trofeos()" />
+    <x-escena id="trofeos" titulo="La sala de trofeos" :datos="fn () => App\Services\EscenasDatos::trofeos()" />
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('stat.nerd-stats') }}</h2>
         <div class="panel__body">{{ __('stat.nerd-stats-desc') }}. {{ __('stat.updated') }}</div>

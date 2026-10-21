@@ -12,7 +12,7 @@
     <x-escena
         id="recepcion"
         titulo="La recepción"
-        :datos="App\Services\EscenasDatos::recepcion(isset($users) ? $users->count() : null, isset($articles) ? $articles->first()?->title : null)"
+        :datos="fn () => App\Services\EscenasDatos::recepcion(isset($users) ? $users->count() : null, isset($articles) ? $articles->first()?->title : null)"
     />
     @foreach ($blocks as $block)
         @switch($block)

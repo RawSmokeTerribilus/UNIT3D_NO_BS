@@ -7,6 +7,7 @@
 
 @php
     $escenas = ['puerta', 'recepcion', 'bufe', 'bar', 'trofeos', 'pista', 'scumm', 'oficina'];
+    $apagadas = auth()->check() && auth()->user()->settings?->show_escenas === false;
     $version = function (string $fichero): int {
         $ruta = public_path('js/escenas/'.$fichero);
 
@@ -14,7 +15,10 @@
     };
 @endphp
 
-@if (in_array($id, $escenas, true))
+@if (in_array($id, $escenas, true) && ! $apagadas)
+    @php
+        $datos = value($datos);
+    @endphp
     @if ($panel)
         <section class="panelV2 nobs-escena">
             <header class="panel__header">

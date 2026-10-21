@@ -40,6 +40,6 @@
 @section('page', 'page__torrent--index')
 
 @section('main')
-    <x-escena id="bufe" titulo="El bufé" :datos="App\Services\EscenasDatos::bufe()" />
+    <x-escena id="bufe" titulo="El bufé" :datos="fn () => App\Services\EscenasDatos::bufe()" />
     @livewire('torrent-search')
 @endsection

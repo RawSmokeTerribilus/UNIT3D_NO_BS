@@ -79,6 +79,7 @@ use AllowDynamicProperties;
  * @property bool                            $show_poster
  * @property bool                            $unbookmark_torrents_on_completion
  * @property bool                            $show_adult_content
+ * @property bool                            $show_escenas
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -150,6 +151,7 @@ final class UserSetting extends Model
             'show_poster'                       => 'bool',
             'unbookmark_torrents_on_completion' => 'bool',
             'show_adult_content'                => 'bool',
+            'show_escenas'                      => 'bool',
             'fx_scanlines'                      => 'bool',
             'fx_glow'                           => 'bool',
             'fx_grid'                           => 'bool',
