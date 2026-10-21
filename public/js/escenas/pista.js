@@ -53,6 +53,12 @@ Escenas.registrar({
       { who: 'd2', t0: T1 + 2.4, t1: T1 + 3.6, s: '¡QUÉ ESTILO!' },
       { who: 'hero', t0: T3 + 1.5, t1: T3 + 2.9, s: '¡UNA MÁS!' }
     ];
+    // podios contra la pared con bailarinas, para llenar los huecos
+    const GOGO = [
+      { x: 24, top: 112, col: '#3ee8ff', ph: 0.15, P: { hair: '#ff3ea5', skin: '#eab28a', skinD: '#c4865f', shirt: '#3ee8ff', shirtD: '#2ab0c8', sleeveB: '#2ab0c8', sash: null, leg: '#1d1d26', legB: '#16161e', boot: '#ff3ea5', style: 'bun' } },
+      { x: 210, top: 108, col: '#ff3ea5', ph: 0.55, P: { hair: '#ffd23e', skin: '#d8a27c', skinD: '#b07a58', shirt: '#b18cff', shirtD: '#8a68d0', sleeveB: '#8a68d0', sash: null, leg: '#2a2536', legB: '#1e1a28', boot: '#ffd23e', style: 'bun' } },
+      { x: 386, top: 108, col: '#4dff8a', ph: 0.35, P: { hair: '#2a1a12', skin: '#8a5a3c', skinD: '#6b4329', shirt: '#4dff8a', shirtD: '#2a9a5a', sleeveB: '#2a9a5a', sash: null, leg: '#2a2e50', legB: '#1e2240', boot: '#4dff8a', style: 'bun' } }
+    ];
     function dance(t, ph) {
       const b = Math.floor((t + ph) / BEAT) % 4;
       return { mode: ['wave', 'hang', 'wave', 'down'][b], flip: b === 2, hop: b % 2 ? -1 : 0, st: (b * 2) % 8 };
@@ -146,6 +152,18 @@ Escenas.registrar({
         R(ctx, x, y, 13, 7, on ? COLS[(i + j + beat) % COLS.length] : '#1a1630');
         if (on) R(ctx, x, y, 13, 1, 'rgba(255,255,255,0.45)');
       }
+      // podios con bailarinas
+      GOGO.forEach((g, i) => {
+        R(ctx, g.x, g.top, 20, 148 - g.top, '#2c2650'); R(ctx, g.x + 16, g.top, 4, 148 - g.top, '#211c3e');
+        for (let y = g.top + 4; y < 148; y += 6) R(ctx, g.x + 2, y, 14, 1, '#3a3366');
+        ctx.globalAlpha = 0.18; R(ctx, g.x, g.top, 20, 148 - g.top, g.col); ctx.globalAlpha = 1;
+        R(ctx, g.x + 3, g.top + 2, 2, 148 - g.top - 2, 'rgba(255,255,255,0.18)');
+        const pulse = (beat + i) % 2 ? 1 : 0.6;
+        glowRects(ctx, g.col, 6, [[g.x - 1, g.top - 1, 22, 2], [g.x, 146, 20, 2]], pulse);
+        const p = dance(t, g.ph);
+        drawPerson(ctx, g.x + 5, g.top - 1 + p.hop, p.st, true, p.mode, g.P, { flip: p.flip });
+      });
+
       // focos de colores que barren desde la cercha
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
