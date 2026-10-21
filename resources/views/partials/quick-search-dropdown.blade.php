@@ -16,7 +16,7 @@
             type="text"
             name="quick_search"
             autocomplete="off"
-            placeholder="Search"
+            placeholder="{{ __('common.search') }}"
             x-model="searchText"
             x-on:input.debounce.100ms="performSearch"
             x-ref="quickSearch"
