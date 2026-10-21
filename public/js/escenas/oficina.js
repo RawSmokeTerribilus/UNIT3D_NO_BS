@@ -35,7 +35,7 @@ Escenas.registrar({
     }
     const T_TURN = 4.3, T_BACK = 14.2;
     const LINES = [
-      { who: 'rat', t0: 4.6, t1: 6.4, s: '¡BIENVENIDO, COLEGA!' },
+      { who: 'rat', t0: 4.6, t1: 6.4, s: M.protagonista(D, 80) ? '¡BIENVENIDO, ' + M.protagonista(D, 80) + '!' : '¡BIENVENIDO, COLEGA!' },
       { who: 'rat', t0: 6.6, t1: 8.2, s: 'TOMA UN GROG' },
       { who: 'hero', t0: 9.8, t1: 11.0, s: '¡GLUP!' },
       { who: 'hero', t0: 11.2, t1: 12.6, s: '¡ESTO DERRITE JARRAS!' },

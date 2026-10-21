@@ -54,7 +54,7 @@
     '8': ['###', '#.#', '###', '#.#', '###'], '9': ['###', '#.#', '###', '..#', '##.'],
     '!': ['#', '#', '#', '.', '#'], '¡': ['#', '.', '#', '#', '#'],
     '?': ['##.', '..#', '.#.', '...', '.#.'], '¿': ['.#.', '...', '.#.', '#..', '.##'],
-    '+': ['...', '.#.', '###', '.#.', '...'], '&': ['.#.', '#.#', '.#.', '#.#', '.##'], '-': ['...', '...', '###', '...', '...'],
+    '+': ['...', '.#.', '###', '.#.', '...'], '&': ['.#.', '#.#', '.#.', '#.#', '.##'], '_': ['...', '...', '...', '...', '###'], '-': ['...', '...', '###', '...', '...'],
     '.': ['.', '.', '.', '.', '#'], ',': ['.', '.', '.', '#', '#'], ':': ['.', '#', '.', '#', '.'],
     ' ': ['..', '..', '..', '..', '..']
   };
@@ -190,12 +190,19 @@
     R(ctx, cx, y + h + 2, 1, 1, ink);
     txt(ctx, [...full].slice(0, n).join(''), x + 3, y + 3, '#1a1030');
   }
+  // nombre del protagonista para los bocadillos: en mayúsculas y recortado a lo que cabe
+  function protagonista(D, max = 80) {
+    const p = D && D.protagonista;
+    let s = p && p.nombre ? String(p.nombre).toUpperCase() : '';
+    while (s && tw(s) > max) s = s.slice(0, -1);
+    return s;
+  }
   const miles = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 
   // ----- registro y reproducción -----
   const ESCENAS = {};
-  const M = { W, H, mk, rng, R, clamp, seg, SM, glyph, tw, txt, spriteText, glowImg, glowRects, flick, STR, leg, sitLeg, person, drawPerson, bubble, miles };
+  const M = { W, H, mk, rng, R, clamp, seg, SM, glyph, tw, txt, spriteText, glowImg, glowRects, flick, STR, leg, sitLeg, person, drawPerson, bubble, miles, protagonista };
   function registrar(def) { ESCENAS[def.id] = def; }
 
   // monta una escena en un <canvas>; devuelve un mando para reproducirla

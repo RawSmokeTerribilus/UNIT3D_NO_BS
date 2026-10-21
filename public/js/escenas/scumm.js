@@ -61,7 +61,7 @@ Escenas.registrar({
       { who: 'p1', t0: 17.7, t1: 19.3, s: 'SUPERA LAS TRES PRUEBAS' },
       { who: 'p2', t0: 21.0, t1: 22.4, s: '¡GROG, GROG, GROG!' },
       { who: 'b0', t0: 26.1, t1: 27.2, s: '¿NOMBRE?' },
-      { who: 'hero', t0: 27.3, t1: 28.6, s: 'GUYBRUSH THREEPWOOD' },
+      { who: 'hero', t0: 27.3, t1: 28.6, s: M.protagonista(D, 100) || 'GUYBRUSH THREEPWOOD' },
       { who: 'b1', t0: 28.7, t1: 29.9, s: 'ESTÁS EN LA LISTA' }
     ];
     // billetes que vuelan hasta el escenario y caen bailando
