@@ -25,6 +25,10 @@ Escenas.registrar({
     const NEWS = String(D.noticia || '').toUpperCase();
     const ONLINE = Math.max(0, Math.floor(Number(D.online) || 0));
 
+    // protagonista: su nombre en el saludo y su número de socio en la taquilla
+    const NOMBRE = M.protagonista(D, 70);
+    const NUM = Math.max(0, Math.floor(Number(D.protagonista && D.protagonista.numero) || 0));
+
     // ----- recorrido -----
     const T0 = 0.3, XD = 112, XL = 228, XB = 372, XE = WW + 20;
     const T1 = T0 + (XD + 14) / V;      // ante el mostrador
@@ -48,7 +52,7 @@ Escenas.registrar({
       return { x: XB + (t - T6) * V, walking: true };
     }
     const LINES = [
-      { who: 'host', t0: T1 + 0.1, t1: T1 + 1.7, s: '¡BIENVENIDO A NOBS!' },
+      { who: 'host', t0: T1 + 0.1, t1: T1 + 1.7, s: NOMBRE ? '¡BIENVENIDO, ' + NOMBRE + '!' : '¡BIENVENIDO A NOBS!' },
       { who: 'host', t0: T1 + 1.8, t1: 6.5, s: 'TU LLAVE, CIELO' },
       { who: 'hero', t0: TAKE + 0.1, t1: TAKE + 1.3, s: '¡MI BANDEJA!' },
       { who: 'hero', t0: T5 + 0.3, t1: T5 + 1.8, s: '¡CUÁNTA NOVEDAD!' }
@@ -169,6 +173,12 @@ Escenas.registrar({
         if (t < TAKE) tray(ctx, lx + 2, ly + 20);
         const dw = Math.max(2, Math.round(15 * (1 - open * 0.8)));
         R(ctx, lx, ly, dw, 37, '#4a7a8a'); R(ctx, lx + dw - 1, ly, 1, 37, '#2a4a5a');
+      }
+
+      if (NUM && open === 0) {
+        const ns = String(NUM).slice(-4);
+        R(ctx, lx + 1, ly + 25, 13, 7, '#3a6a7a');
+        txt(ctx, ns, lx + 8 - (tw(ns) >> 1), ly + 26, '#ffd23e');
       }
 
       // mostrador con la azafata detrás

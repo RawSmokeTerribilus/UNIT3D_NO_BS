@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ModerationStatus;
+use App\Models\Forum;
 use App\Models\Peer;
 use App\Models\Report;
 use App\Models\Thank;
@@ -258,6 +259,94 @@ final class EscenasDatos
                 'hitrun'       => (bool) config('hitrun.enabled'),
             ],
         ];
+    }
+
+    /**
+     * La película del socio para su perfil: las escenas en orden con sus datos.
+     *
+     * Solo usa lo que el propio perfil ya enseña a quien mira: cada cifra
+     * personal pasa por el mismo `isAllowed()` que su panel en el perfil, y sin
+     * permiso la escena se queda con los datos generales. La oficina solo entra
+     * si el protagonista y quien mira son del staff.
+     *
+     * @return array{orden: list<string>, datos: array<string, array<string, mixed>>}
+     */
+    public static function pelicula(User $user, User $viewer): array
+    {
+        $puede = fn (string $clave): bool => $viewer->isAllowed($user, 'profile', $clave);
+        $protagonista = ['nombre' => (string) $user->username, 'numero' => (int) $user->id];
+        $esStaff = fn (User $u): bool => (bool) ($u->group?->is_modo || $u->group?->is_admin || $u->group?->is_owner);
+
+        $datos = [
+            'puerta'    => ['protagonista' => $protagonista],
+            'recepcion' => self::recepcion() + ['protagonista' => $protagonista],
+            'bufe'      => self::bufe() + ['protagonista' => $protagonista],
+            'bar'       => [
+                'foros' => Forum::query()
+                    ->authorized(canReadTopic: true)
+                    ->orderByDesc('num_topic')
+                    ->limit(6)
+                    ->get(['name', 'num_topic'])
+                    ->map(fn (Forum $foro) => ['nombre' => (string) $foro->name, 'hilos' => (int) $foro->num_topic])
+                    ->all(),
+                'protagonista' => $protagonista,
+            ],
+            'trofeos' => self::trofeos(),
+            'pista'   => [
+                'sistemas' => array_map(fn (string $slug) => ['nombre' => $slug], \array_slice(array_keys((array) config('retroarch.systems', [])), 0, 4)),
+            ],
+            'scumm' => ['protagonista' => $protagonista],
+        ];
+
+        // Categorías de sus subidas no anónimas: el bufé se sirve de esas.
+        if ($puede('show_profile_torrent_count')) {
+            $nombres = Torrent::query()
+                ->join('categories', 'categories.id', '=', 'torrents.category_id')
+                ->where('torrents.user_id', '=', $user->id)
+                ->where('torrents.anon', '=', false)
+                ->groupBy('categories.name')
+                ->selectRaw('categories.name as nombre, count(*) as n')
+                ->orderByDesc('n')
+                ->pluck('nombre')
+                ->all();
+            $datos['bufe']['platos'] = array_values(array_filter(array_map(fn ($n) => self::CATEGORIAS[$n] ?? null, $nombres)));
+        }
+
+        // Trofeos: sus cifras en las vitrinas y en el marcador, cada una con su permiso.
+        $ranking = [];
+
+        if ($puede('show_profile_torrent_count')) {
+            $ranking[] = ['titulo' => 'Subidas', 'nombre' => $protagonista['nombre'], 'n' => Torrent::query()->where('user_id', '=', $user->id)->where('anon', '=', false)->count()];
+            $ranking[] = ['titulo' => 'Gracias', 'nombre' => $protagonista['nombre'], 'n' => Thank::query()->join('torrents', 'torrents.id', '=', 'thanks.torrent_id')->where('torrents.user_id', '=', $user->id)->where('torrents.anon', '=', false)->count()];
+        }
+
+        if ($puede('show_profile_torrent_seed')) {
+            $ranking[] = ['titulo' => 'En semilla', 'nombre' => $protagonista['nombre'], 'n' => Peer::query()->where('user_id', '=', $user->id)->where('seeder', '=', 1)->where('active', '=', 1)->distinct()->count('torrent_id')];
+        }
+
+        if ($ranking !== []) {
+            $datos['trofeos']['ranking'] = \array_slice($ranking, 0, 3);
+        }
+
+        if ($puede('show_profile_torrent_ratio')) {
+            $subido = (float) $user->uploaded;
+            $bajado = (float) $user->downloaded;
+            $tb = 1024 ** 4;
+            $unidad = max($subido, $bajado) >= $tb ? 'TB' : 'GB';
+            $div = $unidad === 'TB' ? $tb : 1024 ** 3;
+            $datos['trofeos']['totales'] = ['subido' => round($subido / $div, 1), 'bajado' => round($bajado / $div, 1), 'unidad' => $unidad];
+        }
+
+        $datos['trofeos']['protagonista'] = $protagonista;
+
+        $orden = ['puerta', 'recepcion', 'bufe', 'bar', 'trofeos', 'pista', 'scumm'];
+
+        if ($esStaff($user) && $esStaff($viewer)) {
+            $datos['oficina'] = self::oficina() + ['protagonista' => $protagonista];
+            $orden[] = 'oficina';
+        }
+
+        return ['orden' => $orden, 'datos' => $datos];
     }
 
     /**

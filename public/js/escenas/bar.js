@@ -68,13 +68,14 @@ Escenas.registrar({
     }
 
     // conversación: quién, cuándo, qué
+    const NOMBRE = M.protagonista(D, 70);
     const LINES = [
       { who: 'pa', t0: 0.4, t1: 1.9, s: '¡MÁS GROG!' },
       { who: 'p1', t0: 2.0, t1: 3.4, s: '¿HAY SEMILLA?' },
       { who: 'p2', t0: 3.6, t1: 4.8, s: '+1' },
       { who: 'mod', t0: 5.2, t1: 6.8, s: '¡SIN SPOILERS!' },
       { who: 'hero', t0: 9.0, t1: 10.6, s: 'HOLA A TODOS' },
-      { who: 'p4', t0: 10.8, t1: 12.2, s: '¡BIENVENIDO!' },
+      { who: 'p4', t0: 10.8, t1: 12.2, s: NOMBRE ? '¡BIENVENIDO, ' + NOMBRE + '!' : '¡BIENVENIDO!' },
       { who: 'p1', t0: 12.4, t1: 13.6, s: '+1' },
       { who: 'mod', t0: 14.0, t1: 15.5, s: 'INVITA LA CASA' }
     ];

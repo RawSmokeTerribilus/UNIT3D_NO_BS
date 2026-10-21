@@ -26,7 +26,9 @@ Escenas.registrar({
       { titulo: 'Más subidas', nombre: 'LeChuck', n: 1234 }
     ]).slice(0, 3).map(r => ({ titulo: fit(r.titulo, 52), nombre: fit(r.nombre, 52), n: Math.max(0, Math.floor(Number(r.n) || 0)) }));
     const TOT = D.totales || {};
-    const SUB = Math.max(0, Number(TOT.subido_tb) || 0), BAJ = Math.max(0, Number(TOT.bajado_tb) || 0);
+    const SUB = Math.max(0, Number(TOT.subido ?? TOT.subido_tb) || 0), BAJ = Math.max(0, Number(TOT.bajado ?? TOT.bajado_tb) || 0);
+    const UNI = ' ' + String(TOT.unidad || 'TB').toUpperCase().slice(0, 3);
+    const NOMBRE = M.protagonista(D, 56);
     const dec = (v, d) => { const [a, b] = v.toFixed(d).split('.'); return miles(Number(a)) + (b ? ',' + b : ''); };
 
     // ----- recorrido -----
@@ -161,7 +163,7 @@ Escenas.registrar({
       // marcador con cifras que ruedan al llegar
       glowImg(ctx, MARCADOR, 395 - (MARCADOR.width >> 1), 32, '#ffb347', 3);
       const k = (x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2)(seg(t, T1 - 1.2, T1 + 0.8));
-      const rows = [['SUBIDO', dec(SUB * k, 1) + ' TB'], ['BAJADO', dec(BAJ * k, 1) + ' TB'], ['RATIO', BAJ > 0 ? dec(SUB / BAJ * k, 2) : '-']];
+      const rows = [['SUBIDO', dec(SUB * k, 1) + UNI], ['BAJADO', dec(BAJ * k, 1) + UNI], ['RATIO', BAJ > 0 ? dec(SUB / BAJ * k, 2) : '-']];
       rows.forEach(([lab, v], i) => {
         const y = 44 + i * 16;
         txt(ctx, lab, 326, y + 3, '#7a5a20');
@@ -182,7 +184,7 @@ Escenas.registrar({
       // placa del primer puesto
       const top = !!hs.top;
       R(ctx, 490, 84, 60, 10, '#c9a24a'); R(ctx, 490, 84, 60, 1, '#fff3a0');
-      const plaque = top ? 'GUYBRUSH' : 'TU NOMBRE AQUÍ';
+      const plaque = top ? (NOMBRE || 'GUYBRUSH') : 'TU NOMBRE AQUÍ';
       txt(ctx, plaque, 520 - (tw(plaque) >> 1), 87, top ? '#7a1a33' : '#5a3a10');
       if (top && Math.floor(t * 8) % 2 === 0) {
         ctx.fillStyle = '#ffffff';

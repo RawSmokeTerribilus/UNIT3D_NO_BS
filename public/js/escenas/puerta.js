@@ -37,26 +37,9 @@ Escenas.registrar({
     const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 
     // ---------- fuente de píxel 3x5 ----------
-    const SM = {
-      'A': ['.#.', '#.#', '###', '#.#', '#.#'],
-      'B': ['##.', '#.#', '##.', '#.#', '##.'],
-      'C': ['.##', '#..', '#..', '#..', '.##'],
-      'D': ['##.', '#.#', '#.#', '#.#', '##.'],
-      'E': ['###', '#..', '##.', '#..', '###'],
-      'I': ['###', '.#.', '.#.', '.#.', '###'],
-      'K': ['#.#', '#.#', '##.', '#.#', '#.#'],
-      'L': ['#..', '#..', '#..', '#..', '###'],
-      'N': ['#..#', '##.#', '#.##', '#..#', '#..#'],
-      'O': ['###', '#.#', '#.#', '#.#', '###'],
-      'P': ['##.', '#.#', '##.', '#..', '#..'],
-      'R': ['##.', '#.#', '##.', '#.#', '#.#'],
-      'S': ['.##', '#..', '.#.', '..#', '##.'],
-      'T': ['###', '.#.', '.#.', '.#.', '.#.'],
-      'V': ['#.#', '#.#', '#.#', '#.#', '.#.'],
-      '?': ['##.', '..#', '.#.', '...', '.#.'],
-      '¿': ['.#.', '...', '.#.', '#..', '.##'],
-      ' ': ['..', '..', '..', '..', '..']
-    };
+    const SM = M.SM;
+    const NOMBRE = M.protagonista(D, 90);
+    const ADELANTE = NOMBRE ? 'ADELANTE, ' + NOMBRE : 'ADELANTE';
     const glyph = ch => SM[ch] || SM[' '];
     function tw(s) {
       let w = 0;
@@ -246,7 +229,7 @@ Escenas.registrar({
       return {
         hx, hy, walking, alpha, sil, show, arm, out, door,
         b1: t >= 5.2 && t < 7.4 ? Math.floor(seg(t, 5.2, 5.8) * 14) : -1,
-        b2: t >= 8.4 && t < 9.9 ? Math.floor(seg(t, 8.4, 8.8) * 8) : -1,
+        b2: t >= 8.4 && t < 9.9 ? Math.floor(seg(t, 8.4, 8.8) * [...ADELANTE].length) : -1,
         chk: t >= 8.0 && t < 10.6 ? { pop: seg(t, 8.0, 8.25), fade: 1 - seg(t, 10.1, 10.6) } : null,
         scan: t >= 6.7 && t < 7.9
       };
@@ -457,7 +440,7 @@ Escenas.registrar({
         glow(CHECK, Math.round(S.hx), HY - 34 + Math.round((1 - S.chk.pop) * 4), '#4dff8a', 5, S.chk.fade * Math.min(1, S.chk.pop * 2));
       }
       if (S.b1 >= 0) bubble(Math.round(bLx) + 5, uL - 30, '¿CREDENCIALES?', S.b1);
-      if (S.b2 >= 0) bubble(Math.round(bRx) + 5, uR - 30, 'ADELANTE', S.b2);
+      if (S.b2 >= 0) bubble(Math.round(bRx) + 5, uR - 30, ADELANTE, S.b2);
 
       // a pantalla: escena + reflejos en el asfalto + lluvia
       vctx.drawImage(buf, 0, 0);

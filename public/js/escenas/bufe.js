@@ -68,15 +68,19 @@ Escenas.registrar({
     };
 
     // ----- recorrido del protagonista -----
+    // se sirve de las categorías del protagonista (D.platos) o, sin datos, de tres fijas
+    const PICKS = (() => {
+      const want = Array.isArray(D.platos) ? D.platos : [];
+      const idx = [...new Set(want.map(k => CATS.findIndex(c => c.key === k)).filter(i => i >= 0))].slice(0, 3).sort((a, b) => a - b);
+      return idx.length ? idx : [0, 2, 4];
+    })();
     const SEGS = [], STOPS = [];
     let END = 0;
     (function buildPath() {
       let t = 0.3, x = -14;
       const go = x1 => { const d = (x1 - x) / V; SEGS.push({ t0: t, t1: t + d, x0: x, x1, walk: true }); t += d; x = x1; };
       const stop = i => { SEGS.push({ t0: t, t1: t + 1.6, x0: x, x1: x, walk: false }); STOPS.push({ i, tp: t + 0.3 }); t += 1.6; };
-      go(CX(0) - 5); stop(0);
-      go(CX(2) - 5); stop(2);
-      go(CX(4) - 5); stop(4);
+      PICKS.forEach(i => { go(CX(i) - 5); stop(i); });
       go(WW + 30);
       END = t;
     })();

@@ -172,6 +172,7 @@
                 </article>
             </div>
         </section>
+        <x-pelicula :user="$user" />
         @if (auth()->user()->isAllowed($user, 'profile', 'show_profile_achievement'))
             <section class="panelV2">
                 <h2 class="panel__heading">{{ __('user.recent-achievements') }}</h2>
