@@ -25,6 +25,9 @@
   <a href="https://github.com/rawsmoketerribilus/UNIT3D/actions">
     <img src="https://img.shields.io/badge/BOT_DEPLOY-ESTADO:_OPERATIVO-blue?style=for-the-badge&logo=github-actions&logoColor=white" alt="Bot Status">
   </a>
+  <a href="https://rawsmoketerribilus.github.io/UNIT3D_NO_BS/">
+    <img src="https://img.shields.io/badge/🎮_ESCENAS-PIXEL_ART-ff3ea5?style=for-the-badge" alt="Escenas pixel art">
+  </a>
 </p>
 
 ---

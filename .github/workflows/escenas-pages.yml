@@ -1,0 +1,46 @@
+# Publica la galería de escenas pixel art en GitHub Pages.
+# Solo el escaparate: el tracker sirve las mismas escenas desde public/js/escenas sin depender de GitHub.
+name: Escenas en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'escenas/**'
+      - 'public/js/escenas/**'
+      - '.github/workflows/escenas-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: escenas-pages
+  cancel-in-progress: true
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            escenas
+            public/js/escenas
+      - name: Montar el sitio
+        run: |
+          mkdir -p _site/js
+          cp escenas/index.html _site/index.html
+          cp -r public/js/escenas _site/js/escenas
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: despliegue
+        uses: actions/deploy-pages@v4
