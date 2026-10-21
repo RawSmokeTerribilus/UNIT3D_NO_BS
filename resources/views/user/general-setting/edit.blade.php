@@ -693,6 +693,19 @@
                                 {{ __('user.show-adult-content') }}
                             </label>
                         </p>
+                        <p class="form__group">
+                            <label class="form__label">
+                                <input type="hidden" name="show_escenas" value="0" />
+                                <input
+                                    class="form__checkbox"
+                                    type="checkbox"
+                                    name="show_escenas"
+                                    value="1"
+                                    @checked($user->settings->show_escenas ?? true)
+                                />
+                                Mostrar las escenas animadas de pixel art (inicio, torrents, foro, estadísticas, juegos y panel de staff)
+                            </label>
+                        </p>
                     </div>
                 </fieldset>
                 <p class="form__group">

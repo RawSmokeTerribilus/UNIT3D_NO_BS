@@ -9,6 +9,11 @@
         <img src="{{ asset('img/NOBS_landscape.png') }}?v=2" alt="Banner 1" style="max-width: 100%; border-radius: 8px; box-shadow: 0 0 10px #ff00ff;">
         
         </div>
+    <x-escena
+        id="recepcion"
+        titulo="La recepción"
+        :datos="fn () => App\Services\EscenasDatos::recepcion(isset($users) ? $users->count() : null, isset($articles) ? $articles->first()?->title : null)"
+    />
     @foreach ($blocks as $block)
         @switch($block)
             @case('news')

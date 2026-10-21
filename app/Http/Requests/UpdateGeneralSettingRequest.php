@@ -197,6 +197,10 @@ class UpdateGeneralSettingRequest extends FormRequest
                 'required',
                 'boolean',
             ],
+            'show_escenas' => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 }

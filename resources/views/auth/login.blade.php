@@ -21,6 +21,32 @@
         <link rel="shortcut icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
         <link rel="icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
         @vite(['resources/sass/pages/_auth.scss', 'resources/js/unit3d/auth-hint.js'])
+        <style>
+            /* La tarjeta era translúcida con opacity, que arrastra a todo lo de dentro: la
+               transparencia pasa al fondo y al contenido para que la escena se vea opaca. */
+            .auth-form {
+                opacity: 1;
+                background-image: linear-gradient(45deg, rgba(129, 119, 187, 0.75), rgba(117, 106, 180, 0.75));
+            }
+            .auth-form__form > :not(.auth-form__escena),
+            .auth-form__footer {
+                opacity: 0.75;
+            }
+            .auth-form__escena {
+                width: 320px;
+                max-width: 100%;
+                margin: 0 auto 12px;
+            }
+            .auth-form__mini-logo {
+                display: flex;
+                justify-content: center;
+                padding-top: 8px;
+            }
+            .auth-form__mini-logo img {
+                width: 120px;
+                height: auto;
+            }
+        </style>
     </head>
     <body>
         <!-- Do NOT change! For Jackett support -->
@@ -30,9 +56,9 @@
             <section class="auth-form">
                 <form class="auth-form__form" method="POST" action="{{ route('login') }}">
                     @csrf
-                    <a class="auth-form__branding" href="{{ route('home.index') }}">
-                        <img src="{{ url('/img/logo_main.png') }}" alt="{{ config('other.title') }}" class="auth-form__logo">
-                    </a>
+                    <div class="auth-form__escena">
+                        <x-escena id="puerta" titulo="La puerta de NOBS" :panel="false" />
+                    </div>
                     @if (Session::has('warning') || Session::has('success') || Session::has('info'))
                         <ul class="auth-form__important-infos">
                             @if (Session::has('warning'))
@@ -119,6 +145,9 @@
                             {{ __('auth.apply') }}
                         </a>
                     @endif
+                    <a class="auth-form__mini-logo" href="{{ route('home.index') }}">
+                        <img src="{{ url('/img/logo_main.png') }}" alt="{{ config('other.title') }}" />
+                    </a>
                     <a class="auth-form__footer-item" href="{{ route('password.request') }}">
                         {{ __('auth.lost-password') }}
                     </a>
