@@ -14,6 +14,8 @@
         <input
             class="quick-search__input"
             type="text"
+            name="quick_search"
+            autocomplete="off"
             placeholder="Search"
             x-model="searchText"
             x-on:input.debounce.100ms="performSearch"
