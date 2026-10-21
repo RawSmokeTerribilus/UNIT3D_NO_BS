@@ -28,6 +28,7 @@
 @section('page', 'page__gaming')
 
 @section('main')
+    <x-escena id="scumm" titulo="El SCUMM Bar" :datos="App\Services\EscenasDatos::scumm($juegos)" />
     <section class="panelV2">
         <h2 class="panel__heading">
             <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>

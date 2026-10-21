@@ -26,6 +26,7 @@
 @section('page', 'page__retroarch')
 
 @section('main')
+    <x-escena id="pista" titulo="La pista" :datos="App\Services\EscenasDatos::pista($systems)" />
     <section class="panelV2">
         <h2 class="panel__heading">
             <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>

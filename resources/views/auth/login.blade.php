@@ -28,6 +28,7 @@
         <!-- Do NOT change! For Jackett support -->
         <main>
             <section class="auth-form">
+                <x-escena id="puerta" titulo="La puerta de NOBS" :panel="false" />
                 <form class="auth-form__form" method="POST" action="{{ route('login') }}">
                     @csrf
                     <a class="auth-form__branding" href="{{ route('home.index') }}">
