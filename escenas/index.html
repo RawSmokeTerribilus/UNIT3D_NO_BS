@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NOBS Escenas</title>
+<meta name="description" content="Pixel art dibujado con código para las zonas del tracker NOBS: la puerta, el bufé, el bar y la oficina de la rata.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: neon marquee header, one big "película completa" stage, then a gallery of scene cards; single night look on purpose */
+:root {
+  --bg: #0b0912;
+  --panel: #14101f;
+  --fg: #e9e4f5;
+  --muted: #9a90b3;
+  --pink: #ff3ea5;
+  --cyan: #3ee8ff;
+  --amber: #ffb347;
+  --line: #2a2340;
+  --display: "Pixelify Sans", "Courier New", monospace;
+  --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap {
+  max-width: 1200px; margin: 0 auto; display: grid; gap: 32px;
+  padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px 24px; }
+.marquee { display: grid; gap: 8px; min-width: 0; }
+h1 {
+  font-family: var(--display); font-weight: 700; margin: 0; line-height: 1;
+  font-size: clamp(40px, 8vw, 76px); letter-spacing: .02em; text-wrap: balance;
+}
+h1 .nobs { color: var(--pink); text-shadow: 0 0 6px rgba(255,62,165,.8), 0 0 18px rgba(255,62,165,.45); }
+h1 .esc { color: var(--cyan); text-shadow: 0 0 6px rgba(62,232,255,.7), 0 0 18px rgba(62,232,255,.35); }
+.lede { margin: 0; max-width: 60ch; color: var(--muted); }
+.neon-link {
+  font-family: var(--display); font-size: 18px; color: var(--amber); text-decoration: none;
+  border: 2px solid var(--amber); padding: 10px 16px; display: inline-flex; gap: 10px; align-items: center;
+  box-shadow: 0 0 8px rgba(255,179,71,.45), inset 0 0 8px rgba(255,179,71,.25);
+  text-shadow: 0 0 6px rgba(255,179,71,.7);
+}
+.neon-link:hover { background: rgba(255,179,71,.08); }
+.neon-link:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 22px; margin: 0; color: var(--cyan); }
+.film { display: grid; gap: 12px; }
+.screen { background: #000; border: 1px solid var(--line); }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: pixelated; image-rendering: crisp-edges; }
+#film { transition: opacity .3s ease; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font-family: var(--display); font-size: 15px; background: var(--panel); color: var(--fg);
+  border: 1px solid var(--line); padding: 8px 14px; cursor: pointer;
+}
+button:hover { border-color: var(--cyan); }
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.chapters button { font-size: 13px; padding: 6px 10px; color: var(--muted); }
+.chapters button[aria-current="true"] { color: var(--bg); background: var(--cyan); border-color: var(--cyan); }
+.bar { height: 3px; background: var(--line); }
+.bar span { display: block; height: 100%; width: 0; background: var(--pink); box-shadow: 0 0 6px var(--pink); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.card { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card h3 { font-family: var(--display); font-size: 18px; margin: 0; font-weight: 700; }
+.meta { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.zona { font-family: var(--display); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--pink); }
+.dur { font-family: var(--display); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card button { justify-self: start; font-size: 13px; padding: 6px 10px; }
+footer { border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+footer p { margin: 0; max-width: 75ch; }
+@media (prefers-reduced-motion: reduce) { #film { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="marquee">
+      <h1><span class="nobs">NOBS</span> <span class="esc">ESCENAS</span></h1>
+      <p class="lede">Pixel art dibujado con código, una escena por cada zona del tracker. Sin imágenes: cada píxel sale de un lienzo de 320×180.</p>
+    </div>
+    <a class="neon-link" href="https://github.com/RawSmokeTerribilus/UNIT3D_NO_BS">VER EL CÓDIGO &rarr;</a>
+  </header>
+
+  <section class="film" aria-labelledby="film-title">
+    <h2 id="film-title">Película completa</h2>
+    <div class="screen"><canvas id="film" role="img" aria-label="Las escenas de NOBS encadenadas: la puerta, el bufé, el bar y la oficina de la rata."></canvas></div>
+    <div class="bar" aria-hidden="true"><span id="film-bar"></span></div>
+    <div class="controls">
+      <button id="film-play" type="button">Pausa</button>
+      <button id="film-prev" type="button">Anterior</button>
+      <button id="film-next" type="button">Siguiente</button>
+      <ol class="chapters" id="chapters"></ol>
+    </div>
+  </section>
+
+  <section aria-labelledby="gal-title" style="display:grid;gap:16px">
+    <h2 id="gal-title">Las escenas</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <footer>
+    <p>Las cifras de las escenas son de ejemplo. Dentro del tracker, los socios las ven con los datos reales de cada zona.</p>
+    <p>Código propio bajo AGPL-3.0, en el mismo repositorio que el tracker. El protagonista es un homenaje a un pirata muy conocido.</p>
+  </footer>
+</div>
+
+<script src="js/escenas/motor.js"></script>
+<script src="js/escenas/puerta.js"></script>
+<script src="js/escenas/bufe.js"></script>
+<script src="js/escenas/bar.js"></script>
+<script src="js/escenas/oficina.js"></script>
+<script>
+(() => {
+  const ORDER = ['puerta', 'bufe', 'bar', 'oficina'];
+  const defs = Object.fromEntries(Escenas.lista().map(d => [d.id, d]));
+  const order = ORDER.filter(id => defs[id]);
+
+  // ----- película completa: encadena las escenas sin bucle -----
+  const film = document.getElementById('film');
+  const barEl = document.getElementById('film-bar');
+  const btnPlay = document.getElementById('film-play');
+  const chapters = document.getElementById('chapters');
+  let idx = 0, ctl = null;
+
+  order.forEach((id, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = (i + 1) + '. ' + defs[id].titulo;
+    b.addEventListener('click', () => go(i));
+    li.appendChild(b);
+    chapters.appendChild(li);
+  });
+  function sync() {
+    btnPlay.textContent = ctl && ctl.playing ? 'Pausa' : 'Reproducir';
+    [...chapters.querySelectorAll('button')].forEach((b, i) => b.setAttribute('aria-current', String(i === idx)));
+  }
+  function go(i) {
+    idx = (i + order.length) % order.length;
+    film.style.opacity = '0';
+    setTimeout(() => {
+      if (ctl) ctl.destroy();
+      ctl = Escenas.montar(film, order[idx], {
+        loop: false,
+        onTime: (t, L) => { barEl.style.width = ((idx + t / L) / order.length * 100).toFixed(2) + '%'; },
+        onEnd: () => go(idx + 1)
+      });
+      film.style.opacity = '1';
+      sync();
+    }, ctl ? 300 : 0);
+  }
+  btnPlay.addEventListener('click', () => { if (ctl) { ctl.toggle(); sync(); } });
+  document.getElementById('film-prev').addEventListener('click', () => go(idx - 1));
+  document.getElementById('film-next').addEventListener('click', () => go(idx + 1));
+  go(0);
+
+  // ----- galería: cada escena en bucle mientras se ve -----
+  const grid = document.getElementById('grid');
+  order.forEach((id, i) => {
+    const d = defs[id];
+    const card = document.createElement('article');
+    card.className = 'card';
+    const scr = document.createElement('div');
+    scr.className = 'screen';
+    const cv = document.createElement('canvas');
+    cv.setAttribute('role', 'img');
+    cv.setAttribute('aria-label', d.titulo + ' (' + d.zona + ')');
+    scr.appendChild(cv);
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const h = document.createElement('h3');
+    h.textContent = d.titulo;
+    const z = document.createElement('span');
+    z.className = 'zona';
+    z.textContent = d.zona;
+    meta.append(h, z);
+    const row = document.createElement('div');
+    row.className = 'meta';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Ver en la película';
+    btn.addEventListener('click', () => { go(i); film.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+    const dur = document.createElement('span');
+    dur.className = 'dur';
+    row.append(btn, dur);
+    card.append(scr, meta, row);
+    grid.appendChild(card);
+    const c = Escenas.montar(cv, id, { loop: true });
+    dur.textContent = Math.round(c.L) + ' s';
+  });
+})();
+</script>
+</body>
+</html>
