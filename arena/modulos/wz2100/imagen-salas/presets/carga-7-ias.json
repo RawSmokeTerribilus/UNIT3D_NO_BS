@@ -1,0 +1,70 @@
+{
+ "locked": {
+  "power": true,
+  "alliances": true,
+  "teams": true,
+  "difficulty": true,
+  "ai": true,
+  "scavengers": true,
+  "bases": true,
+  "position": false
+ },
+ "challenge": {
+  "map": "Sk-Ziggurat",
+  "maxPlayers": 8,
+  "name": "Prueba de carga: tú contra 7 IA",
+  "alliances": 0,
+  "powerLevel": 1,
+  "bases": 3,
+  "techLevel": 1,
+  "scavengers": 0,
+  "spectatorHost": true,
+  "openSpectatorSlots": 1,
+  "blindMode": "none"
+ },
+ "player_0": {
+  "team": 0
+ },
+ "player_1": {
+  "team": 1,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ },
+ "player_2": {
+  "team": 2,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ },
+ "player_3": {
+  "team": 3,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ },
+ "player_4": {
+  "team": 4,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ },
+ "player_5": {
+  "team": 5,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ },
+ "player_6": {
+  "team": 6,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ },
+ "player_7": {
+  "team": 7,
+  "ai": "bonecrusher/bonecrusher.js",
+  "difficulty": "Hard",
+  "faction": "Normal"
+ }
+}

@@ -994,6 +994,8 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                     ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
                 Route::post('/{slug}/salas/{sala}/aviso', [App\Http\Controllers\Staff\ArenaController::class, 'aviso'])->name('aviso')
                     ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::post('/{slug}/salas/{sala}/nombre', [App\Http\Controllers\Staff\ArenaController::class, 'renombrar'])->name('renombrar')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
                 Route::middleware('admin')->group(function (): void {
                     Route::post('/{slug}/salas', [App\Http\Controllers\Staff\ArenaController::class, 'crear'])->name('crear')
                         ->where('slug', '[a-z0-9][a-z0-9-]*');
@@ -1001,6 +1003,8 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                         ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
                     Route::post('/{slug}/apagar-todo', [App\Http\Controllers\Staff\ArenaController::class, 'apagarTodo'])->name('apagar_todo')
                         ->where('slug', '[a-z0-9][a-z0-9-]*');
+                    Route::delete('/{slug}/presets/{preset}', [App\Http\Controllers\Staff\ArenaController::class, 'borrarPreset'])->name('borrar_preset')
+                        ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'preset' => '[a-z0-9][a-z0-9-]{0,40}']);
                 });
             });
 

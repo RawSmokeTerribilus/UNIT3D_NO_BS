@@ -23,8 +23,11 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
 - **El agente gestiona procesos, no contenedores: no se usa el socket de Docker.**
 - **Al acabar una partida el host sale y el agente rearranca la sala.**
 - **API de control** (cabecera `X-Arena-Token` = `ARENA_CONTROL_TOKEN`; `X-Arena-Actor` para la auditoría):
-  - `GET /estado`, `GET /presets`, `GET /salas/{id}/log?lineas=N`
-  - `POST /salas {preset}`, `POST /salas/{id}/reiniciar`, `POST /salas/{id}/aviso {mensaje}`, `DELETE /salas/{id}`, `POST /apagar-todo`
+  - `GET /estado`, `GET /presets`, `GET /catalogo` (mapas e IA, leídos de `mp.wz`), `GET /salas/{id}/log?lineas=N`
+  - `POST /salas {preset, nombre?}` o `{plan, guardar_como?}` (sala a medida: mapa, huecos humano/IA/cerrado con IA, dificultad, facción y equipo; alianzas, energía, bases, tecnología, chatarreros, espectadores, contraseña, bloqueo)
+  - `POST /salas/{id}/nombre {nombre}` (si está vacía en el lobby se reinicia ya; si no, al acabar la partida), `POST /salas/{id}/reiniciar`, `POST /salas/{id}/aviso {mensaje}`, `DELETE /salas/{id}`, `POST /apagar-todo`
+  - `POST /presets {slug, plan}`, `DELETE /presets/{slug}`
+  - Cada sala guarda su configuración completa en `control/estado.json`; los presets son plantillas.
   - Sin token: `GET /publico` (lo que ve el lobby) y `GET /salud`.
 
 ### Persistencia (`arena-data/wz2100`, dueño 2100)

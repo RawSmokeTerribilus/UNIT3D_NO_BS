@@ -80,7 +80,16 @@
                                 @forelse ($e['salas'] ?? [] as $s)
                                     <tr>
                                         <td><code>{{ $s['id'] }}</code></td>
-                                        <td>{{ $s['nombre'] }}<br><small>{{ $s['preset'] }}</small></td>
+                                        <td>
+                                            {{ $s['nombre'] }}
+                                            <br><small>{{ $s['mapa'] ?? '' }} · {{ $s['preset'] }}
+                                                @isset($s['resumen']) · {{ $s['resumen']['humanos'] }} humanos{{ $s['resumen']['ias'] ? ', '.$s['resumen']['ias'].' IA' : '' }}@endisset</small>
+                                            <form method="POST" action="{{ route('staff.arena.renombrar', ['slug' => $slug, 'sala' => $s['id']]) }}" class="arena-st__renombrar">
+                                                @csrf
+                                                <input type="text" name="nombre" maxlength="60" class="form__text" placeholder="Nuevo nombre" required>
+                                                <button type="submit" class="form__button form__button--text">Renombrar</button>
+                                            </form>
+                                        </td>
                                         <td>{{ $s['fase'] }}</td>
                                         <td>
                                             {{ $s['jugadores'] }}/{{ $s['huecos'] }}
@@ -122,21 +131,105 @@
 
                     @if ($esAdmin)
                         <div class="arena-st__admin">
-                            <form method="POST" action="{{ route('staff.arena.crear', ['slug' => $slug]) }}" class="arena-st__crear">
-                                @csrf
-                                <select name="preset" class="form__select" required>
-                                    @foreach ($m['presets'] as $p)
-                                        <option value="{{ $p }}">{{ $p }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="form__button form__button--filled">Crear sala</button>
-                            </form>
                             <form method="POST" action="{{ route('staff.arena.apagar_todo', ['slug' => $slug]) }}"
                                 data-confirm="⚠️ ¿Cerrar TODAS las salas de {{ $m['nombre'] }}? Se acaban todas las partidas en curso.">
                                 @csrf
                                 <button type="submit" class="form__button form__button--outlined">Apagar todas las salas</button>
                             </form>
                         </div>
+
+                        <h3 class="arena-st__sub">Crear sala desde un preset</h3>
+                        <form method="POST" action="{{ route('staff.arena.crear', ['slug' => $slug]) }}" class="arena-st__crear">
+                            @csrf
+                            <input type="hidden" name="modo" value="preset">
+                            <select name="preset" class="form__select" required>
+                                @foreach ($m['presets'] as $p)
+                                    <option value="{{ $p['slug'] }}">{{ $p['nombre'] }} — {{ $p['mapa'] }}, {{ $p['humanos'] }} humanos{{ $p['ias'] ? ', '.$p['ias'].' IA' : '' }}</option>
+                                @endforeach
+                            </select>
+                            <input type="text" name="nombre" maxlength="60" class="form__text" placeholder="Nombre de la sala (opcional)">
+                            <button type="submit" class="form__button form__button--filled">Crear sala</button>
+                        </form>
+
+                        @if ($m['catalogo'])
+                            <h3 class="arena-st__sub">Crear sala a medida</h3>
+                            <form method="POST" action="{{ route('staff.arena.crear', ['slug' => $slug]) }}" class="arena-st__medida" data-arena-medida>
+                                @csrf
+                                <input type="hidden" name="modo" value="medida">
+                                <input type="hidden" name="plan" data-arena-plan>
+                                <div class="arena-st__rejilla">
+                                    <label>Nombre <input type="text" data-campo="nombre" maxlength="60" class="form__text" required placeholder="p. ej. Viernes de tanques"></label>
+                                    <label>Mapa
+                                        <select data-campo="mapa" class="form__select" data-arena-mapa required>
+                                            @foreach (collect($m['catalogo']['mapas'])->groupBy('jugadores') as $n => $grupo)
+                                                <optgroup label="{{ $n }} jugadores">
+                                                    @foreach ($grupo as $mapa)
+                                                        <option value="{{ $mapa['nombre'] }}" data-jugadores="{{ $mapa['jugadores'] }}">{{ $mapa['nombre'] }}</option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                    <label>Alianzas
+                                        <select data-campo="alianzas" class="form__select">
+                                            <option value="0">Todos contra todos</option>
+                                            <option value="1">Alianzas libres</option>
+                                            <option value="2" selected>Equipos fijos</option>
+                                            <option value="3">Equipos fijos sin compartir investigación</option>
+                                        </select>
+                                    </label>
+                                    <label>Energía
+                                        <select data-campo="energia" class="form__select">
+                                            <option value="0">Baja</option><option value="1" selected>Media</option><option value="2">Alta</option>
+                                        </select>
+                                    </label>
+                                    <label>Bases
+                                        <select data-campo="bases" class="form__select">
+                                            <option value="1">Sin base</option><option value="2" selected>Base</option><option value="3">Base avanzada</option>
+                                        </select>
+                                    </label>
+                                    <label>Tecnología
+                                        <select data-campo="tecnologia" class="form__select">
+                                            <option value="1" selected>Nivel 1</option><option value="2">Nivel 2</option><option value="3">Nivel 3</option><option value="4">Nivel 4</option>
+                                        </select>
+                                    </label>
+                                    <label>Chatarreros
+                                        <select data-campo="chatarreros" class="form__select">
+                                            <option value="0" selected>No</option><option value="1">Sí</option><option value="2">Definitivos</option>
+                                        </select>
+                                    </label>
+                                    <label>Huecos de espectador <input type="number" data-campo="espectadores" min="0" max="4" value="1" class="form__text"></label>
+                                    <label>Contraseña (opcional) <input type="text" data-campo="contrasena" maxlength="30" class="form__text" autocomplete="off"></label>
+                                    <label class="arena-st__check"><input type="checkbox" data-campo="bloquear" checked> Bloquear ajustes en el lobby</label>
+                                </div>
+                                <table class="data-table arena-st__huecos">
+                                    <thead><tr><th>Hueco</th><th>Tipo</th><th>IA</th><th>Dificultad</th><th>Facción</th><th>Equipo</th></tr></thead>
+                                    <tbody data-arena-huecos></tbody>
+                                </table>
+                                <div class="arena-st__crear">
+                                    <label class="arena-st__check"><input type="checkbox" data-arena-guardar> Guardar también como preset:</label>
+                                    <input type="text" name="guardar_como" maxlength="40" pattern="[a-z0-9][a-z0-9-]*" class="form__text" placeholder="slug-del-preset" data-arena-slug disabled>
+                                    <button type="submit" class="form__button form__button--filled">Crear sala a medida</button>
+                                </div>
+                                <script type="application/json" data-arena-catalogo>@json($m['catalogo'])</script>
+                            </form>
+                        @endif
+
+                        <h3 class="arena-st__sub">Presets guardados</h3>
+                        <ul class="arena-st__presets">
+                            @foreach ($m['presets'] as $p)
+                                <li>
+                                    <strong>{{ $p['nombre'] }}</strong> <code>{{ $p['slug'] }}</code>
+                                    <small>{{ $p['mapa'] }} · {{ $p['huecos'] }} huecos · {{ $p['humanos'] }} humanos{{ $p['ias'] ? ' · '.$p['ias'].' IA' : '' }}</small>
+                                    <form method="POST" action="{{ route('staff.arena.borrar_preset', ['slug' => $slug, 'preset' => $p['slug']]) }}"
+                                        data-confirm="¿Borrar el preset {{ $p['slug'] }}? Las salas que ya lo usan no cambian.">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="form__button form__button--text">Borrar</button>
+                                    </form>
+                                </li>
+                            @endforeach
+                        </ul>
                     @endif
                 @endif
             </div>
@@ -157,6 +250,7 @@
     @endif
 
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/staff-command-confirm.js') }}"></script>
+    <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}" src="{{ asset('js/arena-panel.js') }}?v={{ filemtime(public_path('js/arena-panel.js')) }}"></script>
 
     <style>
         .arena-st__estado { margin-left: 8px; font-size: 12px; padding: 2px 8px; border-radius: 3px; border: 1px solid var(--panel_border); }
@@ -170,6 +264,18 @@
         .arena-st__aviso .form__text { min-width: 180px; }
         .arena-st__admin { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; align-items: center; }
         .arena-st__crear { display: flex; gap: 6px; align-items: center; }
+        .arena-st__renombrar { display: flex; gap: 4px; margin-top: 4px; }
+        .arena-st__renombrar .form__text { max-width: 180px; padding: 2px 6px; font-size: 12px; }
+        .arena-st__sub { margin: 22px 0 10px; font-size: 15px; }
+        .arena-st__medida { border: 1px solid var(--panel_border); border-radius: 6px; padding: 12px; }
+        .arena-st__rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; margin-bottom: 12px; }
+        .arena-st__rejilla label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+        .arena-st__check { flex-direction: row !important; align-items: center; gap: 6px !important; }
+        .arena-st__huecos select { min-width: 110px; }
+        .arena-st__huecos input[type=number] { width: 60px; }
+        .arena-st__presets { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+        .arena-st__presets li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .arena-st__presets form { margin: 0; }
         .arena-st__log { background: #0a0a0a; color: #c8ffa0; font-size: 11px; line-height: 1.45; padding: 8px 10px; border-radius: 4px; max-height: 480px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
     </style>
 @endsection

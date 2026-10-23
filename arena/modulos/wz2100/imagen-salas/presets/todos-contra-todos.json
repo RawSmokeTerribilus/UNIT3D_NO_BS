@@ -1,0 +1,37 @@
+{
+ "locked": {
+  "power": true,
+  "alliances": true,
+  "teams": true,
+  "difficulty": true,
+  "ai": true,
+  "scavengers": true,
+  "bases": true,
+  "position": false
+ },
+ "challenge": {
+  "map": "Sk-Basingstoke",
+  "maxPlayers": 4,
+  "name": "Todos contra todos (4)",
+  "alliances": 0,
+  "powerLevel": 1,
+  "bases": 2,
+  "techLevel": 1,
+  "scavengers": 0,
+  "spectatorHost": true,
+  "openSpectatorSlots": 1,
+  "blindMode": "none"
+ },
+ "player_0": {
+  "team": 0
+ },
+ "player_1": {
+  "team": 1
+ },
+ "player_2": {
+  "team": 2
+ },
+ "player_3": {
+  "team": 3
+ }
+}

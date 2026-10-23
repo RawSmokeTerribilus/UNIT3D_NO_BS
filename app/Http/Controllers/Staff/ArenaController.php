@@ -64,12 +64,15 @@ class ArenaController extends Controller
         foreach (config('arena.modulos', []) as $slug => $modulo) {
             $control = new ArenaControl($slug);
             $estado = $control->llamar('GET', '/estado');
-            $presets = $request->user()->group->is_admin && $estado['ok'] ? $control->llamar('GET', '/presets') : null;
+            $esAdmin = (bool) $request->user()->group->is_admin;
+            $presets = $esAdmin && $estado['ok'] ? $control->llamar('GET', '/presets') : null;
+            $catalogo = $esAdmin && $estado['ok'] ? $control->llamar('GET', '/catalogo') : null;
 
             $modulos[$slug] = [
-                'nombre'  => $modulo['nombre'],
-                'estado'  => $estado,
-                'presets' => $presets['data']['presets'] ?? [],
+                'nombre'   => $modulo['nombre'],
+                'estado'   => $estado,
+                'presets'  => $presets['data']['presets'] ?? [],
+                'catalogo' => $catalogo['ok'] ?? false ? $catalogo['data'] : null,
             ];
         }
 
@@ -108,12 +111,47 @@ class ArenaController extends Controller
         return $this->volver($request, $slug, 'aviso '.$sala, $r, 'Aviso enviado a '.$sala.'.');
     }
 
+    /**
+     * Crear sala: desde un preset (con nombre propio opcional) o a medida con el plan
+     * que monta el formulario (JSON); el agente valida el plan contra el catálogo del juego.
+     */
     public function crear(Request $request, string $slug): RedirectResponse
     {
-        $datos = $request->validate(['preset' => ['required', 'string', 'regex:/^[a-z0-9][a-z0-9-]{0,40}$/']]);
-        $r = $this->modulo($slug)->llamar('POST', '/salas', ['preset' => $datos['preset']], $this->actor($request));
+        $datos = $request->validate([
+            'modo'         => ['required', 'in:preset,medida'],
+            'preset'       => ['required_if:modo,preset', 'nullable', 'string', 'regex:/^[a-z0-9][a-z0-9-]{0,40}$/'],
+            'nombre'       => ['nullable', 'string', 'max:60'],
+            'plan'         => ['required_if:modo,medida', 'nullable', 'json', 'max:20000'],
+            'guardar_como' => ['nullable', 'string', 'regex:/^[a-z0-9][a-z0-9-]{0,40}$/'],
+        ]);
 
-        return $this->volver($request, $slug, 'crear '.$datos['preset'], $r, 'Sala creada con el preset '.$datos['preset'].'.');
+        if ($datos['modo'] === 'preset') {
+            $cuerpo = ['preset' => $datos['preset'], 'nombre' => $datos['nombre'] ?? null];
+            $que = 'el preset '.$datos['preset'];
+        } else {
+            $cuerpo = ['plan' => json_decode((string) $datos['plan'], true), 'guardar_como' => $datos['guardar_como'] ?? null];
+            $que = 'una configuración a medida'.(empty($datos['guardar_como']) ? '' : ' (guardada como preset '.$datos['guardar_como'].')');
+        }
+
+        $r = $this->modulo($slug)->llamar('POST', '/salas', $cuerpo, $this->actor($request));
+
+        return $this->volver($request, $slug, 'crear', $r, 'Sala creada con '.$que.'.');
+    }
+
+    public function renombrar(Request $request, string $slug, string $sala): RedirectResponse
+    {
+        $datos = $request->validate(['nombre' => ['required', 'string', 'max:60']]);
+        $r = $this->modulo($slug)->llamar('POST', '/salas/'.$sala.'/nombre', ['nombre' => $datos['nombre']], $this->actor($request));
+        $cuando = ($r['data']['cuando'] ?? '') === 'aplicado' ? 'ya' : 'al acabar la partida en curso';
+
+        return $this->volver($request, $slug, 'renombrar '.$sala, $r, 'Sala '.$sala.' renombrada; el nombre nuevo se ve '.$cuando.'.');
+    }
+
+    public function borrarPreset(Request $request, string $slug, string $preset): RedirectResponse
+    {
+        $r = $this->modulo($slug)->llamar('DELETE', '/presets/'.$preset, [], $this->actor($request));
+
+        return $this->volver($request, $slug, 'borrar preset '.$preset, $r, 'Preset '.$preset.' borrado.');
     }
 
     public function borrar(Request $request, string $slug, string $sala): RedirectResponse

@@ -1,0 +1,43 @@
+{
+ "locked": {
+  "power": true,
+  "alliances": true,
+  "teams": true,
+  "difficulty": true,
+  "ai": true,
+  "scavengers": true,
+  "bases": true,
+  "position": false
+ },
+ "challenge": {
+  "map": "DustyMaze-2v2",
+  "maxPlayers": 4,
+  "name": "Cooperativo contra 2 IA",
+  "alliances": 2,
+  "powerLevel": 1,
+  "bases": 2,
+  "techLevel": 1,
+  "scavengers": 0,
+  "spectatorHost": true,
+  "openSpectatorSlots": 1,
+  "blindMode": "none"
+ },
+ "player_0": {
+  "team": 0
+ },
+ "player_1": {
+  "team": 0
+ },
+ "player_2": {
+  "team": 1,
+  "ai": "Cobra.js",
+  "difficulty": "Medium",
+  "faction": "Normal"
+ },
+ "player_3": {
+  "team": 1,
+  "ai": "Cobra.js",
+  "difficulty": "Medium",
+  "faction": "Normal"
+ }
+}

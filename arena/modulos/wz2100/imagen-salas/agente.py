@@ -25,6 +25,7 @@ import json
 import os
 import re
 import shutil
+import zipfile
 import signal
 import subprocess
 import sys
@@ -55,6 +56,7 @@ FICHERO_ACCIONES = os.path.join(DIR_CONTROL, 'acciones.jsonl')
 FICHERO_TOKENS = '/tmp/arena/tokens'
 FICHERO_FASES = '/tmp/arena/fases'   # salaN: lobby|partida|… — el relé suelta antes las sesiones caídas en el lobby
 
+WZ_DATOS = os.environ.get('WZ_DATOS', '/opt/wz/share/warzone2100')
 ID_SALA = re.compile(r'^sala([1-9][0-9]?)$')
 NOMBRE_PRESET = re.compile(r'^[a-z0-9][a-z0-9-]{0,40}$')
 RE_UNE = re.compile(r'\] .* has joined, IP is: ')
@@ -97,18 +99,133 @@ def leer_preset(nombre):
         return json.load(f)
 
 
-def huecos_humanos(preset):
-    """Jugadores humanos que necesita el preset (maxPlayers menos las IA fijadas)."""
-    reto = preset.get('challenge', {})
+def huecos_humanos(config):
+    """Huecos para humanos: los de maxPlayers que no son IA, ni están cerrados, ni son de espectador."""
+    reto = config.get('challenge', {})
     total = int(reto.get('maxPlayers', 2))
-    ias = sum(1 for i in range(total) if preset.get(f'player_{i}', {}).get('ai'))
-    return max(1, total - ias)
+    humanos = 0
+    for i in range(total):
+        j = config.get(f'player_{i}', {})
+        if not (j.get('ai') or j.get('closed') or j.get('spectator')):
+            humanos += 1
+    return max(1, humanos)
+
+
+# -- catálogo del juego (mapas e IA), leído de mp.wz al arrancar --
+DIFICULTADES = ('Easy', 'Medium', 'Hard', 'Insane')
+FACCIONES = ('Normal', 'NEXUS', 'Collective')
+catalogo = {'mapas': [], 'ias': []}
+
+
+def cargar_catalogo():
+    try:
+        with zipfile.ZipFile(os.path.join(WZ_DATOS, 'mp.wz')) as z:
+            lev = z.read('addon.lev').decode('latin-1')
+            mapas = {}
+            for nombre, jugadores, tipo in re.findall(r'level\s+(\S+)\s+players\s+(\d+)\s+type\s+(\d+)', lev):
+                if tipo == '14':
+                    mapas[nombre] = int(jugadores)
+            ias = []
+            for f in sorted(n for n in z.namelist() if n.startswith('multiplay/skirmish/') and n.endswith('.json')):
+                ai = json.loads(z.read(f)).get('AI', {})
+                if ai.get('js'):
+                    ias.append({'js': ai['js'], 'nombre': ai.get('name', ai['js']), 'pista': ai.get('tip', '')})
+        catalogo['mapas'] = [{'nombre': n, 'jugadores': j} for n, j in sorted(mapas.items(), key=lambda x: (x[1], x[0].lower()))]
+        catalogo['ias'] = ias
+        log(f'catálogo: {len(catalogo["mapas"])} mapas, {len(ias)} IA')
+    except (OSError, KeyError, zipfile.BadZipFile, ValueError) as e:
+        log(f'AVISO: no se pudo leer el catálogo de mp.wz: {e}')
+
+
+def _entero(plan, clave, minimo, maximo, defecto):
+    try:
+        v = int(plan.get(clave, defecto))
+    except (TypeError, ValueError):
+        raise ValueError(f'{clave}: no es un número')
+    if not minimo <= v <= maximo:
+        raise ValueError(f'{clave}: fuera de rango ({minimo}–{maximo})')
+    return v
+
+
+def _texto(valor, maximo):
+    limpio = re.sub(r'[\x00-\x1f\x7f]', '', str(valor or '')).strip()
+    return limpio[:maximo]
+
+
+def construir_config(plan):
+    """Plan del panel → autohost de WZ, validado. Formato del plan:
+    {nombre, mapa, huecos: [{tipo: humano|ia|cerrado, ia, dificultad, faccion, equipo}], alianzas, energia,
+     bases, tecnologia, chatarreros, espectadores, contrasena, bloquear}"""
+    nombre = _texto(plan.get('nombre'), 60)
+    if not nombre:
+        raise ValueError('falta el nombre de la sala')
+    mapas = {m['nombre']: m['jugadores'] for m in catalogo['mapas']}
+    mapa = str(plan.get('mapa', ''))
+    if mapa not in mapas:
+        raise ValueError('mapa desconocido: ' + mapa)
+    huecos = plan.get('huecos')
+    if not isinstance(huecos, list) or len(huecos) != mapas[mapa]:
+        raise ValueError(f'el mapa {mapa} tiene {mapas[mapa]} huecos')
+    ias = {a['js'] for a in catalogo['ias']}
+    config = {'challenge': {
+        'map': mapa,
+        'maxPlayers': mapas[mapa],
+        'name': nombre,
+        'alliances': _entero(plan, 'alianzas', 0, 3, 2),
+        'powerLevel': _entero(plan, 'energia', 0, 2, 1),
+        'bases': _entero(plan, 'bases', 1, 3, 2),
+        'techLevel': _entero(plan, 'tecnologia', 1, 4, 1),
+        'scavengers': _entero(plan, 'chatarreros', 0, 2, 0),
+        'spectatorHost': True,
+        'openSpectatorSlots': _entero(plan, 'espectadores', 0, 4, 1),
+        'blindMode': 'none',
+    }}
+    contrasena = _texto(plan.get('contrasena'), 30)
+    if contrasena:
+        config['challenge']['gamePassword'] = contrasena
+    bloquear = bool(plan.get('bloquear', True))
+    config['locked'] = {k: bloquear for k in ('power', 'alliances', 'teams', 'difficulty', 'ai', 'scavengers', 'bases')}
+    config['locked']['position'] = False
+    humanos = 0
+    for i, h in enumerate(huecos):
+        if not isinstance(h, dict):
+            raise ValueError(f'hueco {i + 1}: formato no válido')
+        tipo = h.get('tipo')
+        equipo = _entero(h, 'equipo', 0, 9, i)
+        if tipo == 'humano':
+            config[f'player_{i}'] = {'team': equipo}
+            humanos += 1
+        elif tipo == 'ia':
+            if h.get('ia') not in ias:
+                raise ValueError(f'hueco {i + 1}: IA desconocida')
+            if h.get('dificultad') not in DIFICULTADES:
+                raise ValueError(f'hueco {i + 1}: dificultad no válida')
+            faccion = h.get('faccion') or 'Normal'
+            if faccion not in FACCIONES:
+                raise ValueError(f'hueco {i + 1}: facción no válida')
+            config[f'player_{i}'] = {'team': equipo, 'ai': h['ia'], 'difficulty': h['dificultad'], 'faction': faccion}
+        elif tipo == 'cerrado':
+            config[f'player_{i}'] = {'closed': True}
+        else:
+            raise ValueError(f'hueco {i + 1}: tipo no válido')
+    if humanos == 0:
+        raise ValueError('hace falta al menos un hueco para humanos')
+    return config
+
+
+def resumen(config):
+    reto = config.get('challenge', {})
+    total = int(reto.get('maxPlayers', 0))
+    ias = sum(1 for i in range(total) if config.get(f'player_{i}', {}).get('ai'))
+    return {'nombre': reto.get('name', ''), 'mapa': reto.get('map', ''), 'huecos': total,
+            'humanos': huecos_humanos(config), 'ias': ias}
 
 
 class Sala:
-    def __init__(self, sala_id, preset):
+    def __init__(self, sala_id, config, origen):
         self.id = sala_id
-        self.preset = preset
+        self.config = config
+        self.preset = origen          # slug del preset de partida, o «personalizada»
         self.puerto = PUERTO_BASE + int(ID_SALA.match(sala_id).group(1)) - 1
         self.dir = os.path.join(DIR_SALAS, sala_id)
         self.proc = None
@@ -122,9 +239,12 @@ class Sala:
         self.rss_mb = 0.0
         self._muestra = None
         self.borrada = False
-        info = leer_preset(preset)
-        self.nombre = info.get('challenge', {}).get('name', sala_id)
-        self.huecos = huecos_humanos(info)
+        self.nombre = config.get('challenge', {}).get('name', sala_id)
+        self.huecos = huecos_humanos(config)
+
+    def renombrar(self, nombre):
+        self.config.setdefault('challenge', {})['name'] = nombre
+        self.nombre = nombre
 
     # -- proceso --
     def _fijar_config(self):
@@ -151,9 +271,8 @@ class Sala:
     def arrancar(self):
         os.makedirs(os.path.join(self.dir, 'autohost'), exist_ok=True)
         self._fijar_config()
-        shutil.copyfile(os.path.join(DIR_PRESETS, self.preset + '.json'),
-                        os.path.join(self.dir, 'autohost', self.preset + '.json'))
-        args = [WZ_BIN, f'--autohost={self.preset}.json', f'--gameport={self.puerto}',
+        escribir_atomico(os.path.join(self.dir, 'autohost', self.id + '.json'), json.dumps(self.config, indent=1))
+        args = [WZ_BIN, f'--autohost={self.id}.json', f'--gameport={self.puerto}',
                 f'--startplayers={self.huecos}', '--headless', '--nosound',
                 f'--configdir={self.dir}', '--gamelog-output=log', '--enablecmdinterface=stdin']
         self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -263,7 +382,8 @@ class Sala:
 
     def privado(self):
         d = self.publico()
-        d.update({'nombres': self.nombres, 'puerto': self.puerto, 'pid': self.proc.pid if self.proc and self.proc.poll() is None else None,
+        d.update({'mapa': self.config.get('challenge', {}).get('map', ''), 'resumen': resumen(self.config),
+                  'nombres': self.nombres, 'puerto': self.puerto, 'pid': self.proc.pid if self.proc and self.proc.poll() is None else None,
                   'arranques': self.arranques, 'cpu': round(self.cpu, 1), 'rss_mb': round(self.rss_mb, 1),
                   'desde': int(self.ultimo_arranque)})
         return d
@@ -272,7 +392,7 @@ class Sala:
 # -- estado persistente --
 def guardar_estado():
     with cerrojo:
-        datos = {'salas': [{'id': s.id, 'preset': s.preset} for s in salas.values()]}
+        datos = {'salas': [{'id': s.id, 'origen': s.preset, 'config': s.config} for s in salas.values()]}
     escribir_atomico(FICHERO_ESTADO, json.dumps(datos, indent=1))
     escribir_tokens()
 
@@ -283,7 +403,7 @@ def escribir_tokens():
     escribir_atomico(FICHERO_TOKENS, lineas)
 
 
-def crear_sala(preset, sala_id=None):
+def crear_sala(config, origen, sala_id=None):
     with cerrojo:
         if len(salas) >= MAX_SALAS:
             raise ValueError(f'tope de salas alcanzado ({MAX_SALAS})')
@@ -292,11 +412,54 @@ def crear_sala(preset, sala_id=None):
             sala_id = libres[0]
         if not ID_SALA.match(sala_id) or sala_id in salas:
             raise ValueError('id de sala no válido o ya en uso')
-        sala = Sala(sala_id, preset)
+        sala = Sala(sala_id, config, origen)
         salas[sala_id] = sala
     guardar_estado()
     sala.arrancar()
     return sala
+
+
+def renombrar_sala(sala_id, nombre):
+    """El host lee el nombre al arrancar: si la sala está vacía en el lobby se reinicia ya;
+    si no, el nombre nuevo entra en el siguiente reinicio (al acabar la partida)."""
+    nombre = _texto(nombre, 60)
+    if not nombre:
+        raise ValueError('falta el nombre')
+    with cerrojo:
+        sala = salas[sala_id]
+        sala.renombrar(nombre)
+    guardar_estado()
+    if sala.fase == 'lobby' and sala.jugadores == 0:
+        sala.parar()
+        sala.espera = 2.0
+        return 'aplicado'
+    return 'al reiniciar'
+
+
+def guardar_preset(slug, config):
+    if not NOMBRE_PRESET.match(slug or ''):
+        raise ValueError('nombre de preset no válido (minúsculas, números y guiones)')
+    escribir_atomico(os.path.join(DIR_PRESETS, slug + '.json'), json.dumps(config, indent=1))
+
+
+def borrar_preset(slug):
+    if not NOMBRE_PRESET.match(slug or ''):
+        raise ValueError('nombre de preset no válido')
+    ruta = os.path.join(DIR_PRESETS, slug + '.json')
+    if not os.path.isfile(ruta):
+        raise KeyError(slug)
+    os.remove(ruta)
+
+
+def listar_presets():
+    lista = []
+    for n in sorted(os.listdir(DIR_PRESETS)):
+        if n.endswith('.json'):
+            try:
+                lista.append(dict(resumen(leer_preset(n[:-5])), slug=n[:-5]))
+            except (ValueError, OSError):
+                pass
+    return lista
 
 
 def borrar_sala(sala_id):
@@ -325,7 +488,10 @@ def cargar_estado():
         definidas = [{'id': f'sala{i + 1}', 'preset': p.strip()} for i, p in enumerate(SALAS_INICIALES[:MAX_SALAS])]
     for d in definidas[:MAX_SALAS]:
         try:
-            salas[d['id']] = Sala(d['id'], d['preset'])
+            if 'config' in d:
+                salas[d['id']] = Sala(d['id'], d['config'], d.get('origen', 'personalizada'))
+            else:  # estado de antes de las salas a medida: solo el nombre del preset
+                salas[d['id']] = Sala(d['id'], leer_preset(d['preset']), d['preset'])
         except (ValueError, KeyError) as e:
             log(f'sala {d} descartada: {e}')
     guardar_estado()
@@ -445,8 +611,10 @@ class Api(BaseHTTPRequestHandler):
                              'memoria_contenedor_mb': memoria_contenedor_mb(),
                              'carga': os.getloadavg(), 'cpus': os.cpu_count()})
         elif partes == ['presets']:
-            nombres = sorted(n[:-5] for n in os.listdir(DIR_PRESETS) if n.endswith('.json'))
-            self._json(200, {'presets': nombres})
+            self._json(200, {'presets': listar_presets()})
+        elif partes == ['catalogo']:
+            self._json(200, {'mapas': catalogo['mapas'], 'ias': catalogo['ias'],
+                             'dificultades': list(DIFICULTADES), 'facciones': list(FACCIONES)})
         elif len(partes) == 3 and partes[0] == 'salas' and partes[2] == 'log':
             sala = salas.get(partes[1])
             if not sala:
@@ -469,9 +637,29 @@ class Api(BaseHTTPRequestHandler):
         try:
             cuerpo = self._cuerpo()
             if partes == ['salas']:
-                sala = crear_sala(str(cuerpo.get('preset', '')), cuerpo.get('id'))
-                auditar(self._actor(), 'crear', {'sala': sala.id, 'preset': sala.preset})
+                # Desde un preset guardado, o a medida con un plan del panel (y opcionalmente guardarlo)
+                if cuerpo.get('plan'):
+                    config, origen = construir_config(cuerpo['plan']), 'personalizada'
+                    if cuerpo.get('guardar_como'):
+                        guardar_preset(str(cuerpo['guardar_como']), config)
+                        origen = str(cuerpo['guardar_como'])
+                else:
+                    origen = str(cuerpo.get('preset', ''))
+                    config = leer_preset(origen)
+                    if cuerpo.get('nombre'):
+                        config.setdefault('challenge', {})['name'] = _texto(cuerpo['nombre'], 60)
+                sala = crear_sala(config, origen, cuerpo.get('id'))
+                auditar(self._actor(), 'crear', {'sala': sala.id, 'origen': origen, **resumen(config)})
                 self._json(201, sala.privado())
+            elif len(partes) == 3 and partes[0] == 'salas' and partes[2] == 'nombre':
+                cuando = renombrar_sala(partes[1], cuerpo.get('nombre'))
+                auditar(self._actor(), 'renombrar', {'sala': partes[1], 'nombre': salas[partes[1]].nombre, 'cuando': cuando})
+                self._json(200, {'ok': True, 'cuando': cuando})
+            elif partes == ['presets']:
+                slug = str(cuerpo.get('slug', ''))
+                guardar_preset(slug, construir_config(cuerpo.get('plan') or {}))
+                auditar(self._actor(), 'guardar-preset', {'preset': slug})
+                self._json(201, {'ok': True})
             elif len(partes) == 3 and partes[0] == 'salas' and partes[2] == 'reiniciar':
                 sala = salas[partes[1]]
                 auditar(self._actor(), 'reiniciar', {'sala': sala.id})
@@ -509,6 +697,15 @@ class Api(BaseHTTPRequestHandler):
                 self._json(200, {'ok': True})
             except KeyError:
                 self._json(404, {'error': 'no existe la sala'})
+        elif len(partes) == 2 and partes[0] == 'presets':
+            try:
+                borrar_preset(partes[1])
+                auditar(self._actor(), 'borrar-preset', {'preset': partes[1]})
+                self._json(200, {'ok': True})
+            except KeyError:
+                self._json(404, {'error': 'no existe el preset'})
+            except ValueError as e:
+                self._json(400, {'error': str(e)})
         else:
             self._json(404, {'error': 'ruta desconocida'})
 
@@ -527,6 +724,7 @@ def apagar(*_):
 def main():
     if not TOKEN:
         log('AVISO: sin ARENA_CONTROL_TOKEN la API privada responde 503 (las salas funcionan igual)')
+    cargar_catalogo()
     cargar_estado()
     signal.signal(signal.SIGTERM, apagar)
     signal.signal(signal.SIGINT, apagar)
