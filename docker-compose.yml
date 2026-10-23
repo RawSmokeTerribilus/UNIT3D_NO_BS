@@ -16,6 +16,7 @@ services:
             - announce
         networks:
             - unit3d
+            - arena
 
     announce:
         build:
@@ -108,6 +109,7 @@ services:
         networks:
             - unit3d
             - irc_net
+            - arena
 
     scheduler:
         build:
@@ -286,8 +288,56 @@ services:
         networks:
             - unit3d
 
+    # ─── Arena: juegos multijugador entre socios (arena/README.md) ─────────────
+    # Sube siempre con el tracker; el acceso lo abre el interruptor arena.is_enabled
+    # (/dashboard/config), que nace apagado. Si la Arena se cae, el tracker sigue:
+    # nginx resuelve arena-gateway por variable y solo /arena-app/ da 502.
+    arena-gateway:
+        image: nginx:1.29-alpine
+        container_name: unit3d-staging-arena-gateway
+        restart: unless-stopped
+        volumes:
+            - ./arena/gateway:/etc/nginx/conf.d:ro
+        mem_limit: 256m
+        cpus: 0.5
+        networks:
+            - arena
+
+    arena-wz2100-web:
+        image: rawsmoke/nobs-arena-wz2100-web:${ARENA_WZ2100_VERSION:-4.7.0-arena1}
+        container_name: unit3d-staging-arena-wz2100-web
+        restart: unless-stopped
+        mem_limit: 256m
+        cpus: 0.5
+        networks:
+            - arena
+
+    arena-wz2100-salas:
+        image: rawsmoke/nobs-arena-wz2100-salas:${ARENA_WZ2100_VERSION:-4.7.0-arena1}
+        container_name: unit3d-staging-arena-wz2100-salas
+        restart: unless-stopped
+        environment:
+            - ARENA_CONTROL_TOKEN=${ARENA_CONTROL_TOKEN:-}
+            - ARENA_MAX_SALAS=${ARENA_MAX_SALAS:-8}
+            - ARENA_SALAS_INICIALES=${ARENA_SALAS_INICIALES:-contra-ia}
+        volumes:
+            # Persistente: presets, configdir de cada sala (identidad del host), gamelogs, replays, estado
+            - ./arena-data/wz2100:/datos
+        # Topes medidos el 23-10 (arena/README.md): ~300 MB por sala en partida pesada,
+        # ~5 % de un núcleo en tiempo real. Presupuesto 6 GB / 3 núcleos ≈ 15 salas a 400 MB;
+        # ARENA_MAX_SALAS deja la MITAD (8) por prudencia. rawserver es un escritorio de uso diario.
+        mem_limit: 6g
+        cpus: 3
+        pids_limit: 512
+        networks:
+            - arena
+
 networks:
     unit3d:
         driver: bridge
     irc_net:
         external: true
+    # Arena: interna (sin salida a internet). La usan web (nginx), app (API de control) y los servicios de Arena
+    arena:
+        driver: bridge
+        internal: true

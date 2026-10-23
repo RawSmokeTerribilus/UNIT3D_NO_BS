@@ -73,6 +73,12 @@ Route::get('/__auth/check', static function () {
 // gate parece roto cuando en realidad está rate-limited. Quitar throttle aquí
 // es seguro porque la respuesta es <100 bytes y sólo lee la sesión.
 
+// Arena — puerta de nginx (auth_request) para /arena-app/<módulo>/. Como /__auth/check
+// pero además exige el pase que deja /arena/<slug> en sesión y que no esté baneado;
+// devuelve X-Arena-User para que el módulo sepa quién es sin ver la sesión.
+Route::get('/__arena/whoami', [App\Http\Controllers\ArenaController::class, 'whoami'])
+    ->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value);
+
 Route::middleware('language')->group(function (): void {
     /*
     |---------------------------------------------------------------------------------
@@ -480,6 +486,16 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
             Route::get('/{system}/{slug}', [App\Http\Controllers\RetroArchController::class, 'show'])->name('show')
                 ->middleware('gaming.isolation')
                 ->where('system', '[a-z][a-z0-9]*')
+                ->where('slug', '[a-z0-9][a-z0-9-]*');
+        });
+
+        // Arena — juegos multijugador como módulos fuera de UNIT3D (config/arena.php).
+        // show lleva gaming.isolation por lo mismo que RetroArch: el iframe del módulo
+        // solo hereda el aislamiento (SharedArrayBuffer) si la página padre lo tiene.
+        Route::prefix('arena')->name('arena.')->group(function (): void {
+            Route::get('/', [App\Http\Controllers\ArenaController::class, 'index'])->name('index');
+            Route::get('/{slug}', [App\Http\Controllers\ArenaController::class, 'show'])->name('show')
+                ->middleware('gaming.isolation')
                 ->where('slug', '[a-z0-9][a-z0-9-]*');
         });
 
@@ -966,6 +982,24 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
             // Codebase Version Check
             Route::prefix('UNIT3D')->group(function (): void {
                 Route::get('/', [App\Http\Controllers\Staff\VersionController::class, 'checkVersion']);
+            });
+
+            // Arena: salas en vivo de cada módulo. Ver, reiniciar y avisar = staff;
+            // crear, borrar y apagar todo = admin. El interruptor general va en /dashboard/config.
+            Route::prefix('arena')->name('arena.')->group(function (): void {
+                Route::get('/', [App\Http\Controllers\Staff\ArenaController::class, 'index'])->name('index');
+                Route::post('/{slug}/salas/{sala}/reiniciar', [App\Http\Controllers\Staff\ArenaController::class, 'reiniciar'])->name('reiniciar')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::post('/{slug}/salas/{sala}/aviso', [App\Http\Controllers\Staff\ArenaController::class, 'aviso'])->name('aviso')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::middleware('admin')->group(function (): void {
+                    Route::post('/{slug}/salas', [App\Http\Controllers\Staff\ArenaController::class, 'crear'])->name('crear')
+                        ->where('slug', '[a-z0-9][a-z0-9-]*');
+                    Route::delete('/{slug}/salas/{sala}', [App\Http\Controllers\Staff\ArenaController::class, 'borrar'])->name('borrar')
+                        ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                    Route::post('/{slug}/apagar-todo', [App\Http\Controllers\Staff\ArenaController::class, 'apagarTodo'])->name('apagar_todo')
+                        ->where('slug', '[a-z0-9][a-z0-9-]*');
+                });
             });
 
             // Colas de jobs: lo que espera, lo que corre, lo terminado y los fallidos

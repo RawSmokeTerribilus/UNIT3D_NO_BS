@@ -69,6 +69,8 @@ class SettingSeeder extends Seeder
             'donation.gateway_label' => (string) config('donation.gateway_label'),
             'donation.amount_prefilled' => config('donation.amount_prefilled') ? 'true' : 'false',
             'donation.monthly_goal' => (string) config('donation.monthly_goal'),
+            'arena.is_enabled' => config('arena.is_enabled') ? 'true' : 'false',
+            'arena.pase_horas' => (string) config('arena.pase_horas'),
         ];
 
         foreach ($settings as $key => $value) {

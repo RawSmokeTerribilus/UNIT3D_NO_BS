@@ -1,0 +1,7 @@
+# Entorno de build de la Web Edition de WZ2100 (calcado de .github/workflows/CI_emscripten.yml del tag 4.7.0)
+FROM emscripten/emsdk:4.0.10
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get -y install git zip unzip gettext asciidoctor autoconf autoconf-archive automake libtool pkg-config ninja-build curl python3-pip \
+ && pip3 install --no-cache-dir 'cmake==3.31.6' \
+ && npm install --ignore-scripts -g workbox-cli \
+ && rm -rf /var/lib/apt/lists/*

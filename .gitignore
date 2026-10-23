@@ -172,3 +172,6 @@ vendor.bak*
 auditor/auditor.env
 auditor/run/
 auditor/**/__pycache__/
+
+# Arena: datos persistentes de los módulos (presets, salas, gamelogs, replays)
+/arena-data/

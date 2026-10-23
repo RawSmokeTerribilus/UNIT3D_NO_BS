@@ -1,0 +1,132 @@
+diff -ruN a/lib/netplay/tcp/netsocket.cpp b/lib/netplay/tcp/netsocket.cpp
+--- a/lib/netplay/tcp/netsocket.cpp	2026-10-23 16:15:12.790146480 +0200
++++ b/lib/netplay/tcp/netsocket.cpp	2026-10-23 16:37:59.297655802 +0200
+@@ -31,6 +31,10 @@
+ #include "lib/netplay/descriptor_set.h"
+ 
+ #include <vector>
++#if defined(__EMSCRIPTEN__)
++# include <chrono>
++# include <thread>
++#endif
+ 
+ #if defined(__clang__)
+ 	#pragma clang diagnostic ignored "-Wshorten-64-to-32" // FIXME!!
+@@ -530,6 +534,25 @@
+ 
+ #if   defined(WZ_OS_WIN)
+ 			ret = select(conn->fd[SOCK_CONNECTION] + 1, NULL, &conReady, &conFailed, &tv);
++#elif defined(__EMSCRIPTEN__)
++			// Arena NOBS: Emscripten's SOCKFS ignores the select() timeout (always 0), so poll until the
++			// WebSocket opens or the deadline passes. This runs on the async connection thread, so sleeping is fine.
++			{
++				const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
++				do
++				{
++					struct timeval zeroTv = {0, 0};
++					FD_ZERO(&conReady);
++					FD_SET(conn->fd[SOCK_CONNECTION], &conReady);
++					ret = select(conn->fd[SOCK_CONNECTION] + 1, nullptr, &conReady, nullptr, &zeroTv);
++					if (ret != 0)
++					{
++						break;
++					}
++					std::this_thread::sleep_for(std::chrono::milliseconds(20));
++				}
++				while (std::chrono::steady_clock::now() < deadline);
++			}
+ #else
+ 			ret = select(conn->fd[SOCK_CONNECTION] + 1, nullptr, &conReady, nullptr, &tv);
+ #endif
+@@ -853,7 +876,7 @@
+ #ifdef AI_V4MAPPED
+ 	flags             |= AI_V4MAPPED;
+ #endif
+-#ifdef AI_ADDRCONFIG
++#if defined(AI_ADDRCONFIG) && !defined(__EMSCRIPTEN__) // Arena NOBS: Emscripten's getaddrinfo returns EAI_NONAME for AI_ADDRCONFIG
+ 	flags             |= AI_ADDRCONFIG;
+ #endif
+ 	hint.ai_flags     = flags;
+diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
+--- a/platforms/emscripten/prejs.js	2026-10-23 16:43:32.712085277 +0200
++++ b/platforms/emscripten/prejs.js	2026-10-23 16:43:32.717085359 +0200
+@@ -0,0 +1,9 @@
++// Arena NOBS: Emscripten 4.0.10's JS getaddrinfo() calls assert() even in release builds, where it isn't
++// defined (STRICT, no ASSERTIONS). The ReferenceError leaves the proxied call hanging forever, so define it.
++if (typeof assert === 'undefined') {
++  var assert = function(condition, text) {
++    if (!condition) {
++      throw new Error('Assertion failed' + (text ? ': ' + text : ''));
++    }
++  };
++}
+diff -ruN a/platforms/emscripten/shell.html b/platforms/emscripten/shell.html
+--- a/platforms/emscripten/shell.html	2026-10-23 16:15:12.803146682 +0200
++++ b/platforms/emscripten/shell.html	2026-10-23 17:10:37.917231312 +0200
+@@ -1344,6 +1344,22 @@
+       
+       // customize initial Module config
+       Module = constructWZModuleConfig();
++
++      // Arena NOBS: ?wsurl=<wss url of the bridge> routes every socket through it; ?join=<name> joins straight away
++      {
++        const arenaParams = new URLSearchParams(window.location.search);
++        const arenaWsUrl = arenaParams.get('wsurl');
++        if (arenaWsUrl) {
++          Module['websocket'] = { 'url': arenaWsUrl, 'subprotocol': 'binary' };
++        }
++        const arenaJoin = arenaParams.get('join');
++        if (arenaJoin) {
++          Module.arguments.push('--join=' + arenaJoin);
++        }
++        for (const arenaDebug of arenaParams.getAll('debug')) {
++          Module.arguments.push('--debug=' + arenaDebug);
++        }
++      }
+       
+       let WZ_LAUNCH_OPTIONS = {};
+       Object.entries(WZ_LAUNCH_OPTIONS_MAPPING).forEach(([k,v]) => {
+@@ -1823,6 +1839,6 @@
+     }
+   </script>
+   {{{ SCRIPT }}}
+-  <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86fc2fd5b4b44e60836e1c059333c8ad"}'></script><!-- End Cloudflare Web Analytics -->
++  <!-- Arena NOBS: wz2100.net's Cloudflare Web Analytics beacon removed (it would report our members to a third party) -->
+   </body>
+ </html>
+diff -ruN a/src/CMakeLists.txt b/src/CMakeLists.txt
+--- a/src/CMakeLists.txt	2026-10-23 16:15:12.777146279 +0200
++++ b/src/CMakeLists.txt	2026-10-23 16:37:59.295655772 +0200
+@@ -285,7 +285,7 @@
+ 	target_link_options(warzone2100 PRIVATE "SHELL:-s MINIFY_HTML=0") # Disable MINIFY_HTML
+ 
+ 	# Specify properties set on incoming Module object (see shell.html, postjs.js, prejs.js)
+-	target_link_options(warzone2100 PRIVATE "SHELL:-s INCOMING_MODULE_JS_API=[wasmMemory,arguments,preRun,postRun,print,printErr,canvas,setStatus,monitorRunDependencies,locateFile,onExit]")
++	target_link_options(warzone2100 PRIVATE "SHELL:-s INCOMING_MODULE_JS_API=[wasmMemory,arguments,preRun,postRun,print,printErr,canvas,setStatus,monitorRunDependencies,locateFile,onExit,websocket]")
+ 
+ 	# Stack and memory usage
+ 	target_link_options(warzone2100 PRIVATE "SHELL:-s STACK_SIZE=10485760")
+diff -ruN a/src/frontend.cpp b/src/frontend.cpp
+--- a/src/frontend.cpp	2026-10-23 16:15:12.764146077 +0200
++++ b/src/frontend.cpp	2026-10-23 16:37:59.293655740 +0200
+@@ -273,9 +273,6 @@
+ 		break;
+ 	case FRONTEND_MULTIPLAYER:
+ 		changeTitleMode(MULTI);
+-#if defined(__EMSCRIPTEN__)
+-		wzDisplayDialog(Dialog_Information, "Multiplayer requires the native version.", "The web version of Warzone 2100 does not support online multiplayer. Please visit https://wz2100.net to download the native version for your platform.");
+-#endif
+ 		break;
+ 	case FRONTEND_SINGLEPLAYER:
+ 		changeTitleMode(SINGLE);
+@@ -538,8 +535,9 @@
+ 
+ #if !defined(__EMSCRIPTEN__)
+ 	addTextButton(FRONTEND_HOST,     FRONTEND_POS2X, FRONTEND_POS2Y, _("Host Game"), WBUT_TXTCENTRE);
+-	addTextButton(FRONTEND_JOIN,     FRONTEND_POS3X, FRONTEND_POS3Y, _("Join Game"), WBUT_TXTCENTRE);
+ #endif
++	// Arena NOBS: the browser can't listen, but it can join a native host through the WebSocket bridge
++	addTextButton(FRONTEND_JOIN,     FRONTEND_POS3X, FRONTEND_POS3Y, _("Join Game"), WBUT_TXTCENTRE);
+ 	addTextButton(FRONTEND_REPLAY,   FRONTEND_POS7X, FRONTEND_POS7Y, _("View Replay"), WBUT_TXTCENTRE);
+ 
+ 	addMultiBut(psWScreen, FRONTEND_BOTFORM, FRONTEND_QUIT, 10, 10, 30, 29, P_("menu", "Return"), IMAGE_RETURN, IMAGE_RETURN_HI, IMAGE_RETURN_HI);

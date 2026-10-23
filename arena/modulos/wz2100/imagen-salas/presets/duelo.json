@@ -1,0 +1,18 @@
+{
+	"locked": { "alliances": true, "teams": true, "scavengers": true, "bases": true },
+	"challenge": {
+		"map": "Sk-Startup",
+		"maxPlayers": 2,
+		"scavengers": 0,
+		"alliances": 2,
+		"powerLevel": 1,
+		"bases": 2,
+		"name": "Arena NOBS - espiga duelo",
+		"techLevel": 1,
+		"spectatorHost": true,
+		"openSpectatorSlots": 1,
+		"blindMode": "none"
+	},
+	"player_0": { "team": 0 },
+	"player_1": { "team": 1 }
+}

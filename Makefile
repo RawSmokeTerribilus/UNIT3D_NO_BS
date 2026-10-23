@@ -25,6 +25,7 @@ install:
 	@echo "🎬 Inicializando el búnker..."
 	mkdir -p storage/framework/{cache/data,sessions,views} storage/app/public storage/logs bootstrap/cache backups
 	chmod -R 775 storage bootstrap/cache
+	./bin/arena-preparar.sh
 	docker compose build
 	docker compose up -d
 	@echo "📦 Rehidratando lo que no viene en git (Archive, manual, índices)..."
@@ -32,6 +33,7 @@ install:
 	@echo "✅ Búnker listo. Usa 'make up' para levantar."
 
 up:
+	./bin/arena-preparar.sh
 	docker compose up -d
 
 stop:
