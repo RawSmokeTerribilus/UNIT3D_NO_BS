@@ -15,6 +15,18 @@
       <p class="vacio">Cargando salas…</p>
     </section>
 
+    <section class="crear" id="crear">
+      <h2>Crea tu sala</h2>
+      <form id="form-crear" autocomplete="off">
+        <label>Modo <select id="crear-preset" required></select></label>
+        <label>Nombre <input id="crear-nombre" maxlength="60" placeholder="Sala de…"></label>
+        <label>Contraseña (opcional) <input id="crear-contrasena" maxlength="30"></label>
+        <button type="submit" class="boton">Crear</button>
+      </form>
+      <p class="nota">Una sala por socio. La cierras tú, o se cierra sola si nadie entra en 15 minutos.</p>
+      <p class="mensaje" id="crear-mensaje" role="status"></p>
+    </section>
+
     <aside class="avisos">
       <p><strong>Si te vas un rato, la partida te espera:</strong> al cambiar de pestaña o de app, o si se te va la conexión, la partida se queda en pausa para todos hasta que vuelvas (máximo 2 horas). Avisad por el chat y organizaos. Pasado ese tiempo, quedas fuera.</p>
       <p><strong>Lo que no tiene arreglo:</strong> cerrar o recargar la pestaña. Tampoco que el móvil la cierre por falta de memoria (pasa si estás mucho tiempo en otras apps). Una partida empezada no admite volver a entrar. En pantallas pequeñas la barra inferior (grupos, energía) no cabe: mejor PC o tablet.</p>

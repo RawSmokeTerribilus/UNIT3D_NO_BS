@@ -21,6 +21,7 @@ La sesión va atada al socio (cabecera X-Arena-User, que pone el nginx de UNIT3D
 """
 
 import asyncio
+import json
 import os
 import secrets
 import struct
@@ -37,6 +38,12 @@ REANUDAR_SEG = int(os.environ.get('ARENA_REANUDAR_SEG', '7200'))
 # En el lobby no hay partida que pausar: un hueco ocupado por alguien que se cayó solo estorba
 REANUDAR_LOBBY_SEG = int(os.environ.get('ARENA_REANUDAR_LOBBY_SEG', '60'))
 FICHERO_FASES = os.environ.get('ARENA_FICHERO_FASES', '/tmp/arena/fases')
+# Identidad dentro de la sala: cada socio conecta con el host desde su propia IP de loopback
+# (127.x.y.z sacada de su id). El host la ve en sus eventos y el agente la traduce a socio.
+FICHERO_SOCIOS = os.environ.get('ARENA_FICHERO_SOCIOS', '/tmp/arena/socios.json')
+FICHERO_VETOS = os.environ.get('ARENA_FICHERO_VETOS', '/tmp/arena/vetos')   # «salaN id» por línea
+TRAMA_MAX = int(os.environ.get('ARENA_TRAMA_MAX_KB', '256')) * 1024
+socios_ip = {}   # ip -> «id:usuario»
 TOPE_PENDIENTE = int(os.environ.get('ARENA_TOPE_PENDIENTE_MB', '16')) * 1024 * 1024
 
 DATOS, ACK, HOLA, CIERRE, FIN = 1, 2, 3, 4, 5
@@ -47,6 +54,31 @@ sesiones = {}
 
 def log(msg):
     print(time.strftime('%Y-%m-%dT%H:%M:%S'), 'relé:', msg, flush=True)
+
+
+def ip_de_socio(socio):
+    """«id:usuario» → 127.A.B.C única por id (A desde 10 para no pisar 127.0.0.1)."""
+    try:
+        n = int(socio.split(':', 1)[0])
+    except ValueError:
+        n = 0
+    return f'127.{10 + (n >> 16) % 240}.{(n >> 8) & 255}.{n & 255}'
+
+
+def guardar_socios():
+    tmp = FICHERO_SOCIOS + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(socios_ip, f)
+    os.replace(tmp, FICHERO_SOCIOS)
+
+
+def vetado(token, socio):
+    try:
+        sid = socio.split(':', 1)[0]
+        with open(FICHERO_VETOS, encoding='utf-8') as f:
+            return any(l.split() == [token, sid] for l in f)
+    except OSError:
+        return False
 
 
 def destino(token):
@@ -177,12 +209,20 @@ async def atender(ws):
         log(f'{sesion.id[:8]} ({socio}, {token}) reanudada tras {fuera:.0f} s')
     else:
         dst = destino(token)
+        if vetado(token, socio):
+            log(f'{socio} rechazado en {token}: vetado por el staff')
+            await ws.send(bytes([FIN]) + b'el staff te ha vetado en esta sala')
+            await ws.close(1000, 'vetado')
+            return
         if dst is None:
             await ws.send(bytes([FIN]) + b'sala desconocida')
             await ws.close(1000, 'sin sala')
             return
         try:
-            lector, escritor = await asyncio.open_connection(*dst)
+            ip_local = ip_de_socio(socio)
+            lector, escritor = await asyncio.open_connection(*dst, local_addr=(ip_local, 0))
+            socios_ip[ip_local] = socio
+            guardar_socios()
         except OSError as e:
             await ws.send(bytes([FIN]) + f'la sala no responde: {e}'.encode())
             await ws.close(1000, 'sala caida')
@@ -236,7 +276,7 @@ async def conserje():
 async def main():
     log(f'escuchando en :{PUERTO}; reanudación hasta {REANUDAR_SEG} s')
     asyncio.create_task(conserje())
-    async with serve(atender, '0.0.0.0', PUERTO, max_size=2 ** 20, ping_interval=20, ping_timeout=20):
+    async with serve(atender, '0.0.0.0', PUERTO, max_size=TRAMA_MAX, ping_interval=20, ping_timeout=20):
         await asyncio.Future()
 
 

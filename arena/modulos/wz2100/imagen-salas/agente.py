@@ -57,7 +57,11 @@ DIR_CONTROL = os.path.join(DATOS, 'control')
 FICHERO_ESTADO = os.path.join(DIR_CONTROL, 'estado.json')
 FICHERO_ACCIONES = os.path.join(DIR_CONTROL, 'acciones.jsonl')
 FICHERO_TOKENS = '/tmp/arena/tokens'
-FICHERO_FASES = '/tmp/arena/fases'   # salaN: lobby|partida|… — el relé suelta antes las sesiones caídas en el lobby
+FICHERO_FASES = '/tmp/arena/fases'
+FICHERO_SOCIOS = '/tmp/arena/socios.json'   # ip de loopback -> «id:usuario» (lo escribe el relé)
+FICHERO_VETOS = '/tmp/arena/vetos'          # «salaN id» por línea (lo lee el relé)
+# Salas que crea un socio (no el staff): una por socio, y se cierran si nadie entra en este tiempo
+SALA_SOCIO_CADUCA_SEG = int(os.environ.get('ARENA_SALA_SOCIO_CADUCA_SEG', '900'))   # salaN: lobby|partida|… — el relé suelta antes las sesiones caídas en el lobby
 
 WZ_DATOS = os.environ.get('WZ_DATOS', '/opt/wz/share/warzone2100')
 ID_SALA = re.compile(r'^sala([1-9][0-9]?)$')
@@ -243,6 +247,11 @@ class Sala:
         self._muestra = None
         self.borrada = False
         self._vacia_desde = None
+        self.dueno = None          # «id:usuario» si la creó un socio; None = sala del staff
+        self.vetos = set()         # ids de socio vetados en esta sala
+        self.detalle = []          # [{nombre, socio, ip, clave, estado}]
+        self._anunciados = set()
+        self._creada = time.time()
         self.nombre = config.get('challenge', {}).get('name', sala_id)
         self.huecos = huecos_humanos(config)
 
@@ -324,6 +333,23 @@ class Sala:
         humanos = [p for p in estado.get('players', []) if p.get('type') == 'player' and p.get('status') != 'left']
         self.jugadores = len(humanos)
         self.nombres = [str(p.get('name', ''))[:32] for p in humanos]
+        # Quién es quién: la IP de loopback con la que conecta el relé identifica al socio
+        mapa = leer_socios()
+        detalle = []
+        for p in humanos:
+            ip = str(p.get('ip', ''))
+            socio = mapa.get(ip, '')
+            nombre = str(p.get('name', ''))[:32]
+            detalle.append({'nombre': nombre, 'socio': socio, 'ip': ip, 'clave': str(p.get('pk', '')),
+                            'estado': p.get('status') or ''})
+            clave_anuncio = (socio, nombre)
+            if socio and clave_anuncio not in self._anunciados:
+                self._anunciados.add(clave_anuncio)
+                usuario = socio.split(':', 1)[-1]
+                log(f'{self.id}: «{nombre}» es el socio {socio}')
+                if nombre != usuario:
+                    self.comando(f'chat bcast «{nombre}» es el socio {usuario} de NOBS')
+        self.detalle = detalle
 
     def comando(self, texto):
         if self.proc and self.proc.poll() is None:
@@ -394,11 +420,15 @@ class Sala:
 
     def publico(self):
         return {'id': self.id, 'nombre': self.nombre, 'preset': self.preset, 'fase': self.fase,
-                'jugadores': self.jugadores, 'huecos': self.huecos}
+                'jugadores': self.jugadores, 'huecos': self.huecos,
+                'socios': [d['socio'].split(':', 1)[-1] for d in self.detalle if d['socio']],
+                'dueno': self.dueno.split(':', 1)[-1] if self.dueno else None,
+                'contrasena': bool(self.config.get('challenge', {}).get('gamePassword'))}
 
     def privado(self):
         d = self.publico()
         d.update({'mapa': self.config.get('challenge', {}).get('map', ''), 'resumen': resumen(self.config),
+                  'detalle': self.detalle, 'vetos': sorted(self.vetos), 'dueno_completo': self.dueno,
                   'nombres': self.nombres, 'puerto': self.puerto, 'pid': self.proc.pid if self.proc and self.proc.poll() is None else None,
                   'arranques': self.arranques, 'cpu': round(self.cpu, 1), 'rss_mb': round(self.rss_mb, 1),
                   'desde': int(self.ultimo_arranque)})
@@ -408,9 +438,20 @@ class Sala:
 # -- estado persistente --
 def guardar_estado():
     with cerrojo:
-        datos = {'salas': [{'id': s.id, 'origen': s.preset, 'config': s.config} for s in salas.values()]}
+        datos = {'salas': [{'id': s.id, 'origen': s.preset, 'config': s.config, 'dueno': s.dueno,
+                            'vetos': sorted(s.vetos)} for s in salas.values()]}
+        vetos = ''.join(f'{s.id} {v}\n' for s in salas.values() for v in sorted(s.vetos))
     escribir_atomico(FICHERO_ESTADO, json.dumps(datos, indent=1))
+    escribir_atomico(FICHERO_VETOS, vetos)
     escribir_tokens()
+
+
+def leer_socios():
+    try:
+        with open(FICHERO_SOCIOS, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
 
 
 def escribir_tokens():
@@ -419,16 +460,19 @@ def escribir_tokens():
     escribir_atomico(FICHERO_TOKENS, lineas)
 
 
-def crear_sala(config, origen, sala_id=None):
+def crear_sala(config, origen, sala_id=None, dueno=None):
     with cerrojo:
         if len(salas) >= MAX_SALAS:
             raise ValueError(f'tope de salas alcanzado ({MAX_SALAS})')
+        if dueno and any(s.dueno == dueno for s in salas.values()):
+            raise ValueError('ya tienes una sala abierta: ciérrala antes de crear otra')
         if sala_id is None:
             libres = [f'sala{n}' for n in range(1, MAX_SALAS + 1) if f'sala{n}' not in salas]
             sala_id = libres[0]
         if not ID_SALA.match(sala_id) or sala_id in salas:
             raise ValueError('id de sala no válido o ya en uso')
         sala = Sala(sala_id, config, origen)
+        sala.dueno = dueno
         salas[sala_id] = sala
     guardar_estado()
     sala.arrancar()
@@ -450,6 +494,40 @@ def renombrar_sala(sala_id, nombre):
         sala.espera = 2.0
         return 'aplicado'
     return 'al reiniciar'
+
+
+def _jugador(sala, socio_id):
+    for d in sala.detalle:
+        if d['socio'].split(':', 1)[0] == str(socio_id):
+            return d
+    return None
+
+
+def expulsar(sala_id, socio_id):
+    """Fuera de la sala ya (ban ip con la IP de loopback del socio) y vetado hasta que se readmita."""
+    with cerrojo:
+        sala = salas[sala_id]
+        sala.vetos.add(str(socio_id))
+    guardar_estado()
+    j = _jugador(sala, socio_id)
+    if j and j['ip']:
+        sala.comando(f'ban ip {j["ip"]}')
+    return bool(j)
+
+
+def readmitir(sala_id, socio_id):
+    with cerrojo:
+        sala = salas[sala_id]
+        sala.vetos.discard(str(socio_id))
+    guardar_estado()
+
+
+def silenciar(sala_id, socio_id, si=True):
+    sala = salas[sala_id]
+    j = _jugador(sala, socio_id)
+    if not j or not j['clave']:
+        raise ValueError('ese socio no está en la sala')
+    sala.comando(f'set chat {"quickchat" if si else "allow"} {j["clave"]}')
 
 
 def guardar_preset(slug, config):
@@ -506,6 +584,8 @@ def cargar_estado():
         try:
             if 'config' in d:
                 salas[d['id']] = Sala(d['id'], d['config'], d.get('origen', 'personalizada'))
+                salas[d['id']].dueno = d.get('dueno')
+                salas[d['id']].vetos = set(str(v) for v in d.get('vetos', []))
             else:  # estado de antes de las salas a medida: solo el nombre del preset
                 salas[d['id']] = Sala(d['id'], leer_preset(d['preset']), d['preset'])
         except (ValueError, KeyError) as e:
@@ -532,6 +612,17 @@ def bucle_vigilancia():
                 s.medir()
             except Exception as e:  # una sala rota no tumba al agente
                 log(f'{s.id}: error vigilando: {e}')
+        for s in actuales:
+            if s.dueno and s.fase == 'lobby' and s.jugadores == 0:
+                if time.time() - max(s._creada, getattr(s, '_ocupada', 0)) > SALA_SOCIO_CADUCA_SEG:
+                    log(f'{s.id}: sala del socio {s.dueno} vacía {SALA_SOCIO_CADUCA_SEG} s; se cierra')
+                    auditar('agente', 'caducar', {'sala': s.id, 'dueno': s.dueno})
+                    try:
+                        borrar_sala(s.id)
+                    except KeyError:
+                        pass
+            elif s.jugadores > 0:
+                s._ocupada = time.time()
         fases = ''.join(f'{s.id}: {s.fase}\n' for s in actuales)
         if fases != fases_escritas:
             escribir_atomico(FICHERO_FASES, fases)
@@ -599,6 +690,19 @@ class Api(BaseHTTPRequestHandler):
             return False
         return True
 
+    def _socio(self):
+        """Rutas públicas (las que el web del módulo deja pasar): el socio lo pone el nginx de UNIT3D en
+        X-Arena-User. Para escribir se exige además X-Requested-With (corta CSRF: un formulario de otra
+        web no puede mandar cabeceras propias ni JSON)."""
+        socio = (self.headers.get('X-Arena-User') or '').strip()
+        if not re.match(r'^\d+:.{1,64}$', socio):
+            self._json(401, {'error': 'sin identidad de socio'})
+            return None
+        if self.command != 'GET' and self.headers.get('X-Requested-With') != 'arena':
+            self._json(403, {'error': 'petición no válida'})
+            return None
+        return socio
+
     def _actor(self):
         return (self.headers.get('X-Arena-Actor') or 'desconocido')[:64]
 
@@ -612,11 +716,17 @@ class Api(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         partes = [p for p in url.path.split('/') if p]
         if partes == ['publico']:
+            # Si viene el socio (X-Arena-User), se le marca en qué salas está vetado
+            socio_id = (self.headers.get('X-Arena-User') or '').split(':', 1)[0]
             with cerrojo:
-                self._json(200, {'salas': [s.publico() for s in salas.values()]})
+                lista = [dict(s.publico(), vetado=socio_id in s.vetos) for s in salas.values()]
+            self._json(200, {'salas': lista})
             return
         if partes == ['salud']:
             self._json(200, {'ok': True})
+            return
+        if partes == ['publico', 'presets']:
+            self._json(200, {'presets': [{k: p[k] for k in ('slug', 'nombre', 'mapa', 'humanos', 'ias')} for p in listar_presets()]})
             return
         if not self._autorizado():
             return
@@ -647,9 +757,28 @@ class Api(BaseHTTPRequestHandler):
             self._json(404, {'error': 'ruta desconocida'})
 
     def do_POST(self):
+        partes = [p for p in urlparse(self.path).path.split('/') if p]
+        if partes == ['publico', 'salas']:
+            socio = self._socio()
+            if not socio:
+                return
+            try:
+                cuerpo = self._cuerpo()
+                origen = str(cuerpo.get('preset', ''))
+                config = leer_preset(origen)
+                nombre = _texto(cuerpo.get('nombre'), 60) or f'Sala de {socio.split(":", 1)[1]}'
+                config.setdefault('challenge', {})['name'] = nombre
+                contrasena = _texto(cuerpo.get('contrasena'), 30)
+                if contrasena:
+                    config['challenge']['gamePassword'] = contrasena
+                sala = crear_sala(config, origen, dueno=socio)
+                auditar(socio, 'crear-sala-socio', {'sala': sala.id, 'origen': origen, 'nombre': nombre})
+                self._json(201, sala.publico())
+            except (ValueError, json.JSONDecodeError) as e:
+                self._json(400, {'error': str(e)})
+            return
         if not self._autorizado():
             return
-        partes = [p for p in urlparse(self.path).path.split('/') if p]
         try:
             cuerpo = self._cuerpo()
             if partes == ['salas']:
@@ -671,6 +800,21 @@ class Api(BaseHTTPRequestHandler):
                 cuando = renombrar_sala(partes[1], cuerpo.get('nombre'))
                 auditar(self._actor(), 'renombrar', {'sala': partes[1], 'nombre': salas[partes[1]].nombre, 'cuando': cuando})
                 self._json(200, {'ok': True, 'cuando': cuando})
+            elif len(partes) == 3 and partes[0] == 'salas' and partes[2] in ('expulsar', 'readmitir', 'silenciar', 'desilenciar'):
+                socio_id = str(cuerpo.get('socio', ''))
+                if not socio_id.isdigit():
+                    raise ValueError('falta el id del socio')
+                if partes[2] == 'expulsar':
+                    estaba = expulsar(partes[1], socio_id)
+                    resultado = {'ok': True, 'estaba': estaba}
+                elif partes[2] == 'readmitir':
+                    readmitir(partes[1], socio_id)
+                    resultado = {'ok': True}
+                else:
+                    silenciar(partes[1], socio_id, partes[2] == 'silenciar')
+                    resultado = {'ok': True}
+                auditar(self._actor(), partes[2], {'sala': partes[1], 'socio': socio_id})
+                self._json(200, resultado)
             elif partes == ['presets']:
                 slug = str(cuerpo.get('slug', ''))
                 guardar_preset(slug, construir_config(cuerpo.get('plan') or {}))
@@ -703,9 +847,21 @@ class Api(BaseHTTPRequestHandler):
             self._json(400, {'error': str(e)})
 
     def do_DELETE(self):
+        partes = [p for p in urlparse(self.path).path.split('/') if p]
+        if len(partes) == 3 and partes[:2] == ['publico', 'salas']:
+            socio = self._socio()
+            if not socio:
+                return
+            sala = salas.get(partes[2])
+            if sala is None or sala.dueno != socio:
+                self._json(404, {'error': 'no tienes esa sala'})
+                return
+            borrar_sala(partes[2])
+            auditar(socio, 'cerrar-sala-socio', {'sala': partes[2]})
+            self._json(200, {'ok': True})
+            return
         if not self._autorizado():
             return
-        partes = [p for p in urlparse(self.path).path.split('/') if p]
         if len(partes) == 2 and partes[0] == 'salas':
             try:
                 borrar_sala(partes[1])

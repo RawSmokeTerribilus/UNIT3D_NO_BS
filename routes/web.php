@@ -996,6 +996,8 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
                     ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
                 Route::post('/{slug}/salas/{sala}/nombre', [App\Http\Controllers\Staff\ArenaController::class, 'renombrar'])->name('renombrar')
                     ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::post('/{slug}/salas/{sala}/moderar/{accion}', [App\Http\Controllers\Staff\ArenaController::class, 'moderar'])->name('moderar')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}', 'accion' => 'expulsar|readmitir|silenciar|desilenciar']);
                 Route::middleware('admin')->group(function (): void {
                     Route::post('/{slug}/salas', [App\Http\Controllers\Staff\ArenaController::class, 'crear'])->name('crear')
                         ->where('slug', '[a-z0-9][a-z0-9-]*');

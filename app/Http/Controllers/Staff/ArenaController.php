@@ -147,6 +147,26 @@ class ArenaController extends Controller
         return $this->volver($request, $slug, 'renombrar '.$sala, $r, 'Sala '.$sala.' renombrada; el nombre nuevo se ve '.$cuando.'.');
     }
 
+    /**
+     * Moderación dentro de una sala: expulsar (fuera ya y vetado hasta readmitir), readmitir,
+     * silenciar/desilenciar el chat libre. El agente identifica al socio por la IP de loopback
+     * con la que el relé lo conecta al host.
+     */
+    public function moderar(Request $request, string $slug, string $sala, string $accion): RedirectResponse
+    {
+        abort_unless(\in_array($accion, ['expulsar', 'readmitir', 'silenciar', 'desilenciar'], true), 404);
+        $datos = $request->validate(['socio' => ['required', 'integer', 'min:1']]);
+        $r = $this->modulo($slug)->llamar('POST', '/salas/'.$sala.'/'.$accion, ['socio' => (string) $datos['socio']], $this->actor($request));
+        $hecho = [
+            'expulsar'    => 'Socio expulsado de '.$sala.' y vetado hasta que lo readmitas.',
+            'readmitir'   => 'Socio readmitido en '.$sala.'.',
+            'silenciar'   => 'Socio silenciado en '.$sala.' (solo chat rápido).',
+            'desilenciar' => 'Socio con chat libre otra vez en '.$sala.'.',
+        ][$accion];
+
+        return $this->volver($request, $slug, $accion.' '.$sala, $r, $hecho);
+    }
+
     public function borrarPreset(Request $request, string $slug, string $preset): RedirectResponse
     {
         $r = $this->modulo($slug)->llamar('DELETE', '/presets/'.$preset, [], $this->actor($request));

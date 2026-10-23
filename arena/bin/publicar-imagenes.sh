@@ -89,6 +89,13 @@ docker run -d --name "$RED-salas" --network "$RED" --network-alias arena-wz2100-
     -e ARENA_CONTROL_TOKEN=prueba-local -e ARENA_SALAS_INICIALES=contra-ia "$IMG_SALAS" >/dev/null
 docker run -d --name "$RED-web" --network "$RED" "$IMG_WEB" >/dev/null
 CURL=(docker run --rm --network "$RED" curlimages/curl:8.11.1 -s --max-time 5)
+sleep 3
+for c in "$RED-salas" "$RED-web"; do
+    if [[ $(docker inspect -f '{{.State.Running}}' "$c" 2>/dev/null) != true ]]; then
+        docker logs "$c" 2>&1 | tail -20 >&2
+        fallo "el contenedor $c no sigue en marcha (log arriba)"
+    fi
+done
 for _ in $(seq 1 30); do
     "${CURL[@]}" -o /dev/null http://arena-wz2100-salas:8081/salud && break
     sleep 1

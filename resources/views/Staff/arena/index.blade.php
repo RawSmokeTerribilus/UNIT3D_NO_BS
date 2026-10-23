@@ -93,9 +93,36 @@
                                         <td>{{ $s['fase'] }}</td>
                                         <td>
                                             {{ $s['jugadores'] }}/{{ $s['huecos'] }}
-                                            @if (! empty($s['nombres']))
-                                                <br><small>{{ implode(', ', $s['nombres']) }}</small>
+                                            @if (! empty($s['dueno']))
+                                                <br><small>sala de {{ $s['dueno'] }}</small>
                                             @endif
+                                            @foreach ($s['detalle'] ?? [] as $j)
+                                                @php($sid = $j['socio'] !== '' ? explode(':', $j['socio'], 2)[0] : null)
+                                                <div class="arena-st__jugador">
+                                                    <span>{{ $j['nombre'] }}
+                                                        <small>= {{ $j['socio'] !== '' ? explode(':', $j['socio'], 2)[1] : '¿socio?' }}</small></span>
+                                                    @if ($sid)
+                                                        <form method="POST" action="{{ route('staff.arena.moderar', ['slug' => $slug, 'sala' => $s['id'], 'accion' => 'silenciar']) }}">
+                                                            @csrf <input type="hidden" name="socio" value="{{ $sid }}">
+                                                            <button type="submit" class="form__button form__button--text" title="Solo podrá usar el chat rápido">Silenciar</button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('staff.arena.moderar', ['slug' => $slug, 'sala' => $s['id'], 'accion' => 'expulsar']) }}"
+                                                            data-confirm="¿Expulsar a {{ explode(':', $j['socio'], 2)[1] }} de {{ $s['id'] }}? No podrá volver a esta sala hasta que lo readmitas.">
+                                                            @csrf <input type="hidden" name="socio" value="{{ $sid }}">
+                                                            <button type="submit" class="form__button form__button--text">Expulsar</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                            @foreach ($s['vetos'] ?? [] as $v)
+                                                <div class="arena-st__jugador">
+                                                    <small>vetado: socio #{{ $v }}</small>
+                                                    <form method="POST" action="{{ route('staff.arena.moderar', ['slug' => $slug, 'sala' => $s['id'], 'accion' => 'readmitir']) }}">
+                                                        @csrf <input type="hidden" name="socio" value="{{ $v }}">
+                                                        <button type="submit" class="form__button form__button--text">Readmitir</button>
+                                                    </form>
+                                                </div>
+                                            @endforeach
                                         </td>
                                         <td>{{ $s['cpu'] }} %</td>
                                         <td>{{ $s['rss_mb'] }} MB</td>
@@ -268,6 +295,8 @@
         .arena-st__aviso .form__text { min-width: 180px; }
         .arena-st__admin { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; align-items: center; }
         .arena-st__crear { display: flex; gap: 6px; align-items: center; }
+        .arena-st__jugador { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 4px; font-size: 13px; }
+        .arena-st__jugador form { margin: 0; }
         .arena-st__renombrar { display: flex; gap: 4px; margin-top: 4px; }
         .arena-st__renombrar .form__text { max-width: 180px; padding: 2px 6px; font-size: 12px; }
         .arena-st__sub { margin: 22px 0 10px; font-size: 15px; }
