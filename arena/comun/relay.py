@@ -423,11 +423,13 @@ async def conserje():
                 await sesion.cerrar(f'sin volver en {plazo} s ({fase.get(sesion.token, "¿?")})')
 
 
+# subprotocols=['binary']: los sockets de Emscripten (SOCKFS) piden ese subprotocolo y el navegador
+# corta la conexión si el servidor no lo acepta. Quien no pide ninguno (ArenaSocket de WZ) entra igual.
 async def main():
     log(f'escuchando en :{PUERTO}; reanudación hasta {REANUDAR_SEG} s; límites: {MAX_SESIONES_SOCIO} por socio, '
         f'{NUEVAS_POR_MINUTO} nuevas/min, {MAX_SESIONES_TOTAL} en total')
     asyncio.create_task(conserje())
-    async with serve(atender, '0.0.0.0', PUERTO, max_size=TRAMA_MAX, ping_interval=20, ping_timeout=20):
+    async with serve(atender, '0.0.0.0', PUERTO, max_size=TRAMA_MAX, subprotocols=['binary'], ping_interval=20, ping_timeout=20):
         await asyncio.Future()
 
 

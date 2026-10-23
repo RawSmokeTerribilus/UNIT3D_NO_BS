@@ -1,0 +1,18 @@
+diff --git a/code/qcommon/net_ip.c b/code/qcommon/net_ip.c
+index 294e4c0..fe4bf37 100644
+--- a/code/qcommon/net_ip.c
++++ b/code/qcommon/net_ip.c
+@@ -838,7 +838,13 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err ) {
+ 		return newsocket;
+ 	}
+ 	// make it non-blocking
++#ifdef __EMSCRIPTEN__
++	// Arena NOBS: los sockets de SOCKFS (UDP sobre WebSocket) ya son no bloqueantes y no
++	// admiten FIONBIO (EINVAL); sin esto el navegador no abre ningún socket.
++	if( 0 ) {
++#else
+ 	if( ioctlsocket( newsocket, FIONBIO, &_true ) == SOCKET_ERROR ) {
++#endif
+ 		Com_Printf( "WARNING: NET_IPSocket: ioctl FIONBIO: %s\n", NET_ErrorString() );
+ 		*err = socketError;
+ 		closesocket(newsocket);
