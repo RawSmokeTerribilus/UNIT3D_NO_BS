@@ -42,7 +42,12 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
   - Staff: ver, reiniciar una sala colgada, mandar un aviso al chat de la sala.
   - Admin: crear desde un preset, cerrar salas, apagar todo.
 - **Despliegue:** `make install` / `make up` llaman a `bin/arena-preparar.sh` y levantan la Arena con las imágenes de Docker Hub. En el host no se compila nada.
-- **Límite conocido:** una pestaña oculta deja de atender la red y el host la expulsa por lag a los 60 s. El lobby lo avisa.
+- **Límites conocidos** (el lobby los avisa):
+  - Una pestaña oculta deja de atender la red y el host la expulsa por lag a los 60 s.
+  - En el móvil, salir del navegador corta la conexión al momento.
+  - WZ 4.7.0 no deja volver a entrar en una partida empezada.
+  - En pantallas pequeñas (móvil en horizontal) la barra inferior no cabe: WZ pide al menos 1024×768.
+- **Al acabar una partida** (también en un duelo en el que el rival abandona), el host espera `WZ_ARENA_QUIT_DELAY` segundos (20 por defecto; parche en `src/wzapi.cpp`) antes de salir. Así los clientes ven su resultado en vez de «host has left the game». Luego el agente rearranca la sala.
 
 ## Publicar una versión nueva del módulo
 ```

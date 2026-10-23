@@ -304,7 +304,7 @@ services:
             - arena
 
     arena-wz2100-web:
-        image: rawsmoke/nobs-arena-wz2100-web:${ARENA_WZ2100_VERSION:-4.7.0-arena1}
+        image: rawsmoke/nobs-arena-wz2100-web:${ARENA_WZ2100_VERSION:-4.7.0-arena2}
         container_name: unit3d-staging-arena-wz2100-web
         restart: unless-stopped
         mem_limit: 256m
@@ -313,7 +313,7 @@ services:
             - arena
 
     arena-wz2100-salas:
-        image: rawsmoke/nobs-arena-wz2100-salas:${ARENA_WZ2100_VERSION:-4.7.0-arena1}
+        image: rawsmoke/nobs-arena-wz2100-salas:${ARENA_WZ2100_VERSION:-4.7.0-arena2}
         container_name: unit3d-staging-arena-wz2100-salas
         restart: unless-stopped
         environment:

@@ -130,3 +130,41 @@ diff -ruN a/src/frontend.cpp b/src/frontend.cpp
  	addTextButton(FRONTEND_REPLAY,   FRONTEND_POS7X, FRONTEND_POS7Y, _("View Replay"), WBUT_TXTCENTRE);
  
  	addMultiBut(psWScreen, FRONTEND_BOTFORM, FRONTEND_QUIT, 10, 10, 30, 29, P_("menu", "Return"), IMAGE_RETURN, IMAGE_RETURN_HI, IMAGE_RETURN_HI);
+diff -ruN a/src/wzapi.cpp b/src/wzapi.cpp
+--- a/src/wzapi.cpp	2026-10-23 19:07:24.274325706 +0200
++++ b/src/wzapi.cpp	2026-10-23 19:07:24.278325767 +0200
+@@ -85,6 +85,9 @@
+ 
+ #include <list>
+ #include <cmath>
++#include <chrono>
++#include <cstdlib>
++#include <thread>
+ 
+ /// Assert for scripts that give useful backtraces and other info.
+ #if defined(SCRIPT_ASSERT)
+@@ -2581,7 +2584,23 @@
+ 	else if (headlessGameMode())
+ 	{
+ 		debug(LOG_WARNING, "Headless game completed successfully!");
+-		wzQuit(0); // Trigger a *graceful* shutdown
++		// Arena NOBS: a dedicated host that quits at once makes the remaining clients see "host has left
++		// the game" instead of their result screen. Keep running for WZ_ARENA_QUIT_DELAY seconds
++		// (default 20) so the game-over reaches everyone, then shut down gracefully.
++		const char *delayEnv = std::getenv("WZ_ARENA_QUIT_DELAY");
++		const int delaySeconds = (delayEnv != nullptr) ? std::max(0, std::atoi(delayEnv)) : 20;
++		if (delaySeconds == 0)
++		{
++			wzQuit(0); // Trigger a *graceful* shutdown
++		}
++		else
++		{
++			debug(LOG_INFO, "Quitting in %d seconds", delaySeconds);
++			std::thread([delaySeconds]() {
++				std::this_thread::sleep_for(std::chrono::seconds(delaySeconds));
++				wzAsyncExecOnMainThread([]() { wzQuit(0); });
++			}).detach();
++		}
+ 	}
+ 	return true;
+ }
