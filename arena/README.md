@@ -57,7 +57,11 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
   - Contenedores de la Arena con `cap_drop: ALL` (nginx solo recupera lo que necesita su master), `no-new-privileges` y raíz de solo lectura.
   - Tramas del relé de 256 KB como máximo.
   - `limit_req` de 10 r/s (ráfaga de 40) por IP en `/arena-app/`.
-  - Los límites de conexiones (simultáneas, nuevas, totales) están pendientes de decidir.
+  - Límites de conexiones (operador, 24-10; generosos porque los socios recargarán y empezarán de cero):
+    - relé: 6 sesiones a la vez por socio (`ARENA_MAX_SESIONES_SOCIO`), 10 nuevas por minuto (`ARENA_NUEVAS_POR_MINUTO`) y 80 en total entre todos los socios (`ARENA_MAX_SESIONES_TOTAL`; 8 salas × 10 jugadores).
+    - Si un socio vuelve a entrar en una sala donde tiene una sesión huérfana (recargó la pestaña), la vieja se cierra: no ocupa hueco ni cupo.
+    - nginx: 12 WebSockets abiertos a la vez por IP (`limit_conn`, solo cuentan las peticiones con Upgrade): 6 por socio × 2 socios en la misma casa.
+    - El socio rechazado hoy ve el «Unable to join» genérico (el motivo solo sale en la consola); se arreglará con el shell propio.
 - **Partida sin humanos:** si en plena partida no queda ningún humano conectado durante `ARENA_VACIA_REINICIO_SEG` (20 s), la sala se reinicia sola (si no, las IA seguirían jugando solas y nadie podría entrar). Quien está fuera con la sesión reanudable sigue contando como conectado.
 - **Al acabar una partida** (también en un duelo en el que el rival abandona), el host espera `WZ_ARENA_QUIT_DELAY` segundos (20 por defecto; parche en `src/wzapi.cpp`) antes de salir. Así los clientes ven su resultado en vez de «host has left the game». Luego el agente rearranca la sala.
 

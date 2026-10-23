@@ -45,11 +45,18 @@ FICHERO_VETOS = os.environ.get('ARENA_FICHERO_VETOS', '/tmp/arena/vetos')   # «
 TRAMA_MAX = int(os.environ.get('ARENA_TRAMA_MAX_KB', '256')) * 1024
 socios_ip = {}   # ip -> «id:usuario»
 TOPE_PENDIENTE = int(os.environ.get('ARENA_TOPE_PENDIENTE_MB', '16')) * 1024 * 1024
+# Límites (operador, 24-10): generosos, porque los socios la cagarán y volverán a empezar.
+#   por socio, a la vez (cuentan también las que esperan reanudación) y nuevas por minuto;
+#   total = todas las sesiones de todos los socios a la vez (8 salas × 10 jugadores máx.)
+MAX_SESIONES_SOCIO = int(os.environ.get('ARENA_MAX_SESIONES_SOCIO', '6'))
+NUEVAS_POR_MINUTO = int(os.environ.get('ARENA_NUEVAS_POR_MINUTO', '10'))
+MAX_SESIONES_TOTAL = int(os.environ.get('ARENA_MAX_SESIONES_TOTAL', '80'))
 
 DATOS, ACK, HOLA, CIERRE, FIN = 1, 2, 3, 4, 5
 ACK_CADA = 32
 
 sesiones = {}
+nuevas_recientes = {}   # socio -> deque de instantes de sesiones nuevas (último minuto)
 
 
 def log(msg):
@@ -79,6 +86,30 @@ def vetado(token, socio):
             return any(l.split() == [token, sid] for l in f)
     except OSError:
         return False
+
+
+def limite_superado(socio):
+    """Motivo para rechazar una sesión nueva, o None. Antes de contar, una sesión del mismo socio
+    en la misma sala que espera reanudación se da por perdida (recargó la pestaña: el juego nuevo
+    no puede retomarla), y así no ocupa ni hueco en el host ni cupo del socio."""
+    ahora = time.monotonic()
+    marcas = nuevas_recientes.setdefault(socio, deque())
+    while marcas and ahora - marcas[0] > 60:
+        marcas.popleft()
+    if len(marcas) >= NUEVAS_POR_MINUTO:
+        return f'demasiadas conexiones nuevas: espera un minuto (máx. {NUEVAS_POR_MINUTO} por minuto)'
+    if sum(1 for s in sesiones.values() if s.socio == socio) >= MAX_SESIONES_SOCIO:
+        return f'tienes demasiadas partidas abiertas (máx. {MAX_SESIONES_SOCIO}): cierra alguna pestaña'
+    if len(sesiones) >= MAX_SESIONES_TOTAL:
+        return 'la Arena está llena ahora mismo: prueba en un rato'
+    marcas.append(ahora)
+    return None
+
+
+async def soltar_huerfanas(socio, token):
+    for s in list(sesiones.values()):
+        if s.socio == socio and s.token == token and s.ws is None:
+            await s.cerrar('el socio volvió a entrar desde cero')
 
 
 def destino(token):
@@ -218,6 +249,13 @@ async def atender(ws):
             await ws.send(bytes([FIN]) + b'sala desconocida')
             await ws.close(1000, 'sin sala')
             return
+        await soltar_huerfanas(socio, token)
+        motivo = limite_superado(socio)
+        if motivo:
+            log(f'{socio} rechazado en {token}: {motivo}')
+            await ws.send(bytes([FIN]) + motivo.encode())
+            await ws.close(1000, 'limite')
+            return
         try:
             ip_local = ip_de_socio(socio)
             lector, escritor = await asyncio.open_connection(*dst, local_addr=(ip_local, 0))
@@ -274,7 +312,8 @@ async def conserje():
 
 
 async def main():
-    log(f'escuchando en :{PUERTO}; reanudación hasta {REANUDAR_SEG} s')
+    log(f'escuchando en :{PUERTO}; reanudación hasta {REANUDAR_SEG} s; límites: {MAX_SESIONES_SOCIO} por socio, '
+        f'{NUEVAS_POR_MINUTO} nuevas/min, {MAX_SESIONES_TOTAL} en total')
     asyncio.create_task(conserje())
     async with serve(atender, '0.0.0.0', PUERTO, max_size=TRAMA_MAX, ping_interval=20, ping_timeout=20):
         await asyncio.Future()
