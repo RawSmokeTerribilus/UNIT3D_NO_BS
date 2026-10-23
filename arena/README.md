@@ -53,6 +53,15 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
 - **Identidad dentro de la sala:** el relé conecta a cada socio con el host desde su propia IP de loopback (`127.10+…`, sacada de su id) y deja el mapa en `/tmp/arena/socios.json`. El agente sabe qué socio es cada jugador (aunque se cambie el nombre en el lobby), lo anuncia en el chat de la sala («"X" es el socio Y de NOBS») y lo apunta en el log.
 - **Moderación (Staff → Arena):** silenciar (solo chat rápido), expulsar (fuera ya con `ban ip` + veto en esa sala hasta readmitir: el relé rechaza al socio) y readmitir. El lobby marca «Vetado en esta sala».
 - **Salas de socio:** cualquier socio crea una sala desde el lobby (preset + nombre + contraseña opcional). Una por socio, la cierra él o se cierra sola si nadie entra en 15 min (`ARENA_SALA_SOCIO_CADUCA_SEG`). Rutas públicas del agente (`/publico/presets`, `/publico/salas`) solo a través del web del módulo; exigen `X-Arena-User` (la pone el nginx de UNIT3D) y `X-Requested-With: arena` para escribir (corta CSRF).
+- **Shell propio del cliente (sin recompilar):** `imagen-web/shell/rehacer_shell.py` rehace al armar la imagen el `index.html` del build.
+  - Lo que hace: scripts inline → `arena-shell-N.js`; `on*=""` → `arena-eventos.js`; Bootstrap 5.3.2 servido desde `vendor/` (mismo SRI que cdnjs); textos en castellano; enlace GPL al parche; aviso «Fuera de la sala» con el motivo de los FIN del relé (`window.arenaFin`).
+  - Sin PWA ni service worker: `service-worker.js` es un SW que se da de baja (para socios con el oficial registrado).
+  - Regenera los `.gz`, que `gzip_static` serviría viejos.
+- **CSP del módulo** (`web.conf`):
+  - `script-src 'self' 'wasm-unsafe-eval'`;
+  - `connect-src` SOLO a `https://$host/arena-app/wz2100/` y a su `/ws`: el JS del iframe no llega a `/api` de NOBS ni a terceros;
+  - `style-src-attr 'unsafe-inline'` para los `style=""` del shell.
+  - Riesgo residual: el iframe es del mismo origen y puede tocar `window.parent`.
 - **Seguridad:** revisión en el vault (`Infrastructure/Arena/revision-seguridad-2026-10-23.md`).
   - Contenedores de la Arena con `cap_drop: ALL` (nginx solo recupera lo que necesita su master), `no-new-privileges` y raíz de solo lectura.
   - Tramas del relé de 256 KB como máximo.

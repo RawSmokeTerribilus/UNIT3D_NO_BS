@@ -164,7 +164,7 @@ diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
 +          if (this.onopen) { this.onopen({}); }
 +        }
 +      } else if (type === END) {
-+        console.log('Arena: relay ended the session: ' + new TextDecoder().decode(f.subarray(1)));
++        var arenaMotivo = new TextDecoder().decode(f.subarray(1)); console.log('Arena: relay ended the session: ' + arenaMotivo); if (window.arenaFin) { window.arenaFin(arenaMotivo); }
 +        this._finish();
 +      }
 +    };
