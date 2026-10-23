@@ -17,7 +17,10 @@
 
 @section('breadcrumbs')
     <li class="breadcrumb">
-        <a href="{{ route('arena.index') }}" class="breadcrumb__link">Arena</a>
+        <a href="{{ route('gaming.index') }}" class="breadcrumb__link">Arcade</a>
+    </li>
+    <li class="breadcrumb">
+        <a href="{{ route('arena.index') }}" class="breadcrumb__link">Multijugador</a>
     </li>
     <li class="breadcrumb--active">{{ $modulo['nombre'] }}</li>
 @endsection

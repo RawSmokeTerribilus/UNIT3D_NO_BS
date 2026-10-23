@@ -17,7 +17,10 @@
 
 @section('breadcrumbs')
     <li class="breadcrumb">
-        <a href="{{ route('retroarch.index') }}" class="breadcrumb__link">RetroArch</a>
+        <a href="{{ route('gaming.index') }}" class="breadcrumb__link">Arcade</a>
+    </li>
+    <li class="breadcrumb">
+        <a href="{{ route('retroarch.index') }}" class="breadcrumb__link">Consolas</a>
     </li>
     <li class="breadcrumb--active">{{ $meta['label'] }}</li>
 @endsection

@@ -12,7 +12,7 @@
 @extends('layout.with-main')
 
 @section('title')
-    <title>Arcade RetroArch — {{ config('other.title') }}</title>
+    <title>Consolas — Arcade — {{ config('other.title') }}</title>
 @endsection
 
 @section('meta')
@@ -20,17 +20,21 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb--active">RetroArch</li>
+    <li class="breadcrumb">
+        <a href="{{ route('gaming.index') }}" class="breadcrumb__link">Arcade</a>
+    </li>
+    <li class="breadcrumb--active">Consolas</li>
 @endsection
 
 @section('page', 'page__retroarch')
 
 @section('main')
-    <x-escena id="pista" titulo="La pista" :datos="fn () => App\Services\EscenasDatos::pista($systems)" />
+    @include('gaming.partials.arcade-estilos')
+    @include('gaming.partials.puerta', ['puerta' => 'consolas', 'nombre' => 'Consolas clásicas', 'cabecera' => true])
     <section class="panelV2">
         <h2 class="panel__heading">
             <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>
-            Arcade RetroArch — Selecciona sistema
+            Consolas
         </h2>
         <div class="panel__body">
             <p class="ra-intro">

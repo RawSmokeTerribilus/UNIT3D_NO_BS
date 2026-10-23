@@ -12,7 +12,7 @@
 @extends('layout.with-main')
 
 @section('title')
-    <title>Arcade — {{ config('other.title') }}</title>
+    <title>Aventuras gráficas — Arcade — {{ config('other.title') }}</title>
 @endsection
 
 @section('meta')
@@ -20,19 +20,21 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb--active">
-        Arcade
+    <li class="breadcrumb">
+        <a href="{{ route('gaming.index') }}" class="breadcrumb__link">Arcade</a>
     </li>
+    <li class="breadcrumb--active">Aventuras gráficas</li>
 @endsection
 
 @section('page', 'page__gaming')
 
 @section('main')
-    <x-escena id="scumm" titulo="El SCUMM Bar" :datos="fn () => App\Services\EscenasDatos::scumm($juegos)" />
+    @include('gaming.partials.arcade-estilos')
+    @include('gaming.partials.puerta', ['puerta' => 'aventuras', 'nombre' => 'Aventuras gráficas', 'cabecera' => true])
     <section class="panelV2">
         <h2 class="panel__heading">
-            <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>
-            Retro Arcade
+            <i class="{{ config('other.font-awesome') }} fa-skull-crossbones"></i>
+            Aventuras gráficas
         </h2>
         <div class="panel__body">
             <p class="gaming-intro">
@@ -80,16 +82,6 @@
                 al guardar dentro del juego.
             </div>
 
-            <a class="gaming-banner"
-               href="/retroarch"
-               target="_blank"
-               rel="noopener noreferrer">
-                <img
-                    src="/img/console-retroarch.png"
-                    alt="RetroArch — Catálogo de juegos retro en el navegador"
-                    class="gaming-banner__img"
-                />
-            </a>
         </div>
     </section>
 

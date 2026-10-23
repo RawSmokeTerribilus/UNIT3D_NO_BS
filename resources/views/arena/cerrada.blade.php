@@ -16,7 +16,10 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb--active">Arena</li>
+    <li class="breadcrumb">
+        <a href="{{ route('gaming.index') }}" class="breadcrumb__link">Arcade</a>
+    </li>
+    <li class="breadcrumb--active">Multijugador</li>
 @endsection
 
 @section('page', 'page__arena')

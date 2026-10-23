@@ -472,6 +472,8 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
         // Applying it to the index breaks bfcache and adds ~10 s to every navigation.
         Route::prefix('gaming')->name('gaming.')->group(function (): void {
             Route::get('/', [App\Http\Controllers\GamingController::class, 'index'])->name('index');
+            // Antes de /{gameId}: «aventuras» no es un juego, es el catálogo de ScummVM
+            Route::get('/aventuras', [App\Http\Controllers\GamingController::class, 'aventuras'])->name('aventuras');
             Route::get('/{gameId}', [App\Http\Controllers\GamingController::class, 'show'])->name('show')->middleware('gaming.isolation')->where('gameId', '[a-zA-Z0-9\-]+');
         });
 

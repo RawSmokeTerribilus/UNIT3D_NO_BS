@@ -20,16 +20,21 @@
 @endsection
 
 @section('breadcrumbs')
-    <li class="breadcrumb--active">Arena</li>
+    <li class="breadcrumb">
+        <a href="{{ route('gaming.index') }}" class="breadcrumb__link">Arcade</a>
+    </li>
+    <li class="breadcrumb--active">Multijugador</li>
 @endsection
 
 @section('page', 'page__arena')
 
 @section('main')
+    @include('gaming.partials.arcade-estilos')
+    @include('gaming.partials.puerta', ['puerta' => 'multijugador', 'nombre' => 'Multijugador entre socios', 'cabecera' => true])
     <section class="panelV2">
         <h2 class="panel__heading">
             <i class="{{ config('other.font-awesome') }} fa-chess-board"></i>
-            Arena — partidas entre socios
+            Multijugador
         </h2>
         <div class="panel__body">
             @if ($cerrada)

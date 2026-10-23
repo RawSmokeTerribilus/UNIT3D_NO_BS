@@ -23,6 +23,9 @@
     <li class="breadcrumbV2">
         <a class="breadcrumb__link" href="{{ route('gaming.index') }}">Arcade</a>
     </li>
+    <li class="breadcrumbV2">
+        <a class="breadcrumb__link" href="{{ route('gaming.aventuras') }}">Aventuras gráficas</a>
+    </li>
     <li class="breadcrumb--active">
         {{ $juego['titulo'] }}
     </li>
@@ -49,9 +52,9 @@
 
     <section class="panelV2 gaming-player-panel">
         <div class="gaming-player-header">
-            <a href="{{ route('gaming.index') }}" class="gaming-back-btn">
+            <a href="{{ route('gaming.aventuras') }}" class="gaming-back-btn">
                 <i class="{{ config('other.font-awesome') }} fa-arrow-left"></i>
-                Volver al Arcade
+                Volver a las aventuras
             </a>
             <h2 class="gaming-player-title">
                 <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>
