@@ -100,7 +100,8 @@
                                         <td>{{ $s['cpu'] }} %</td>
                                         <td>{{ $s['rss_mb'] }} MB</td>
                                         <td>{{ $s['arranques'] }}</td>
-                                        <td class="arena-st__acciones">
+                                        <td>
+                                            <div class="arena-st__acciones">
                                             <a class="form__button form__button--text" href="{{ route('staff.arena.index', ['modulo' => $slug, 'log' => $s['id']]) }}#log">Log</a>
                                             <form method="POST" action="{{ route('staff.arena.reiniciar', ['slug' => $slug, 'sala' => $s['id']]) }}"
                                                 data-confirm="¿Reiniciar {{ $s['id'] }}? Quien esté dentro sale de la partida.">
@@ -120,6 +121,7 @@
                                                 <input type="text" name="mensaje" maxlength="200" class="form__text" placeholder="Aviso al chat de la sala" required>
                                                 <button type="submit" class="form__button form__button--text">Enviar</button>
                                             </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -258,6 +260,8 @@
         .arena-st__estado--off { color: #e0a43a; border-color: #e0a43a; }
         .arena-st__nota { opacity: .85; margin: 0 0 12px; }
         .arena-st__error { color: #e06c6c; }
+        /* El flex va en un div interno: en el <td> rompe la celda y descuadra la fila */
+        .page__staff-arena .data-table td { vertical-align: middle; }
         .arena-st__acciones { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
         .arena-st__acciones form { margin: 0; }
         .arena-st__aviso { display: flex; gap: 4px; }
