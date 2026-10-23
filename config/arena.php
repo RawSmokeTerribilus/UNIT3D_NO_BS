@@ -41,6 +41,9 @@ return [
             'nombre'      => 'Warzone 2100',
             'descripcion' => 'Estrategia en tiempo real, entre socios y en el navegador.',
             'icono'       => 'fa-chess-rook',
+            // Ficha del Arcade: public/img/arcade/tarjeta-wz2100-{800,1600}.webp (fondo y logo oficiales de WZ, GPL)
+            'imagen'      => '/img/arcade/tarjeta-wz2100',
+            'detalle'     => 'Estrategia en tiempo real',
             'activo'      => true,
             'control_url' => 'http://arena-wz2100-salas:8081',
         ],

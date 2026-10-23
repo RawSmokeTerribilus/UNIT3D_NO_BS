@@ -37,41 +37,18 @@
             Aventuras gráficas
         </h2>
         <div class="panel__body">
-            <p class="gaming-intro">
-                Juega a las aventuras gráficas más míticas directamente en el navegador,
-                sin instalar nada. El motor ScummVM corre completamente en tu máquina mediante
-                WebAssembly. Las partidas se guardan automáticamente en tu perfil.
-            </p>
+            <p class="arcade-intro">Las aventuras gráficas de siempre, en el navegador. Las partidas guardadas van a tu cuenta.</p>
 
-            <ul class="gaming-card__list">
+            <ul class="arcade-fichas arcade-fichas--caratula arcade-sala-aventuras">
                 @foreach ($juegos as $juego)
-                    <li class="gaming-card__item">
-                        <a class="gaming-card" href="{{ route('gaming.show', ['gameId' => $juego['id']]) }}">
-                            <div class="gaming-card__cover">
-                                <img
-                                    src="{{ $juego['cover'] }}"
-                                    alt="Portada de {{ $juego['titulo'] }}"
-                                    loading="lazy"
-                                />
-                            </div>
-                            <div class="gaming-card__info">
-                                <h3 class="gaming-card__title">{{ $juego['titulo'] }}</h3>
-                                <p class="gaming-card__meta">
-                                    <span>{{ $juego['desarrollador'] }}</span>
-                                    <span>{{ $juego['año'] }}</span>
-                                </p>
-                                <p class="gaming-card__meta">
-                                    <span class="gaming-card__badge">{{ $juego['version'] }}</span>
-                                    <span class="gaming-card__badge gaming-card__badge--lang">🔊 {{ $juego['idioma'] }}</span>
-                                </p>
-                                <p class="gaming-card__description">{{ $juego['descripcion'] }}</p>
-                                <span class="btn btn--filled gaming-card__play">
-                                    <i class="{{ config('other.font-awesome') }} fa-play"></i>
-                                    Jugar ahora
-                                </span>
-                            </div>
-                        </a>
-                    </li>
+                    @include('gaming.partials.ficha', [
+                        'forma'   => 'caratula',
+                        'imagen'  => $juego['cover'],
+                        'titulo'  => $juego['titulo'],
+                        'detalle' => $juego['año'].' · '.$juego['idioma'],
+                        'href'    => route('gaming.show', ['gameId' => $juego['id']]),
+                        'accion'  => 'Jugar ›',
+                    ])
                 @endforeach
             </ul>
 
@@ -86,112 +63,6 @@
     </section>
 
     <style>
-        .gaming-intro {
-            font-size: 14px;
-            color: var(--body_text);
-            margin-bottom: 24px;
-            line-height: 1.7;
-        }
-
-        .gaming-card__list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 20px;
-            list-style: none;
-            padding: 0;
-            margin: 0 0 24px 0;
-        }
-
-        .gaming-card {
-            display: flex;
-            gap: 16px;
-            background: var(--panel_inner_background);
-            border: 1px solid var(--panel_border);
-            border-radius: 8px;
-            padding: 16px;
-            text-decoration: none;
-            color: var(--body_text);
-            transition: border-color .2s, transform .15s;
-        }
-
-        .gaming-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .gaming-card__cover {
-            flex-shrink: 0;
-            width: 100px;
-            height: 140px;
-            border-radius: 4px;
-            overflow: hidden;
-            background: var(--panel_background);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .gaming-card__cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .gaming-card__info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex: 1;
-        }
-
-        .gaming-card__title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--body_text);
-            margin: 0;
-            line-height: 1.3;
-        }
-
-        .gaming-card__meta {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            font-size: 13px;
-            color: var(--body_text);
-            opacity: .8;
-            margin: 0;
-        }
-
-        .gaming-card__badge {
-            background: var(--panel_background);
-            border: 1px solid var(--panel_border);
-            border-radius: 3px;
-            padding: 2px 8px;
-            font-size: 13px;
-        }
-
-        .gaming-card__badge--lang {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .gaming-card__description {
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--body_text);
-            opacity: .85;
-            margin: 0;
-            flex: 1;
-        }
-
-        .gaming-card__play {
-            align-self: flex-start;
-            margin-top: auto;
-            font-size: 14px;
-            padding: 8px 18px;
-            pointer-events: none;
-        }
-
         .gaming-notice {
             background: var(--panel_inner_background);
             border: 1px solid var(--panel_border);
@@ -208,27 +79,6 @@
             color: var(--primary);
         }
 
-        .gaming-banner {
-            display: block;
-            margin-top: 24px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid transparent;
-            transition: border-color .2s, transform .15s, box-shadow .2s;
-            text-decoration: none;
-        }
-
-        .gaming-banner:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
-        }
-
-        .gaming-banner__img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
     </style>
 
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
@@ -236,7 +86,7 @@
         // (script-src-attr, no 'unsafe-hashes'); delegate instead. Capture phase
         // because 'error' does not bubble.
         document.addEventListener('error', function (e) {
-            if (e.target.tagName === 'IMG' && e.target.closest('.gaming-card__cover')) {
+            if (e.target.tagName === 'IMG' && e.target.closest('.arcade-ficha__imagen')) {
                 e.target.style.display = 'none';
             }
         }, true);

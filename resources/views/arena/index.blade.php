@@ -38,36 +38,30 @@
         </h2>
         <div class="panel__body">
             @if ($cerrada)
-                <p class="arena-intro">
+                <p class="arcade-intro">
                     <i class="{{ config('other.font-awesome') }} fa-eye-slash"></i>
                     La Arena está cerrada a los socios: la ves porque eres owner/admin.
                 </p>
             @endif
-            <p class="arena-intro">
-                Juegos multijugador que corren en tu navegador, sin instalar nada. Las partidas
-                las sirve el tracker y solo entran socios.
-            </p>
-            <div class="arena-grid">
-                @forelse ($modulos as $slug => $modulo)
-                    <a class="arena-card" href="{{ route('arena.show', ['slug' => $slug]) }}">
-                        <i class="{{ config('other.font-awesome') }} {{ $modulo['icono'] ?? 'fa-gamepad' }} arena-card__icon"></i>
-                        <span class="arena-card__name">{{ $modulo['nombre'] }}</span>
-                        <span class="arena-card__desc">{{ $modulo['descripcion'] ?? '' }}</span>
-                    </a>
-                @empty
-                    <p>Ahora mismo no hay ningún juego abierto.</p>
-                @endforelse
-            </div>
+            <p class="arcade-intro">Partidas entre socios, en el navegador y sin instalar nada.</p>
+            @if ($modulos === [])
+                <p>Ahora mismo no hay ningún juego abierto.</p>
+            @else
+                <ul class="arcade-fichas arcade-fichas--panoramica arcade-sala-multijugador">
+                    @foreach ($modulos as $slug => $modulo)
+                        @php($img = $modulo['imagen'] ?? null)
+                        @include('gaming.partials.ficha', [
+                            'forma'   => 'panoramica',
+                            'imagen'  => $img ? $img.'-800.webp' : null,
+                            'srcset'  => $img ? $img.'-800.webp 800w, '.$img.'-1600.webp 1600w' : null,
+                            'titulo'  => $modulo['nombre'],
+                            'detalle' => $modulo['detalle'] ?? ($modulo['descripcion'] ?? null),
+                            'href'    => route('arena.show', ['slug' => $slug]),
+                        ])
+                    @endforeach
+                </ul>
+            @endif
         </div>
     </section>
 
-    <style>
-        .arena-intro { margin-bottom: 16px; opacity: .85; }
-        .arena-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .arena-card { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--panel_inner_background); border: 1px solid var(--panel_border); border-radius: 6px; color: var(--body_text); text-decoration: none; }
-        .arena-card:hover { border-color: var(--primary); }
-        .arena-card__icon { font-size: 28px; color: var(--primary); }
-        .arena-card__name { font-weight: 700; font-size: 16px; }
-        .arena-card__desc { font-size: 13px; opacity: .8; }
-    </style>
 @endsection
