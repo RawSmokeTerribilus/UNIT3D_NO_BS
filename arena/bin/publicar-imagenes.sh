@@ -46,7 +46,7 @@ cp -r "$MOD/imagen-web/lobby" "$CTX/web/lobby"
 cp -r "$WZ_TRABAJO/installed-web" "$CTX/web/cliente"
 rm -rf "$CTX/web/cliente/share"
 python3 "$MOD/imagen-web/shell/rehacer_shell.py" "$CTX/web/cliente" || fallo "rehacer_shell.py"
-cp "$MOD/imagen-salas/Dockerfile" "$MOD/imagen-salas/agente.py" "$MOD/imagen-salas/relay.py" "$CTX/salas/"
+cp "$MOD/imagen-salas/Dockerfile" "$MOD/imagen-salas/agente.py" "$REPO_ARENA/comun/relay.py" "$CTX/salas/"
 cp -r "$MOD/imagen-salas/presets" "$CTX/salas/presets"
 cp "$WZ_TRABAJO/installed-native/bin/warzone2100" "$CTX/salas/wz/bin/"
 for d in base.wz mp.wz fonts; do

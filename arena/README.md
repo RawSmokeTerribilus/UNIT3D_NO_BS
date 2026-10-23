@@ -50,6 +50,10 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
   - Cerrar o recargar la pestaña, o que el móvil la cierre por memoria, se pierde: el estado del juego vive en el navegador.
   - WZ 4.7.0 no deja volver a entrar en una partida empezada.
   - En pantallas pequeñas (móvil en horizontal) la barra inferior no cabe: WZ pide al menos 1024×768.
+- **Relé común (`arena/comun/relay.py`)**, que copia en su imagen de salas cada módulo:
+  - `/ws`: TCP con sesiones reanudables (WZ).
+  - `/dg`: datagramas para juegos UDP (Quake 3, CS 1.6). Un mensaje WS = un datagrama, con un socket UDP por jugador desde su IP de loopback. Sin reanudación. Descarta la cabecera de puerto de Emscripten. El motivo de un cierre va en el código WS 4001 + texto. Tope de `ARENA_DG_MAX_POR_SEG` (500) mensajes por segundo por sesión.
+  - Identidad, vetos y límites, iguales en los dos modos.
 - **Identidad dentro de la sala:** el relé conecta a cada socio con el host desde su propia IP de loopback (`127.10+…`, sacada de su id) y deja el mapa en `/tmp/arena/socios.json`. El agente sabe qué socio es cada jugador (aunque se cambie el nombre en el lobby), lo anuncia en el chat de la sala («"X" es el socio Y de NOBS») y lo apunta en el log.
 - **Moderación (Staff → Arena):** silenciar (solo chat rápido), expulsar (fuera ya con `ban ip` + veto en esa sala hasta readmitir: el relé rechaza al socio) y readmitir. El lobby marca «Vetado en esta sala».
 - **Salas de socio:** cualquier socio crea una sala desde el lobby (preset + nombre + contraseña opcional). Una por socio, la cierra él o se cierra sola si nadie entra en 15 min (`ARENA_SALA_SOCIO_CADUCA_SEG`). Rutas públicas del agente (`/publico/presets`, `/publico/salas`) solo a través del web del módulo; exigen `X-Arena-User` (la pone el nginx de UNIT3D) y `X-Requested-With: arena` para escribir (corta CSRF).

@@ -15,6 +15,15 @@ Protocolo (tramas binarias del WebSocket, enteros big-endian):
   0x04 CIERRE  —                   cliente → servidor: el juego cerró el socket a propósito
   0x05 FIN     motivo utf-8        servidor → cliente: la sesión ya no existe; no reintentar
 
+Modo datagrama (juegos UDP: Quake 3, CS 1.6…):  /dg?token=salaN
+  Cada mensaje binario del WebSocket es UN datagrama UDP, en los dos sentidos. Sin reanudación
+  (en un shooter no se pausa: si te caes, vuelves a entrar). El relé abre un socket UDP por
+  jugador hacia el servidor de la sala desde la IP de loopback del socio (identidad, vetos y
+  límites iguales que en el modo TCP). La cabecera de puerto de Emscripten (ff ff ff ff «port»
+  + 2 bytes, el primer mensaje de un socket UDP de SOCKFS) se descarta.
+  El motivo de un rechazo o cierre va en el cierre del WebSocket (código 4001 + texto), no como
+  mensaje: un datagrama del juego puede empezar por cualquier byte.
+
 Conexión nueva:   /ws?token=salaN
 Reanudar:         /ws?token=salaN&sesion=<id>&recibido=<último seq de DATOS entregado al juego>
 La sesión va atada al socio (cabecera X-Arena-User, que pone el nginx de UNIT3D).
@@ -44,6 +53,9 @@ FICHERO_SOCIOS = os.environ.get('ARENA_FICHERO_SOCIOS', '/tmp/arena/socios.json'
 FICHERO_VETOS = os.environ.get('ARENA_FICHERO_VETOS', '/tmp/arena/vetos')   # «salaN id» por línea
 TRAMA_MAX = int(os.environ.get('ARENA_TRAMA_MAX_KB', '256')) * 1024
 socios_ip = {}   # ip -> «id:usuario»
+# Datagramas: tope de mensajes por segundo por sesión (los juegos mandan 30–125; esto corta inundaciones)
+DG_MAX_POR_SEG = int(os.environ.get('ARENA_DG_MAX_POR_SEG', '500'))
+CABECERA_PUERTO_EM = b'\xff\xff\xff\xffport'
 TOPE_PENDIENTE = int(os.environ.get('ARENA_TOPE_PENDIENTE_MB', '16')) * 1024 * 1024
 # Límites (operador, 24-10): generosos, porque los socios la cagarán y volverán a empezar.
 #   por socio, a la vez (cuentan también las que esperan reanudación) y nuevas por minuto;
@@ -223,11 +235,111 @@ class Sesion:
                 pass
 
 
+class SesionDatagramas(asyncio.DatagramProtocol):
+    """Un jugador de un juego UDP: WebSocket ↔ socket UDP propio hacia el servidor de la sala."""
+
+    def __init__(self, sid, socio, token, ws):
+        self.id = sid
+        self.socio = socio
+        self.token = token
+        self.ws = ws
+        self.desenganchada_desde = None   # (el conserje no la toca: aquí no hay reanudación)
+        self.transporte = None
+        self.cerrada = False
+        self._segundo = 0
+        self._en_segundo = 0
+
+    def connection_made(self, transporte):
+        self.transporte = transporte
+
+    def datagram_received(self, datos, _origen):
+        if not self.cerrada:
+            asyncio.ensure_future(self._al_cliente(datos))
+
+    async def _al_cliente(self, datos):
+        try:
+            await self.ws.send(datos)
+        except ConnectionClosed:
+            pass
+
+    def error_received(self, exc):
+        pass   # ICMP «puerto inalcanzable» mientras el servidor arranca: el juego reintenta
+
+    def del_cliente(self, datos):
+        if len(datos) == 10 and datos.startswith(CABECERA_PUERTO_EM):
+            return
+        ahora = int(time.monotonic())
+        if ahora != self._segundo:
+            self._segundo, self._en_segundo = ahora, 0
+        self._en_segundo += 1
+        if self._en_segundo > DG_MAX_POR_SEG:
+            return
+        self.transporte.sendto(datos)
+
+    async def cerrar(self, motivo):
+        if self.cerrada:
+            return
+        self.cerrada = True
+        sesiones.pop(self.id, None)
+        log(f'{self.id[:8]} ({self.socio}, {self.token}) datagramas cerrada: {motivo}')
+        if self.transporte is not None:
+            self.transporte.close()
+        await cerrar_ws(self.ws, motivo)
+
+
+async def cerrar_ws(ws, motivo):
+    """Cierre con motivo para el modo datagrama: código 4001 y el texto (máx. 123 bytes)."""
+    try:
+        await ws.close(4001, motivo.encode()[:123].decode('utf-8', 'ignore'))
+    except ConnectionClosed:
+        pass
+
+
+async def rechazar(ws, motivo, _razon):
+    await cerrar_ws(ws, motivo)
+
+
+async def atender_datagramas(ws, socio, token):
+    """Modo /dg: un mensaje binario = un datagrama."""
+    dst = destino(token)
+    if vetado(token, socio):
+        log(f'{socio} rechazado en {token} (dg): vetado por el staff')
+        return await rechazar(ws, 'el staff te ha vetado en esta sala', 'vetado')
+    if dst is None:
+        return await rechazar(ws, 'sala desconocida', 'sin sala')
+    await soltar_huerfanas(socio, token)
+    motivo = limite_superado(socio)
+    if motivo:
+        log(f'{socio} rechazado en {token} (dg): {motivo}')
+        return await rechazar(ws, motivo, 'limite')
+    ip_local = ip_de_socio(socio)
+    sesion = SesionDatagramas(secrets.token_hex(16), socio, token, ws)
+    try:
+        await asyncio.get_running_loop().create_datagram_endpoint(
+            lambda: sesion, local_addr=(ip_local, 0), remote_addr=dst)
+    except OSError as e:
+        return await rechazar(ws, f'la sala no responde: {e}', 'sala caida')
+    socios_ip[ip_local] = socio
+    guardar_socios()
+    sesiones[sesion.id] = sesion
+    log(f'{sesion.id[:8]} ({socio}, {token}) datagramas nueva → {dst[0]}:{dst[1]}')
+    try:
+        async for trama in ws:
+            if isinstance(trama, (bytes, bytearray)) and trama:
+                sesion.del_cliente(bytes(trama))
+    except ConnectionClosed:
+        pass
+    finally:
+        await sesion.cerrar('el jugador se fue')
+
+
 async def atender(ws):
     url = urlparse(ws.request.path)
     q = {k: v[0] for k, v in parse_qs(url.query).items()}
     socio = ws.request.headers.get('X-Arena-User', '') or 'anónimo'
     token = q.get('token', '')
+    if url.path.rstrip('/').endswith('/dg'):
+        return await atender_datagramas(ws, socio, token)
 
     if 'sesion' in q:
         sesion = sesiones.get(q['sesion'])
