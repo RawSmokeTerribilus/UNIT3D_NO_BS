@@ -148,7 +148,8 @@ def main(dst):
 
     # Bootstrap local (mismo SRI que el oficial: la copia de vendor/ se verificó contra él)
     vendor = dst / 'vendor'
-    shutil.copytree(AQUI / 'vendor', vendor, dirs_exist_ok=True)
+    # En el repo va en terceros/ (la regla vendor/ del .gitignore de UNIT3D se la comería)
+    shutil.copytree(AQUI / 'terceros', vendor, dirs_exist_ok=True)
     for remoto, local in (('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css', 'vendor/bootstrap-5.3.2/bootstrap.min.css'),
                           ('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js', 'vendor/bootstrap-5.3.2/bootstrap.bundle.min.js')):
         assert remoto in h, remoto
