@@ -45,6 +45,9 @@ PODA_DIAS = int(os.environ.get('ARENA_PODA_REPLAYS_DIAS', '14'))
 # Cuánto puede estar fuera un jugador sin perder la partida: el relé guarda su sesión y el host no
 # lo expulsa por lag durante este tiempo (la partida se queda en pausa para todos mientras tanto)
 PAUSA_MAX_SEG = int(os.environ.get('ARENA_PAUSA_MAX_SEG', '7200'))
+# Partida empezada sin ningún humano conectado (se fueron todos; quien está fuera un rato con la
+# sesión reanudable sigue contando como conectado): pasado este tiempo, la sala se reinicia
+VACIA_REINICIO_SEG = int(os.environ.get('ARENA_VACIA_REINICIO_SEG', '20'))
 PUERTO_WS = 8080
 PUERTO_API = 8081
 
@@ -239,6 +242,7 @@ class Sala:
         self.rss_mb = 0.0
         self._muestra = None
         self.borrada = False
+        self._vacia_desde = None
         self.nombre = config.get('challenge', {}).get('name', sala_id)
         self.huecos = huecos_humanos(config)
 
@@ -354,6 +358,18 @@ class Sala:
                 self._proximo = time.time() + self.espera
             if time.time() >= getattr(self, '_proximo', 0):
                 self.arrancar()
+            return
+        # Partida en marcha sin humanos: las IA juegan solas y nadie puede entrar → reiniciar
+        if self.fase == 'partida' and self.jugadores == 0:
+            if self._vacia_desde is None:
+                self._vacia_desde = time.time()
+            elif time.time() - self._vacia_desde > VACIA_REINICIO_SEG:
+                log(f'{self.id}: partida sin jugadores humanos desde hace {VACIA_REINICIO_SEG} s; se reinicia')
+                self._vacia_desde = None
+                self.parar()
+                self.espera = 2.0
+        else:
+            self._vacia_desde = None
 
     def medir(self):
         if not self.proc or self.proc.poll() is not None:

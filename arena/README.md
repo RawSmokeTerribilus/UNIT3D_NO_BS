@@ -50,6 +50,7 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
   - Cerrar o recargar la pestaña, o que el móvil la cierre por memoria, se pierde: el estado del juego vive en el navegador.
   - WZ 4.7.0 no deja volver a entrar en una partida empezada.
   - En pantallas pequeñas (móvil en horizontal) la barra inferior no cabe: WZ pide al menos 1024×768.
+- **Partida sin humanos:** si en plena partida no queda ningún humano conectado durante `ARENA_VACIA_REINICIO_SEG` (20 s), la sala se reinicia sola (si no, las IA seguirían jugando solas y nadie podría entrar). Quien está fuera con la sesión reanudable sigue contando como conectado.
 - **Al acabar una partida** (también en un duelo en el que el rival abandona), el host espera `WZ_ARENA_QUIT_DELAY` segundos (20 por defecto; parche en `src/wzapi.cpp`) antes de salir. Así los clientes ven su resultado en vez de «host has left the game». Luego el agente rearranca la sala.
 
 ## Publicar una versión nueva del módulo
