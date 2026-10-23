@@ -49,8 +49,8 @@ diff -ruN a/lib/netplay/tcp/netsocket.cpp b/lib/netplay/tcp/netsocket.cpp
  	hint.ai_flags     = flags;
 diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
 --- a/platforms/emscripten/prejs.js	2026-10-23 16:43:32.712085277 +0200
-+++ b/platforms/emscripten/prejs.js	2026-10-23 19:33:34.898423285 +0200
-@@ -0,0 +1,194 @@
++++ b/platforms/emscripten/prejs.js	2026-10-23 20:12:38.880618422 +0200
+@@ -0,0 +1,201 @@
 +// Arena NOBS: Emscripten 4.0.10's JS getaddrinfo() calls assert() even in release builds, where it isn't
 +// defined (STRICT, no ASSERTIONS). The ReferenceError leaves the proxied call hanging forever, so define it.
 +if (typeof assert === 'undefined') {
@@ -99,8 +99,14 @@ diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
 +      this._onVisible = function () {
 +        if (document.visibilityState === 'visible') { self._reconnectNow(); }
 +      };
++      // Closing / reloading / navigating away is a real exit (not an app switch, which only hides
++      // the page): tell the relay so it frees the seat now instead of holding the session for hours
++      this._onPageHide = function () {
++        if (self.readyState === 1) { self._sendRaw(CLOSE, null, 0); }
++      };
 +      document.addEventListener('visibilitychange', this._onVisible);
 +      window.addEventListener('online', this._onVisible);
++      window.addEventListener('pagehide', this._onPageHide);
 +      window.__arenaSocket = this;
 +      this._connect();
 +    }
@@ -217,6 +223,7 @@ diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
 +      clearTimeout(this._timer);
 +      document.removeEventListener('visibilitychange', this._onVisible);
 +      window.removeEventListener('online', this._onVisible);
++      window.removeEventListener('pagehide', this._onPageHide);
 +      var ws = this._ws;
 +      this._ws = null;
 +      if (ws) { try { ws.close(); } catch (e) {} }

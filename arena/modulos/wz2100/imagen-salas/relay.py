@@ -34,6 +34,9 @@ from websockets.exceptions import ConnectionClosed
 FICHERO_TOKENS = os.environ.get('ARENA_FICHERO_TOKENS', '/tmp/arena/tokens')
 PUERTO = int(os.environ.get('ARENA_PUERTO_WS', '8080'))
 REANUDAR_SEG = int(os.environ.get('ARENA_REANUDAR_SEG', '7200'))
+# En el lobby no hay partida que pausar: un hueco ocupado por alguien que se cayó solo estorba
+REANUDAR_LOBBY_SEG = int(os.environ.get('ARENA_REANUDAR_LOBBY_SEG', '60'))
+FICHERO_FASES = os.environ.get('ARENA_FICHERO_FASES', '/tmp/arena/fases')
 TOPE_PENDIENTE = int(os.environ.get('ARENA_TOPE_PENDIENTE_MB', '16')) * 1024 * 1024
 
 DATOS, ACK, HOLA, CIERRE, FIN = 1, 2, 3, 4, 5
@@ -202,14 +205,32 @@ async def atender(ws):
         sesion.desenganchar(ws)
 
 
+def fases():
+    """salaN → fase, según el fichero que escribe el agente (lobby, partida, reiniciando…)."""
+    resultado = {}
+    try:
+        with open(FICHERO_FASES, encoding='utf-8') as f:
+            for linea in f:
+                nombre, _, fase = linea.partition(':')
+                resultado[nombre.strip()] = fase.strip()
+    except OSError:
+        pass
+    return resultado
+
+
 async def conserje():
-    """Cierra las sesiones que llevan más de REANUDAR_SEG sin cliente."""
+    """Cierra las sesiones sin cliente: REANUDAR_SEG en partida, REANUDAR_LOBBY_SEG si la sala
+    aún no ha empezado (ahí esperar solo bloquea el hueco)."""
     while True:
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
         ahora = time.monotonic()
+        fase = fases()
         for sesion in list(sesiones.values()):
-            if sesion.desenganchada_desde and ahora - sesion.desenganchada_desde > REANUDAR_SEG:
-                await sesion.cerrar(f'sin volver en {REANUDAR_SEG} s')
+            if not sesion.desenganchada_desde:
+                continue
+            plazo = REANUDAR_SEG if fase.get(sesion.token) == 'partida' else REANUDAR_LOBBY_SEG
+            if ahora - sesion.desenganchada_desde > plazo:
+                await sesion.cerrar(f'sin volver en {plazo} s ({fase.get(sesion.token, "¿?")})')
 
 
 async def main():

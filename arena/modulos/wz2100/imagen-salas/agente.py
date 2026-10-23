@@ -53,6 +53,7 @@ DIR_CONTROL = os.path.join(DATOS, 'control')
 FICHERO_ESTADO = os.path.join(DIR_CONTROL, 'estado.json')
 FICHERO_ACCIONES = os.path.join(DIR_CONTROL, 'acciones.jsonl')
 FICHERO_TOKENS = '/tmp/arena/tokens'
+FICHERO_FASES = '/tmp/arena/fases'   # salaN: lobby|partida|… — el relé suelta antes las sesiones caídas en el lobby
 
 ID_SALA = re.compile(r'^sala([1-9][0-9]?)$')
 NOMBRE_PRESET = re.compile(r'^[a-z0-9][a-z0-9-]{0,40}$')
@@ -333,12 +334,13 @@ def cargar_estado():
 # -- bucles de fondo --
 def bucle_vigilancia():
     ws = None
+    fases_escritas = None
     while not parando:
         if ws is None or ws.poll() is not None:
             if ws is not None:
                 log(f'el relé salió con código {ws.returncode}; relanzando')
-            entorno = dict(os.environ, ARENA_FICHERO_TOKENS=FICHERO_TOKENS, ARENA_PUERTO_WS=str(PUERTO_WS),
-                           ARENA_REANUDAR_SEG=str(PAUSA_MAX_SEG))
+            entorno = dict(os.environ, ARENA_FICHERO_TOKENS=FICHERO_TOKENS, ARENA_FICHERO_FASES=FICHERO_FASES,
+                           ARENA_PUERTO_WS=str(PUERTO_WS), ARENA_REANUDAR_SEG=str(PAUSA_MAX_SEG))
             ws = subprocess.Popen(['/opt/arena-venv/bin/python', '/opt/arena/relay.py'], env=entorno)
         with cerrojo:
             actuales = list(salas.values())
@@ -348,6 +350,10 @@ def bucle_vigilancia():
                 s.medir()
             except Exception as e:  # una sala rota no tumba al agente
                 log(f'{s.id}: error vigilando: {e}')
+        fases = ''.join(f'{s.id}: {s.fase}\n' for s in actuales)
+        if fases != fases_escritas:
+            escribir_atomico(FICHERO_FASES, fases)
+            fases_escritas = fases
         time.sleep(2)
     if ws and ws.poll() is None:
         ws.terminate()
