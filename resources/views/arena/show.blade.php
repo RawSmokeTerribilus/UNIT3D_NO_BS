@@ -48,7 +48,7 @@
             <div class="arena-show__frame-wrap">
                 <iframe
                     id="arena-frame"
-                    src="/arena-app/{{ $slug }}/"
+                    src="{{ $src }}"
                     class="arena-show__frame"
                     title="{{ $modulo['nombre'] }}"
                     allow="autoplay; fullscreen; gamepad; cross-origin-isolated"

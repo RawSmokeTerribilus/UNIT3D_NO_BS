@@ -193,7 +193,8 @@ return [
 
             'self' => true,
 
-            'origins' => [],
+            // Arena en su propio origen: el iframe de los juegos lo necesita delegado
+            'origins' => array_values(array_filter([env('ARENA_ORIGEN')])),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/battery
@@ -226,7 +227,8 @@ return [
 
             'self' => true,
 
-            'origins' => [],
+            // Arena en su propio origen: el iframe de los juegos lo necesita delegado
+            'origins' => array_values(array_filter([env('ARENA_ORIGEN')])),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/display-capture
@@ -292,7 +294,8 @@ return [
 
             'self' => true,
 
-            'origins' => [],
+            // Arena en su propio origen: el iframe de los juegos lo necesita delegado
+            'origins' => array_values(array_filter([env('ARENA_ORIGEN')])),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/geolocation
@@ -488,10 +491,12 @@ return [
         'child-src' => [
             'self' => true,
 
-            'allow' => [
+            'allow' => array_values(array_filter([
                 'https://www.youtube-nocookie.com/embed/',
                 'blob:',
-            ],
+                // Arena en su propio origen (config/arena.php): el iframe de los juegos
+                env('ARENA_ORIGEN') ? rtrim((string) env('ARENA_ORIGEN'), '/').'/' : null,
+            ])),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src

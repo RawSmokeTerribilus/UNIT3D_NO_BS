@@ -73,11 +73,7 @@ Route::get('/__auth/check', static function () {
 // gate parece roto cuando en realidad está rate-limited. Quitar throttle aquí
 // es seguro porque la respuesta es <100 bytes y sólo lee la sesión.
 
-// Arena — puerta de nginx (auth_request) para /arena-app/<módulo>/. Como /__auth/check
-// pero además exige el pase que deja /arena/<slug> en sesión y que no esté baneado;
-// devuelve X-Arena-User para que el módulo sepa quién es sin ver la sesión.
-Route::get('/__arena/whoami', [App\Http\Controllers\ArenaController::class, 'whoami'])
-    ->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value);
+// Arena — la puerta de su origen propio está en routes/arena.php (sin sesión).
 
 Route::middleware('language')->group(function (): void {
     /*

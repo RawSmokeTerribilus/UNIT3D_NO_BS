@@ -57,6 +57,7 @@ class GamingIsolationHeaders
             . "font-src 'self' data:; "
             . "media-src 'self' blob:; "
             . "connect-src 'self'; "
+            . "frame-src 'self'".(\is_string(config('arena.origen')) && config('arena.origen') !== '' ? ' '.rtrim(config('arena.origen'), '/') : '')."; "
             . "frame-ancestors 'self';"
         );
 

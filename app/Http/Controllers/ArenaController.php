@@ -17,9 +17,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Group;
+use App\Models\User;
+use App\Services\ArenaPase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ArenaController extends Controller
@@ -50,8 +51,8 @@ class ArenaController extends Controller
     }
 
     /**
-     * Página del módulo: iframe a /arena-app/<slug>/. Deja en sesión el pase que
-     * luego comprueba /__arena/whoami; esta ruta ya ha pasado por todo el grupo auth.
+     * Página del módulo: iframe al origen propio de la Arena (config arena.origen) con un pase
+     * firmado de 5 minutos; esta ruta ya ha pasado por todo el grupo auth.
      */
     public function show(Request $request, string $slug): View
     {
@@ -63,36 +64,57 @@ class ArenaController extends Controller
 
         abort_unless(\is_array($modulo) && ($modulo['activo'] ?? false), 404);
 
-        $request->session()->put('arena_pase_hasta', now()->addHours((int) config('arena.pase_horas', 12))->getTimestamp());
+        // Sin origen propio no hay Arena: los juegos nunca corren en el origen del tracker
+        abort_unless(ArenaPase::disponible(), 503, 'La Arena no tiene configurado su origen (ARENA_ORIGEN / ARENA_PASE_SECRETO).');
+
+        // El pase de la URL dura 5 minutos; la puerta lo cambia por su cookie
+        $src = rtrim((string) config('arena.origen'), '/').'/arena-app/'.$slug.'/?pase='.ArenaPase::firmar($request->user(), ArenaPase::URL, 300);
 
         return view('arena.show', [
             'slug'    => $slug,
             'modulo'  => $modulo,
+            'src'     => $src,
             'cerrada' => !config('arena.is_enabled'),
         ]);
     }
 
     /**
-     * Puerta de nginx (auth_request) para /arena-app/: 204 + X-Arena-User si hay
-     * sesión, pase vigente y no está baneado; 401 en cualquier otro caso. Nunca
-     * redirige: auth_request convierte un 3xx en 500.
+     * Puerta de nginx (auth_request) del origen propio de la Arena. Sin sesión (routes/arena.php):
+     * cada fichero que pide el juego pasa por aquí. nginx manda la URI original (X-Arena-Uri, de
+     * donde sale ?pase=) y la cookie (X-Arena-Pase-Cookie). Un pase de URL válido se cambia
+     * por una cookie (X-Arena-Cookie, la pone nginx) que dura lo que el pase de la Arena.
      */
-    public function whoami(Request $request): Response
+    public function pase(Request $request): Response
     {
-        $user = Auth::user();
-
-        if ($user === null || (int) $request->session()->get('arena_pase_hasta', 0) < now()->getTimestamp()) {
+        if (!ArenaPase::disponible()) {
             return response('', 401);
         }
 
-        // Redis devuelve los enteros como texto
+        parse_str((string) parse_url((string) $request->header('X-Arena-Uri'), PHP_URL_QUERY), $query);
+        $datos = ArenaPase::verificar(\is_string($query['pase'] ?? null) ? $query['pase'] : null, ArenaPase::URL);
+        $deUrl = $datos !== null;
+        $datos ??= ArenaPase::verificar($request->header('X-Arena-Pase-Cookie'), ArenaPase::COOKIE);
+
+        if ($datos === null) {
+            return response('', 401);
+        }
+
+        // Baneado o Arena cerrada: fuera aunque tenga pase. 30 s de caché para no ir a la BD por fichero.
+        $user = cache()->remember('arena:pase:user:'.$datos['u'], 30, fn () => User::with('group')->find($datos['u']));
         $bannedGroupId = (int) cache()->rememberForever('group:banned:id', fn () => Group::where('slug', '=', 'banned')->soleValue('id'));
 
-        // Baneado, o Arena cerrada (salvo owner/admin): fuera, aunque tenga pase
-        if ($user->group_id === $bannedGroupId || !$this->abiertaPara($user)) {
+        if ($user === null || $user->group_id === $bannedGroupId || !$this->abiertaPara($user)) {
             return response('', 401);
         }
 
-        return response('', 204)->header('X-Arena-User', $user->id.':'.rawurlencode($user->username));
+        $respuesta = response('', 204)->header('X-Arena-User', $user->id.':'.rawurlencode($user->username));
+
+        if ($deUrl) {
+            $segundos = (int) config('arena.pase_horas', 12) * 3600;
+            $respuesta->header('X-Arena-Cookie', 'arena_pase='.ArenaPase::firmar($user, ArenaPase::COOKIE, $segundos)
+                .'; Path=/; Max-Age='.$segundos.'; Secure; HttpOnly; SameSite=Lax');
+        }
+
+        return $respuesta;
     }
 }

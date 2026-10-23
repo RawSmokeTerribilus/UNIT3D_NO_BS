@@ -50,6 +50,11 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
   - Cerrar o recargar la pestaña, o que el móvil la cierre por memoria, se pierde: el estado del juego vive en el navegador.
   - WZ 4.7.0 no deja volver a entrar en una partida empezada.
   - En pantallas pequeñas (móvil en horizontal) la barra inferior no cabe: WZ pide al menos 1024×768.
+- **Origen propio (24-10):** los juegos se sirven desde `ARENA_ORIGEN` (staging `https://arena-nabs.rawsmoke.net`, prod `https://arena.rawsmoke.net`), nunca desde el origen del tracker (`/arena-app/` en NOBS da 404). Su código no puede tocar la página ni la sesión de NOBS: el navegador lo impide (`SecurityError`).
+  - **Identidad:** `/arena/<slug>` firma un pase de 5 min (HMAC, `ARENA_PASE_SECRETO`, `App\Services\ArenaPase`) en la URL del iframe. La puerta de nginx (`auth_request` → `/__arena/pase`, ruta SIN sesión en `routes/arena.php`, para no crear una por fichero) lo cambia por la cookie `arena_pase` del origen de la Arena (`HttpOnly`, `Secure`, `SameSite=Lax`, dura `pase_horas`). Baneo y Arena cerrada se comprueban en cada petición (caché de 30 s).
+  - **nginx de UNIT3D:** bloque `server` propio para el nombre de la Arena (el del tracker lleva `default_server`; si no, deja de responder a su propio nombre). En `auth_request`, `$arg_*` son los de la subpetición: el pase sale de `$request_uri`.
+  - **Página padre:** la CSP efectiva es la de SecureHeaders (pisa la de gaming.isolation). `config/secure-headers.php` añade `ARENA_ORIGEN` a `child-src` y delega `cross-origin-isolated`, `fullscreen` y `autoplay`.
+  - **Módulo:** `web.conf` es una plantilla (`ARENA_PADRE` = `APP_URL`, para `frame-ancestors`; conf.d en tmpfs porque la raíz es de solo lectura) y `Cross-Origin-Resource-Policy: same-site`.
 - **Relé común (`arena/comun/relay.py`)**, que copia en su imagen de salas cada módulo:
   - `/ws`: TCP con sesiones reanudables (WZ).
   - `/dg`: datagramas para juegos UDP (Quake 3, CS 1.6). Un mensaje WS = un datagrama, con un socket UDP por jugador desde su IP de loopback. Sin reanudación. Descarta la cabecera de puerto de Emscripten. El motivo de un cierre va en el código WS 4001 + texto. Tope de `ARENA_DG_MAX_POR_SEG` (500) mensajes por segundo por sesión.
