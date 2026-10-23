@@ -1,7 +1,7 @@
 // Arena · Warzone 2100 — sala de espera del módulo.
 // Pinta las salas que publica el agente y monta la URL del cliente: puente WebSocket del mismo
 // origen (?token=salaN) y --join a una IP literal (el nombre da igual: el wasm manda TODOS los
-// sockets a wsurl, y websockify enruta por token).
+// sockets a wsurl, y el relé de la sala enruta por token).
 (function () {
   'use strict';
 

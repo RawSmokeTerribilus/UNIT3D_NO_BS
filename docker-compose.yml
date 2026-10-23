@@ -304,7 +304,7 @@ services:
             - arena
 
     arena-wz2100-web:
-        image: rawsmoke/nobs-arena-wz2100-web:${ARENA_WZ2100_VERSION:-4.7.0-arena2}
+        image: rawsmoke/nobs-arena-wz2100-web:${ARENA_WZ2100_VERSION:-4.7.0-arena3}
         container_name: unit3d-staging-arena-wz2100-web
         restart: unless-stopped
         mem_limit: 256m
@@ -313,13 +313,15 @@ services:
             - arena
 
     arena-wz2100-salas:
-        image: rawsmoke/nobs-arena-wz2100-salas:${ARENA_WZ2100_VERSION:-4.7.0-arena2}
+        image: rawsmoke/nobs-arena-wz2100-salas:${ARENA_WZ2100_VERSION:-4.7.0-arena3}
         container_name: unit3d-staging-arena-wz2100-salas
         restart: unless-stopped
         environment:
             - ARENA_CONTROL_TOKEN=${ARENA_CONTROL_TOKEN:-}
             - ARENA_MAX_SALAS=${ARENA_MAX_SALAS:-8}
             - ARENA_SALAS_INICIALES=${ARENA_SALAS_INICIALES:-contra-ia}
+            # Cuánto puede estar fuera un jugador sin perder la partida (pausa para todos): 2 h
+            - ARENA_PAUSA_MAX_SEG=${ARENA_PAUSA_MAX_SEG:-7200}
         volumes:
             # Persistente: presets, configdir de cada sala (identidad del host), gamelogs, replays, estado
             - ./arena-data/wz2100:/datos

@@ -45,7 +45,7 @@ cp "$MOD/imagen-web/Dockerfile" "$MOD/imagen-web/web.conf" "$CTX/web/"
 cp -r "$MOD/imagen-web/lobby" "$CTX/web/lobby"
 cp -r "$WZ_TRABAJO/installed-web" "$CTX/web/cliente"
 rm -rf "$CTX/web/cliente/share"
-cp "$MOD/imagen-salas/Dockerfile" "$MOD/imagen-salas/agente.py" "$CTX/salas/"
+cp "$MOD/imagen-salas/Dockerfile" "$MOD/imagen-salas/agente.py" "$MOD/imagen-salas/relay.py" "$CTX/salas/"
 cp -r "$MOD/imagen-salas/presets" "$CTX/salas/presets"
 cp "$WZ_TRABAJO/installed-native/bin/warzone2100" "$CTX/salas/wz/bin/"
 for d in base.wz mp.wz fonts; do
@@ -53,7 +53,8 @@ for d in base.wz mp.wz fonts; do
 done
 
 echo "🔍 Escaneando el contexto en busca de secretos"
-PATRON='(APP_KEY|DB_PASSWORD|MYSQL_|REDIS_PASSWORD|ARENA_CONTROL_TOKEN=|TRACKER_KEY|api[_-]?key|secret|passw(or)?d|BEGIN [A-Z ]*PRIVATE KEY)'
+# «secret» solo como clave asignada (secret_key=, client_secret:…): el módulo `secrets` de Python no cuenta
+PATRON='(APP_KEY|DB_PASSWORD|MYSQL_|REDIS_PASSWORD|ARENA_CONTROL_TOKEN=|TRACKER_KEY|api[_-]?key|[a-z_]*secret[a-z_]*["'\'']?[[:space:]]*[=:]|passw(or)?d|BEGIN [A-Z ]*PRIVATE KEY)'
 if find "$CTX" -name '.env*' -o -name '*.pem' -o -name '*.key' -o -name 'id_rsa*' -o -name 'id_ed25519*' | grep -q .; then
     fallo "ficheros sospechosos en el contexto: $(find "$CTX" -name '.env*' -o -name '*.pem' -o -name '*.key' -o -name 'id_rsa*' -o -name 'id_ed25519*')"
 fi
@@ -78,7 +79,7 @@ for img in "$IMG_WEB" "$IMG_SALAS"; do
     fi
     sospechosos=$(docker run --rm --entrypoint sh "$img" -c \
         "find / -xdev \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name 'id_rsa*' -o -name 'id_ed25519*' -o -name 'tokens' \) \
-         -not -path '/proc/*' -not -path '/usr/lib/*' -not -path '/usr/share/*' -not -path '/etc/ssl*' -not -path '/opt/websockify/lib/*' 2>/dev/null" || true)
+         -not -path '/proc/*' -not -path '/usr/lib/*' -not -path '/usr/share/*' -not -path '/etc/ssl*' -not -path '/opt/arena-venv/lib/*' 2>/dev/null" || true)
     [[ -z $sospechosos ]] || fallo "$img contiene: $sospechosos"
 done
 

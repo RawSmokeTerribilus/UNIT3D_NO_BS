@@ -49,8 +49,8 @@ diff -ruN a/lib/netplay/tcp/netsocket.cpp b/lib/netplay/tcp/netsocket.cpp
  	hint.ai_flags     = flags;
 diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
 --- a/platforms/emscripten/prejs.js	2026-10-23 16:43:32.712085277 +0200
-+++ b/platforms/emscripten/prejs.js	2026-10-23 16:43:32.717085359 +0200
-@@ -0,0 +1,9 @@
++++ b/platforms/emscripten/prejs.js	2026-10-23 19:33:34.898423285 +0200
+@@ -0,0 +1,194 @@
 +// Arena NOBS: Emscripten 4.0.10's JS getaddrinfo() calls assert() even in release builds, where it isn't
 +// defined (STRICT, no ASSERTIONS). The ReferenceError leaves the proxied call hanging forever, so define it.
 +if (typeof assert === 'undefined') {
@@ -59,6 +59,191 @@ diff -ruN a/platforms/emscripten/prejs.js b/platforms/emscripten/prejs.js
 +      throw new Error('Assertion failed' + (text ? ': ' + text : ''));
 +    }
 +  };
++}
++
++// Arena NOBS: resumable socket for the WebSocket bridge (see arena relay.py).
++// SOCKFS opens the game's TCP connection with `new WebSocket(url)`. For the Arena bridge URL
++// (…/ws?token=…) we hand it an ArenaSocket instead: towards the game it stays OPEN for the whole
++// session, while underneath it reconnects to the same relay session whenever the real WebSocket
++// drops (mobile app switch, network change, sleeping tab), replaying whatever the other side missed.
++// Frames: 0x01 DATA seq:u32+bytes · 0x02 ACK seq:u32 · 0x03 HELLO recv:u32+id · 0x04 CLOSE · 0x05 END reason
++if (typeof window !== 'undefined' && typeof window.WebSocket === 'function' && !window.__arenaSocketInstalled) {
++  window.__arenaSocketInstalled = true;
++  (function () {
++    var NativeWebSocket = window.WebSocket;
++    var DATA = 1, ACK = 2, HELLO = 3, CLOSE = 4, END = 5;
++    var ACK_EVERY = 32;
++    var GIVE_UP_MS = 2 * 60 * 60 * 1000 + 5 * 60 * 1000; // relay keeps sessions 2 h; stop trying a bit later
++
++    function isBridge(url) {
++      return typeof url === 'string' && /\/ws\?(.*&)?token=/.test(url);
++    }
++
++    function ArenaSocket(url) {
++      this.url = url;
++      this.protocol = '';
++      this.binaryType = 'arraybuffer';
++      this.bufferedAmount = 0;
++      this.readyState = 0;
++      this.onopen = null; this.onmessage = null; this.onclose = null; this.onerror = null;
++      this._session = null;
++      this._sendSeq = 0;          // last DATA seq we sent
++      this._unacked = [];         // [{seq, bytes}] not yet confirmed by the relay
++      this._delivered = 0;        // last DATA seq handed to the game
++      this._sinceAck = 0;
++      this._closing = false;
++      this._attempt = 0;
++      this._lostAt = null;
++      this._timer = null;
++      var self = this;
++      this._onVisible = function () {
++        if (document.visibilityState === 'visible') { self._reconnectNow(); }
++      };
++      document.addEventListener('visibilitychange', this._onVisible);
++      window.addEventListener('online', this._onVisible);
++      window.__arenaSocket = this;
++      this._connect();
++    }
++    ArenaSocket.CONNECTING = ArenaSocket.prototype.CONNECTING = 0;
++    ArenaSocket.OPEN = ArenaSocket.prototype.OPEN = 1;
++    ArenaSocket.CLOSING = ArenaSocket.prototype.CLOSING = 2;
++    ArenaSocket.CLOSED = ArenaSocket.prototype.CLOSED = 3;
++
++    ArenaSocket.prototype._connect = function () {
++      var self = this;
++      var url = this.url;
++      if (this._session) {
++        url += '&sesion=' + encodeURIComponent(this._session) + '&recibido=' + this._delivered;
++      }
++      var ws;
++      try {
++        ws = new NativeWebSocket(url);
++      } catch (e) {
++        this._scheduleReconnect();
++        return;
++      }
++      ws.binaryType = 'arraybuffer';
++      this._ws = ws;
++      ws.onmessage = function (ev) { if (self._ws === ws) { self._frame(new Uint8Array(ev.data)); } };
++      ws.onclose = function () { if (self._ws === ws) { self._ws = null; self._lost(); } };
++      ws.onerror = function () {};
++    };
++
++    ArenaSocket.prototype._frame = function (f) {
++      if (!f.length) { return; }
++      var dv = new DataView(f.buffer, f.byteOffset, f.byteLength);
++      var type = f[0];
++      if (type === DATA && f.length >= 5) {
++        var seq = dv.getUint32(1);
++        if (seq !== this._delivered + 1) { return; } // duplicate after a resume
++        this._delivered = seq;
++        if (++this._sinceAck >= ACK_EVERY) { this._sinceAck = 0; this._sendRaw(ACK, null, this._delivered); }
++        if (this.onmessage) { this.onmessage({ data: f.slice(5).buffer }); }
++      } else if (type === ACK && f.length >= 5) {
++        this._trim(dv.getUint32(1));
++      } else if (type === HELLO && f.length >= 5) {
++        var relayGot = dv.getUint32(1);
++        this._session = new TextDecoder().decode(f.subarray(5));
++        this._trim(relayGot);
++        this._attempt = 0;
++        if (this._lostAt !== null) {
++          console.log('Arena: connection resumed after ' + Math.round((Date.now() - this._lostAt) / 1000) + ' s');
++          this._lostAt = null;
++        }
++        for (var i = 0; i < this._unacked.length; i++) {
++          this._sendRaw(DATA, this._unacked[i].bytes, this._unacked[i].seq);
++        }
++        if (this.readyState === 0) {
++          this.readyState = 1;
++          if (this.onopen) { this.onopen({}); }
++        }
++      } else if (type === END) {
++        console.log('Arena: relay ended the session: ' + new TextDecoder().decode(f.subarray(1)));
++        this._finish();
++      }
++    };
++
++    ArenaSocket.prototype._trim = function (upTo) {
++      while (this._unacked.length && this._unacked[0].seq <= upTo) { this._unacked.shift(); }
++    };
++
++    ArenaSocket.prototype._sendRaw = function (type, bytes, seq) {
++      var ws = this._ws;
++      if (!ws || ws.readyState !== 1) { return; }
++      var len = 5 + (bytes ? bytes.length : 0);
++      var out = new Uint8Array(len);
++      out[0] = type;
++      new DataView(out.buffer).setUint32(1, seq >>> 0);
++      if (bytes) { out.set(bytes, 5); }
++      ws.send(out.buffer);
++    };
++
++    ArenaSocket.prototype.send = function (data) {
++      if (this.readyState !== 1) { throw new Error('ArenaSocket not open'); }
++      var bytes = data instanceof ArrayBuffer ? new Uint8Array(data.slice(0))
++        : new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
++      var seq = ++this._sendSeq;
++      this._unacked.push({ seq: seq, bytes: bytes });
++      this._sendRaw(DATA, bytes, seq);
++    };
++
++    ArenaSocket.prototype._lost = function () {
++      if (this._closing || this.readyState === 3) { return; }
++      if (!this._session) { this._finish(); return; } // never got in: behave like a failed connect
++      if (this._lostAt === null) {
++        this._lostAt = Date.now();
++        console.log('Arena: connection lost, trying to resume…');
++      }
++      this._scheduleReconnect();
++    };
++
++    ArenaSocket.prototype._scheduleReconnect = function () {
++      var self = this;
++      if (this._lostAt !== null && Date.now() - this._lostAt > GIVE_UP_MS) { this._finish(); return; }
++      clearTimeout(this._timer);
++      var delay = Math.min(30000, 1000 * Math.pow(2, this._attempt++));
++      this._timer = setTimeout(function () { self._connect(); }, delay);
++    };
++
++    ArenaSocket.prototype._reconnectNow = function () {
++      if (this._ws || this._closing || this.readyState === 3 || !this._session) { return; }
++      clearTimeout(this._timer);
++      this._attempt = 0;
++      this._connect();
++    };
++
++    ArenaSocket.prototype._finish = function () {
++      if (this.readyState === 3) { return; }
++      clearTimeout(this._timer);
++      document.removeEventListener('visibilitychange', this._onVisible);
++      window.removeEventListener('online', this._onVisible);
++      var ws = this._ws;
++      this._ws = null;
++      if (ws) { try { ws.close(); } catch (e) {} }
++      this.readyState = 3;
++      if (this.onclose) { this.onclose({ code: 1000, reason: '', wasClean: true }); }
++    };
++
++    ArenaSocket.prototype.close = function () {
++      if (this.readyState === 3) { return; }
++      this._closing = true;
++      this.readyState = 2;
++      this._sendRaw(CLOSE, null, 0);
++      this._finish();
++    };
++
++    // Debug hook: drop the real WebSocket as if the network went away (the game must not notice)
++    window.__arenaDrop = function () {
++      var s = window.__arenaSocket;
++      if (s && s._ws) { s._ws.close(); }
++    };
++
++    window.WebSocket = function (url, protocols) {
++      return isBridge(url) ? new ArenaSocket(url) : new NativeWebSocket(url, protocols);
++    };
++    window.WebSocket.CONNECTING = 0; window.WebSocket.OPEN = 1; window.WebSocket.CLOSING = 2; window.WebSocket.CLOSED = 3;
++    window.WebSocket.prototype = NativeWebSocket.prototype;
++  })();
 +}
 diff -ruN a/platforms/emscripten/shell.html b/platforms/emscripten/shell.html
 --- a/platforms/emscripten/shell.html	2026-10-23 16:15:12.803146682 +0200
@@ -130,6 +315,22 @@ diff -ruN a/src/frontend.cpp b/src/frontend.cpp
  	addTextButton(FRONTEND_REPLAY,   FRONTEND_POS7X, FRONTEND_POS7Y, _("View Replay"), WBUT_TXTCENTRE);
  
  	addMultiBut(psWScreen, FRONTEND_BOTFORM, FRONTEND_QUIT, 10, 10, 30, 29, P_("menu", "Return"), IMAGE_RETURN, IMAGE_RETURN_HI, IMAGE_RETURN_HI);
+diff -ruN a/src/multiplay.cpp b/src/multiplay.cpp
+--- a/src/multiplay.cpp	2026-10-23 19:40:18.605647686 +0200
++++ b/src/multiplay.cpp	2026-10-23 19:44:15.166287888 +0200
+@@ -236,7 +236,11 @@
+ 			debug(LOG_INFO, "%s", msg.c_str());
+ 			sendInGameSystemMessage(msg.c_str());
+ 		}
+-		else if (LagSecondsCount % 15 == 0) { // every 15 seconds
++		// Arena NOBS: with long pause windows (the Arena allows 2 h to come back), a reminder every 15 s
++		// floods the chat; remind at 15 s, then every 5 min, and every 15 s during the last minute
++		else if ((LagAutoKickSeconds > 300 && (LagAutoKickSeconds - LagSecondsCount) > 60)
++			? (LagSecondsCount == 15 || LagSecondsCount % 300 == 0)
++			: (LagSecondsCount % 15 == 0)) {
+ 			std::string msg = astringf("Auto-kicking player %" PRIu32 " (\"%s\") in %u seconds. (lag)", i, getPlayerName(i, true), (LagAutoKickSeconds - LagSecondsCount));
+ 			debug(LOG_INFO, "%s", msg.c_str());
+ 			sendInGameSystemMessage(msg.c_str());
 diff -ruN a/src/wzapi.cpp b/src/wzapi.cpp
 --- a/src/wzapi.cpp	2026-10-23 19:07:24.274325706 +0200
 +++ b/src/wzapi.cpp	2026-10-23 19:07:24.278325767 +0200

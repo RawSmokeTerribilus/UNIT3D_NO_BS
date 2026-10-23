@@ -18,7 +18,7 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
 | Servicio | Imagen | Qué hace |
 |---|---|---|
 | `arena-wz2100-web` | `rawsmoke/nobs-arena-wz2100-web:<versión>` | cliente wasm, sala de espera, `/salas.json`, `/yo.json`, `/ws` → puente |
-| `arena-wz2100-salas` | `rawsmoke/nobs-arena-wz2100-salas:<versión>` | agente de salas: lanza `warzone2100 --headless --autohost` (una sala = un proceso, puertos 2101…), websockify (`?token=salaN` → su puerto) y la API de control `:8081` |
+| `arena-wz2100-salas` | `rawsmoke/nobs-arena-wz2100-salas:<versión>` | agente de salas: lanza `warzone2100 --headless --autohost` (una sala = un proceso, puertos 2101…), el relé de sesiones reanudables (`?token=salaN` → su puerto; si el navegador se va, guarda la sesión hasta `ARENA_PAUSA_MAX_SEG`) y la API de control `:8081` |
 
 - **El agente gestiona procesos, no contenedores: no se usa el socket de Docker.**
 - **Al acabar una partida el host sale y el agente rearranca la sala.**
@@ -34,7 +34,7 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
 - `control/acciones.jsonl`: quién hizo qué desde el panel.
 
 ### Variables (`.env`)
-`ARENA_WZ2100_VERSION` (tag fijo, **nunca latest**), `ARENA_CONTROL_TOKEN` (lo genera `bin/arena-preparar.sh` si falta), `ARENA_MAX_SALAS`, `ARENA_SALAS_INICIALES`.
+`ARENA_WZ2100_VERSION` (tag fijo, **nunca latest**), `ARENA_CONTROL_TOKEN` (lo genera `bin/arena-preparar.sh` si falta), `ARENA_MAX_SALAS`, `ARENA_SALAS_INICIALES`, `ARENA_PAUSA_MAX_SEG` (7200).
 
 ## Operación
 - **Interruptor general:** Staff → Configuración → Arena (`arena.is_enabled`, nace apagado). Apagado, `/arena` dice «cerrada» y el `whoami` corta también a quien ya tenía el pase. Owners y admins entran igual para probar.
@@ -42,9 +42,9 @@ Primer módulo: **Warzone 2100** (`modulos/wz2100/`), la Web Edition 4.7.0 parch
   - Staff: ver, reiniciar una sala colgada, mandar un aviso al chat de la sala.
   - Admin: crear desde un preset, cerrar salas, apagar todo.
 - **Despliegue:** `make install` / `make up` llaman a `bin/arena-preparar.sh` y levantan la Arena con las imágenes de Docker Hub. En el host no se compila nada.
+- **Persistencia (sesiones reanudables):** si el navegador de un jugador se va (cambia de pestaña o de app, se le va la red), el relé mantiene su conexión con el host hasta `ARENA_PAUSA_MAX_SEG` (2 h). El cliente (`ArenaSocket`, en el `prejs.js` del parche) se reengancha solo al volver y recibe lo que se perdió. Mientras tanto la partida se queda en **pausa para todos** (lockstep de WZ), y el host avisa en el chat a los 15 s, luego cada 5 min y cada 15 s en el último minuto. La sesión va atada al socio (`X-Arena-User`).
 - **Límites conocidos** (el lobby los avisa):
-  - Una pestaña oculta deja de atender la red y el host la expulsa por lag a los 60 s.
-  - En el móvil, salir del navegador corta la conexión al momento.
+  - Cerrar o recargar la pestaña, o que el móvil la cierre por memoria, se pierde: el estado del juego vive en el navegador.
   - WZ 4.7.0 no deja volver a entrar en una partida empezada.
   - En pantallas pequeñas (móvil en horizontal) la barra inferior no cabe: WZ pide al menos 1024×768.
 - **Al acabar una partida** (también en un duelo en el que el rival abandona), el host espera `WZ_ARENA_QUIT_DELAY` segundos (20 por defecto; parche en `src/wzapi.cpp`) antes de salir. Así los clientes ven su resultado en vez de «host has left the game». Luego el agente rearranca la sala.

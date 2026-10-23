@@ -3,7 +3,8 @@
 
 Gestiona PROCESOS, no contenedores: cada sala es un `warzone2100 --headless --autohost`
 en su propio puerto (2101, 2102, ...). Además:
-  - lanza y vigila websockify, y le escribe el fichero de tokens (salaN -> 127.0.0.1:puerto);
+  - lanza y vigila el relé de sesiones reanudables (relay.py) y le escribe el fichero de tokens
+    (salaN -> 127.0.0.1:puerto); fija en cada sala el autokick por lag a ARENA_PAUSA_MAX_SEG;
   - expone una API interna (HTTP en la red de la Arena) para el dashboard de NOBS;
   - mide CPU/RAM de cada sala y poda replays viejas.
 
@@ -15,6 +16,7 @@ Variables de entorno:
   ARENA_SALAS_INICIALES    salas a crear si no hay estado guardado, p. ej. "contra-ia,duelo"
   ARENA_PUERTO_BASE        primer puerto de juego (por defecto 2101)
   ARENA_PODA_REPLAYS_DIAS  borrar replays más viejas que esto (por defecto 14; 0 = nunca)
+  ARENA_PAUSA_MAX_SEG      cuánto puede estar fuera un jugador sin perder la partida (por defecto 7200)
   ARENA_DATOS              raíz persistente (por defecto /datos)
 """
 
@@ -39,6 +41,9 @@ MAX_SALAS = int(os.environ.get('ARENA_MAX_SALAS', '10'))
 PUERTO_BASE = int(os.environ.get('ARENA_PUERTO_BASE', '2101'))
 SALAS_INICIALES = [p for p in os.environ.get('ARENA_SALAS_INICIALES', 'contra-ia').split(',') if p.strip()]
 PODA_DIAS = int(os.environ.get('ARENA_PODA_REPLAYS_DIAS', '14'))
+# Cuánto puede estar fuera un jugador sin perder la partida: el relé guarda su sesión y el host no
+# lo expulsa por lag durante este tiempo (la partida se queda en pausa para todos mientras tanto)
+PAUSA_MAX_SEG = int(os.environ.get('ARENA_PAUSA_MAX_SEG', '7200'))
 PUERTO_WS = 8080
 PUERTO_API = 8081
 
@@ -121,8 +126,30 @@ class Sala:
         self.huecos = huecos_humanos(info)
 
     # -- proceso --
+    def _fijar_config(self):
+        """hostAutoLagKickSeconds = PAUSA_MAX_SEG en el config del host (INI, sección [General]).
+        WZ lo vuelve a escribir al salir con lo que leyó, así que se fija antes de cada arranque."""
+        ruta = os.path.join(self.dir, 'config')
+        clave = f'hostAutoLagKickSeconds={PAUSA_MAX_SEG}'
+        lineas = []
+        if os.path.exists(ruta):
+            with open(ruta, encoding='utf-8', errors='replace') as f:
+                lineas = f.read().splitlines()
+        if not lineas:
+            lineas = ['[General]']
+        hecho = False
+        for i, linea in enumerate(lineas):
+            if linea.startswith('hostAutoLagKickSeconds='):
+                lineas[i] = clave
+                hecho = True
+        if not hecho:
+            pos = lineas.index('[General]') + 1 if '[General]' in lineas else 0
+            lineas.insert(pos, clave)
+        escribir_atomico(ruta, '\n'.join(lineas) + '\n')
+
     def arrancar(self):
         os.makedirs(os.path.join(self.dir, 'autohost'), exist_ok=True)
+        self._fijar_config()
         shutil.copyfile(os.path.join(DIR_PRESETS, self.preset + '.json'),
                         os.path.join(self.dir, 'autohost', self.preset + '.json'))
         args = [WZ_BIN, f'--autohost={self.preset}.json', f'--gameport={self.puerto}',
@@ -309,9 +336,10 @@ def bucle_vigilancia():
     while not parando:
         if ws is None or ws.poll() is not None:
             if ws is not None:
-                log(f'websockify salió con código {ws.returncode}; relanzando')
-            ws = subprocess.Popen(['websockify', '--token-plugin', 'TokenFile', '--token-source', FICHERO_TOKENS,
-                                   f'0.0.0.0:{PUERTO_WS}'])
+                log(f'el relé salió con código {ws.returncode}; relanzando')
+            entorno = dict(os.environ, ARENA_FICHERO_TOKENS=FICHERO_TOKENS, ARENA_PUERTO_WS=str(PUERTO_WS),
+                           ARENA_REANUDAR_SEG=str(PAUSA_MAX_SEG))
+            ws = subprocess.Popen(['/opt/arena-venv/bin/python', '/opt/arena/relay.py'], env=entorno)
         with cerrojo:
             actuales = list(salas.values())
         for s in actuales:
