@@ -56,7 +56,8 @@ async function pk3(f, cache, version, alAvanzar) {
   const clave = `${url}?v=${version}`;
   let r = cache ? await cache.match(clave) : null;
   if (!r) {
-    const red = await fetch(url, { cache: 'no-store' });
+    // ?v=: URL inmutable por versión (nginx la sirve con caché de un año)
+    const red = await fetch(clave);
     if (!red.ok) { throw new Error(`no se pudo descargar ${f.src} (${red.status})`); }
     // Leer en trozos para la barra de progreso
     const lector = red.body.getReader();

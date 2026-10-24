@@ -90,7 +90,8 @@ async function datos(config, alAvanzar) {
       }));
     }
   } catch (e) { cache = null; }
-  const red = await fetch(url, { cache: 'no-store' });
+  // ?v=: URL inmutable por versión (nginx la sirve con caché de un año)
+  const red = await fetch(clave);
   if (!red.ok) { throw new Error(`no se pudieron descargar los datos (${red.status})`); }
   let [paraJugar, paraGuardar] = cache ? red.body.tee() : [red.body, null];
   if (paraGuardar) {

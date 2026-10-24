@@ -10,7 +10,6 @@ set -euo pipefail
 C=${CS_TRABAJO:-$HOME/tmp-trabajo/cs16}
 AQUI=$(cd "$(dirname "$0")" && pwd)
 COPIAS=${CS_COPIAS:-$HOME/backups/manual/arena-cs16}
-MAPAS=(de_dust2 de_inferno de_nuke de_train de_aztec cs_office cs_italy)
 mkdir -p "$C/src"
 
 # 1. Fuentes en los commits de BASE + build nativo (contenedor ubuntu:24.04)
@@ -39,6 +38,9 @@ if [[ ! -f $C/hlds/cstrike/steam.inf ]]; then
       done'
 fi
 grep -q 'PatchVersion=1.1.2.7' "$C/hlds/cstrike/steam.inf" || echo "⚠️  HLDS con otra versión: $(grep PatchVersion "$C/hlds/cstrike/steam.inf")"
+
+# Todos los mapas oficiales (filosofía «museo»: si corre en web sin tumbar el servidor, dentro)
+mapfile -t MAPAS < <(cd "$C/hlds/cstrike/maps" 2>/dev/null && ls *.bsp | sed "s/\.bsp$//")
 
 # 3. Servidor
 EXCL=(--exclude='*.so' --exclude='*.dll' --exclude='*.dylib' --exclude='*.exe' --exclude='dlls/' --exclude='cl_dlls/' --exclude='media/' --exclude='overviews/')
