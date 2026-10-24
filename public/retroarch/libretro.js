@@ -14,6 +14,9 @@ const __raRequestedContent = __raParams.get("content");
 const __raDebugMode        = __raParams.get("debug") === "1";
 const defaultCore = __raRequestedCore || "gambatte";
 var autoStart = __raParams.get("autoStart") === "1";
+// NOBS: con autoStart el reproductor va incrustado en la página de juego (portada y barra las pone
+// el padre): libretro.css oculta la interfaz propia y ajusta el lienzo al marco.
+if (autoStart) document.documentElement.classList.add("ra-embed");
 
 // Modo debug: con ?debug=1 reenviamos console.{log,warn,error,info} al
 // padre vía postMessage para que el panel del catálogo (/retroarch/<sys>/<slug>?debug)
