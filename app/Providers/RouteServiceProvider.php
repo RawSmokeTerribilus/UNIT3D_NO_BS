@@ -76,6 +76,9 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware(MiddlewareGroup::RSS->value)
                 ->group(base_path('routes/rss.php'));
+
+            // Arena: puerta del origen propio, sin sesión ni throttle (una llamada por fichero del juego)
+            Route::group([], base_path('routes/arena.php'));
         });
 
         // Laravel 13 dropped the implicit `?? route('login')` fallback that its

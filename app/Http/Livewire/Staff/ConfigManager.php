@@ -95,6 +95,14 @@ class ConfigManager extends Component
             ],
         ],
         [
+            'title' => 'Arena',
+            'icon'  => 'fa-chess-board',
+            'settings' => [
+                'arena.is_enabled' => ['label' => 'Arena abierta a los socios', 'hint' => 'Juegos multijugador entre socios (/arena). Apagada, la página se cierra y el acceso a las partidas se corta al momento, también a quien ya estaba dentro. Owners y admins pueden entrar igualmente para probar. Las salas se gestionan en Staff → Arena', 'type' => 'boolean'],
+                'arena.pase_horas' => ['label' => 'Duración del pase (horas)', 'hint' => 'Al abrir /arena/<juego> el socio recibe un pase en su sesión; sin pase vigente no llega a las partidas. Vuelve a entrar por la página del juego para renovarlo', 'type' => 'integer'],
+            ],
+        ],
+        [
             'title' => 'Sistema de Thanks',
             'icon'  => 'fa-heart',
             'settings' => [

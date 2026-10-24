@@ -79,6 +79,12 @@
                         </a>
                     </p>
                 @endif
+                <p class="form__group form__group--horizontal">
+                    <a class="form__button form__button--text" href="{{ route('staff.arena.index') }}">
+                        <i class="{{ config('other.font-awesome') }} fa-chess-board"></i>
+                        Arena
+                    </a>
+                </p>
                 @if (auth()->user()->group->is_owner)
                     <p class="form__group form__group--horizontal">
                         <a

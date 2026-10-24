@@ -23,6 +23,9 @@
     <li class="breadcrumbV2">
         <a class="breadcrumb__link" href="{{ route('gaming.index') }}">Arcade</a>
     </li>
+    <li class="breadcrumbV2">
+        <a class="breadcrumb__link" href="{{ route('gaming.aventuras') }}">Aventuras gráficas</a>
+    </li>
     <li class="breadcrumb--active">
         {{ $juego['titulo'] }}
     </li>
@@ -49,9 +52,9 @@
 
     <section class="panelV2 gaming-player-panel">
         <div class="gaming-player-header">
-            <a href="{{ route('gaming.index') }}" class="gaming-back-btn">
+            <a href="{{ route('gaming.aventuras') }}" class="gaming-back-btn">
                 <i class="{{ config('other.font-awesome') }} fa-arrow-left"></i>
-                Volver al Arcade
+                Volver a las aventuras
             </a>
             <h2 class="gaming-player-title">
                 <i class="{{ config('other.font-awesome') }} fa-gamepad"></i>
@@ -72,7 +75,11 @@
                 <div class="gaming-play-overlay__content">
                     <img src="{{ $juego['cover'] }}" class="gaming-play-overlay__cover" alt="{{ $juego['titulo'] }}">
                     <h3 class="gaming-play-overlay__title">{{ $juego['titulo'] }}</h3>
-                    <span class="gaming-play-overlay__version">{{ $juego['version'] }} · {{ $juego['año'] }}</span>
+                    <span class="gaming-play-overlay__version">{{ $juego['desarrollador'] }} · {{ $juego['año'] }} · {{ $juego['version'] }} · 🔊 {{ $juego['idioma'] }}</span>
+                    {{-- La descripción vivía en la lista del catálogo; desde el rediseño del Arcade (fichas de carátula) va aquí --}}
+                    @if (! empty($juego['descripcion']))
+                        <p class="gaming-play-overlay__desc">{{ $juego['descripcion'] }}</p>
+                    @endif
                     <button id="gaming-play-btn" class="gaming-play-overlay__btn">
                         <i class="{{ config('other.font-awesome') }} fa-play"></i>
                         Jugar
@@ -337,6 +344,7 @@
             box-shadow: 0 6px 24px rgba(0,0,0,.7);
         }
 
+        .gaming-play-overlay__desc { max-width: 560px; margin: 0; font-size: 13px; line-height: 1.55; opacity: .88; text-align: center; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
         .gaming-play-overlay__title {
             color: #fff;
             font-size: 18px;

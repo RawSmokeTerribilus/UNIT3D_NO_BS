@@ -57,6 +57,19 @@ class RetroArchController extends Controller
      */
     public function index(): View
     {
+        return view('retroarch.index', [
+            'systems' => $this->sistemasVisibles(),
+        ]);
+    }
+
+    /**
+     * Sistemas declarados en config con ROMs reales. Lo usan el índice de RetroArch y
+     * el hub del Arcade (/gaming), que pinta la escena «La pista» con ellos.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function sistemasVisibles(): array
+    {
         $catalog = $this->catalog();
         $systems = $catalog['systems'] ?? [];
 
@@ -78,9 +91,7 @@ class RetroArchController extends Controller
             ];
         }
 
-        return view('retroarch.index', [
-            'systems' => $visible,
-        ]);
+        return $visible;
     }
 
     /**

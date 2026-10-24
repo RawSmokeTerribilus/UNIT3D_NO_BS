@@ -73,6 +73,8 @@ Route::get('/__auth/check', static function () {
 // gate parece roto cuando en realidad está rate-limited. Quitar throttle aquí
 // es seguro porque la respuesta es <100 bytes y sólo lee la sesión.
 
+// Arena — la puerta de su origen propio está en routes/arena.php (sin sesión).
+
 Route::middleware('language')->group(function (): void {
     /*
     |---------------------------------------------------------------------------------
@@ -466,6 +468,8 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
         // Applying it to the index breaks bfcache and adds ~10 s to every navigation.
         Route::prefix('gaming')->name('gaming.')->group(function (): void {
             Route::get('/', [App\Http\Controllers\GamingController::class, 'index'])->name('index');
+            // Antes de /{gameId}: «aventuras» no es un juego, es el catálogo de ScummVM
+            Route::get('/aventuras', [App\Http\Controllers\GamingController::class, 'aventuras'])->name('aventuras');
             Route::get('/{gameId}', [App\Http\Controllers\GamingController::class, 'show'])->name('show')->middleware('gaming.isolation')->where('gameId', '[a-zA-Z0-9\-]+');
         });
 
@@ -480,6 +484,16 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
             Route::get('/{system}/{slug}', [App\Http\Controllers\RetroArchController::class, 'show'])->name('show')
                 ->middleware('gaming.isolation')
                 ->where('system', '[a-z][a-z0-9]*')
+                ->where('slug', '[a-z0-9][a-z0-9-]*');
+        });
+
+        // Arena — juegos multijugador como módulos fuera de UNIT3D (config/arena.php).
+        // show lleva gaming.isolation por lo mismo que RetroArch: el iframe del módulo
+        // solo hereda el aislamiento (SharedArrayBuffer) si la página padre lo tiene.
+        Route::prefix('arena')->name('arena.')->group(function (): void {
+            Route::get('/', [App\Http\Controllers\ArenaController::class, 'index'])->name('index');
+            Route::get('/{slug}', [App\Http\Controllers\ArenaController::class, 'show'])->name('show')
+                ->middleware('gaming.isolation')
                 ->where('slug', '[a-z0-9][a-z0-9-]*');
         });
 
@@ -966,6 +980,30 @@ Route::middleware(['auth', 'banned', 'verified', 'security.requirements', 'hitru
             // Codebase Version Check
             Route::prefix('UNIT3D')->group(function (): void {
                 Route::get('/', [App\Http\Controllers\Staff\VersionController::class, 'checkVersion']);
+            });
+
+            // Arena: salas en vivo de cada módulo. Ver, reiniciar y avisar = staff;
+            // crear, borrar y apagar todo = admin. El interruptor general va en /dashboard/config.
+            Route::prefix('arena')->name('arena.')->group(function (): void {
+                Route::get('/', [App\Http\Controllers\Staff\ArenaController::class, 'index'])->name('index');
+                Route::post('/{slug}/salas/{sala}/reiniciar', [App\Http\Controllers\Staff\ArenaController::class, 'reiniciar'])->name('reiniciar')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::post('/{slug}/salas/{sala}/aviso', [App\Http\Controllers\Staff\ArenaController::class, 'aviso'])->name('aviso')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::post('/{slug}/salas/{sala}/nombre', [App\Http\Controllers\Staff\ArenaController::class, 'renombrar'])->name('renombrar')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                Route::post('/{slug}/salas/{sala}/moderar/{accion}', [App\Http\Controllers\Staff\ArenaController::class, 'moderar'])->name('moderar')
+                    ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}', 'accion' => 'expulsar|readmitir|silenciar|desilenciar']);
+                Route::middleware('admin')->group(function (): void {
+                    Route::post('/{slug}/salas', [App\Http\Controllers\Staff\ArenaController::class, 'crear'])->name('crear')
+                        ->where('slug', '[a-z0-9][a-z0-9-]*');
+                    Route::delete('/{slug}/salas/{sala}', [App\Http\Controllers\Staff\ArenaController::class, 'borrar'])->name('borrar')
+                        ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'sala' => 'sala[0-9]{1,2}']);
+                    Route::post('/{slug}/apagar-todo', [App\Http\Controllers\Staff\ArenaController::class, 'apagarTodo'])->name('apagar_todo')
+                        ->where('slug', '[a-z0-9][a-z0-9-]*');
+                    Route::delete('/{slug}/presets/{preset}', [App\Http\Controllers\Staff\ArenaController::class, 'borrarPreset'])->name('borrar_preset')
+                        ->where(['slug' => '[a-z0-9][a-z0-9-]*', 'preset' => '[a-z0-9][a-z0-9-]{0,40}']);
+                });
             });
 
             // Colas de jobs: lo que espera, lo que corre, lo terminado y los fallidos

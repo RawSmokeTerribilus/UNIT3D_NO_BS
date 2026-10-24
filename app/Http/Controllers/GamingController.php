@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\GameSave;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
@@ -131,9 +132,28 @@ class GamingController extends Controller
     /**
      * Página principal del arcade — lista de juegos disponibles.
      */
-    public function index(): View
+    /**
+     * Hub del Arcade (botón «Arcade» de la barra): tres puertas (multijugador, consolas,
+     * aventuras gráficas) y, debajo, las escenas de las secciones.
+     */
+    public function index(Request $request): View
     {
-        return view('gaming.index', [
+        $user = $request->user();
+
+        return view('gaming.arcade', [
+            'juegos'       => $this->catalog(),
+            'sistemas'     => app(RetroArchController::class)->sistemasVisibles(),
+            'arenaAbierta' => (bool) config('arena.is_enabled')
+                || ($user !== null && ($user->group->is_owner || $user->group->is_admin)),
+        ]);
+    }
+
+    /**
+     * Aventuras gráficas (ScummVM): el catálogo que antes era la portada de /gaming.
+     */
+    public function aventuras(): View
+    {
+        return view('gaming.aventuras', [
             'juegos' => $this->catalog(),
         ]);
     }
