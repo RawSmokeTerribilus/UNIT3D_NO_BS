@@ -229,3 +229,12 @@ html, body {
 .webplayer-preview.loaded {
   opacity: 1;
 }
+
+/**
+ * NOBS: reproductor incrustado (autoStart=1, ver libretro.js). Sin barra ni botón de menú
+ * ni scroll; el lienzo ocupa todo el marco manteniendo la proporción del juego.
+ */
+html.ra-embed, html.ra-embed body { height: 100%; margin: 0; overflow: hidden; background: #000; }
+html.ra-embed nav.navbar, html.ra-embed .showMenu, html.ra-embed .webplayer-preview { display: none !important; }
+html.ra-embed .webplayer-container, html.ra-embed #canvas_div { height: 100%; padding: 0; margin: 0; border: 0; }
+html.ra-embed canvas.webplayer { display: block; width: 100vw !important; height: 100vh !important; object-fit: contain; }
