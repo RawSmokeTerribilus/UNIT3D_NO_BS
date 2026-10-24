@@ -56,5 +56,14 @@ return [
             'activo'      => true,
             'control_url' => 'http://arena-wz2100-salas:8081',
         ],
+        'q3' => [
+            'nombre'      => 'Quake 3 · OpenArena',
+            'descripcion' => 'Shooter de arena clásico: todos contra todos, por equipos y bandera, con bots.',
+            'icono'       => 'fa-crosshairs',
+            'imagen'      => '/img/arcade/tarjeta-q3',
+            'detalle'     => 'Shooter de arena',
+            'activo'      => true,
+            'control_url' => 'http://arena-q3-salas:8081',
+        ],
     ],
 ];

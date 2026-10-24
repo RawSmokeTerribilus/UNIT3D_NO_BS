@@ -34,6 +34,25 @@ nativo, todo por el relé común de la Arena (`arena/comun/relay.py`, modo `/dg`
 - Cada reintento de conexión del cliente abre un WebSocket nuevo (getchallenge cada 3 s): cuenta
   para el límite de conexiones nuevas por minuto.
 
+## Módulo en staging (24-10, `oa088-arena1`)
+- **Imágenes:** `rawsmoke/nobs-arena-q3-{web,salas}`. Se construyen con `arena/bin/publicar-q3.sh <versión> [--subir]` (contexto mínimo, escaneo de secretos, smoke test, nunca latest). Entradas: `build/preparar_fuente.sh` + `build/build.sh`.
+- **Agente** (`imagen-salas/agente.py`), mismo contrato de API que el de WZ (panel y lobby sin cambios):
+  - salas = procesos `ioq3ded` (UDP 27960+ en 127.0.0.1); presets `todos-contra-todos` (oa_dm1), `duelo` (czest1tourney), `por-equipos` (oa_dm4), `captura-la-bandera` (oa_ctf2);
+  - identidad por el `status` del servidor + `socios.json` del relé, con anuncio en el chat;
+  - bots con `bot_minplayers`, que se retiran a los 60 s sin humanos y vuelven al entrar alguien;
+  - expulsar = `addip` + `clientkick` + veto en el relé; readmitir = `removeip`; silenciar no existe en Q3 (400 con explicación);
+  - sin creador a medida (el panel lo oculta: no hay `/catalogo`).
+- **Cliente** (`imagen-web/cliente`): botón «Jugar» (gesto para el audio y la captura del ratón); pk3 en la Cache Storage del navegador (la versión invalida la caché vieja; la segunda vez carga en segundos); nombre del socio desde `yo.json`; aviso «Fuera de la sala» con el motivo del cierre 4001 del relé (envoltorio de `WebSocket`).
+- **Probado en nabs (arena-nabs):**
+  - entra y juega desde `/arena/q3`;
+  - identidad detectada (`127.10.0.3 → 3:RawSmoke`) y los bots se despiertan al entrar;
+  - expulsar → «WAS KICKED»; al volver, el lobby marca «Vetado» y el cliente avisa «el staff te ha vetado»;
+  - ~40 MB y ~2 % de CPU por sala.
+- **Pendiente:**
+  - recortar los pk3 (hoy ~370 MB la primera vez);
+  - el cliente abre DOS WebSockets por jugador (gasta 2 de las 6 sesiones por socio): averiguar por qué (¿dos peers en SOCKFS?);
+  - medir con salas llenas y fijar topes a la mitad.
+
 ## Siguiente
 Imagen de salas (agente: salas = procesos `ioq3ded`, presets FFA/TDM/CTF con bots) + imagen web
 (cliente + shell + pk3 recortados), detrás del gateway en el origen propio de la Arena, y entrada

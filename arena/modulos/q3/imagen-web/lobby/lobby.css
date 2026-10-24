@@ -1,0 +1,29 @@
+:root { color-scheme: dark; --fondo: #12141a; --panel: #1c1f27; --borde: #2e3340; --texto: #e6e8ee; --apagado: #9aa1b2; --acento: #e0a43a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font: 15px/1.5 system-ui, sans-serif; }
+.sala { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+h1 { margin: 0 0 4px; font-size: 24px; }
+.etiqueta { font-size: 12px; color: var(--acento); border: 1px solid var(--acento); border-radius: 3px; padding: 1px 6px; vertical-align: middle; }
+.quien { color: var(--apagado); margin: 0 0 20px; }
+.salas { display: grid; gap: 12px; }
+.tarjeta { background: var(--panel); border: 1px solid var(--borde); border-radius: 6px; padding: 16px; }
+.tarjeta h2 { margin: 0 0 6px; font-size: 18px; }
+.tarjeta p { margin: 0 0 12px; color: var(--apagado); }
+.boton { display: inline-block; background: var(--acento); color: #111; font-weight: 700; text-decoration: none; padding: 8px 18px; border-radius: 4px; }
+.boton:hover { filter: brightness(1.1); }
+.avisos { margin-top: 20px; font-size: 13px; color: var(--apagado); border-top: 1px solid var(--borde); padding-top: 12px; }
+.boton--apagado { background: var(--borde); color: var(--apagado); cursor: default; }
+.vacio { color: var(--apagado); }
+.tarjeta--mia { border-color: var(--acento); }
+.socios { font-size: 13px; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.boton--secundario { background: transparent; color: var(--texto); border: 1px solid var(--borde); cursor: pointer; font: inherit; font-weight: 700; }
+.crear { margin-top: 20px; background: var(--panel); border: 1px solid var(--borde); border-radius: 6px; padding: 16px; }
+.crear h2 { margin: 0 0 10px; font-size: 18px; }
+.crear form { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; align-items: end; }
+.crear label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--apagado); }
+.crear input, .crear select { background: var(--fondo); color: var(--texto); border: 1px solid var(--borde); border-radius: 4px; padding: 7px 9px; font: inherit; }
+.crear .boton { border: 0; cursor: pointer; font: inherit; font-weight: 700; }
+.nota { font-size: 12px; color: var(--apagado); margin: 10px 0 0; }
+.mensaje { font-size: 13px; margin: 6px 0 0; }
+.mensaje--error { color: #ff7b7b; }

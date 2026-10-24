@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quake 3 · Arena NOBS</title>
+  <link rel="stylesheet" href="arena-q3.css">
+</head>
+<body>
+  <canvas id="canvas" tabindex="-1"></canvas>
+  <div id="portada" class="portada">
+    <div class="caja">
+      <h1>Quake 3 · OpenArena</h1>
+      <p id="portada-texto">Haz clic en el juego para capturar el ratón; Esc lo suelta.</p>
+      <button type="button" id="jugar" class="boton">Jugar</button>
+      <div id="progreso" class="progreso" hidden><div id="barra"></div></div>
+      <p id="detalle" class="detalle"></p>
+      <p class="pie">ioquake3 + OpenArena 0.8.8 (GPLv2) · <a href="https://codeberg.org/RawSmoke/UNIT3D/src/branch/staging-fresh-20260616/arena/modulos/q3" target="_blank" rel="noopener">código y parche de la Arena</a></p>
+    </div>
+  </div>
+  <script type="module" src="arena-q3.js"></script>
+</body>
+</html>

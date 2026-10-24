@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arena · Quake 3 (OpenArena)</title>
+  <link rel="stylesheet" href="lobby.css">
+</head>
+<body>
+  <main class="sala">
+    <h1>Quake 3 · OpenArena</h1>
+    <p class="quien">Socio: <strong id="socio">…</strong></p>
+
+    <section class="salas" id="salas">
+      <p class="vacio">Cargando salas…</p>
+    </section>
+
+    <section class="crear" id="crear">
+      <h2>Crea tu sala</h2>
+      <form id="form-crear" autocomplete="off">
+        <label>Modo <select id="crear-preset" required></select></label>
+        <label>Nombre <input id="crear-nombre" maxlength="60" placeholder="Sala de…"></label>
+        <label>Contraseña (opcional) <input id="crear-contrasena" maxlength="30"></label>
+        <button type="submit" class="boton">Crear</button>
+      </form>
+      <p class="nota">Una sala por socio. La cierras tú, o se cierra sola si nadie entra en 15 minutos.</p>
+      <p class="mensaje" id="crear-mensaje" role="status"></p>
+    </section>
+
+    <aside class="avisos">
+      <p><strong>Entra cuando quieras:</strong> las salas están siempre en marcha y se puede entrar a mitad de partida mientras haya hueco. Si no hay nadie, juegas contra bots, que se retiran solos cuando llegan más socios.</p>
+      <p><strong>Controles:</strong> haz clic en el juego para capturar el ratón (Esc lo suelta). WASD para moverte, ratón para apuntar y disparar, espacio para saltar, rueda o números para cambiar de arma, T para el chat.</p>
+      <p>Primera vez: descarga ~370 MB (se guarda en el navegador; las siguientes veces carga de ahí). Recomendado: PC con Chrome/Firefox recientes, teclado y ratón. Usa el botón de pantalla completa de la página.</p>
+    </aside>
+  </main>
+  <script src="lobby.js"></script>
+</body>
+</html>
