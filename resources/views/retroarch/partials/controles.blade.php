@@ -1,0 +1,67 @@
+{{--
+    Leyenda de controles del teclado por sistema.
+
+    Teclas: las de serie de RetroArch (no las cambiamos): Z = B, X = A, A = Y, S = X,
+    Q = L, W = R, Mayús derecha = SELECT, Enter = START. Cada core reparte esos botones
+    del mando virtual (RetroPad) a los de su consola; aquí se traduce a los nombres de
+    los botones de verdad. Sistema sin entrada = leyenda genérica del RetroPad.
+    Se rellena sistema a sistema, comprobando la asignación del core en su documentación.
+--}}
+@php
+    $mapas = [
+        // Snes9x: RetroPad y mando de SNES son el mismo (B, A, Y, X, L, R)
+        'snes' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'B (botón amarillo, abajo)'],
+            ['X', 'A (botón rojo, derecha)'],
+            ['A', 'Y (botón verde, izquierda)'],
+            ['S', 'X (botón azul, arriba)'],
+            ['Q · W', 'L · R (gatillos)'],
+            ['Mayús derecha', 'SELECT'],
+            ['Enter', 'START'],
+        ],
+    ];
+    $mapa = $mapas[$system] ?? null;
+@endphp
+
+<div class="ra-show__controls-table">
+    <h3 class="ra-show__controls-title">
+        Controles del teclado
+        @if ($mapa)
+            · {{ config('retroarch.systems.'.$system.'.label', $system) }}
+        @endif
+    </h3>
+    <table class="ra-show__keys">
+        <tbody>
+            @if ($mapa)
+                @foreach ($mapa as [$teclas, $boton])
+                    <tr>
+                        <td>
+                            {{-- « · » separa teclas; la cruceta se pinta flecha a flecha --}}
+                            @foreach (explode(' · ', $teclas) as $i => $tecla)
+                                @if ($i > 0) · @endif
+                                @foreach ($tecla === '↑ ↓ ← →' ? explode(' ', $tecla) : [$tecla] as $t)
+                                    <kbd>{{ $t }}</kbd>
+                                @endforeach
+                            @endforeach
+                        </td>
+                        <td>{{ $boton }}</td>
+                    </tr>
+                @endforeach
+            @else
+                @if ($isArcade)
+                    <tr><td><kbd>5</kbd> · <kbd>Shift→</kbd> · <kbd>Tab</kbd></td><td>Insertar moneda (SELECT en gamepad)</td></tr>
+                    <tr><td><kbd>1</kbd> · <kbd>Enter</kbd></td><td>Empezar partida (START)</td></tr>
+                @else
+                    <tr><td><kbd>Shift→</kbd></td><td>SELECT</td></tr>
+                    <tr><td><kbd>Enter</kbd></td><td>START</td></tr>
+                @endif
+                <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Cruceta / D-pad</td></tr>
+                <tr><td><kbd>Z</kbd> · <kbd>X</kbd></td><td>Botones B · A</td></tr>
+                <tr><td><kbd>A</kbd> · <kbd>S</kbd></td><td>Botones Y · X</td></tr>
+                <tr><td><kbd>Q</kbd> · <kbd>W</kbd></td><td>L · R (gatillos)</td></tr>
+            @endif
+            <tr><td><kbd>F1</kbd></td><td>Menú interno de RetroArch (configurar mandos, DIPs, save state…)</td></tr>
+        </tbody>
+    </table>
+</div>
