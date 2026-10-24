@@ -37,7 +37,7 @@
                 data-density="{{ auth()->user()->settings->lateral_fx_density }}"
                 data-hue="{{ auth()->user()->settings->lateral_fx_hue }}"
             ></canvas>
-            <script src="{{ asset('js/nobs-fx.js') }}?v=9" defer></script>
+            <script src="{{ asset('js/nobs-fx.js') }}?v=10" defer></script>
         @endif
 
         {{-- NOBS Perspective Grid: animated floor+ceiling neon grid, gated on the
