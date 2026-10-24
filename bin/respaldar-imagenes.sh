@@ -28,8 +28,13 @@ for repo in $(docker images --format '{{.Repository}}' | grep '^rawsmoke/' | sor
              | awk -F'|' '!visto[$2]++ {print $2, $3}')
 done
 
+externo_ok() { mountpoint -q "$(dirname "$EXTERNO")" && [[ -f $EXTERNO/$1.sha256 ]]; }
 for f in "${!keep_ext[@]}"; do
     ref=${keep_ext[$f]}
+    # Solo en la capa externa y ya está allí verificada: nada que hacer (no se regenera cada día)
+    if [[ -z ${keep_local[$f]:-} ]] && externo_ok "$f"; then
+        continue
+    fi
     if [[ ! -f $LOCAL/$f.sha256 ]]; then
         log "guardando $ref"
         docker save "$ref" | zstd -q -T4 -10 -o "$LOCAL/$f.tmp"
