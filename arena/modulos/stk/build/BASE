@@ -1,0 +1,6 @@
+stk-code ading2210/stk-code rama wasm 43d3673a765d2bc2d01adc29fc87e990b7c90a3d
+cliente-web https://supertuxkart.pages.dev/game/ (supertuxkart.js/.wasm/.worker.js) + data_low.tar.gz (manifiesto de 7 trozos), sha256:
+dc12c13070fac30ad47229a5ac108aea6f5b3a1d41b39419747c5e80635d985d  supertuxkart.js
+42d245ba31d58fa8ab24a23c315cbbc772f0125ea988701525747e598a4a3698  supertuxkart.wasm
+adc27815101e617b4bb0afbe7325df1b3398a30cee4b51db0bc09cbffc5c9baf  supertuxkart.worker.js
+5e5f591fded0d42a22e767b48e0d44fb27fd088ca2d50682819180241011c876  data_low.tar.gz

@@ -337,7 +337,8 @@ async def atender(ws):
     url = urlparse(ws.request.path)
     q = {k: v[0] for k, v in parse_qs(url.query).items()}
     socio = ws.request.headers.get('X-Arena-User', '') or 'anónimo'
-    token = q.get('token', '')
+    # Algunos clientes (SuperTuxKart web) añaden «/host:puerto» a la URL del WebSocket: fuera
+    token = q.get('token', '').split('/', 1)[0]
     if url.path.rstrip('/').endswith('/dg'):
         return await atender_datagramas(ws, socio, token)
 
@@ -423,13 +424,18 @@ async def conserje():
                 await sesion.cerrar(f'sin volver en {plazo} s ({fase.get(sesion.token, "¿?")})')
 
 
-# subprotocols=['binary']: los sockets de Emscripten (SOCKFS) piden ese subprotocolo y el navegador
-# corta la conexión si el servidor no lo acepta. Quien no pide ninguno (ArenaSocket de WZ) entra igual.
+def elegir_subprotocolo(_conexion, ofrecidos):
+    """Los sockets de Emscripten (SOCKFS) piden «binary» y el navegador corta si el servidor no lo acepta;
+    otros clientes (ArenaSocket de WZ, SuperTuxKart web) no piden ninguno. Con subprotocols=[...] websockets
+    rechaza a estos últimos («missing subprotocol»), así que se elige a mano: binary si lo ofrecen, si no nada."""
+    return 'binary' if 'binary' in ofrecidos else None
+
+
 async def main():
     log(f'escuchando en :{PUERTO}; reanudación hasta {REANUDAR_SEG} s; límites: {MAX_SESIONES_SOCIO} por socio, '
         f'{NUEVAS_POR_MINUTO} nuevas/min, {MAX_SESIONES_TOTAL} en total')
     asyncio.create_task(conserje())
-    async with serve(atender, '0.0.0.0', PUERTO, max_size=TRAMA_MAX, subprotocols=['binary'], ping_interval=20, ping_timeout=20):
+    async with serve(atender, '0.0.0.0', PUERTO, max_size=TRAMA_MAX, select_subprotocol=elegir_subprotocolo, ping_interval=20, ping_timeout=20):
         await asyncio.Future()
 
 
