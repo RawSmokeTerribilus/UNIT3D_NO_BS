@@ -30,6 +30,22 @@
             ['Mayús derecha', 'SELECT'],
             ['Enter', 'START'],
         ],
+        // Gambatte (docs.libretro.com/library/gambatte): B, A; L/R cambian la paleta del Game Boy clásico
+        'gb' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'B'],
+            ['X', 'A'],
+            ['Mayús derecha', 'SELECT'],
+            ['Enter', 'START'],
+            ['Q · W', 'Paleta de colores anterior · siguiente (el verde de siempre o a color)'],
+        ],
+        'gbc' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'B'],
+            ['X', 'A'],
+            ['Mayús derecha', 'SELECT'],
+            ['Enter', 'START'],
+        ],
     ];
     $mapa = $mapas[$system] ?? null;
 @endphp
