@@ -129,25 +129,7 @@
                 </div>
             @endif
 
-            <div class="ra-show__controls-table">
-                <h3 class="ra-show__controls-title">Controles del teclado</h3>
-                <table class="ra-show__keys">
-                    <tbody>
-                        @if ($isArcade)
-                            <tr><td><kbd>5</kbd> · <kbd>Shift→</kbd> · <kbd>Tab</kbd></td><td>Insertar moneda (SELECT en gamepad)</td></tr>
-                            <tr><td><kbd>1</kbd> · <kbd>Enter</kbd></td><td>Empezar partida (START)</td></tr>
-                        @else
-                            <tr><td><kbd>Shift→</kbd></td><td>SELECT</td></tr>
-                            <tr><td><kbd>Enter</kbd></td><td>START</td></tr>
-                        @endif
-                        <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Cruceta / D-pad</td></tr>
-                        <tr><td><kbd>Z</kbd> · <kbd>X</kbd></td><td>Botones B · A</td></tr>
-                        <tr><td><kbd>A</kbd> · <kbd>S</kbd></td><td>Botones Y · X</td></tr>
-                        <tr><td><kbd>Q</kbd> · <kbd>W</kbd></td><td>L · R (gatillos)</td></tr>
-                        <tr><td><kbd>F1</kbd></td><td>Menú interno de RetroArch (configurar mandos, DIPs, save state…)</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            @include('retroarch.partials.controles')
 
             <div class="ra-show__hints">
                 <p>Si el juego falla al cargar, abre el menú con <kbd>F1</kbd> y prueba <em>Limpieza de almacenamiento</em>, luego recarga la página.</p>
