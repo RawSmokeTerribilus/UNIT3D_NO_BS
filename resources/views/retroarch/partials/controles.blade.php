@@ -55,6 +55,29 @@
             ['Mayús derecha', 'SELECT'],
             ['Enter', 'START'],
         ],
+        // Genesis Plus GX (docs.libretro.com/library/genesis_plus_gx): Y→A, B→B, A→C; 6 botones: L→X, X→Y, R→Z
+        'genesis' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['A', 'A'],
+            ['Z', 'B'],
+            ['X', 'C'],
+            ['Enter', 'START'],
+            ['Q · S · W', 'X · Y · Z (solo juegos de mando de 6 botones, p. ej. Street Fighter II)'],
+            ['Mayús derecha', 'MODE (mando de 6 botones)'],
+        ],
+        // Mismo core: mando de Master System de dos botones; START = botón PAUSE de la consola
+        'sms' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'Botón 1 (suele ser empezar y saltar/disparar)'],
+            ['X', 'Botón 2'],
+            ['Enter', 'PAUSE (el botón de la consola)'],
+        ],
+        'gg' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'Botón 1'],
+            ['X', 'Botón 2'],
+            ['Enter', 'START'],
+        ],
     ];
     $mapa = $mapas[$system] ?? null;
 @endphp
