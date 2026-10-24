@@ -45,6 +45,9 @@ return [
     // Clave HMAC del pase que lleva la identidad del socio a ese origen (≥ 32 caracteres)
     'pase_secreto' => env('ARENA_PASE_SECRETO'),
 
+    // Guía de usuario (wiki del tracker); vacío = la página de la Arena no enlaza ninguna
+    'wiki_url' => env('ARENA_WIKI_URL'),
+
     'modulos' => [
         'wz2100' => [
             'nombre'      => 'Warzone 2100',

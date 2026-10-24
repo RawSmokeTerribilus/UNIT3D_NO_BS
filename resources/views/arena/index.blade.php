@@ -43,7 +43,15 @@
                     La Arena está cerrada a los socios: la ves porque eres owner/admin.
                 </p>
             @endif
-            <p class="arcade-intro">Partidas entre socios, en el navegador y sin instalar nada.</p>
+            <p class="arcade-intro">
+                Partidas entre socios, en el navegador y sin instalar nada.
+                @if (config('arena.wiki_url'))
+                    <a href="{{ config('arena.wiki_url') }}">
+                        <i class="{{ config('other.font-awesome') }} fa-circle-question"></i>
+                        ¿Cómo funciona?
+                    </a>
+                @endif
+            </p>
             @if ($modulos === [])
                 <p>Ahora mismo no hay ningún juego abierto.</p>
             @else

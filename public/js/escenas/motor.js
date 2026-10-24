@@ -220,27 +220,33 @@
     let visible = true, last = performance.now(), raf = 0, dead = false;
     const emit = () => { if (opts.onTime) opts.onTime(t, inst.L); };
     function draw() { inst.render(vctx, t); emit(); }
+    // Pixel art at 20 fps looks the same and costs a third of a 60 Hz loop. Off-screen,
+    // folded panel or hidden tab: the loop stops outright (no idle wake-ups) and the
+    // IntersectionObserver / visibilitychange start it again.
+    const MIN_FRAME_MS = 1000 / 20 - 4;
     function frame(now) {
       raf = 0;
-      if (dead) return;
-      const dt = Math.min(0.05, (now - last) / 1000);
+      if (dead || !playing) return;
+      if (!visible || document.hidden) return;
+      if (now - last < MIN_FRAME_MS) { raf = requestAnimationFrame(frame); return; }
+      const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (visible && !document.hidden) {
-        t += dt;
-        if (t >= inst.L) {
-          if (loop) t %= inst.L;
-          else { t = inst.L - 0.001; playing = false; draw(); if (opts.onEnd) opts.onEnd(); return; }
-        }
-        draw();
+      t += dt;
+      if (t >= inst.L) {
+        if (loop) t %= inst.L;
+        else { t = inst.L - 0.001; playing = false; draw(); if (opts.onEnd) opts.onEnd(); return; }
       }
-      if (playing) raf = requestAnimationFrame(frame);
+      draw();
+      raf = requestAnimationFrame(frame);
     }
-    function start() { if (!raf && playing && !dead) { last = performance.now(); raf = requestAnimationFrame(frame); } }
+    function start() { if (!raf && playing && !dead && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(frame); } }
     let io = null;
     if ('IntersectionObserver' in window) {
       io = new IntersectionObserver(es => { visible = es.some(e => e.isIntersecting); if (visible) start(); });
       io.observe(canvas);
     }
+    const onVis = () => { if (!document.hidden) start(); };
+    document.addEventListener('visibilitychange', onVis);
     draw();
     start();
     return {
@@ -251,7 +257,7 @@
       pause() { playing = false; },
       toggle() { playing ? (playing = false) : (playing = true, start()); },
       seek(x) { t = clamp(x, 0, inst.L - 0.001); draw(); },
-      destroy() { dead = true; if (io) io.disconnect(); if (raf) cancelAnimationFrame(raf); }
+      destroy() { dead = true; if (io) io.disconnect(); document.removeEventListener('visibilitychange', onVis); if (raf) cancelAnimationFrame(raf); }
     };
   }
 
