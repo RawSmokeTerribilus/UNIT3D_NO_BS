@@ -39,7 +39,7 @@ CLI=$S/stk-code/wasm/web/game
 echo "   cliente web: $CLI"
 cp "$CLI/supertuxkart.js" "$CLI/supertuxkart.wasm" "$CTX/web/cliente/game/"
 [[ -f $CLI/supertuxkart.worker.js ]] && cp "$CLI/supertuxkart.worker.js" "$CTX/web/cliente/game/"
-python3 "$MOD/imagen-web/ajustar_motor.py" "$CTX/web/cliente/game/supertuxkart.js" || fallo "ajustar_motor.py"
+python3 "$REPO_ARENA/comun/ajustar_resolucion.py" "$CTX/web/cliente/game/supertuxkart.js" || fallo "ajustar_resolucion.py"
 ln "$S/demo/data_low.tar.gz" "$CTX/web/cliente/stk-datos.tar.gz" 2>/dev/null || cp "$S/demo/data_low.tar.gz" "$CTX/web/cliente/stk-datos.tar.gz"
 python3 - "$CTX/web/cliente" "$VERSION" <<'PY'
 import json, os, sys

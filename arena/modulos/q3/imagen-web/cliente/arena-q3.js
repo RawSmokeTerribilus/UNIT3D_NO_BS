@@ -8,6 +8,13 @@ const token = /^sala[0-9]{1,2}$/.test(q.get('token') || '') ? q.get('token') : '
 const raiz = location.pathname.replace(/cliente\/[^/]*$/, '');            // …/arena-app/q3/
 const wsurl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}${raiz}dg?token=${token}`;
 const $ = (id) => document.getElementById(id);
+const resolucion = (() => {
+  let alto = parseInt(q.get('alto') || '720', 10);
+  if (!(alto >= 360 && alto <= 2160)) { alto = 720; }
+  // Aspecto de la pantalla (se juega a pantalla completa), no del iframe de ahora
+  const aspecto = screen.width > 0 && screen.height > 0 ? screen.width / screen.height : 16 / 9;
+  return { alto, ancho: Math.round(alto * aspecto / 2) * 2 };
+})();
 
 function aviso(texto, error) {
   const d = $('detalle');
@@ -106,7 +113,13 @@ async function jugar() {
     await ioquake3({
       canvas: $('canvas'),
       arguments: ['+set', 'net_enabled', '1', '+set', 'com_basegame', 'baseoa', '+set', 'fs_game', '',
-        '+set', 'r_mode', '-2', '+set', 'sv_pure', '0', '+set', 'cl_allowDownload', '0',
+        // Resolución de render fija (720 de alto por defecto, ?alto=N para probar) con el aspecto del canvas:
+        // la ventana de ioq3 no es redimensionable, así que CSS la estira y el ratón lo convierte SDL
+        // r_fullscreen 0: con 1, SDL pone el canvas a tamaño de escritorio y el juego pinta en una esquina
+        // (la pantalla completa la da el botón de la página)
+        '+set', 'r_fullscreen', '0',
+        '+set', 'r_mode', '-1', '+set', 'r_customwidth', String(resolucion.ancho), '+set', 'r_customheight', String(resolucion.alto),
+        '+set', 'sv_pure', '0', '+set', 'cl_allowDownload', '0',
         '+set', 'name', nombre,
         // F10 abre el menú (en Firefox, Esc lo usa el navegador para salir de pantalla completa)
         '+bind', 'F10', 'togglemenu',

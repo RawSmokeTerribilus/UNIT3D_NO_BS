@@ -18,7 +18,7 @@
   window.WebSocket.prototype = WSOriginal.prototype;
   ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach(function (k) { window.WebSocket[k] = WSOriginal[k]; });
   // Resolución de render: como mucho ALTO px de alto (720 por defecto; ?alto=1080 en la URL para probar).
-  // El motor ve el canvas reducido y pinta a esa resolución; CSS lo estira (ajustar_motor.py).
+  // El motor ve el canvas reducido y pinta a esa resolución; CSS lo estira (arena/comun/ajustar_resolucion.py).
   var alto = parseInt(q.get('alto') || '720', 10);
   if (!(alto >= 360 && alto <= 2160)) { alto = 720; }
   globalThis.arenaFactor = function (objetivo, rect) {

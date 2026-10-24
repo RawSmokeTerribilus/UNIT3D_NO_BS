@@ -278,14 +278,6 @@ diff -ruN a/platforms/emscripten/shell.html b/platforms/emscripten/shell.html
        
        let WZ_LAUNCH_OPTIONS = {};
        Object.entries(WZ_LAUNCH_OPTIONS_MAPPING).forEach(([k,v]) => {
-@@ -1823,6 +1839,6 @@
-     }
-   </script>
-   {{{ SCRIPT }}}
--  <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86fc2fd5b4b44e60836e1c059333c8ad"}'></script><!-- End Cloudflare Web Analytics -->
-+  <!-- Arena NOBS: wz2100.net's Cloudflare Web Analytics beacon removed (it would report our members to a third party) -->
-   </body>
- </html>
 diff -ruN a/src/CMakeLists.txt b/src/CMakeLists.txt
 --- a/src/CMakeLists.txt	2026-10-23 16:15:12.777146279 +0200
 +++ b/src/CMakeLists.txt	2026-10-23 16:37:59.295655772 +0200

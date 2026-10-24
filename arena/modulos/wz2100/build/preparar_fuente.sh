@@ -19,3 +19,10 @@ else
     git apply -p1 "$PARCHE"
     echo "✅ Parche aplicado sobre $WZ_TAG"
 fi
+# Fuera la baliza de Cloudflare Web Analytics de wz2100.net del shell (reportaría a nuestros socios a un
+# tercero). Con sed y no en el parche: así el token público de wz2100.net no vive en nuestro repo
+# (GitGuardian lo marcaba como «apikey»).
+if grep -q 'cloudflareinsights' platforms/emscripten/shell.html; then
+    sed -i "s|^\s*<!-- Cloudflare Web Analytics -->.*$|  <!-- Arena NOBS: baliza de Cloudflare Web Analytics de wz2100.net quitada (reportaría a los socios a un tercero) -->|" platforms/emscripten/shell.html
+    echo "✅ Baliza de Cloudflare Web Analytics quitada del shell"
+fi

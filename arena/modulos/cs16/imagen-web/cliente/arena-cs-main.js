@@ -12,6 +12,10 @@ const token = /^sala[0-9]{1,2}$/.test(q.get('token') || '') ? q.get('token') : '
 const raiz = location.pathname.replace(/cliente\/[^/]*$/, '');
 const wsurl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}${raiz}dg?token=${token}`;
 const BASE = '/rodir/';
+// Resolución de render: como mucho ALTO px de alto (720 por defecto; ?alto=1080 para probar). El motor ve el
+// canvas reducido (arena/comun/ajustar_resolucion.py, aplicado al JS del motor al publicar) y CSS lo estira.
+const alto = (() => { const a = parseInt(q.get('alto') || '720', 10); return a >= 360 && a <= 2160 ? a : 720; })();
+globalThis.arenaFactor = (objetivo, rect) => (objetivo === document.getElementById('canvas') && rect.height > alto ? alto / rect.height : 1);
 const $ = (id) => document.getElementById(id);
 
 function aviso(texto, error) {

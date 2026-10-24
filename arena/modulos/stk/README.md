@@ -45,7 +45,7 @@ Medido en batalla en red (Alien Signal), mismo equipo:
 | Cliente | Render | fps |
 |---|---|---|
 | Demo (build de depuración) | 1920×927 (pantalla entera) | lo que el operador notó «injugable, se fumaba pulsaciones» |
-| Demo | 1491×720 (`ajustar_motor.py`) | 19,7 |
+| Demo | 1491×720 (`arena/comun/ajustar_resolucion.py`) | 19,7 |
 | Demo | 994×479 (`?alto=480`, con bots) | 16,8 |
 | **Build propia** (`build/build-web.sh`) | 1491×720 | **27,2** |
 

@@ -359,7 +359,7 @@ services:
 
     # Arena · Quake 3 (OpenArena): mismo patrón que WZ (arena/modulos/q3/README.md)
     arena-q3-web:
-        image: rawsmoke/nobs-arena-q3-web:${ARENA_Q3_VERSION:-oa088-arena4}
+        image: rawsmoke/nobs-arena-q3-web:${ARENA_Q3_VERSION:-oa088-arena5}
         container_name: unit3d-staging-arena-q3-web
         restart: unless-stopped
         environment:
@@ -375,7 +375,7 @@ services:
             - arena
 
     arena-q3-salas:
-        image: rawsmoke/nobs-arena-q3-salas:${ARENA_Q3_VERSION:-oa088-arena4}
+        image: rawsmoke/nobs-arena-q3-salas:${ARENA_Q3_VERSION:-oa088-arena5}
         container_name: unit3d-staging-arena-q3-salas
         restart: unless-stopped
         environment:
@@ -398,7 +398,7 @@ services:
 
     # Arena · Counter-Strike 1.6: Xash3D FWGS dedicado + cs16-client (arena/modulos/cs16/README.md)
     arena-cs16-web:
-        image: rawsmoke/nobs-arena-cs16-web:${ARENA_CS16_VERSION:-16-arena4}
+        image: rawsmoke/nobs-arena-cs16-web:${ARENA_CS16_VERSION:-16-arena5}
         container_name: unit3d-staging-arena-cs16-web
         restart: unless-stopped
         environment:
@@ -414,7 +414,7 @@ services:
             - arena
 
     arena-cs16-salas:
-        image: rawsmoke/nobs-arena-cs16-salas:${ARENA_CS16_VERSION:-16-arena4}
+        image: rawsmoke/nobs-arena-cs16-salas:${ARENA_CS16_VERSION:-16-arena5}
         container_name: unit3d-staging-arena-cs16-salas
         restart: unless-stopped
         environment:
@@ -437,7 +437,7 @@ services:
 
     # Arena · SuperTuxKart: servidor nativo + port web de ading2210 (arena/modulos/stk/README.md)
     arena-stk-web:
-        image: rawsmoke/nobs-arena-stk-web:${ARENA_STK_VERSION:-git-arena4}
+        image: rawsmoke/nobs-arena-stk-web:${ARENA_STK_VERSION:-git-arena5}
         container_name: unit3d-staging-arena-stk-web
         restart: unless-stopped
         environment:
@@ -453,7 +453,7 @@ services:
             - arena
 
     arena-stk-salas:
-        image: rawsmoke/nobs-arena-stk-salas:${ARENA_STK_VERSION:-git-arena4}
+        image: rawsmoke/nobs-arena-stk-salas:${ARENA_STK_VERSION:-git-arena5}
         container_name: unit3d-staging-arena-stk-salas
         restart: unless-stopped
         environment:
