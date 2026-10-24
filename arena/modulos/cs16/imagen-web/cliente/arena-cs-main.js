@@ -12,6 +12,20 @@ const token = /^sala[0-9]{1,2}$/.test(q.get('token') || '') ? q.get('token') : '
 const raiz = location.pathname.replace(/cliente\/[^/]*$/, '');
 const wsurl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}${raiz}dg?token=${token}`;
 const BASE = '/rodir/';
+// Resolución de render acotada, SOLO a petición (24-10: por defecto rompía la mira a pantalla completa).
+// ?alto=720 la activa y se guarda en este navegador; ?alto=0 la quita. Sin ella, el factor es 1 y el motor
+// se comporta exactamente igual que sin el parche (arena/comun/ajustar_resolucion.py).
+const altoPedido = (() => {
+  let v = q.get('alto');
+  try {
+    if (v !== null) { localStorage.setItem('arena-cs-alto', v); } else { v = localStorage.getItem('arena-cs-alto'); }
+  } catch (e) { /* sin almacenamiento: solo vale el de la URL */ }
+  const n = parseInt(v || '0', 10);
+  return n >= 360 && n <= 2160 ? n : 0;
+})();
+if (altoPedido) {
+  globalThis.arenaFactor = (objetivo, rect) => (objetivo === document.getElementById('canvas') && rect.height > altoPedido ? altoPedido / rect.height : 1);
+}
 const $ = (id) => document.getElementById(id);
 
 function aviso(texto, error) {

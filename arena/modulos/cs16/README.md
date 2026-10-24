@@ -59,4 +59,7 @@ Servidor ~170 MB / ~12 % CPU.
 - El operador: «muy roto, he perdido la cruz que marca la posición del arma y va fatal, iba mejor antes».
 - Vuelto a `16-arena4`. Sospecha, sin confirmar: Xash compara el tamaño del canvas con el de su ventana al dibujar el HUD/la mira o al redimensionar, y con el tamaño escalado entra en desajuste (¿bucle de cambios de modo?).
 - Si se retoma: probar con la resolución propia del motor (`-width/-height`, `vid_mode`) y ventana NO redimensionable, como en Q3, en vez de escalar el tamaño CSS.
+- **Después (16-arena6):** el ajuste queda **opcional**. Por defecto está apagado (factor 1 = igual que sin parche). Con `?alto=720` en la URL del cliente se activa y se guarda en el navegador (`localStorage: arena-cs-alto`); `?alto=0` lo quita.
+  - Sin pantalla completa no se reproduce la rotura: la mira sale bien con 1491×720.
+  - Solo se puede probar en las condiciones del operador (pantalla completa en el iframe, ratón capturado, Keyboard Lock).
 
