@@ -61,17 +61,42 @@
     if (coinBtn)  coinBtn.addEventListener('click', sendCoin);
     if (startBtn) startBtn.addEventListener('click', sendStart);
 
-    // Auto-coin para arcade (si el sistema vuelve a abrirse).  Tres rondas
-    // de tres monedas, con buffers para cubrir tiempos de carga distintos.
-    if (isArcade) {
-        [6000, 9000, 12000].forEach(function (delay) {
-            setTimeout(function () {
-                sendCoin();
-                setTimeout(sendCoin, 700);
-                setTimeout(sendCoin, 1400);
-            }, delay);
-        });
+    // ── Portada con «Jugar»: el iframe no se carga hasta pulsarlo ─────────
+    var frame   = document.getElementById('ra-frame');
+    var wrap    = document.getElementById('ra-frame-wrap');
+    var overlay = document.getElementById('ra-play');
+    var playBtn = document.getElementById('ra-play-btn');
+    var fsBtn   = document.getElementById('ra-fullscreen-btn');
+
+    function play() {
+        if (!frame || frame.getAttribute('src')) return;
+        frame.setAttribute('src', frame.getAttribute('data-src'));
+        if (overlay) overlay.hidden = true;
+        if (fsBtn) fsBtn.disabled = false;
+        frame.addEventListener('load', function () { try { frame.focus(); } catch (_) {} }, { once: true });
+
+        // Auto-coin para arcade.  Tres rondas de tres monedas, con buffers para
+        // cubrir tiempos de carga distintos (cuentan desde que se pulsa Jugar).
+        if (isArcade) {
+            [6000, 9000, 12000].forEach(function (delay) {
+                setTimeout(function () {
+                    sendCoin();
+                    setTimeout(sendCoin, 700);
+                    setTimeout(sendCoin, 1400);
+                }, delay);
+            });
+        }
     }
+    if (playBtn) playBtn.addEventListener('click', play);
+    // Sin portada (p. ej. vista vieja en caché): carga directa como antes
+    if (!overlay && frame && !frame.getAttribute('src') && frame.getAttribute('data-src')) play();
+
+    if (fsBtn && wrap) fsBtn.addEventListener('click', function () {
+        if (document.fullscreenElement) { document.exitFullscreen(); return; }
+        if (wrap.requestFullscreen) wrap.requestFullscreen().then(function () {
+            try { frame.focus(); } catch (_) {}
+        }).catch(function () {});
+    });
 
     // ── Debug panel ──────────────────────────────────────────────────────
     if (!isDebug) return;

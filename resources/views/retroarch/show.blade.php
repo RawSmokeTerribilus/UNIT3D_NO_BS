@@ -66,15 +66,42 @@
             <span class="ra-badge ra-badge--core">{{ $core }}</span>
         </h2>
         <div class="panel__body">
-            <div class="ra-show__frame-wrap">
+            <div class="ra-show__frame-wrap" id="ra-frame-wrap">
+                {{-- Sin src hasta pulsar Jugar (retroarch-launcher.js): no se baja nada si nadie juega --}}
                 <iframe
                     id="ra-frame"
-                    src="{{ $iframeSrc }}"
+                    data-src="{{ $iframeSrc }}"
                     class="ra-show__frame"
                     title="RetroArch — {{ $rom['title'] }}"
                     allow="autoplay; fullscreen; gamepad"
                     allowfullscreen
                 ></iframe>
+                <div class="ra-play" id="ra-play">
+                    @if (! empty($rom['cover']))
+                        <div class="ra-play__bg" style="background-image:url('{{ $rom['cover'] }}')"></div>
+                    @endif
+                    <div class="ra-play__content">
+                        @if (! empty($rom['cover']))
+                            <img src="{{ $rom['cover'] }}" class="ra-play__cover" alt="{{ $rom['title'] }}">
+                        @endif
+                        <h3 class="ra-play__title">{{ $rom['title'] }}</h3>
+                        <span class="ra-play__meta">{{ $meta['label'] }}</span>
+                        <button type="button" class="ra-play__btn" id="ra-play-btn">
+                            <i class="{{ config('other.font-awesome') }} fa-play"></i>
+                            Jugar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="ra-show__bar">
+                <span class="ra-show__bar-hint">
+                    <i class="{{ config('other.font-awesome') }} fa-keyboard"></i>
+                    Controles debajo · <kbd>F1</kbd> menú del emulador (mandos, guardar partida…)
+                </span>
+                <button type="button" class="ra-show__fs" id="ra-fullscreen-btn" disabled>
+                    <i class="{{ config('other.font-awesome') }} fa-expand"></i>
+                    Pantalla completa
+                </button>
             </div>
 
             {{-- Debug panel — visible sólo con ?debug en la URL --}}
@@ -157,6 +184,24 @@
     <style>
         .ra-show__frame-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: black; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
         .ra-show__frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .ra-show__frame-wrap:fullscreen { border-radius: 0; margin: 0; aspect-ratio: auto; }
+        /* Portada con Jugar, mismo aire que la de ScummVM (gaming/show) */
+        .ra-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; overflow: hidden; background: #000; }
+        .ra-play[hidden] { display: none; }
+        .ra-play__bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(6px) brightness(.4); transform: scale(1.05); }
+        .ra-play__content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; text-align: center; }
+        .ra-play__cover { max-height: 180px; max-width: 70%; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, .7); }
+        .ra-play__title { color: #fff; font-size: 18px; font-weight: 700; margin: 0; text-shadow: 0 2px 6px rgba(0, 0, 0, .9); }
+        .ra-play__meta { color: rgba(255, 255, 255, .65); font-size: 12px; }
+        .ra-play__btn { margin-top: 6px; padding: 12px 32px; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #3b006e, #6b00c9); color: #e0b0ff; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 0 16px #a020f0aa, 0 0 4px #c060ffaa; transition: transform .1s, box-shadow .1s; display: inline-flex; align-items: center; gap: 10px; }
+        .ra-play__btn:hover { transform: scale(1.05); box-shadow: 0 0 24px #a020f0cc, 0 0 8px #c060ffcc; }
+        .ra-play__btn:active { transform: scale(.97); }
+        .ra-show__bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 8px 12px; margin: -8px 0 16px; background: var(--panel_inner_background); border: 1px solid var(--panel_border); border-radius: 6px; font-size: 13px; }
+        .ra-show__bar-hint { opacity: .85; }
+        .ra-show__bar kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--panel_border); border-bottom-width: 2px; border-radius: 3px; background: var(--panel_background); font-family: monospace; font-size: 11px; }
+        .ra-show__fs { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 13px; background: var(--panel_background); border: 1px solid var(--panel_border); border-radius: 4px; color: var(--body_text); cursor: pointer; }
+        .ra-show__fs[disabled] { opacity: .4; cursor: not-allowed; }
+        .ra-show__fs:not([disabled]):hover { border-color: var(--primary); }
         .ra-show__arcade-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; background: var(--panel_inner_background); border: 1px solid var(--panel_border); border-radius: 6px; margin-bottom: 16px; }
         .ra-show__hint-inline { font-size: 12px; opacity: .7; }
         .ra-show__controls-table { padding: 12px 16px; background: var(--panel_inner_background); border: 1px solid var(--panel_border); border-radius: 6px; margin-bottom: 16px; }
