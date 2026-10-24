@@ -62,4 +62,8 @@ Servidor ~170 MB / ~12 % CPU.
 - **Después (16-arena6):** el ajuste queda **opcional**. Por defecto está apagado (factor 1 = igual que sin parche). Con `?alto=720` en la URL del cliente se activa y se guarda en el navegador (`localStorage: arena-cs-alto`); `?alto=0` lo quita.
   - Sin pantalla completa no se reproduce la rotura: la mira sale bien con 1491×720.
   - Solo se puede probar en las condiciones del operador (pantalla completa en el iframe, ratón capturado, Keyboard Lock).
+- **Veredicto del operador (24-10):** «va mejor de normal… a 720 va como si fuese 4k, una basurilla».
+  - CS se queda a resolución completa.
+  - El ajuste a 720 empeora Xash, al contrario que en STK y Q3. Probablemente el factor desata cambios de tamaño continuos en el motor.
+  - Queda opcional e inerte por defecto. En el próximo build de CS conviene quitarlo del todo (`publicar-cs16.sh` y `arena-cs-main.js`).
 
