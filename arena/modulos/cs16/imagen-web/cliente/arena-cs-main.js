@@ -84,7 +84,11 @@ async function datos(config, alAvanzar) {
       if (!req.url.endsWith(`?v=${config.version}`)) { await cache.delete(req); }
     }
     const guardada = await cache.match(clave);
-    if (guardada) { return guardada.body; }
+    if (guardada) {
+      return guardada.body.pipeThrough(new TransformStream({
+        transform(trozo, ctl) { alAvanzar(trozo.length); ctl.enqueue(trozo); },
+      }));
+    }
   } catch (e) { cache = null; }
   const red = await fetch(url, { cache: 'no-store' });
   if (!red.ok) { throw new Error(`no se pudieron descargar los datos (${red.status})`); }
@@ -98,25 +102,50 @@ async function datos(config, alAvanzar) {
   }));
 }
 
-// tar (ustar) en flujo → ficheros en el FS del motor
-async function volcarTar(flujo, FS) {
+// tar (ustar) en flujo → ficheros en el FS del motor. Cola de trozos: cada byte se copia una sola vez
+// (concatenar el búfer en cada lectura era cuadrático con ficheros grandes como halflife.wad).
+// Cede el hilo de vez en cuando para que la página no se quede colgada mientras vuelca.
+async function volcarTar(flujo, FS, alVolcar) {
   const lector = flujo.pipeThrough(new DecompressionStream('gzip')).getReader();
-  let bufer = new Uint8Array(0);
-  const leerHasta = async (n) => {
-    while (bufer.length < n) {
+  const trozos = [];
+  let disponibles = 0;
+  let fin = false;
+  const llenar = async (n) => {
+    while (disponibles < n && !fin) {
       const { done, value } = await lector.read();
-      if (done) { return false; }
-      const nuevo = new Uint8Array(bufer.length + value.length);
-      nuevo.set(bufer); nuevo.set(value, bufer.length);
-      bufer = nuevo;
+      if (done) { fin = true; break; }
+      trozos.push(value);
+      disponibles += value.length;
     }
-    return true;
+    return disponibles >= n;
+  };
+  const tomar = (n) => {
+    const sal = new Uint8Array(n);
+    let puesto = 0;
+    while (puesto < n) {
+      const t = trozos[0];
+      const cuantos = Math.min(t.length, n - puesto);
+      sal.set(cuantos === t.length ? t : t.subarray(0, cuantos), puesto);
+      puesto += cuantos;
+      if (cuantos === t.length) { trozos.shift(); } else { trozos[0] = t.subarray(cuantos); }
+    }
+    disponibles -= n;
+    return sal;
+  };
+  const descartar = (n) => {
+    while (n > 0) {
+      const t = trozos[0];
+      if (t.length <= n) { n -= t.length; disponibles -= t.length; trozos.shift(); }
+      else { trozos[0] = t.subarray(n); disponibles -= n; n = 0; }
+    }
   };
   const texto = (b, i, n) => new TextDecoder().decode(b.subarray(i, i + n)).replace(/\0.*$/s, '');
   const dirs = new Set();
+  let ficheros = 0;
+  let ultimaCesion = performance.now();
   for (;;) {
-    if (!(await leerHasta(512))) { break; }
-    const cab = bufer.subarray(0, 512);
+    if (!(await llenar(512))) { break; }
+    const cab = tomar(512);
     const nombre = texto(cab, 0, 100);
     if (!nombre) { break; }                                   // bloque vacío: fin del tar
     const prefijo = texto(cab, 345, 155);
@@ -124,14 +153,21 @@ async function volcarTar(flujo, FS) {
     const tam = parseInt(texto(cab, 124, 12).trim() || '0', 8);
     const tipo = String.fromCharCode(cab[156] || 48);
     const relleno = Math.ceil(tam / 512) * 512;
-    if (!(await leerHasta(512 + relleno))) { throw new Error('tar cortado'); }
+    if (!(await llenar(relleno))) { throw new Error('tar cortado'); }
     if (tipo === '0' || tipo === '\0') {
       const destino = BASE + ruta;
       const dir = destino.slice(0, destino.lastIndexOf('/'));
       if (!dirs.has(dir)) { FS.mkdirTree(dir); dirs.add(dir); }
-      FS.writeFile(destino, bufer.slice(512, 512 + tam));
+      FS.writeFile(destino, tomar(tam));
+      descartar(relleno - tam);
+      if (alVolcar) { alVolcar(++ficheros); }
+    } else {
+      descartar(relleno);
     }
-    bufer = bufer.slice(512 + relleno);
+    if (performance.now() - ultimaCesion > 50) {
+      await new Promise((r) => setTimeout(r, 0));
+      ultimaCesion = performance.now();
+    }
   }
 }
 
@@ -171,8 +207,9 @@ async function jugar() {
       $('barra').style.width = `${Math.min(100, (100 * hecho) / total).toFixed(1)}%`;
       aviso(`Cargando Counter-Strike… ${(hecho / 1048576).toFixed(0)} / ${(total / 1048576).toFixed(0)} MB`);
     });
-    aviso('Preparando los datos…');
-    await volcarTar(flujo, xash.em.FS);
+    await volcarTar(flujo, xash.em.FS, (n) => {
+      if (n % 50 === 0) { aviso(`Cargando Counter-Strike… ${(hecho / 1048576).toFixed(0)} / ${(total / 1048576).toFixed(0)} MB · ${n} ficheros`); }
+    });
     const extras = await fetch('xash/extras.pk3').then((r) => r.arrayBuffer());
     xash.em.FS.writeFile(BASE + 'extras.pk3', new Uint8Array(extras));
     xash.em.FS.chdir(BASE);

@@ -249,7 +249,7 @@
                             @foreach ($m['presets'] as $p)
                                 <li>
                                     <strong>{{ $p['nombre'] }}</strong> <code>{{ $p['slug'] }}</code>
-                                    <small>{{ $p['mapa'] }} · {{ $p['huecos'] }} huecos · {{ $p['humanos'] }} humanos{{ $p['ias'] ? ' · '.$p['ias'].' IA' : '' }}</small>
+                                    <small>{{ $p['mapa'] }} · {{ $p['huecos'] ?? ($p['humanos'] + ($p['ias'] ?? 0)) }} huecos · {{ $p['humanos'] }} humanos{{ ($p['ias'] ?? 0) ? ' · '.$p['ias'].' IA' : '' }}</small>
                                     <form method="POST" action="{{ route('staff.arena.borrar_preset', ['slug' => $slug, 'preset' => $p['slug']]) }}"
                                         data-confirm="¿Borrar el preset {{ $p['slug'] }}? Las salas que ya lo usan no cambian.">
                                         @csrf

@@ -27,11 +27,29 @@ Chrome → nginx → relé `/dg` → xash dedicado: carga, conecta a `de_dust2`,
 antiterrorista con HUD completo. Una sola sesión WebSocket por jugador. Identidad `127.10.0.3 → 3:RawSmoke`.
 Servidor ~170 MB / ~12 % CPU.
 
+## Módulo en staging (24-10, `16-arena2`)
+- **Imágenes:** `rawsmoke/nobs-arena-cs16-{web,salas}`.
+  - Se preparan con `build/preparar.sh` (fuentes en los commits de `BASE`, build nativo, HLDS por SteamCMD, servidor y datos recortados, motor web desde las copias guardadas).
+  - Se publican con `arena/bin/publicar-cs16.sh <versión> [--subir]`.
+- **Agente** (`imagen-salas/agente.py`), calco del de Q3:
+  - salas = procesos `xash` dedicados (UDP 27015+), datos en solo lectura (`-rodir /opt/cs16`) y `cstrike/` escribible por sala (con `dlls` y `filesystem_stdio.so` enlazados: yapb busca `./cstrike/dlls/cs_amd64.so`);
+  - el `liblist.gam` del servidor tiene `gamedll_linux = dlls/yapb.so` (yapb carga ReGameDLL);
+  - bots con `yb_quota` en modo fill, que se retiran sin humanos;
+  - 7 presets (dust2, inferno, nuke, train, aztec, office, italy);
+  - expulsar = `addip 0` + `kick #userid` + veto en el relé.
+- **CSP con `'unsafe-eval'`** (EM_ASM del motor web).
+- **Probado en nabs:**
+  - entra desde `/arena/cs16` en ~30 s la primera vez;
+  - identidad detectada y bots despiertos;
+  - unos 140 MB y ~17 % de CPU por sala con 1 humano y bots.
+- **Lecciones:**
+  - El cliente necesita el `liblist.gam` **original**. Con el del servidor, el motor web intenta cargar yapb, lanza un `alert()` y bloquea la página; la automatización lo ve como «página ocupada». Se descubrió con una captura del operador.
+  - El volcado del tar tiene que usar una cola de trozos: concatenar el búfer era cuadrático.
+  - Al probar en local por http, la CSP con `https://$host` bloquea los fetch: hay que sobreescribirla en el frente de prueba.
+
 ## Pendiente para el módulo
-- **CSP:** el JS de Emscripten hace `eval` del EM_ASM de los módulos laterales → seguramente `'unsafe-eval'`
-  (asumible: la Arena vive en su propio origen).
-- **Bots yapb**, el agente de salas (calco del de Q3: `status`, `kick`, `addip`), presets por mapa, imágenes y
-  compose, como Q3.
+- Nombres de los bots en castellano (`addons/yapb/conf/names.cfg`); vigilar que yapb no rote bots de más al entrar humanos.
+- Medir con salas llenas y fijar topes a la mitad.
 - **Riesgo:** nadie mantiene el motor web; si el CS se queda, tocará compilar nosotros xash3d-fwgs + cs16-client
   a wasm.
 - **Lista de ficheros que falten** (para el operador): ninguno por ahora; HLDS trae el 1.6 completo.

@@ -140,7 +140,7 @@ def leer_preset(nombre):
 
 def resumen(config):
     return {'nombre': config['nombre'], 'mapa': config['mapa'], 'modo': NOMBRES_MODO[config['modo']],
-            'humanos': config['humanos'], 'ias': config['bots']}
+            'humanos': config['humanos'], 'ias': config['bots'], 'huecos': config['humanos']}
 
 
 def ip_de_socio(socio_id):

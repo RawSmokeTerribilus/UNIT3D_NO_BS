@@ -65,5 +65,14 @@ return [
             'activo'      => true,
             'control_url' => 'http://arena-q3-salas:8081',
         ],
+        'cs16' => [
+            'nombre'      => 'Counter-Strike 1.6',
+            'descripcion' => 'El clásico táctico: terroristas contra antiterroristas, con bots que rellenan.',
+            'icono'       => 'fa-person-rifle',
+            'imagen'      => '/img/arcade/tarjeta-cs16',
+            'detalle'     => 'Shooter táctico',
+            'activo'      => true,
+            'control_url' => 'http://arena-cs16-salas:8081',
+        ],
     ],
 ];
