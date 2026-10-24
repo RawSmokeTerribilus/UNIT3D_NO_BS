@@ -15,7 +15,7 @@
 (function () {
   const cv = document.getElementById('nobs-fx');
   if (!cv) return;
-  const ctx = cv.getContext('2d');
+  let ctx = cv.getContext('2d');       // paintLayer() lo cambia un momento por el de una capa fija
   const root = document.documentElement;
 
   // --- config from canvas data-attrs (blade feeds user preference) ---
@@ -122,6 +122,19 @@
     ctx.globalAlpha = 1;
   }
 
+  /* Capas fijas. Lo que no se mueve (fondo, chasis, pistas, componentes) se pinta UNA vez por
+     geometría en un canvas aparte y cada fotograma se copia con drawImage; solo se redibuja lo que
+     se mueve. Los helpers dibujan sobre `ctx`, así que se cambia por el de la capa mientras se pinta. */
+  function paintLayer(paint) {
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(vw * DPR); c.height = Math.ceil(vh * DPR);
+    const g = c.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const main = ctx; ctx = g;
+    try { paint(); } finally { ctx = main; }
+    return c;
+  }
+
   /* ---------------------------------------------------------- */
   /* EFFECT 1 — BIT RAIN                                         */
   /* ---------------------------------------------------------- */
@@ -208,7 +221,9 @@
       seg.push(len);
       return { pts, seg, len, pulses: [] };
     }
+    let base = null;   // capa fija: pistas, nodos, ramales y componentes
     function init() {
+      base = null;
       traces = []; comps = []; branches = [];
       let uid = 1, rid = 1, cid = 1;
       eachStrip((x, w) => {
@@ -323,8 +338,7 @@
       label(c.x + 6, c.y, c.label + ' ' + c.val, 0.5);
     }
 
-    function draw(dt) {
-      ctx.save(); clipStrips();
+    function paintBase() {
       ctx.fillStyle = fade(1); ctx.fillRect(0, 0, vw, vh); // full clear, crisp
       // base traces
       ctx.lineWidth = 1.1; ctx.strokeStyle = neon(0.16, 50);
@@ -349,6 +363,11 @@
         else if (c.type === 'ic') drawIC(c);
         else drawPassive(c);
       }
+    }
+    function draw(dt) {
+      ctx.save(); clipStrips();
+      if (!base) base = paintLayer(paintBase);
+      ctx.drawImage(base, 0, 0, vw, vh);
       // pulses: white head + 4 fading neon dots, all with a 12 px halo
       const head = dotSprite(2.6, 12, '#fff', neon(1));
       const tail = dotSprite(2.0, 12, neon(0.8, 62), neon(1));
@@ -372,7 +391,9 @@
   /* ---------------------------------------------------------- */
   const racks = (() => {
     let units = [];  // each: {x,y,w,h, leds:[{x,y,state,t,col}]}
+    let base = null; // capa fija: chasis, rejillas y todos los LED apagados
     function init() {
+      base = null;
       units = [];
       const uw = 64, gap = 14, uh = 30;
       eachStrip((x, w) => {
@@ -399,8 +420,7 @@
       if (kind === 'a') return `hsl(${(H()+90)%360} 90% 60% / ${a})`;   // amber-ish
       return neon(a);
     }
-    function draw(dt) {
-      ctx.save(); clipStrips();
+    function paintBase() {
       ctx.fillStyle = fade(1); ctx.fillRect(0, 0, vw, vh);
       for (const u of units) {
         // chassis
@@ -410,18 +430,22 @@
         // vent lines
         ctx.strokeStyle = 'hsl(' + H() + ' 20% 16% / .8)';
         for (let v = 0; v < 3; v++) { ctx.beginPath(); ctx.moveTo(u.x + 44, u.y + 7 + v * 6); ctx.lineTo(u.x + u.w - 6, u.y + 7 + v * 6); ctx.stroke(); }
-        // leds
+        // leds, all off: the lit ones are stamped on top every frame
+        ctx.fillStyle = 'hsl(' + H() + ' 30% 18% / .9)';
+        for (const led of u.leds) { ctx.beginPath(); ctx.arc(u.x + led.ox, u.y + u.h / 2, 2.1, 0, 7); ctx.fill(); }
+      }
+    }
+    function draw(dt) {
+      ctx.save(); clipStrips();
+      if (!base) base = paintLayer(paintBase);
+      ctx.drawImage(base, 0, 0, vw, vh);
+      for (const u of units) {
         for (const led of u.leds) {
           led.t += dt * led.sp * cfg.speed;
           if (led.t > 1) { led.t = 0; if (Math.random() < 0.5) led.on = !led.on; }
-          const lx = u.x + led.ox, ly = u.y + u.h / 2;
-          if (led.on) {
-            const col = ledColor(led.kind, 1);
-            stamp(dotSprite(2.1, 7, col, col), lx, ly);
-          } else {
-            ctx.fillStyle = 'hsl(' + H() + ' 30% 18% / .9)';
-            ctx.beginPath(); ctx.arc(lx, ly, 2.1, 0, 7); ctx.fill();
-          }
+          if (!led.on) continue;
+          const col = ledColor(led.kind, 1);
+          stamp(dotSprite(2.1, 7, col, col), u.x + led.ox, u.y + u.h / 2);
         }
       }
       ctx.restore();
