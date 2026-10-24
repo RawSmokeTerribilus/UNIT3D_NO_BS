@@ -46,6 +46,15 @@
             ['Mayús derecha', 'SELECT'],
             ['Enter', 'START'],
         ],
+        // mGBA (docs.libretro.com/library/mgba): B, A, L, R (los turbos dependen de la versión del core: fuera)
+        'gba' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'B'],
+            ['X', 'A'],
+            ['Q · W', 'L · R (gatillos)'],
+            ['Mayús derecha', 'SELECT'],
+            ['Enter', 'START'],
+        ],
     ];
     $mapa = $mapas[$system] ?? null;
 @endphp
