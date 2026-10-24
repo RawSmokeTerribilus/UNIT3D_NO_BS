@@ -20,6 +20,16 @@
             ['Mayús derecha', 'SELECT'],
             ['Enter', 'START'],
         ],
+        // Nestopia (docs.libretro.com/library/nestopia): B, A y sus turbos en Y, X
+        'nes' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'B (izquierda)'],
+            ['X', 'A (derecha)'],
+            ['A', 'B turbo (mantener = disparo repetido)'],
+            ['S', 'A turbo (mantener = disparo repetido)'],
+            ['Mayús derecha', 'SELECT'],
+            ['Enter', 'START'],
+        ],
     ];
     $mapa = $mapas[$system] ?? null;
 @endphp
