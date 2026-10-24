@@ -35,9 +35,12 @@
   let DPR = 1, vw = 0, vh = 0;
   let L = null, R = null;        // strip rects {x,w}
   let stripW = 0;
+  let mono = 'monospace';        // --mono, read once per geom() instead of every frame
 
   function geom() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
+    mono = getCss('--mono');
+    sprites.clear();
     vw = window.innerWidth; vh = window.innerHeight;
     cv.width = vw * DPR; cv.height = vh * DPR;
     cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
@@ -70,6 +73,55 @@
   const neon  = (a = 1, l = 62) => `hsl(${H()} 95% ${l}% / ${a})`;
   const fade  = (a) => `hsla(${H() - 4}, 40%, 4%, ${a})`;
 
+  /* Glow sprites. shadowBlur on every particle, every frame, is the most expensive thing a
+     2D canvas does (one Gaussian blur per draw call). Each glowing shape is painted ONCE,
+     with the very same shadowBlur, into a small canvas and then stamped with drawImage;
+     globalAlpha carries the per-particle fade (it scales fill and shadow alike, as the
+     old `neon(a)` colours did). shadowBlur ignores transforms, so the sprite keeps the
+     same device-pixel halo as drawing straight on the main canvas. */
+  const sprites = new Map();
+  function sprite(key, w, h, ox, oy, paint) {
+    let s = sprites.get(key);
+    if (!s) {
+      const c = document.createElement('canvas');
+      c.width = Math.ceil(w * DPR); c.height = Math.ceil(h * DPR);
+      const g = c.getContext('2d');
+      g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      paint(g);
+      s = { c, w, h, ox, oy };
+      sprites.set(key, s);
+    }
+    return s;
+  }
+  const haloPad = (b) => Math.ceil((b * 1.5) / DPR) + 2;   // blur reach (3σ, σ = b/2) in CSS px
+  function dotSprite(r, b, fill, shadow) {
+    const half = Math.ceil(r + haloPad(b)), size = half * 2;
+    return sprite(`d|${r}|${b}|${fill}|${shadow}`, size, size, half, half, (g) => {
+      g.shadowColor = shadow; g.shadowBlur = b; g.fillStyle = fill;
+      g.beginPath(); g.arc(half, half, r, 0, 7); g.fill();
+    });
+  }
+  // baseline 'top' or 'middle', drawn from (x, y) like fillText with textAlign 'start'
+  function textSprite(ch, px, fill, shadow, b, baseline) {
+    const key = `t|${ch}|${px}|${fill}|${shadow}|${b}|${baseline}`;
+    const hit = sprites.get(key);
+    if (hit) return hit;                      // measuring/setting fonts per particle is not cheap
+    const pad = haloPad(b), h = Math.ceil(px * 1.3) + pad * 2;
+    ctx.font = `${px}px ${mono}`;
+    const w = Math.ceil(ctx.measureText(ch).width) + pad * 2;
+    const oy = baseline === 'top' ? pad : h / 2;
+    return sprite(key, w, h, pad, oy, (g) => {
+      g.font = `${px}px ${mono}`; g.textBaseline = baseline;
+      g.shadowColor = shadow; g.shadowBlur = b; g.fillStyle = fill;
+      g.fillText(ch, pad, oy);
+    });
+  }
+  function stamp(s, x, y, a = 1) {
+    ctx.globalAlpha = a;
+    ctx.drawImage(s.c, x - s.ox, y - s.oy, s.w, s.h);
+    ctx.globalAlpha = 1;
+  }
+
   /* ---------------------------------------------------------- */
   /* EFFECT 1 — BIT RAIN                                         */
   /* ---------------------------------------------------------- */
@@ -91,18 +143,16 @@
     function draw(dt) {
       ctx.save(); clipStrips();
       ctx.fillStyle = fade(0.16); ctx.fillRect(0, 0, vw, vh);
-      ctx.font = `${fontSize}px ${getCss('--mono')}`;
+      const lead = [textSprite('0', fontSize, '#fff', neon(1), 8, 'top'),
+                    textSprite('1', fontSize, '#fff', neon(1), 8, 'top')];
+      ctx.font = `${fontSize}px ${mono}`;
       ctx.textBaseline = 'top';
+      ctx.fillStyle = neon(0.5, 58);
       const step = fontSize * cfg.speed * dt * 0.06 * 60;
       for (const arr of cols) {
         for (const d of arr) {
           if (Math.random() < 0.012 / cfg.density) continue; // gaps
-          const ch = Math.random() < 0.5 ? '0' : '1';
-          ctx.fillStyle = '#fff';
-          ctx.shadowColor = neon(1); ctx.shadowBlur = 8;
-          ctx.fillText(ch, d.x, d.y);            // bright leader
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = neon(0.5, 58);
+          stamp(lead[Math.random() < 0.5 ? 0 : 1], d.x, d.y);   // bright leader
           ctx.fillText(Math.random() < 0.5 ? '0' : '1', d.x, d.y - fontSize); // dim follower
           d.y += d.sp * step;
           if (d.y > vh + Math.random() * 240) { d.y = -fontSize * (2 + Math.random() * 8); d.sp = 0.5 + Math.random() * 0.9; }
@@ -237,7 +287,7 @@
       ctx.fillStyle = fade(1); ctx.fill();                // drilled hole
     }
     function label(x, y, txt, a = 0.5) {
-      ctx.font = `9px ${getCss('--mono')}`;
+      ctx.font = `9px ${mono}`;
       ctx.textBaseline = 'middle';
       ctx.fillStyle = neon(a, 66);
       ctx.fillText(txt, x, y);
@@ -299,22 +349,19 @@
         else if (c.type === 'ic') drawIC(c);
         else drawPassive(c);
       }
-      // pulses
-      ctx.shadowBlur = 12;
+      // pulses: white head + 4 fading neon dots, all with a 12 px halo
+      const head = dotSprite(2.6, 12, '#fff', neon(1));
+      const tail = dotSprite(2.0, 12, neon(0.8, 62), neon(1));
       for (const t of traces) {
         for (const pu of t.pulses) {
           pu.d += pu.sp * cfg.speed * dt;
           if (pu.d > t.len + 40) pu.d = -Math.random() * 60;
           for (let k = 0; k < 5; k++) {
             const p = posAt(t, pu.d - k * 7);
-            const a = (1 - k / 5);
-            ctx.shadowColor = neon(a);
-            ctx.fillStyle = k === 0 ? '#fff' : neon(a * 0.8, 62);
-            ctx.beginPath(); ctx.arc(p.x, p.y, k === 0 ? 2.6 : 2.0, 0, 7); ctx.fill();
+            stamp(k === 0 ? head : tail, p.x, p.y, 1 - k / 5);
           }
         }
       }
-      ctx.shadowBlur = 0;
       ctx.restore();
     }
     return { init, draw };
@@ -369,12 +416,13 @@
           if (led.t > 1) { led.t = 0; if (Math.random() < 0.5) led.on = !led.on; }
           const lx = u.x + led.ox, ly = u.y + u.h / 2;
           if (led.on) {
-            ctx.shadowColor = ledColor(led.kind, 1); ctx.shadowBlur = 7;
-            ctx.fillStyle = ledColor(led.kind, 1);
-          } else { ctx.shadowBlur = 0; ctx.fillStyle = 'hsl(' + H() + ' 30% 18% / .9)'; }
-          ctx.beginPath(); ctx.arc(lx, ly, 2.1, 0, 7); ctx.fill();
+            const col = ledColor(led.kind, 1);
+            stamp(dotSprite(2.1, 7, col, col), lx, ly);
+          } else {
+            ctx.fillStyle = 'hsl(' + H() + ' 30% 18% / .9)';
+            ctx.beginPath(); ctx.arc(lx, ly, 2.1, 0, 7); ctx.fill();
+          }
         }
-        ctx.shadowBlur = 0;
       }
       ctx.restore();
     }
@@ -408,22 +456,20 @@
     function draw(dt) {
       ctx.save(); clipStrips();
       ctx.fillStyle = fade(0.20); ctx.fillRect(0, 0, vw, vh);
-      ctx.font = '13px ' + getCss('--mono'); ctx.textBaseline = 'middle';
       for (const p of parts) {
         p.life += dt;
         p.y -= p.sp * cfg.speed * dt;
         p.x += Math.sin(p.ph + p.life * 1.4) * p.drift * dt;
         const a = Math.max(0, Math.min(1, Math.min(p.life / 0.6, (p.max - p.life) / 1.0)));
+        if (a <= 0.01) continue;
         if (p.glyph) {
-          ctx.fillStyle = neon(a * 0.85, 66); ctx.shadowColor = neon(a); ctx.shadowBlur = 6;
-          ctx.fillText(p.ch, p.x, p.y);
+          stamp(textSprite(p.ch, 13, neon(0.85, 66), neon(1), 6, 'middle'), p.x, p.y, a);
         } else {
-          ctx.shadowColor = neon(a); ctx.shadowBlur = 9;
-          ctx.fillStyle = a > 0.7 ? '#fff' : neon(a, 70);
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill();
+          // dot sizes rounded to 0.25 px so the sprite cache stays small (~22 sprites)
+          const r = Math.round(p.size * 4) / 4;
+          stamp(dotSprite(r, 9, a > 0.7 ? '#fff' : neon(1, 70), neon(1)), p.x, p.y, a);
         }
       }
-      ctx.shadowBlur = 0;
       // recycle
       for (let i = 0; i < parts.length; i++) {
         if (parts[i].y < -20 || parts[i].life > parts[i].max) {
@@ -455,10 +501,16 @@
   // No strips (phone, narrow window): clear once and stop the loop instead of
   // clearing a full-viewport canvas 60 times a second for nothing. geom()
   // restarts it when a resize makes room for the strips again.
+  // 30 fps cap: half the work of a 60 Hz screen (a quarter on 120/144 Hz) and the
+  // particles don't show it. The -4 ms slack keeps 60 Hz screens at a steady 30.
+  // Hidden tabs and minimised windows need nothing extra: browsers stop
+  // requestAnimationFrame there, and dt is clamped when it comes back.
+  const MIN_FRAME_MS = 1000 / 30 - 4;
   let last = performance.now();
   let running = false;
   const hasStrips = () => L.w > 4 || R.w > 4;
   function frame(now) {
+    if (now - last < MIN_FRAME_MS) { requestAnimationFrame(frame); return; }
     let dt = (now - last) / 1000; last = now;
     if (dt > 0.05) dt = 0.05;          // clamp after tab switch
     const fx = effects[cfg.fx];
