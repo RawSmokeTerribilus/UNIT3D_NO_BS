@@ -53,6 +53,8 @@ for m in "${MAPAS[@]}"; do cp "$C/hlds/cstrike/maps/$m".* "$C/srv/cstrike/maps/"
 cp "$C/src/out-cs/cstrike/dlls/cs_amd64.so" "$C/src/out-cs/cstrike/dlls/yapb_amd64.so" "$C/srv/cstrike/dlls/"
 cp "$C/src/out-cs/cstrike/extras.pk3" "$C/srv/cstrike/"
 sed -i 's|^gamedll_linux .*|gamedll_linux "dlls/yapb.so"|' "$C/srv/cstrike/liblist.gam"
+# Nombres de los bots en castellano: el fichero suelto manda sobre el del extras.pk3
+mkdir -p "$C/srv/cstrike/addons/yapb/conf" && cp "$AQUI/../imagen-salas/yapb/names.cfg" "$C/srv/cstrike/addons/yapb/conf/names.cfg"
 
 # 4. Datos del cliente: lo del servidor sin voces ni criaturas de Half-Life
 rm -rf "$C/datos-cliente" && mkdir -p "$C/datos-cliente"
