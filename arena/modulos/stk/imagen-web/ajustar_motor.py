@@ -12,16 +12,19 @@ fps (y con ellos los controles) se hundían. Se escala por globalThis.arenaFacto
 
 Uso: ajustar_motor.py <supertuxkart.js>
 """
+import re
 import sys
 
 CAMBIOS = [
     ('var rect=getBoundingClientRect(target);HEAPF64[width>>3]=rect.width;HEAPF64[height>>3]=rect.height;return 0}',
      'var rect=getBoundingClientRect(target);var f=globalThis.arenaFactor?globalThis.arenaFactor(target,rect):1;'
      'HEAPF64[width>>3]=rect.width*f;HEAPF64[height>>3]=rect.height*f;return 0}'),
-    ('var rect=getBoundingClientRect(target);HEAP32[idx+13]=e.clientX-(rect.left|0);HEAP32[idx+14]=e.clientY-(rect.top|0)}',
-     'var rect=getBoundingClientRect(target);var f=globalThis.arenaFactor?globalThis.arenaFactor(target,rect):1;'
-     'HEAP32[idx+13]=(e.clientX-(rect.left|0))*f;HEAP32[idx+14]=(e.clientY-(rect.top|0))*f}'),
 ]
+# El ratón: los índices de HEAP32 cambian con la versión de Emscripten (13/14 en la demo, 10/11 con 4.0.10)
+RATON = re.compile(r'var rect=getBoundingClientRect\(target\);HEAP32\[idx\+(\d+)\]=e\.clientX-\(rect\.left\|0\);'
+                   r'HEAP32\[idx\+(\d+)\]=e\.clientY-\(rect\.top\|0\)\}')
+RATON_NUEVO = (r'var rect=getBoundingClientRect(target);var f=globalThis.arenaFactor?globalThis.arenaFactor(target,rect):1;'
+               r'HEAP32[idx+\1]=(e.clientX-(rect.left|0))*f;HEAP32[idx+\2]=(e.clientY-(rect.top|0))*f}')
 
 ruta = sys.argv[1]
 js = open(ruta, encoding='utf-8').read()
@@ -30,5 +33,8 @@ for viejo, nuevo in CAMBIOS:
         continue
     assert js.count(viejo) == 1, f'no encuentro (o hay varias): {viejo[:60]}…'
     js = js.replace(viejo, nuevo)
+if 'HEAP32[idx+' not in js or '(e.clientX-(rect.left|0))*f' not in js:
+    js, n = RATON.subn(RATON_NUEVO, js)
+    assert n == 1, f'no encuentro el cálculo del ratón (coincidencias: {n})'
 open(ruta, 'w', encoding='utf-8').write(js)
 print('motor STK ajustado: resolución acotada por arenaFactor')

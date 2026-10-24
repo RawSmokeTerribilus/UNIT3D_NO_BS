@@ -39,6 +39,23 @@ Carrera en red en el navegador contra un servidor nativo, por el relé común (`
   - /arena con los cuatro juegos;
   - desde /arena/stk: lobby con «RawSmoke» y Bot 1–3, arranque solo tras la cuenta atrás, kart, votación y carrera en «Oliver's Math Class» contra los bots.
 
+## Rendimiento (24-10, `git-arena4`)
+Medido en batalla en red (Alien Signal), mismo equipo:
+
+| Cliente | Render | fps |
+|---|---|---|
+| Demo (build de depuración) | 1920×927 (pantalla entera) | lo que el operador notó «injugable, se fumaba pulsaciones» |
+| Demo | 1491×720 (`ajustar_motor.py`) | 19,7 |
+| Demo | 994×479 (`?alto=480`, con bots) | 16,8 |
+| **Build propia** (`build/build-web.sh`) | 1491×720 | **27,2** |
+
+- **Cuello de botella:** la CPU, no la resolución. En red STK hace rollback y re-simula la física.
+- **La demo es de depuración:** `-sASSERTIONS=1`, y su `build.sh` entrecomilla mal el tipo de build (`"${1:-'Release'}"` deja las comillas dentro y CMake no optimiza).
+- **Build propia:** emsdk 4.0.10, Release de verdad, sin ASSERTIONS, `PTHREAD_POOL_SIZE=8`.
+- **Tropiezos de su receta:** ragel (harfbuzz), embuilder sin `sdl2_image_jpg/png`, `CHECK_ASSETS=off`, reintentos de cmake (su CMakeLists avisa de que falla las primeras veces).
+- **Su parche `force_wsproxy`** no encaja con el SOCKFS de 4.0.10: sin efecto, porque una URL completa en `Module.websocket.url` se usa tal cual.
+
 ## Pendiente
+- Más rendimiento: probar `-msimd128` / LTO; ver si STK limita los fps en web.
 - Medir con varios socios y fijar topes. El motor avisa «thread pool exhausted» (PTHREAD_POOL_SIZE de la build de la demo).
 - Riesgo: el cliente es la build de una demo de terceros; si desaparece, compilar nosotros la rama `wasm` (hay receta en su `wasm/README.md`; los assets salen de stk-assets).

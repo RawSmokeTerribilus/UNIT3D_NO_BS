@@ -33,7 +33,12 @@ mkdir -p "$CTX/web/cliente/game" "$CTX/salas"
 cp "$MOD/imagen-web/Dockerfile" "$MOD/imagen-web/web.conf" "$CTX/web/"
 cp -r "$MOD/imagen-web/lobby" "$CTX/web/lobby"
 cp "$MOD/imagen-web/cliente/"* "$CTX/web/cliente/"
-cp "$S/demo/game/supertuxkart.js" "$S/demo/game/supertuxkart.wasm" "$S/demo/game/supertuxkart.worker.js" "$CTX/web/cliente/game/"
+# Cliente: nuestra build optimizada (build/build-web.sh) si existe; si no, la de la demo (de depuración)
+CLI=$S/stk-code/wasm/web/game
+[[ -f $CLI/supertuxkart.wasm ]] || CLI=$S/demo/game
+echo "   cliente web: $CLI"
+cp "$CLI/supertuxkart.js" "$CLI/supertuxkart.wasm" "$CTX/web/cliente/game/"
+[[ -f $CLI/supertuxkart.worker.js ]] && cp "$CLI/supertuxkart.worker.js" "$CTX/web/cliente/game/"
 python3 "$MOD/imagen-web/ajustar_motor.py" "$CTX/web/cliente/game/supertuxkart.js" || fallo "ajustar_motor.py"
 ln "$S/demo/data_low.tar.gz" "$CTX/web/cliente/stk-datos.tar.gz" 2>/dev/null || cp "$S/demo/data_low.tar.gz" "$CTX/web/cliente/stk-datos.tar.gz"
 python3 - "$CTX/web/cliente" "$VERSION" <<'PY'

@@ -27,6 +27,14 @@ if [[ ! -x $S/stk-code/build-srv/bin/supertuxkart ]]; then
     cp "$AQUI/build-servidor.sh" "$S/"
     docker run --rm -v "$S":/w:z ubuntu:24.04 sh -c 'apt-get update -qq >/dev/null && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq build-essential cmake pkg-config libcurl4-openssl-dev libssl-dev zlib1g-dev libenet-dev git >/dev/null 2>&1; /w/build-servidor.sh; chown -R '"$(id -u):$(id -g)"' /w/stk-code'
 fi
+# Cliente web optimizado (Release de verdad, sin ASSERTIONS): la demo es una build de depuración.
+# Tarda (dependencias + juego); si falla, publicar-stk.sh usa el cliente de la demo.
+if [[ ! -f $S/stk-code/wasm/web/game/supertuxkart.wasm ]]; then
+    cp "$AQUI/build-web.sh" "$S/"
+    sed -i 's/^embuilder build sdl2 sdl2_ttf sdl2_image sdl2_image_jpg sdl2_image_png$/embuilder build sdl2 sdl2_ttf sdl2_image/' "$S/stk-code/wasm/build.sh"
+    sed -i 's|emcmake cmake "$SRC_DIR" -DNO_SHADERC=on -DCMAKE_BUILD_TYPE|emcmake cmake "$SRC_DIR" -DNO_SHADERC=on -DCHECK_ASSETS=off -DCMAKE_BUILD_TYPE|' "$S/stk-code/wasm/build.sh"
+    docker run --rm -v "$S":/w:z arena/wz2100-webbuild:4.7.0 bash -c '/w/build-web.sh; chown -R '"$(id -u):$(id -g)"' /w/stk-code' || echo "⚠️  falló la build web: se usará el cliente de la demo"
+fi
 rm -rf "$S/srv" && mkdir -p "$S/srv/data"
 cp "$S/stk-code/build-srv/bin/supertuxkart" "$S/srv/"
 tar xzf "$S/demo/data_low.tar.gz" -C "$S/srv/data"
