@@ -40,8 +40,7 @@ ln "$C/arena-cs-datos.tar.gz" "$CTX/web/cliente/" 2>/dev/null || cp "$C/arena-cs
 # Shell empaquetado con esbuild (el paquete del motor usa imports sin extensión)
 B=$CTX/bundle
 mkdir -p "$B/vendor" && cp "$MOD/imagen-web/cliente/arena-cs-main.js" "$B/" && cp -r "$C/web/pkg/package" "$B/vendor/xash3d-fwgs"
-# Resolución de render acotada (720 de alto por defecto): el motor pintaba a la pantalla entera
-python3 "$REPO_ARENA/comun/ajustar_resolucion.py" "$B/vendor/xash3d-fwgs/dist/generated/xash.js" || fallo "ajustar_resolucion.py"
+# Sin ajustar_resolucion.py: en Xash rompe la mira y el juego (24-10, vuelto atrás; ver modulos/cs16/README.md)
 docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$B":/w:z -w /w node:22-alpine sh -c \
     'mkdir -p /tmp/eb && cd /tmp/eb && npm i -s esbuild@0.24.2 >/dev/null 2>&1 && cd /w && /tmp/eb/node_modules/.bin/esbuild arena-cs-main.js --bundle --format=esm --target=es2022 --alias:xash3d-fwgs=./vendor/xash3d-fwgs/dist/index.js --outfile=arena-cs.js --log-level=error' \
     || fallo "esbuild"

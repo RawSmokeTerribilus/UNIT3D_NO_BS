@@ -53,3 +53,10 @@ Servidor ~170 MB / ~12 % CPU.
 - **Riesgo:** nadie mantiene el motor web; si el CS se queda, tocará compilar nosotros xash3d-fwgs + cs16-client
   a wasm.
 - **Lista de ficheros que falten** (para el operador): ninguno por ahora; HLDS trae el 1.6 completo.
+
+## Resolución de render: probado y VUELTO ATRÁS (24-10)
+- Se aplicó `arena/comun/ajustar_resolucion.py` (el que sirve para STK) al JS del motor Xash: el buffer quedaba a 1491×720.
+- El operador: «muy roto, he perdido la cruz que marca la posición del arma y va fatal, iba mejor antes».
+- Vuelto a `16-arena4`. Sospecha, sin confirmar: Xash compara el tamaño del canvas con el de su ventana al dibujar el HUD/la mira o al redimensionar, y con el tamaño escalado entra en desajuste (¿bucle de cambios de modo?).
+- Si se retoma: probar con la resolución propia del motor (`-width/-height`, `vid_mode`) y ventana NO redimensionable, como en Q3, en vez de escalar el tamaño CSS.
+
