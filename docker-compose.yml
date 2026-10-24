@@ -359,7 +359,7 @@ services:
 
     # Arena · Quake 3 (OpenArena): mismo patrón que WZ (arena/modulos/q3/README.md)
     arena-q3-web:
-        image: rawsmoke/nobs-arena-q3-web:${ARENA_Q3_VERSION:-oa088-arena1}
+        image: rawsmoke/nobs-arena-q3-web:${ARENA_Q3_VERSION:-oa088-arena2}
         container_name: unit3d-staging-arena-q3-web
         restart: unless-stopped
         environment:
@@ -375,7 +375,7 @@ services:
             - arena
 
     arena-q3-salas:
-        image: rawsmoke/nobs-arena-q3-salas:${ARENA_Q3_VERSION:-oa088-arena1}
+        image: rawsmoke/nobs-arena-q3-salas:${ARENA_Q3_VERSION:-oa088-arena2}
         container_name: unit3d-staging-arena-q3-salas
         restart: unless-stopped
         environment:

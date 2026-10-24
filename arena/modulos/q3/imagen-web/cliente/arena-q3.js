@@ -106,7 +106,10 @@ async function jugar() {
       canvas: $('canvas'),
       arguments: ['+set', 'net_enabled', '1', '+set', 'com_basegame', 'baseoa', '+set', 'fs_game', '',
         '+set', 'r_mode', '-2', '+set', 'sv_pure', '0', '+set', 'cl_allowDownload', '0',
-        '+set', 'name', nombre, '+connect', '10.21.0.1:27960'],
+        '+set', 'name', nombre,
+        // F10 abre el menú (en Firefox, Esc lo usa el navegador para salir de pantalla completa)
+        '+bind', 'F10', 'togglemenu',
+        '+connect', '10.21.0.1:27960'],
       websocket: { url: wsurl, subprotocol: 'binary' },
       locateFile: (f) => f,
       print: (t) => console.log(t),
