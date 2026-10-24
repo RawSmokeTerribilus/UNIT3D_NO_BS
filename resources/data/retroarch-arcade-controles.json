@@ -1,0 +1,5784 @@
+{
+"2020bb": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"aburner": [],
+"aburner2": [
+[
+"Z",
+"Ametralladora"
+],
+[
+"X",
+"Misil"
+]
+],
+"aerofgt": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"aliensu": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"aliensyn": [
+[
+"Z",
+"Disparo 1"
+]
+],
+"alpham2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"androdun": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"aodk": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"aof": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"aof2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"aof3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"arknoid2": [
+[
+"Z",
+"Botón 1"
+]
+],
+"atetris": [
+[
+"Z",
+"Botón"
+]
+],
+"avspirit": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"bangbead": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"bbros": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"biomtoy": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"bjourney": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"blazstar": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"blstroid": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+],
+[
+"S",
+"Botón 4"
+]
+],
+"bogeyman": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"bombjack": [
+[
+"Z",
+"Botón 1"
+]
+],
+"boogwing": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"breakers": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"breakrev": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"bstars": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"bstars2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"btime": [
+[
+"Z",
+"Botón 1"
+]
+],
+"burningf": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"cbuster": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"chinagat": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"circusc": [
+[
+"Z",
+"Botón 1"
+]
+],
+"citycon": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"columns": [
+[
+"Z",
+"Botón 1"
+]
+],
+"congo": [
+[
+"Z",
+"Botón 1"
+]
+],
+"crsword": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ctomaday": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"cyberlip": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"darkseal": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"dassault": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"ddragonu": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+],
+[
+"A",
+"Disparo 3"
+]
+],
+"deadconx": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"digdug": [
+[
+"Z",
+"Disparo 1"
+]
+],
+"digdug2": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"dkongjr": [
+[
+"Z",
+"Botón 1"
+]
+],
+"dkongo": [
+[
+"Z",
+"Botón 1"
+]
+],
+"docastle": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"dondokod": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"doubledr": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"edrandy": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"eightman": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"endurobl": [],
+"exedexes": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"fantzone": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"fatfursp": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"fatfury1": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"fatfury2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"fatfury3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"fbfrenzy": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"flicky": [
+[
+"Z",
+"Disparo 1"
+]
+],
+"flipshot": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"frogger": [
+[
+"↑ ↓ ← →",
+"Solo palanca: este juego no usa botones"
+]
+],
+"gaiden": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"galaga": [
+[
+"Z",
+"Disparo 1"
+]
+],
+"galaxian": [
+[
+"Z",
+"Disparo 1"
+]
+],
+"galaxyfg": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ganryu": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"garou": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"gaunt22p": [],
+"ghostlop": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ghoulsu": [
+[
+"Z",
+"Disparo"
+],
+[
+"X",
+"Saltar"
+]
+],
+"gngt": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"goalx3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"gorf": [
+[
+"Z",
+"Botón 1"
+]
+],
+"gowcaizr": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"gpilots": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"gradius": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"gradius2": [],
+"grdians": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"growlu": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+],
+[
+"A",
+"Disparo 3"
+]
+],
+"gunlock": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+],
+[
+"S",
+"Botón 4"
+]
+],
+"gururin": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"gyruss": [
+[
+"Z",
+"Botón 1"
+]
+],
+"heatbrlu": [],
+"hooku": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"horizon": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"hvysmsh": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"ikarijpb": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3 (girar)"
+],
+[
+"Q",
+"Girar a la izquierda"
+],
+[
+"W",
+"Girar a la derecha"
+]
+],
+"invaders": [
+[
+"Z",
+"Botón 1"
+]
+],
+"journey": [
+[
+"Z",
+"Botón 1"
+]
+],
+"joyjoy": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"jungleh": [
+[
+"Z",
+"Botón 1"
+]
+],
+"junofrst": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"kabukikl": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"karnovr": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kchamp": [
+[
+"↑ ↓ ← →",
+"Solo palanca: este juego no usa botones"
+]
+],
+"kick": [
+[
+"Z",
+"Botón 1"
+]
+],
+"kizuna": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"knightsu": [
+[
+"Z",
+"Atacar"
+],
+[
+"X",
+"Saltar"
+]
+],
+"kodu": [
+[
+"Z",
+"Atacar"
+],
+[
+"X",
+"Saltar"
+]
+],
+"kof2000": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof2001": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof2002": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof2003": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof94": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof95": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof96": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof97": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof98": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kof99": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kotm": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kotm2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"kungfum": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"lastblad": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"lastbld2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"lbowling": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ldrun": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"ldrun2": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"ldrun4": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"legendos": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"lifefrce": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"liquidk": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"loderndf": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"lresort": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"lwings": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"macross2": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"magdrop2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"magdrop3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"maglord": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mappy": [
+[
+"Z",
+"Botón 1"
+]
+],
+"marble": [],
+"matrim": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"metmqstr": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+],
+[
+"S",
+"Botón 4"
+]
+],
+"mk": [
+[
+"Z",
+"Puñetazo bajo"
+],
+[
+"X",
+"Patada baja"
+],
+[
+"A",
+"Puñetazo alto"
+],
+[
+"S",
+"Patada alta"
+],
+[
+"Q",
+"Bloquear"
+],
+[
+"W",
+"Bloquear 2"
+]
+],
+"mk2": [
+[
+"Z",
+"Puñetazo bajo"
+],
+[
+"X",
+"Patada baja"
+],
+[
+"A",
+"Puñetazo alto"
+],
+[
+"S",
+"Patada alta"
+],
+[
+"Q",
+"Bloquear"
+],
+[
+"W",
+"Bloquear 2"
+]
+],
+"mslug": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mslug2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mslug3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mslug4": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mslug5": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mslugx": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"mspacman": [
+[
+"↑ ↓ ← →",
+"Solo palanca: este juego no usa botones"
+]
+],
+"mswordu": [
+[
+"Z",
+"Atacar"
+],
+[
+"X",
+"Saltar"
+],
+[
+"A",
+"Disparo 3"
+]
+],
+"mutnat": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"nam1975": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"nbajam": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"nbajamte": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"ncombat": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ncommand": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"neobombe": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"neocup98": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"neodrift": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"neomrdo": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ninjak": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"ninjamas": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"nitd": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"outfxies": [],
+"overtop": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"pacman": [
+[
+"↑ ↓ ← →",
+"Solo palanca: este juego no usa botones"
+]
+],
+"panicbom": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"parodius": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"pbobbl2n": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"pbobblen": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"peterpak": [],
+"pgoal": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"phoenix": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"pooyan": [
+[
+"Z",
+"Botón"
+]
+],
+"popbounc": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"popeyef": [
+[
+"Z",
+"Botón 1"
+]
+],
+"preisle2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"pspikes2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"pulstar": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"puyopuy2": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"puzzledp": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"qbert": [
+[
+"↑ ↓ ← →",
+"Solo palanca: este juego no usa botones"
+]
+],
+"qix": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"ragnagrd": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"rampage": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"rastanu": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"rbff1": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"rbff2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"rbffspec": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ridhero": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ringking": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"roboarmy": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"rocnrope": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"rohgau": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"rotd": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"rthun2": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"rtypeu": [],
+"rushatck": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"rygar": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"s1945": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"s1945p": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samsh5sp": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samsho": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samsho2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samsho3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samsho4": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samsho5": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"samuraia": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"savagere": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"scontra": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"sdodgeb": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"sengoku": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"sengoku2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"sengoku3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"shaolins": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"shocktr2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"shocktro": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"shollow": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"socbrawl": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"sonic": [
+[
+"Z",
+"Botón 1"
+]
+],
+"sonicwi2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"sonicwi3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"sonson": [
+[
+"Z",
+"Botón 1"
+]
+],
+"spinmast": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ssideki": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ssideki2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ssideki3": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"ssideki4": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"stakwin": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"stakwin2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"stdragon": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"strhoop": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"superpac": [
+[
+"Z",
+"Botón 1"
+]
+],
+"superspy": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"svc": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"timeplt": [
+[
+"Z",
+"Botón 1"
+]
+],
+"tmnt2po": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"tokiu": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"toobin": [
+[
+"Z",
+"Lanzar"
+],
+[
+"X",
+"Remo derecho adelante"
+],
+[
+"Q",
+"Remo izquierdo adelante"
+],
+[
+"—",
+"Remo izquierdo atrás (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Remo derecho atrás (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"tophuntr": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"totc": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"tpgolf": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"trackfld": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"trally": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"trojan": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"truxton2": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"tumblep": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"turfmast": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"twinspri": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"typhoon": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"upndown": [
+[
+"Z",
+"Disparo 1"
+]
+],
+"valkyrie": [],
+"viewpoin": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"wakuwak7": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"wbmlb": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"wboyu": [
+[
+"Z",
+"Disparo 1"
+],
+[
+"X",
+"Disparo 2"
+]
+],
+"wh1": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"wh2": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"wh2j": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"whp": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"wildfang": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+],
+[
+"A",
+"Botón 3"
+]
+],
+"wjammers": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"wofu": [
+[
+"Z",
+"Atacar"
+],
+[
+"X",
+"Saltar"
+]
+],
+"wow": [
+[
+"Z",
+"Botón 1"
+],
+[
+"X",
+"Botón 2"
+]
+],
+"zaxxon": [
+[
+"Z",
+"Botón 1"
+]
+],
+"zedblade": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+],
+"zookeep": [
+[
+"Z",
+"Botón 1"
+]
+],
+"zupapa": [
+[
+"Z",
+"Botón A"
+],
+[
+"X",
+"Botón B"
+],
+[
+"A",
+"Botón C"
+],
+[
+"S",
+"Botón D"
+],
+[
+"Q",
+"Botones C+D a la vez"
+],
+[
+"W",
+"Botones A+B a la vez"
+],
+[
+"—",
+"Botones B+C+D a la vez (sin tecla: asígnala en F1 → Controles)"
+],
+[
+"—",
+"Botones A+B+C a la vez (sin tecla: asígnala en F1 → Controles)"
+]
+]
+}

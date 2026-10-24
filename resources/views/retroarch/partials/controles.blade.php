@@ -88,6 +88,28 @@
         ],
     ];
     $mapa = $mapas[$system] ?? null;
+
+    // Arcade (FBNeo): cada juego reparte sus botones a su manera. resources/data/retroarch-arcade-controles.json
+    // sale de cargar cada juego en el core y leer lo que anuncia (vault: Arena/../retroarch-controles-arcade).
+    if ($isArcade) {
+        static $arcade = null;
+        $arcade ??= json_decode((string) @file_get_contents(resource_path('data/retroarch-arcade-controles.json')), true) ?: [];
+        $juego = $arcade[pathinfo($rom['filename'] ?? '', PATHINFO_FILENAME)] ?? null;
+        if ($juego !== null) {
+            $mapa = [
+                ['5 · Mayús derecha · Tab', 'Insertar moneda'],
+                ['1 · Enter', 'Empezar partida (START)'],
+            ];
+            if ($juego === []) {
+                $mapa[] = ['—', 'Este juego usa volante, trackball o mando analógico: configúralo en F1 → Controles'];
+            } else {
+                if (($juego[0][0] ?? '') !== '↑ ↓ ← →') {
+                    $mapa[] = ['↑ ↓ ← →', 'Palanca'];
+                }
+                array_push($mapa, ...$juego);
+            }
+        }
+    }
 @endphp
 
 <div class="ra-show__controls-table">
@@ -107,7 +129,11 @@
                             @foreach (explode(' · ', $teclas) as $i => $tecla)
                                 @if ($i > 0) · @endif
                                 @foreach ($tecla === '↑ ↓ ← →' ? explode(' ', $tecla) : [$tecla] as $t)
-                                    <kbd>{{ $t }}</kbd>
+                                    @if ($t === '—')
+                                        —
+                                    @else
+                                        <kbd>{{ $t }}</kbd>
+                                    @endif
                                 @endforeach
                             @endforeach
                         </td>
