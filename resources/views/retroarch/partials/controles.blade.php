@@ -78,6 +78,14 @@
             ['X', 'Botón 2'],
             ['Enter', 'START'],
         ],
+        // Beetle PCE Fast (docs.libretro.com/library/beetle_pce_fast), mando de 2 botones: B→II, A→I, Start→RUN
+        'pce' => [
+            ['↑ ↓ ← →', 'Cruceta'],
+            ['Z', 'II (izquierda)'],
+            ['X', 'I (derecha)'],
+            ['Mayús derecha', 'SELECT'],
+            ['Enter', 'RUN (empezar / pausa)'],
+        ],
     ];
     $mapa = $mapas[$system] ?? null;
 @endphp
