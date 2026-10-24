@@ -437,7 +437,7 @@ services:
 
     # Arena · SuperTuxKart: servidor nativo + port web de ading2210 (arena/modulos/stk/README.md)
     arena-stk-web:
-        image: rawsmoke/nobs-arena-stk-web:${ARENA_STK_VERSION:-git-arena2}
+        image: rawsmoke/nobs-arena-stk-web:${ARENA_STK_VERSION:-git-arena3}
         container_name: unit3d-staging-arena-stk-web
         restart: unless-stopped
         environment:
@@ -453,7 +453,7 @@ services:
             - arena
 
     arena-stk-salas:
-        image: rawsmoke/nobs-arena-stk-salas:${ARENA_STK_VERSION:-git-arena2}
+        image: rawsmoke/nobs-arena-stk-salas:${ARENA_STK_VERSION:-git-arena3}
         container_name: unit3d-staging-arena-stk-salas
         restart: unless-stopped
         environment:

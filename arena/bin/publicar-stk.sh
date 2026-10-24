@@ -34,6 +34,7 @@ cp "$MOD/imagen-web/Dockerfile" "$MOD/imagen-web/web.conf" "$CTX/web/"
 cp -r "$MOD/imagen-web/lobby" "$CTX/web/lobby"
 cp "$MOD/imagen-web/cliente/"* "$CTX/web/cliente/"
 cp "$S/demo/game/supertuxkart.js" "$S/demo/game/supertuxkart.wasm" "$S/demo/game/supertuxkart.worker.js" "$CTX/web/cliente/game/"
+python3 "$MOD/imagen-web/ajustar_motor.py" "$CTX/web/cliente/game/supertuxkart.js" || fallo "ajustar_motor.py"
 ln "$S/demo/data_low.tar.gz" "$CTX/web/cliente/stk-datos.tar.gz" 2>/dev/null || cp "$S/demo/data_low.tar.gz" "$CTX/web/cliente/stk-datos.tar.gz"
 python3 - "$CTX/web/cliente" "$VERSION" <<'PY'
 import json, os, sys
