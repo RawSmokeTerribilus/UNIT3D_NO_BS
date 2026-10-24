@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SuperTuxKart · Arena NOBS</title>
+  <link rel="stylesheet" href="arena-stk.css">
+</head>
+<body>
+  <canvas id="canvas" tabindex="-1"></canvas>
+  <div id="portada" class="portada">
+    <div class="caja">
+      <h1>SuperTuxKart</h1>
+      <p id="portada-texto">Usa «Pantalla completa» de la página. Flechas para conducir, espacio para usar objetos.</p>
+      <button type="button" id="jugar" class="boton" disabled>Jugar</button>
+      <div id="progreso" class="progreso" hidden><div id="barra"></div></div>
+      <p id="detalle" class="detalle"></p>
+      <p class="pie">SuperTuxKart (GPLv3) · port web de ading2210 · <a href="https://codeberg.org/RawSmoke/UNIT3D/src/branch/staging-fresh-20260616/arena/modulos/stk" target="_blank" rel="noopener">código de la Arena</a></p>
+    </div>
+  </div>
+  <script src="pre.js"></script>
+  <script src="game/supertuxkart.js"></script>
+  <script src="aplazar.js"></script>
+  <script type="module" src="arena-stk.js"></script>
+</body>
+</html>

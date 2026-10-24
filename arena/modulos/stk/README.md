@@ -26,6 +26,19 @@ Carrera en red en el navegador contra un servidor nativo, por el relé común (`
   - Las imágenes de WZ arena10 llevan el relé de antes del cambio: no les afecta, pero el próximo build de WZ ya sale bien.
 - El motor avisa «thread pool exhausted» (PTHREAD_POOL_SIZE corto), pero funciona.
 
-## Pendiente para el módulo
-- Agente (consola del servidor STK por stdin: listpeers/kick/kickban), presets (carrera normal, contrarreloj, batalla, fútbol, bandera; pistas), imágenes, compose, gateway y tarjeta.
-- Nombre del jugador (sale «unnamed»): perfil por defecto con el nombre del socio.
+## Módulo en staging (24-10, ~06:00, `git-arena2`)
+- **Imágenes:** `rawsmoke/nobs-arena-stk-{web,salas}`. Se preparan con `build/preparar.sh` (descarga de la demo con sha256 de `BASE` + build del servidor) y se publican con `arena/bin/publicar-stk.sh`.
+- **Agente** (calco del de Q3):
+  - salas = `supertuxkart --lan-server --network-console` (UDP 2759+);
+  - 6 presets por modo: carrera, carrera experto, contrarreloj, batalla, fútbol y bandera. La pista se vota en el lobby: las ~40 pistas están disponibles, la filosofía del museo.
+  - Bots = proceso `--connect-now … --network-ai=N` desde 127.0.0.1, que se lanza al entrar un socio y se para a los 60 s sin humanos; `ai-handling` los retira según entran humanos.
+  - `server_config.xml` propio: owner-less, `min-start-game-players=1` (por defecto 2, y los bots no cuentan: con un socio solo no arrancaba nunca), `start-game-counter=30`, sin validación.
+  - Identidad por el log («New player X … from IP»), expulsar = listpeers + kickban + veto. Sin chat por consola: avisos y silenciar → 400 con explicación.
+- **Cliente:** nombre del socio en el perfil (`players.xml` en IDBFS; sin él, el servidor lo veía como «unnamed») y aviso con el motivo del cierre 4001 (envoltorio de `WebSocket` en `pre.js`).
+- **Probado en nabs:**
+  - /arena con los cuatro juegos;
+  - desde /arena/stk: lobby con «RawSmoke» y Bot 1–3, arranque solo tras la cuenta atrás, kart, votación y carrera en «Oliver's Math Class» contra los bots.
+
+## Pendiente
+- Medir con varios socios y fijar topes. El motor avisa «thread pool exhausted» (PTHREAD_POOL_SIZE de la build de la demo).
+- Riesgo: el cliente es la build de una demo de terceros; si desaparece, compilar nosotros la rama `wasm` (hay receta en su `wasm/README.md`; los assets salen de stk-assets).

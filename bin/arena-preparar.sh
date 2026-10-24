@@ -24,8 +24,8 @@ if ! grep -qE '^ARENA_CONTROL_TOKEN=.+' .env; then
     echo "🔑 arena-preparar: ARENA_CONTROL_TOKEN generado en el .env (aplica config:cache para que lo vea la app)"
 fi
 
-# Un uid por contenedor: 2100 el agente de WZ, 2101 el de Quake 3, 2102 el de CS 1.6
-for par in wz2100:2100 q3:2101 cs16:2102; do
+# Un uid por contenedor: 2100 el agente de WZ, 2101 el de Quake 3, 2102 el de CS 1.6, 2103 el de STK
+for par in wz2100:2100 q3:2101 cs16:2102 stk:2103; do
     dir=${par%%:*} uid=${par##*:}
     mkdir -p "arena-data/$dir"
     if [[ $(stat -c %u "arena-data/$dir") != "$uid" ]]; then

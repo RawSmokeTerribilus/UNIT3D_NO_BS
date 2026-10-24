@@ -74,5 +74,14 @@ return [
             'activo'      => true,
             'control_url' => 'http://arena-cs16-salas:8081',
         ],
+        'stk' => [
+            'nombre'      => 'SuperTuxKart',
+            'descripcion' => 'Carreras de karts libres: carrera, batalla, fútbol y bandera, con 40 pistas para explorar.',
+            'icono'       => 'fa-flag-checkered',
+            'imagen'      => '/img/arcade/tarjeta-stk',
+            'detalle'     => 'Carreras',
+            'activo'      => true,
+            'control_url' => 'http://arena-stk-salas:8081',
+        ],
     ],
 ];
